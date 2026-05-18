@@ -256,9 +256,9 @@ export type UserWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   version?: Prisma.IntFilter<"User"> | number
   deleted?: Prisma.BoolFilter<"User"> | boolean
-  company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
-  tasks?: Prisma.TaskListRelationFilter
   livestockEvents?: Prisma.LivestockEventListRelationFilter
+  tasks?: Prisma.TaskListRelationFilter
+  company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
   weightRecords?: Prisma.WeightRecordListRelationFilter
 }
 
@@ -273,9 +273,9 @@ export type UserOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
   deleted?: Prisma.SortOrder
-  company?: Prisma.CompanyOrderByWithRelationInput
-  tasks?: Prisma.TaskOrderByRelationAggregateInput
   livestockEvents?: Prisma.LivestockEventOrderByRelationAggregateInput
+  tasks?: Prisma.TaskOrderByRelationAggregateInput
+  company?: Prisma.CompanyOrderByWithRelationInput
   weightRecords?: Prisma.WeightRecordOrderByRelationAggregateInput
 }
 
@@ -293,9 +293,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   version?: Prisma.IntFilter<"User"> | number
   deleted?: Prisma.BoolFilter<"User"> | boolean
-  company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
-  tasks?: Prisma.TaskListRelationFilter
   livestockEvents?: Prisma.LivestockEventListRelationFilter
+  tasks?: Prisma.TaskListRelationFilter
+  company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
   weightRecords?: Prisma.WeightRecordListRelationFilter
 }, "id" | "username">
 
@@ -343,9 +343,9 @@ export type UserCreateInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
-  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
   livestockEvents?: Prisma.LivestockEventCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
+  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
   weightRecords?: Prisma.WeightRecordCreateNestedManyWithoutOperatorInput
 }
 
@@ -360,8 +360,8 @@ export type UserUncheckedCreateInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorInput
   livestockEvents?: Prisma.LivestockEventUncheckedCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorInput
   weightRecords?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutOperatorInput
 }
 
@@ -375,9 +375,9 @@ export type UserUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
   livestockEvents?: Prisma.LivestockEventUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
+  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
   weightRecords?: Prisma.WeightRecordUpdateManyWithoutOperatorNestedInput
 }
 
@@ -392,8 +392,8 @@ export type UserUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorNestedInput
   livestockEvents?: Prisma.LivestockEventUncheckedUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorNestedInput
   weightRecords?: Prisma.WeightRecordUncheckedUpdateManyWithoutOperatorNestedInput
 }
 
@@ -601,8 +601,8 @@ export type UserCreateWithoutCompanyInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
-  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
   livestockEvents?: Prisma.LivestockEventCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
   weightRecords?: Prisma.WeightRecordCreateNestedManyWithoutOperatorInput
 }
 
@@ -616,8 +616,8 @@ export type UserUncheckedCreateWithoutCompanyInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorInput
   livestockEvents?: Prisma.LivestockEventUncheckedCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorInput
   weightRecords?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutOperatorInput
 }
 
@@ -673,8 +673,8 @@ export type UserCreateWithoutTasksInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
-  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
   livestockEvents?: Prisma.LivestockEventCreateNestedManyWithoutOperatorInput
+  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
   weightRecords?: Prisma.WeightRecordCreateNestedManyWithoutOperatorInput
 }
 
@@ -719,8 +719,8 @@ export type UserUpdateWithoutTasksInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
   livestockEvents?: Prisma.LivestockEventUpdateManyWithoutOperatorNestedInput
+  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
   weightRecords?: Prisma.WeightRecordUpdateManyWithoutOperatorNestedInput
 }
 
@@ -749,8 +749,8 @@ export type UserCreateWithoutLivestockEventsInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
-  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
   tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
+  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
   weightRecords?: Prisma.WeightRecordCreateNestedManyWithoutOperatorInput
 }
 
@@ -795,8 +795,8 @@ export type UserUpdateWithoutLivestockEventsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
+  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
   weightRecords?: Prisma.WeightRecordUpdateManyWithoutOperatorNestedInput
 }
 
@@ -825,9 +825,9 @@ export type UserCreateWithoutWeightRecordsInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
-  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
   livestockEvents?: Prisma.LivestockEventCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
+  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
 }
 
 export type UserUncheckedCreateWithoutWeightRecordsInput = {
@@ -841,8 +841,8 @@ export type UserUncheckedCreateWithoutWeightRecordsInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorInput
   livestockEvents?: Prisma.LivestockEventUncheckedCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorInput
 }
 
 export type UserCreateOrConnectWithoutWeightRecordsInput = {
@@ -871,9 +871,9 @@ export type UserUpdateWithoutWeightRecordsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
   livestockEvents?: Prisma.LivestockEventUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
+  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWeightRecordsInput = {
@@ -887,8 +887,8 @@ export type UserUncheckedUpdateWithoutWeightRecordsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorNestedInput
   livestockEvents?: Prisma.LivestockEventUncheckedUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorNestedInput
 }
 
 export type UserCreateManyCompanyInput = {
@@ -913,8 +913,8 @@ export type UserUpdateWithoutCompanyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
   livestockEvents?: Prisma.LivestockEventUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
   weightRecords?: Prisma.WeightRecordUpdateManyWithoutOperatorNestedInput
 }
 
@@ -928,8 +928,8 @@ export type UserUncheckedUpdateWithoutCompanyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorNestedInput
   livestockEvents?: Prisma.LivestockEventUncheckedUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorNestedInput
   weightRecords?: Prisma.WeightRecordUncheckedUpdateManyWithoutOperatorNestedInput
 }
 
@@ -951,14 +951,14 @@ export type UserUncheckedUpdateManyWithoutCompanyInput = {
  */
 
 export type UserCountOutputType = {
-  tasks: number
   livestockEvents: number
+  tasks: number
   weightRecords: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  tasks?: boolean | UserCountOutputTypeCountTasksArgs
   livestockEvents?: boolean | UserCountOutputTypeCountLivestockEventsArgs
+  tasks?: boolean | UserCountOutputTypeCountTasksArgs
   weightRecords?: boolean | UserCountOutputTypeCountWeightRecordsArgs
 }
 
@@ -975,15 +975,15 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountTasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.TaskWhereInput
+export type UserCountOutputTypeCountLivestockEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LivestockEventWhereInput
 }
 
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountLivestockEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.LivestockEventWhereInput
+export type UserCountOutputTypeCountTasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TaskWhereInput
 }
 
 /**
@@ -1005,9 +1005,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   version?: boolean
   deleted?: boolean
-  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
-  tasks?: boolean | Prisma.User$tasksArgs<ExtArgs>
   livestockEvents?: boolean | Prisma.User$livestockEventsArgs<ExtArgs>
+  tasks?: boolean | Prisma.User$tasksArgs<ExtArgs>
+  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   weightRecords?: boolean | Prisma.User$weightRecordsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -1055,9 +1055,9 @@ export type UserSelectScalar = {
 
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "companyId" | "username" | "passwordHash" | "role" | "active" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
-  tasks?: boolean | Prisma.User$tasksArgs<ExtArgs>
   livestockEvents?: boolean | Prisma.User$livestockEventsArgs<ExtArgs>
+  tasks?: boolean | Prisma.User$tasksArgs<ExtArgs>
+  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   weightRecords?: boolean | Prisma.User$weightRecordsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1071,9 +1071,9 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
-    company: Prisma.$CompanyPayload<ExtArgs>
-    tasks: Prisma.$TaskPayload<ExtArgs>[]
     livestockEvents: Prisma.$LivestockEventPayload<ExtArgs>[]
+    tasks: Prisma.$TaskPayload<ExtArgs>[]
+    company: Prisma.$CompanyPayload<ExtArgs>
     weightRecords: Prisma.$WeightRecordPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1481,9 +1481,9 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  company<T extends Prisma.CompanyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CompanyDefaultArgs<ExtArgs>>): Prisma.Prisma__CompanyClient<runtime.Types.Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  tasks<T extends Prisma.User$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   livestockEvents<T extends Prisma.User$livestockEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$livestockEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LivestockEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tasks<T extends Prisma.User$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  company<T extends Prisma.CompanyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CompanyDefaultArgs<ExtArgs>>): Prisma.Prisma__CompanyClient<runtime.Types.Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   weightRecords<T extends Prisma.User$weightRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$weightRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WeightRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1925,30 +1925,6 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
- * User.tasks
- */
-export type User$tasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Task
-   */
-  select?: Prisma.TaskSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Task
-   */
-  omit?: Prisma.TaskOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.TaskInclude<ExtArgs> | null
-  where?: Prisma.TaskWhereInput
-  orderBy?: Prisma.TaskOrderByWithRelationInput | Prisma.TaskOrderByWithRelationInput[]
-  cursor?: Prisma.TaskWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.TaskScalarFieldEnum | Prisma.TaskScalarFieldEnum[]
-}
-
-/**
  * User.livestockEvents
  */
 export type User$livestockEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1970,6 +1946,30 @@ export type User$livestockEventsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.LivestockEventScalarFieldEnum | Prisma.LivestockEventScalarFieldEnum[]
+}
+
+/**
+ * User.tasks
+ */
+export type User$tasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Task
+   */
+  select?: Prisma.TaskSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Task
+   */
+  omit?: Prisma.TaskOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskInclude<ExtArgs> | null
+  where?: Prisma.TaskWhereInput
+  orderBy?: Prisma.TaskOrderByWithRelationInput | Prisma.TaskOrderByWithRelationInput[]
+  cursor?: Prisma.TaskWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TaskScalarFieldEnum | Prisma.TaskScalarFieldEnum[]
 }
 
 /**

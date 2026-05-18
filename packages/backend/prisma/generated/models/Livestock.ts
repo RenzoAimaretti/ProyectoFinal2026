@@ -282,8 +282,8 @@ export type LivestockWhereInput = {
   deleted?: Prisma.BoolFilter<"Livestock"> | boolean
   company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
   events?: Prisma.LivestockEventListRelationFilter
-  weights?: Prisma.WeightRecordListRelationFilter
   movements?: Prisma.LivestockMovementListRelationFilter
+  weights?: Prisma.WeightRecordListRelationFilter
 }
 
 export type LivestockOrderByWithRelationInput = {
@@ -302,8 +302,8 @@ export type LivestockOrderByWithRelationInput = {
   deleted?: Prisma.SortOrder
   company?: Prisma.CompanyOrderByWithRelationInput
   events?: Prisma.LivestockEventOrderByRelationAggregateInput
-  weights?: Prisma.WeightRecordOrderByRelationAggregateInput
   movements?: Prisma.LivestockMovementOrderByRelationAggregateInput
+  weights?: Prisma.WeightRecordOrderByRelationAggregateInput
 }
 
 export type LivestockWhereUniqueInput = Prisma.AtLeast<{
@@ -325,8 +325,8 @@ export type LivestockWhereUniqueInput = Prisma.AtLeast<{
   deleted?: Prisma.BoolFilter<"Livestock"> | boolean
   company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
   events?: Prisma.LivestockEventListRelationFilter
-  weights?: Prisma.WeightRecordListRelationFilter
   movements?: Prisma.LivestockMovementListRelationFilter
+  weights?: Prisma.WeightRecordListRelationFilter
 }, "id" | "tagNumber">
 
 export type LivestockOrderByWithAggregationInput = {
@@ -384,8 +384,8 @@ export type LivestockCreateInput = {
   deleted?: boolean
   company: Prisma.CompanyCreateNestedOneWithoutLivestockInput
   events?: Prisma.LivestockEventCreateNestedManyWithoutLivestockInput
-  weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
   movements?: Prisma.LivestockMovementCreateNestedManyWithoutLivestockInput
+  weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
 }
 
 export type LivestockUncheckedCreateInput = {
@@ -403,8 +403,8 @@ export type LivestockUncheckedCreateInput = {
   version?: number
   deleted?: boolean
   events?: Prisma.LivestockEventUncheckedCreateNestedManyWithoutLivestockInput
-  weights?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutLivestockInput
   movements?: Prisma.LivestockMovementUncheckedCreateNestedManyWithoutLivestockInput
+  weights?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutLivestockInput
 }
 
 export type LivestockUpdateInput = {
@@ -422,8 +422,8 @@ export type LivestockUpdateInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   company?: Prisma.CompanyUpdateOneRequiredWithoutLivestockNestedInput
   events?: Prisma.LivestockEventUpdateManyWithoutLivestockNestedInput
-  weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
   movements?: Prisma.LivestockMovementUpdateManyWithoutLivestockNestedInput
+  weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
 }
 
 export type LivestockUncheckedUpdateInput = {
@@ -441,8 +441,8 @@ export type LivestockUncheckedUpdateInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   events?: Prisma.LivestockEventUncheckedUpdateManyWithoutLivestockNestedInput
-  weights?: Prisma.WeightRecordUncheckedUpdateManyWithoutLivestockNestedInput
   movements?: Prisma.LivestockMovementUncheckedUpdateManyWithoutLivestockNestedInput
+  weights?: Prisma.WeightRecordUncheckedUpdateManyWithoutLivestockNestedInput
 }
 
 export type LivestockCreateManyInput = {
@@ -665,8 +665,8 @@ export type LivestockCreateWithoutCompanyInput = {
   version?: number
   deleted?: boolean
   events?: Prisma.LivestockEventCreateNestedManyWithoutLivestockInput
-  weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
   movements?: Prisma.LivestockMovementCreateNestedManyWithoutLivestockInput
+  weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
 }
 
 export type LivestockUncheckedCreateWithoutCompanyInput = {
@@ -683,8 +683,8 @@ export type LivestockUncheckedCreateWithoutCompanyInput = {
   version?: number
   deleted?: boolean
   events?: Prisma.LivestockEventUncheckedCreateNestedManyWithoutLivestockInput
-  weights?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutLivestockInput
   movements?: Prisma.LivestockMovementUncheckedCreateNestedManyWithoutLivestockInput
+  weights?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutLivestockInput
 }
 
 export type LivestockCreateOrConnectWithoutCompanyInput = {
@@ -746,8 +746,8 @@ export type LivestockCreateWithoutEventsInput = {
   version?: number
   deleted?: boolean
   company: Prisma.CompanyCreateNestedOneWithoutLivestockInput
-  weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
   movements?: Prisma.LivestockMovementCreateNestedManyWithoutLivestockInput
+  weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
 }
 
 export type LivestockUncheckedCreateWithoutEventsInput = {
@@ -764,8 +764,8 @@ export type LivestockUncheckedCreateWithoutEventsInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
-  weights?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutLivestockInput
   movements?: Prisma.LivestockMovementUncheckedCreateNestedManyWithoutLivestockInput
+  weights?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutLivestockInput
 }
 
 export type LivestockCreateOrConnectWithoutEventsInput = {
@@ -798,8 +798,8 @@ export type LivestockUpdateWithoutEventsInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   company?: Prisma.CompanyUpdateOneRequiredWithoutLivestockNestedInput
-  weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
   movements?: Prisma.LivestockMovementUpdateManyWithoutLivestockNestedInput
+  weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
 }
 
 export type LivestockUncheckedUpdateWithoutEventsInput = {
@@ -816,8 +816,8 @@ export type LivestockUncheckedUpdateWithoutEventsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  weights?: Prisma.WeightRecordUncheckedUpdateManyWithoutLivestockNestedInput
   movements?: Prisma.LivestockMovementUncheckedUpdateManyWithoutLivestockNestedInput
+  weights?: Prisma.WeightRecordUncheckedUpdateManyWithoutLivestockNestedInput
 }
 
 export type LivestockCreateWithoutWeightsInput = {
@@ -1025,8 +1025,8 @@ export type LivestockUpdateWithoutCompanyInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   events?: Prisma.LivestockEventUpdateManyWithoutLivestockNestedInput
-  weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
   movements?: Prisma.LivestockMovementUpdateManyWithoutLivestockNestedInput
+  weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
 }
 
 export type LivestockUncheckedUpdateWithoutCompanyInput = {
@@ -1043,8 +1043,8 @@ export type LivestockUncheckedUpdateWithoutCompanyInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   events?: Prisma.LivestockEventUncheckedUpdateManyWithoutLivestockNestedInput
-  weights?: Prisma.WeightRecordUncheckedUpdateManyWithoutLivestockNestedInput
   movements?: Prisma.LivestockMovementUncheckedUpdateManyWithoutLivestockNestedInput
+  weights?: Prisma.WeightRecordUncheckedUpdateManyWithoutLivestockNestedInput
 }
 
 export type LivestockUncheckedUpdateManyWithoutCompanyInput = {
@@ -1069,14 +1069,14 @@ export type LivestockUncheckedUpdateManyWithoutCompanyInput = {
 
 export type LivestockCountOutputType = {
   events: number
-  weights: number
   movements: number
+  weights: number
 }
 
 export type LivestockCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   events?: boolean | LivestockCountOutputTypeCountEventsArgs
-  weights?: boolean | LivestockCountOutputTypeCountWeightsArgs
   movements?: boolean | LivestockCountOutputTypeCountMovementsArgs
+  weights?: boolean | LivestockCountOutputTypeCountWeightsArgs
 }
 
 /**
@@ -1099,15 +1099,15 @@ export type LivestockCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Type
 /**
  * LivestockCountOutputType without action
  */
-export type LivestockCountOutputTypeCountWeightsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.WeightRecordWhereInput
+export type LivestockCountOutputTypeCountMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LivestockMovementWhereInput
 }
 
 /**
  * LivestockCountOutputType without action
  */
-export type LivestockCountOutputTypeCountMovementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.LivestockMovementWhereInput
+export type LivestockCountOutputTypeCountWeightsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WeightRecordWhereInput
 }
 
 
@@ -1127,8 +1127,8 @@ export type LivestockSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   deleted?: boolean
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   events?: boolean | Prisma.Livestock$eventsArgs<ExtArgs>
-  weights?: boolean | Prisma.Livestock$weightsArgs<ExtArgs>
   movements?: boolean | Prisma.Livestock$movementsArgs<ExtArgs>
+  weights?: boolean | Prisma.Livestock$weightsArgs<ExtArgs>
   _count?: boolean | Prisma.LivestockCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["livestock"]>
 
@@ -1186,8 +1186,8 @@ export type LivestockOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type LivestockInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   events?: boolean | Prisma.Livestock$eventsArgs<ExtArgs>
-  weights?: boolean | Prisma.Livestock$weightsArgs<ExtArgs>
   movements?: boolean | Prisma.Livestock$movementsArgs<ExtArgs>
+  weights?: boolean | Prisma.Livestock$weightsArgs<ExtArgs>
   _count?: boolean | Prisma.LivestockCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type LivestockIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1202,8 +1202,8 @@ export type $LivestockPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   objects: {
     company: Prisma.$CompanyPayload<ExtArgs>
     events: Prisma.$LivestockEventPayload<ExtArgs>[]
-    weights: Prisma.$WeightRecordPayload<ExtArgs>[]
     movements: Prisma.$LivestockMovementPayload<ExtArgs>[]
+    weights: Prisma.$WeightRecordPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1615,8 +1615,8 @@ export interface Prisma__LivestockClient<T, Null = never, ExtArgs extends runtim
   readonly [Symbol.toStringTag]: "PrismaPromise"
   company<T extends Prisma.CompanyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CompanyDefaultArgs<ExtArgs>>): Prisma.Prisma__CompanyClient<runtime.Types.Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   events<T extends Prisma.Livestock$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Livestock$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LivestockEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  weights<T extends Prisma.Livestock$weightsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Livestock$weightsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WeightRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   movements<T extends Prisma.Livestock$movementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Livestock$movementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LivestockMovementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  weights<T extends Prisma.Livestock$weightsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Livestock$weightsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WeightRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2084,30 +2084,6 @@ export type Livestock$eventsArgs<ExtArgs extends runtime.Types.Extensions.Intern
 }
 
 /**
- * Livestock.weights
- */
-export type Livestock$weightsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the WeightRecord
-   */
-  select?: Prisma.WeightRecordSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the WeightRecord
-   */
-  omit?: Prisma.WeightRecordOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.WeightRecordInclude<ExtArgs> | null
-  where?: Prisma.WeightRecordWhereInput
-  orderBy?: Prisma.WeightRecordOrderByWithRelationInput | Prisma.WeightRecordOrderByWithRelationInput[]
-  cursor?: Prisma.WeightRecordWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.WeightRecordScalarFieldEnum | Prisma.WeightRecordScalarFieldEnum[]
-}
-
-/**
  * Livestock.movements
  */
 export type Livestock$movementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2129,6 +2105,30 @@ export type Livestock$movementsArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.LivestockMovementScalarFieldEnum | Prisma.LivestockMovementScalarFieldEnum[]
+}
+
+/**
+ * Livestock.weights
+ */
+export type Livestock$weightsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WeightRecord
+   */
+  select?: Prisma.WeightRecordSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WeightRecord
+   */
+  omit?: Prisma.WeightRecordOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WeightRecordInclude<ExtArgs> | null
+  where?: Prisma.WeightRecordWhereInput
+  orderBy?: Prisma.WeightRecordOrderByWithRelationInput | Prisma.WeightRecordOrderByWithRelationInput[]
+  cursor?: Prisma.WeightRecordWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WeightRecordScalarFieldEnum | Prisma.WeightRecordScalarFieldEnum[]
 }
 
 /**

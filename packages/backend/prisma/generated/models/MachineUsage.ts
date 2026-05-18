@@ -248,8 +248,8 @@ export type MachineUsageWhereInput = {
   usageHours?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   observations?: Prisma.StringNullableFilter<"MachineUsage"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MachineUsage"> | Date | string
-  task?: Prisma.XOR<Prisma.TaskScalarRelationFilter, Prisma.TaskWhereInput>
   machine?: Prisma.XOR<Prisma.MachineScalarRelationFilter, Prisma.MachineWhereInput>
+  task?: Prisma.XOR<Prisma.TaskScalarRelationFilter, Prisma.TaskWhereInput>
 }
 
 export type MachineUsageOrderByWithRelationInput = {
@@ -261,8 +261,8 @@ export type MachineUsageOrderByWithRelationInput = {
   usageHours?: Prisma.SortOrderInput | Prisma.SortOrder
   observations?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  task?: Prisma.TaskOrderByWithRelationInput
   machine?: Prisma.MachineOrderByWithRelationInput
+  task?: Prisma.TaskOrderByWithRelationInput
 }
 
 export type MachineUsageWhereUniqueInput = Prisma.AtLeast<{
@@ -277,8 +277,8 @@ export type MachineUsageWhereUniqueInput = Prisma.AtLeast<{
   usageHours?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   observations?: Prisma.StringNullableFilter<"MachineUsage"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MachineUsage"> | Date | string
-  task?: Prisma.XOR<Prisma.TaskScalarRelationFilter, Prisma.TaskWhereInput>
   machine?: Prisma.XOR<Prisma.MachineScalarRelationFilter, Prisma.MachineWhereInput>
+  task?: Prisma.XOR<Prisma.TaskScalarRelationFilter, Prisma.TaskWhereInput>
 }, "id">
 
 export type MachineUsageOrderByWithAggregationInput = {
@@ -318,8 +318,8 @@ export type MachineUsageCreateInput = {
   usageHours?: number | null
   observations?: string | null
   createdAt?: Date | string
-  task: Prisma.TaskCreateNestedOneWithoutMachineLogsInput
   machine: Prisma.MachineCreateNestedOneWithoutUsagesInput
+  task: Prisma.TaskCreateNestedOneWithoutMachineLogsInput
 }
 
 export type MachineUsageUncheckedCreateInput = {
@@ -340,8 +340,8 @@ export type MachineUsageUpdateInput = {
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  task?: Prisma.TaskUpdateOneRequiredWithoutMachineLogsNestedInput
   machine?: Prisma.MachineUpdateOneRequiredWithoutUsagesNestedInput
+  task?: Prisma.TaskUpdateOneRequiredWithoutMachineLogsNestedInput
 }
 
 export type MachineUsageUncheckedUpdateInput = {
@@ -730,8 +730,8 @@ export type MachineUsageSelect<ExtArgs extends runtime.Types.Extensions.Internal
   usageHours?: boolean
   observations?: boolean
   createdAt?: boolean
-  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["machineUsage"]>
 
 export type MachineUsageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -743,8 +743,8 @@ export type MachineUsageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   usageHours?: boolean
   observations?: boolean
   createdAt?: boolean
-  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["machineUsage"]>
 
 export type MachineUsageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -756,8 +756,8 @@ export type MachineUsageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   usageHours?: boolean
   observations?: boolean
   createdAt?: boolean
-  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["machineUsage"]>
 
 export type MachineUsageSelectScalar = {
@@ -773,23 +773,23 @@ export type MachineUsageSelectScalar = {
 
 export type MachineUsageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "taskId" | "machineId" | "initialFuel" | "finalFuel" | "usageHours" | "observations" | "createdAt", ExtArgs["result"]["machineUsage"]>
 export type MachineUsageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
 }
 export type MachineUsageIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
 }
 export type MachineUsageIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
 }
 
 export type $MachineUsagePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "MachineUsage"
   objects: {
-    task: Prisma.$TaskPayload<ExtArgs>
     machine: Prisma.$MachinePayload<ExtArgs>
+    task: Prisma.$TaskPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1194,8 +1194,8 @@ readonly fields: MachineUsageFieldRefs;
  */
 export interface Prisma__MachineUsageClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  task<T extends Prisma.TaskDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TaskDefaultArgs<ExtArgs>>): Prisma.Prisma__TaskClient<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   machine<T extends Prisma.MachineDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MachineDefaultArgs<ExtArgs>>): Prisma.Prisma__MachineClient<runtime.Types.Result.GetResult<Prisma.$MachinePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  task<T extends Prisma.TaskDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TaskDefaultArgs<ExtArgs>>): Prisma.Prisma__TaskClient<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

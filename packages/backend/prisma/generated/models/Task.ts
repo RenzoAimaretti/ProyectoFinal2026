@@ -272,10 +272,10 @@ export type TaskWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Task"> | Date | string
   version?: Prisma.IntFilter<"Task"> | number
   deleted?: Prisma.BoolFilter<"Task"> | boolean
+  machineLogs?: Prisma.MachineUsageListRelationFilter
   lot?: Prisma.XOR<Prisma.LotScalarRelationFilter, Prisma.LotWhereInput>
   operator?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   taskType?: Prisma.XOR<Prisma.TaskTypeScalarRelationFilter, Prisma.TaskTypeWhereInput>
-  machineLogs?: Prisma.MachineUsageListRelationFilter
 }
 
 export type TaskOrderByWithRelationInput = {
@@ -291,10 +291,10 @@ export type TaskOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
   deleted?: Prisma.SortOrder
+  machineLogs?: Prisma.MachineUsageOrderByRelationAggregateInput
   lot?: Prisma.LotOrderByWithRelationInput
   operator?: Prisma.UserOrderByWithRelationInput
   taskType?: Prisma.TaskTypeOrderByWithRelationInput
-  machineLogs?: Prisma.MachineUsageOrderByRelationAggregateInput
 }
 
 export type TaskWhereUniqueInput = Prisma.AtLeast<{
@@ -313,10 +313,10 @@ export type TaskWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Task"> | Date | string
   version?: Prisma.IntFilter<"Task"> | number
   deleted?: Prisma.BoolFilter<"Task"> | boolean
+  machineLogs?: Prisma.MachineUsageListRelationFilter
   lot?: Prisma.XOR<Prisma.LotScalarRelationFilter, Prisma.LotWhereInput>
   operator?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   taskType?: Prisma.XOR<Prisma.TaskTypeScalarRelationFilter, Prisma.TaskTypeWhereInput>
-  machineLogs?: Prisma.MachineUsageListRelationFilter
 }, "id">
 
 export type TaskOrderByWithAggregationInput = {
@@ -367,10 +367,10 @@ export type TaskCreateInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
+  machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   lot: Prisma.LotCreateNestedOneWithoutTasksInput
   operator?: Prisma.UserCreateNestedOneWithoutTasksInput
   taskType: Prisma.TaskTypeCreateNestedOneWithoutTasksInput
-  machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateInput = {
@@ -399,10 +399,10 @@ export type TaskUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   lot?: Prisma.LotUpdateOneRequiredWithoutTasksNestedInput
   operator?: Prisma.UserUpdateOneWithoutTasksNestedInput
   taskType?: Prisma.TaskTypeUpdateOneRequiredWithoutTasksNestedInput
-  machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateInput = {
@@ -689,9 +689,9 @@ export type TaskCreateWithoutOperatorInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
+  machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   lot: Prisma.LotCreateNestedOneWithoutTasksInput
   taskType: Prisma.TaskTypeCreateNestedOneWithoutTasksInput
-  machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutOperatorInput = {
@@ -763,9 +763,9 @@ export type TaskCreateWithoutLotInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
+  machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   operator?: Prisma.UserCreateNestedOneWithoutTasksInput
   taskType: Prisma.TaskTypeCreateNestedOneWithoutTasksInput
-  machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutLotInput = {
@@ -819,9 +819,9 @@ export type TaskCreateWithoutTaskTypeInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
+  machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   lot: Prisma.LotCreateNestedOneWithoutTasksInput
   operator?: Prisma.UserCreateNestedOneWithoutTasksInput
-  machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutTaskTypeInput = {
@@ -965,9 +965,9 @@ export type TaskUpdateWithoutOperatorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   lot?: Prisma.LotUpdateOneRequiredWithoutTasksNestedInput
   taskType?: Prisma.TaskTypeUpdateOneRequiredWithoutTasksNestedInput
-  machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutOperatorInput = {
@@ -1023,9 +1023,9 @@ export type TaskUpdateWithoutLotInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   operator?: Prisma.UserUpdateOneWithoutTasksNestedInput
   taskType?: Prisma.TaskTypeUpdateOneRequiredWithoutTasksNestedInput
-  machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutLotInput = {
@@ -1081,9 +1081,9 @@ export type TaskUpdateWithoutTaskTypeInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   lot?: Prisma.LotUpdateOneRequiredWithoutTasksNestedInput
   operator?: Prisma.UserUpdateOneWithoutTasksNestedInput
-  machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutTaskTypeInput = {
@@ -1159,10 +1159,10 @@ export type TaskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   version?: boolean
   deleted?: boolean
+  machineLogs?: boolean | Prisma.Task$machineLogsArgs<ExtArgs>
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
   operator?: boolean | Prisma.Task$operatorArgs<ExtArgs>
   taskType?: boolean | Prisma.TaskTypeDefaultArgs<ExtArgs>
-  machineLogs?: boolean | Prisma.Task$machineLogsArgs<ExtArgs>
   _count?: boolean | Prisma.TaskCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["task"]>
 
@@ -1219,10 +1219,10 @@ export type TaskSelectScalar = {
 
 export type TaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "lotId" | "operatorId" | "taskTypeId" | "status" | "startedAt" | "finishedAt" | "updatedTaskAt" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["task"]>
 export type TaskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  machineLogs?: boolean | Prisma.Task$machineLogsArgs<ExtArgs>
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
   operator?: boolean | Prisma.Task$operatorArgs<ExtArgs>
   taskType?: boolean | Prisma.TaskTypeDefaultArgs<ExtArgs>
-  machineLogs?: boolean | Prisma.Task$machineLogsArgs<ExtArgs>
   _count?: boolean | Prisma.TaskCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TaskIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1239,10 +1239,10 @@ export type TaskIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $TaskPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Task"
   objects: {
+    machineLogs: Prisma.$MachineUsagePayload<ExtArgs>[]
     lot: Prisma.$LotPayload<ExtArgs>
     operator: Prisma.$UserPayload<ExtArgs> | null
     taskType: Prisma.$TaskTypePayload<ExtArgs>
-    machineLogs: Prisma.$MachineUsagePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1651,10 +1651,10 @@ readonly fields: TaskFieldRefs;
  */
 export interface Prisma__TaskClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  machineLogs<T extends Prisma.Task$machineLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$machineLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MachineUsagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   lot<T extends Prisma.LotDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LotDefaultArgs<ExtArgs>>): Prisma.Prisma__LotClient<runtime.Types.Result.GetResult<Prisma.$LotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   operator<T extends Prisma.Task$operatorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$operatorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   taskType<T extends Prisma.TaskTypeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TaskTypeDefaultArgs<ExtArgs>>): Prisma.Prisma__TaskTypeClient<runtime.Types.Result.GetResult<Prisma.$TaskTypePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  machineLogs<T extends Prisma.Task$machineLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$machineLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MachineUsagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2097,25 +2097,6 @@ export type TaskDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
- * Task.operator
- */
-export type Task$operatorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the User
-   */
-  select?: Prisma.UserSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the User
-   */
-  omit?: Prisma.UserOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.UserInclude<ExtArgs> | null
-  where?: Prisma.UserWhereInput
-}
-
-/**
  * Task.machineLogs
  */
 export type Task$machineLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2137,6 +2118,25 @@ export type Task$machineLogsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.MachineUsageScalarFieldEnum | Prisma.MachineUsageScalarFieldEnum[]
+}
+
+/**
+ * Task.operator
+ */
+export type Task$operatorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**
