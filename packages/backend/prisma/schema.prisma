@@ -1,0 +1,367 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+// =====================================================
+// ENUMS
+// =====================================================
+
+enum UserRole {
+  ADMIN
+  OPERARIO
+  PRODUCTOR
+  CONTRATISTA
+  VETERINARIO
+}
+
+enum TaskStatus {
+  PENDIENTE
+  EN_PROGRESO
+  FINALIZADA
+  CANCELADA
+}
+
+enum LivestockStatus {
+  ACTIVO
+  VENDIDO
+  MUERTO
+  ENFERMO
+}
+
+enum MachineStatus {
+  ACTIVA
+  MANTENIMIENTO
+  FUERA_SERVICIO
+}
+
+enum EventType {
+  VACUNACION
+  TRATAMIENTO
+  CASTRACION
+  INSEMINACION
+  PARTO
+  ENFERMEDAD
+}
+
+// =====================================================
+// COMPANY
+// =====================================================
+
+model Company {
+  id     String  @id @default(uuid())
+  name   String
+  cuit   String  @unique
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users   User[]
+  farms   Farm[]
+  modules Module[]
+
+  livestock Livestock[]
+
+  machines Machine[]
+
+  version Int     @default(1)
+  deleted Boolean @default(false)
+}
+
+// =====================================================
+// USER
+// =====================================================
+
+model User {
+  id String @id @default(uuid())
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  username     String @unique
+  passwordHash String
+
+  role UserRole
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks           Task[]
+  livestockEvents LivestockEvent[]
+  weightRecords   WeightRecord[]
+
+  version Int     @default(1)
+  deleted Boolean @default(false)
+}
+
+// =====================================================
+// FARM
+// =====================================================
+
+model Farm {
+  id String @id @default(uuid())
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  name     String
+  location String?
+  surface  Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lots Lot[]
+
+  version Int     @default(1)
+  deleted Boolean @default(false)
+}
+
+// =====================================================
+// LOT
+// =====================================================
+
+model Lot {
+  id String @id @default(uuid())
+
+  farmId String
+  farm   Farm   @relation(fields: [farmId], references: [id])
+
+  name   String
+  coords String?
+  area   Float
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks     Task[]
+  movements LivestockMovement[]
+
+  version Int     @default(1)
+  deleted Boolean @default(false)
+}
+
+// =====================================================
+// TASK TYPE
+// =====================================================
+
+model TaskType {
+  id String @id @default(uuid())
+
+  name        String
+  description String?
+
+  tasks Task[]
+}
+
+// =====================================================
+// TASK
+// =====================================================
+
+model Task {
+  id String @id @default(uuid())
+
+  lotId String
+  lot   Lot    @relation(fields: [lotId], references: [id])
+
+  operatorId String?
+  operator   User?   @relation(fields: [operatorId], references: [id])
+
+  taskTypeId String
+  taskType   TaskType @relation(fields: [taskTypeId], references: [id])
+
+  status TaskStatus @default(PENDIENTE)
+
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  updatedTaskAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  machineLogs MachineUsage[]
+
+  version Int     @default(1)
+  deleted Boolean @default(false)
+}
+
+// =====================================================
+// MACHINE
+// =====================================================
+
+model Machine {
+  id String @id @default(uuid())
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  name  String
+  brand String?
+
+  status MachineStatus @default(ACTIVA)
+
+  entryDate       DateTime?
+  maintenanceDate DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  usages MachineUsage[]
+
+  version Int     @default(1)
+  deleted Boolean @default(false)
+}
+
+// =====================================================
+// MACHINE USAGE
+// =====================================================
+
+model MachineUsage {
+  id String @id @default(uuid())
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id])
+
+  machineId String
+  machine   Machine @relation(fields: [machineId], references: [id])
+
+  initialFuel Float?
+  finalFuel   Float?
+
+  usageHours Float?
+
+  observations String?
+
+  createdAt DateTime @default(now())
+}
+
+// =====================================================
+// MODULE
+// =====================================================
+
+model Module {
+  id String @id @default(uuid())
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  name String
+
+  price   Float
+  version String
+
+  createdAt DateTime @default(now())
+}
+
+// =====================================================
+// LIVESTOCK
+// =====================================================
+
+model Livestock {
+  id String @id @default(uuid())
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  tagNumber String @unique
+
+  species String
+  breed   String?
+
+  sex String
+
+  birthDate DateTime?
+
+  status LivestockStatus @default(ACTIVO)
+
+  entryDate DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events    LivestockEvent[]
+  weights   WeightRecord[]
+  movements LivestockMovement[]
+
+  version Int     @default(1)
+  deleted Boolean @default(false)
+}
+
+// =====================================================
+// LIVESTOCK EVENT
+// =====================================================
+
+model LivestockEvent {
+  id String @id @default(uuid())
+
+  livestockId String
+  livestock   Livestock @relation(fields: [livestockId], references: [id])
+
+  operatorId String?
+  operator   User?   @relation(fields: [operatorId], references: [id])
+
+  type EventType
+
+  observations String?
+
+  vaccine String?
+  dose    Float?
+
+  eventDate DateTime
+
+  createdAt DateTime @default(now())
+}
+
+// =====================================================
+// WEIGHT RECORD
+// =====================================================
+
+model WeightRecord {
+  id String @id @default(uuid())
+
+  livestockId String
+  livestock   Livestock @relation(fields: [livestockId], references: [id])
+
+  operatorId String?
+  operator   User?   @relation(fields: [operatorId], references: [id])
+
+  weight Float
+
+  measuredAt DateTime
+
+  createdAt DateTime @default(now())
+}
+
+// =====================================================
+// LIVESTOCK MOVEMENT
+// =====================================================
+
+model LivestockMovement {
+  id String @id @default(uuid())
+
+  livestockId String
+  livestock   Livestock @relation(fields: [livestockId], references: [id])
+
+  lotId String
+  lot   Lot    @relation(fields: [lotId], references: [id])
+
+  movementDate DateTime
+
+  observations String?
+
+  createdAt DateTime @default(now())
+}
