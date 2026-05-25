@@ -129,12 +129,11 @@ model MachineUsage {
 
 model Module {
   id        String   @id @default(uuid())
-  companyId String
   name      String
   price     Float
   version   String
   createdAt DateTime @default(now())
-  company   Company  @relation(fields: [companyId], references: [id])
+  companies   Company[]  @relation()
 }
 
 model Livestock {

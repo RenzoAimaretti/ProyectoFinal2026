@@ -1,6 +1,5 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Put } from '@nestjs/common';
 import { CompanyService } from './company.service';
-import { Company } from '../../../prisma/generated/client';
 
 @Controller('companies')
 export class CompanyController {
@@ -16,8 +15,13 @@ export class CompanyController {
     return this.service.findOne(id);
   }
 
-  @Post()
-  create(@Body() data: Company) {
+@Post()
+ async create(@Body() data: {name: string; cuit: string;}) {
     return this.service.create(data);
   }
+
+  @Put(':id')
+  update(@Param('id') id: string, @Body() data: {nombre?: string; cuit?: string; estado?: string}) {
+    return this.service.update(id, data);
+  } 
 }

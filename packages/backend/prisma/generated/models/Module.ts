@@ -36,7 +36,6 @@ export type ModuleSumAggregateOutputType = {
 
 export type ModuleMinAggregateOutputType = {
   id: string | null
-  companyId: string | null
   name: string | null
   price: number | null
   version: string | null
@@ -45,7 +44,6 @@ export type ModuleMinAggregateOutputType = {
 
 export type ModuleMaxAggregateOutputType = {
   id: string | null
-  companyId: string | null
   name: string | null
   price: number | null
   version: string | null
@@ -54,7 +52,6 @@ export type ModuleMaxAggregateOutputType = {
 
 export type ModuleCountAggregateOutputType = {
   id: number
-  companyId: number
   name: number
   price: number
   version: number
@@ -73,7 +70,6 @@ export type ModuleSumAggregateInputType = {
 
 export type ModuleMinAggregateInputType = {
   id?: true
-  companyId?: true
   name?: true
   price?: true
   version?: true
@@ -82,7 +78,6 @@ export type ModuleMinAggregateInputType = {
 
 export type ModuleMaxAggregateInputType = {
   id?: true
-  companyId?: true
   name?: true
   price?: true
   version?: true
@@ -91,7 +86,6 @@ export type ModuleMaxAggregateInputType = {
 
 export type ModuleCountAggregateInputType = {
   id?: true
-  companyId?: true
   name?: true
   price?: true
   version?: true
@@ -187,7 +181,6 @@ export type ModuleGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 
 export type ModuleGroupByOutputType = {
   id: string
-  companyId: string
   name: string
   price: number
   version: string
@@ -219,22 +212,20 @@ export type ModuleWhereInput = {
   OR?: Prisma.ModuleWhereInput[]
   NOT?: Prisma.ModuleWhereInput | Prisma.ModuleWhereInput[]
   id?: Prisma.StringFilter<"Module"> | string
-  companyId?: Prisma.StringFilter<"Module"> | string
   name?: Prisma.StringFilter<"Module"> | string
   price?: Prisma.FloatFilter<"Module"> | number
   version?: Prisma.StringFilter<"Module"> | string
   createdAt?: Prisma.DateTimeFilter<"Module"> | Date | string
-  company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
+  companies?: Prisma.CompanyListRelationFilter
 }
 
 export type ModuleOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   price?: Prisma.SortOrder
   version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  company?: Prisma.CompanyOrderByWithRelationInput
+  companies?: Prisma.CompanyOrderByRelationAggregateInput
 }
 
 export type ModuleWhereUniqueInput = Prisma.AtLeast<{
@@ -242,17 +233,15 @@ export type ModuleWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.ModuleWhereInput | Prisma.ModuleWhereInput[]
   OR?: Prisma.ModuleWhereInput[]
   NOT?: Prisma.ModuleWhereInput | Prisma.ModuleWhereInput[]
-  companyId?: Prisma.StringFilter<"Module"> | string
   name?: Prisma.StringFilter<"Module"> | string
   price?: Prisma.FloatFilter<"Module"> | number
   version?: Prisma.StringFilter<"Module"> | string
   createdAt?: Prisma.DateTimeFilter<"Module"> | Date | string
-  company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
+  companies?: Prisma.CompanyListRelationFilter
 }, "id">
 
 export type ModuleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   price?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -269,7 +258,6 @@ export type ModuleScalarWhereWithAggregatesInput = {
   OR?: Prisma.ModuleScalarWhereWithAggregatesInput[]
   NOT?: Prisma.ModuleScalarWhereWithAggregatesInput | Prisma.ModuleScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Module"> | string
-  companyId?: Prisma.StringWithAggregatesFilter<"Module"> | string
   name?: Prisma.StringWithAggregatesFilter<"Module"> | string
   price?: Prisma.FloatWithAggregatesFilter<"Module"> | number
   version?: Prisma.StringWithAggregatesFilter<"Module"> | string
@@ -282,16 +270,16 @@ export type ModuleCreateInput = {
   price: number
   version: string
   createdAt?: Date | string
-  company: Prisma.CompanyCreateNestedOneWithoutModulesInput
+  companies?: Prisma.CompanyCreateNestedManyWithoutModulesInput
 }
 
 export type ModuleUncheckedCreateInput = {
   id?: string
-  companyId: string
   name: string
   price: number
   version: string
   createdAt?: Date | string
+  companies?: Prisma.CompanyUncheckedCreateNestedManyWithoutModulesInput
 }
 
 export type ModuleUpdateInput = {
@@ -300,21 +288,20 @@ export type ModuleUpdateInput = {
   price?: Prisma.FloatFieldUpdateOperationsInput | number
   version?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  company?: Prisma.CompanyUpdateOneRequiredWithoutModulesNestedInput
+  companies?: Prisma.CompanyUpdateManyWithoutModulesNestedInput
 }
 
 export type ModuleUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  companyId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
   version?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  companies?: Prisma.CompanyUncheckedUpdateManyWithoutModulesNestedInput
 }
 
 export type ModuleCreateManyInput = {
   id?: string
-  companyId: string
   name: string
   price: number
   version: string
@@ -331,7 +318,6 @@ export type ModuleUpdateManyMutationInput = {
 
 export type ModuleUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  companyId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
   version?: Prisma.StringFieldUpdateOperationsInput | string
@@ -350,7 +336,6 @@ export type ModuleOrderByRelationAggregateInput = {
 
 export type ModuleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   price?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -363,7 +348,6 @@ export type ModuleAvgOrderByAggregateInput = {
 
 export type ModuleMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   price?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -372,7 +356,6 @@ export type ModuleMaxOrderByAggregateInput = {
 
 export type ModuleMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   price?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -383,49 +366,45 @@ export type ModuleSumOrderByAggregateInput = {
   price?: Prisma.SortOrder
 }
 
-export type ModuleCreateNestedManyWithoutCompanyInput = {
-  create?: Prisma.XOR<Prisma.ModuleCreateWithoutCompanyInput, Prisma.ModuleUncheckedCreateWithoutCompanyInput> | Prisma.ModuleCreateWithoutCompanyInput[] | Prisma.ModuleUncheckedCreateWithoutCompanyInput[]
-  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutCompanyInput | Prisma.ModuleCreateOrConnectWithoutCompanyInput[]
-  createMany?: Prisma.ModuleCreateManyCompanyInputEnvelope
+export type ModuleCreateNestedManyWithoutCompaniesInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutCompaniesInput, Prisma.ModuleUncheckedCreateWithoutCompaniesInput> | Prisma.ModuleCreateWithoutCompaniesInput[] | Prisma.ModuleUncheckedCreateWithoutCompaniesInput[]
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutCompaniesInput | Prisma.ModuleCreateOrConnectWithoutCompaniesInput[]
   connect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
 }
 
-export type ModuleUncheckedCreateNestedManyWithoutCompanyInput = {
-  create?: Prisma.XOR<Prisma.ModuleCreateWithoutCompanyInput, Prisma.ModuleUncheckedCreateWithoutCompanyInput> | Prisma.ModuleCreateWithoutCompanyInput[] | Prisma.ModuleUncheckedCreateWithoutCompanyInput[]
-  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutCompanyInput | Prisma.ModuleCreateOrConnectWithoutCompanyInput[]
-  createMany?: Prisma.ModuleCreateManyCompanyInputEnvelope
+export type ModuleUncheckedCreateNestedManyWithoutCompaniesInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutCompaniesInput, Prisma.ModuleUncheckedCreateWithoutCompaniesInput> | Prisma.ModuleCreateWithoutCompaniesInput[] | Prisma.ModuleUncheckedCreateWithoutCompaniesInput[]
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutCompaniesInput | Prisma.ModuleCreateOrConnectWithoutCompaniesInput[]
   connect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
 }
 
-export type ModuleUpdateManyWithoutCompanyNestedInput = {
-  create?: Prisma.XOR<Prisma.ModuleCreateWithoutCompanyInput, Prisma.ModuleUncheckedCreateWithoutCompanyInput> | Prisma.ModuleCreateWithoutCompanyInput[] | Prisma.ModuleUncheckedCreateWithoutCompanyInput[]
-  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutCompanyInput | Prisma.ModuleCreateOrConnectWithoutCompanyInput[]
-  upsert?: Prisma.ModuleUpsertWithWhereUniqueWithoutCompanyInput | Prisma.ModuleUpsertWithWhereUniqueWithoutCompanyInput[]
-  createMany?: Prisma.ModuleCreateManyCompanyInputEnvelope
+export type ModuleUpdateManyWithoutCompaniesNestedInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutCompaniesInput, Prisma.ModuleUncheckedCreateWithoutCompaniesInput> | Prisma.ModuleCreateWithoutCompaniesInput[] | Prisma.ModuleUncheckedCreateWithoutCompaniesInput[]
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutCompaniesInput | Prisma.ModuleCreateOrConnectWithoutCompaniesInput[]
+  upsert?: Prisma.ModuleUpsertWithWhereUniqueWithoutCompaniesInput | Prisma.ModuleUpsertWithWhereUniqueWithoutCompaniesInput[]
   set?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
   disconnect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
   delete?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
   connect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
-  update?: Prisma.ModuleUpdateWithWhereUniqueWithoutCompanyInput | Prisma.ModuleUpdateWithWhereUniqueWithoutCompanyInput[]
-  updateMany?: Prisma.ModuleUpdateManyWithWhereWithoutCompanyInput | Prisma.ModuleUpdateManyWithWhereWithoutCompanyInput[]
+  update?: Prisma.ModuleUpdateWithWhereUniqueWithoutCompaniesInput | Prisma.ModuleUpdateWithWhereUniqueWithoutCompaniesInput[]
+  updateMany?: Prisma.ModuleUpdateManyWithWhereWithoutCompaniesInput | Prisma.ModuleUpdateManyWithWhereWithoutCompaniesInput[]
   deleteMany?: Prisma.ModuleScalarWhereInput | Prisma.ModuleScalarWhereInput[]
 }
 
-export type ModuleUncheckedUpdateManyWithoutCompanyNestedInput = {
-  create?: Prisma.XOR<Prisma.ModuleCreateWithoutCompanyInput, Prisma.ModuleUncheckedCreateWithoutCompanyInput> | Prisma.ModuleCreateWithoutCompanyInput[] | Prisma.ModuleUncheckedCreateWithoutCompanyInput[]
-  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutCompanyInput | Prisma.ModuleCreateOrConnectWithoutCompanyInput[]
-  upsert?: Prisma.ModuleUpsertWithWhereUniqueWithoutCompanyInput | Prisma.ModuleUpsertWithWhereUniqueWithoutCompanyInput[]
-  createMany?: Prisma.ModuleCreateManyCompanyInputEnvelope
+export type ModuleUncheckedUpdateManyWithoutCompaniesNestedInput = {
+  create?: Prisma.XOR<Prisma.ModuleCreateWithoutCompaniesInput, Prisma.ModuleUncheckedCreateWithoutCompaniesInput> | Prisma.ModuleCreateWithoutCompaniesInput[] | Prisma.ModuleUncheckedCreateWithoutCompaniesInput[]
+  connectOrCreate?: Prisma.ModuleCreateOrConnectWithoutCompaniesInput | Prisma.ModuleCreateOrConnectWithoutCompaniesInput[]
+  upsert?: Prisma.ModuleUpsertWithWhereUniqueWithoutCompaniesInput | Prisma.ModuleUpsertWithWhereUniqueWithoutCompaniesInput[]
   set?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
   disconnect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
   delete?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
   connect?: Prisma.ModuleWhereUniqueInput | Prisma.ModuleWhereUniqueInput[]
-  update?: Prisma.ModuleUpdateWithWhereUniqueWithoutCompanyInput | Prisma.ModuleUpdateWithWhereUniqueWithoutCompanyInput[]
-  updateMany?: Prisma.ModuleUpdateManyWithWhereWithoutCompanyInput | Prisma.ModuleUpdateManyWithWhereWithoutCompanyInput[]
+  update?: Prisma.ModuleUpdateWithWhereUniqueWithoutCompaniesInput | Prisma.ModuleUpdateWithWhereUniqueWithoutCompaniesInput[]
+  updateMany?: Prisma.ModuleUpdateManyWithWhereWithoutCompaniesInput | Prisma.ModuleUpdateManyWithWhereWithoutCompaniesInput[]
   deleteMany?: Prisma.ModuleScalarWhereInput | Prisma.ModuleScalarWhereInput[]
 }
 
-export type ModuleCreateWithoutCompanyInput = {
+export type ModuleCreateWithoutCompaniesInput = {
   id?: string
   name: string
   price: number
@@ -433,7 +412,7 @@ export type ModuleCreateWithoutCompanyInput = {
   createdAt?: Date | string
 }
 
-export type ModuleUncheckedCreateWithoutCompanyInput = {
+export type ModuleUncheckedCreateWithoutCompaniesInput = {
   id?: string
   name: string
   price: number
@@ -441,30 +420,25 @@ export type ModuleUncheckedCreateWithoutCompanyInput = {
   createdAt?: Date | string
 }
 
-export type ModuleCreateOrConnectWithoutCompanyInput = {
+export type ModuleCreateOrConnectWithoutCompaniesInput = {
   where: Prisma.ModuleWhereUniqueInput
-  create: Prisma.XOR<Prisma.ModuleCreateWithoutCompanyInput, Prisma.ModuleUncheckedCreateWithoutCompanyInput>
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutCompaniesInput, Prisma.ModuleUncheckedCreateWithoutCompaniesInput>
 }
 
-export type ModuleCreateManyCompanyInputEnvelope = {
-  data: Prisma.ModuleCreateManyCompanyInput | Prisma.ModuleCreateManyCompanyInput[]
-  skipDuplicates?: boolean
-}
-
-export type ModuleUpsertWithWhereUniqueWithoutCompanyInput = {
+export type ModuleUpsertWithWhereUniqueWithoutCompaniesInput = {
   where: Prisma.ModuleWhereUniqueInput
-  update: Prisma.XOR<Prisma.ModuleUpdateWithoutCompanyInput, Prisma.ModuleUncheckedUpdateWithoutCompanyInput>
-  create: Prisma.XOR<Prisma.ModuleCreateWithoutCompanyInput, Prisma.ModuleUncheckedCreateWithoutCompanyInput>
+  update: Prisma.XOR<Prisma.ModuleUpdateWithoutCompaniesInput, Prisma.ModuleUncheckedUpdateWithoutCompaniesInput>
+  create: Prisma.XOR<Prisma.ModuleCreateWithoutCompaniesInput, Prisma.ModuleUncheckedCreateWithoutCompaniesInput>
 }
 
-export type ModuleUpdateWithWhereUniqueWithoutCompanyInput = {
+export type ModuleUpdateWithWhereUniqueWithoutCompaniesInput = {
   where: Prisma.ModuleWhereUniqueInput
-  data: Prisma.XOR<Prisma.ModuleUpdateWithoutCompanyInput, Prisma.ModuleUncheckedUpdateWithoutCompanyInput>
+  data: Prisma.XOR<Prisma.ModuleUpdateWithoutCompaniesInput, Prisma.ModuleUncheckedUpdateWithoutCompaniesInput>
 }
 
-export type ModuleUpdateManyWithWhereWithoutCompanyInput = {
+export type ModuleUpdateManyWithWhereWithoutCompaniesInput = {
   where: Prisma.ModuleScalarWhereInput
-  data: Prisma.XOR<Prisma.ModuleUpdateManyMutationInput, Prisma.ModuleUncheckedUpdateManyWithoutCompanyInput>
+  data: Prisma.XOR<Prisma.ModuleUpdateManyMutationInput, Prisma.ModuleUncheckedUpdateManyWithoutCompaniesInput>
 }
 
 export type ModuleScalarWhereInput = {
@@ -472,22 +446,13 @@ export type ModuleScalarWhereInput = {
   OR?: Prisma.ModuleScalarWhereInput[]
   NOT?: Prisma.ModuleScalarWhereInput | Prisma.ModuleScalarWhereInput[]
   id?: Prisma.StringFilter<"Module"> | string
-  companyId?: Prisma.StringFilter<"Module"> | string
   name?: Prisma.StringFilter<"Module"> | string
   price?: Prisma.FloatFilter<"Module"> | number
   version?: Prisma.StringFilter<"Module"> | string
   createdAt?: Prisma.DateTimeFilter<"Module"> | Date | string
 }
 
-export type ModuleCreateManyCompanyInput = {
-  id?: string
-  name: string
-  price: number
-  version: string
-  createdAt?: Date | string
-}
-
-export type ModuleUpdateWithoutCompanyInput = {
+export type ModuleUpdateWithoutCompaniesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -495,7 +460,7 @@ export type ModuleUpdateWithoutCompanyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type ModuleUncheckedUpdateWithoutCompanyInput = {
+export type ModuleUncheckedUpdateWithoutCompaniesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -503,7 +468,7 @@ export type ModuleUncheckedUpdateWithoutCompanyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type ModuleUncheckedUpdateManyWithoutCompanyInput = {
+export type ModuleUncheckedUpdateManyWithoutCompaniesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   price?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -511,66 +476,86 @@ export type ModuleUncheckedUpdateManyWithoutCompanyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type ModuleCountOutputType
+ */
+
+export type ModuleCountOutputType = {
+  companies: number
+}
+
+export type ModuleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  companies?: boolean | ModuleCountOutputTypeCountCompaniesArgs
+}
+
+/**
+ * ModuleCountOutputType without action
+ */
+export type ModuleCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ModuleCountOutputType
+   */
+  select?: Prisma.ModuleCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ModuleCountOutputType without action
+ */
+export type ModuleCountOutputTypeCountCompaniesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CompanyWhereInput
+}
 
 
 export type ModuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  companyId?: boolean
   name?: boolean
   price?: boolean
   version?: boolean
   createdAt?: boolean
-  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
+  companies?: boolean | Prisma.Module$companiesArgs<ExtArgs>
+  _count?: boolean | Prisma.ModuleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["module"]>
 
 export type ModuleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  companyId?: boolean
   name?: boolean
   price?: boolean
   version?: boolean
   createdAt?: boolean
-  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["module"]>
 
 export type ModuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  companyId?: boolean
   name?: boolean
   price?: boolean
   version?: boolean
   createdAt?: boolean
-  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["module"]>
 
 export type ModuleSelectScalar = {
   id?: boolean
-  companyId?: boolean
   name?: boolean
   price?: boolean
   version?: boolean
   createdAt?: boolean
 }
 
-export type ModuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "companyId" | "name" | "price" | "version" | "createdAt", ExtArgs["result"]["module"]>
+export type ModuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "price" | "version" | "createdAt", ExtArgs["result"]["module"]>
 export type ModuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
+  companies?: boolean | Prisma.Module$companiesArgs<ExtArgs>
+  _count?: boolean | Prisma.ModuleCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type ModuleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
-}
-export type ModuleIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
-}
+export type ModuleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type ModuleIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $ModulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Module"
   objects: {
-    company: Prisma.$CompanyPayload<ExtArgs>
+    companies: Prisma.$CompanyPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    companyId: string
     name: string
     price: number
     version: string
@@ -969,7 +954,7 @@ readonly fields: ModuleFieldRefs;
  */
 export interface Prisma__ModuleClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  company<T extends Prisma.CompanyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CompanyDefaultArgs<ExtArgs>>): Prisma.Prisma__CompanyClient<runtime.Types.Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  companies<T extends Prisma.Module$companiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Module$companiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1000,7 +985,6 @@ export interface Prisma__ModuleClient<T, Null = never, ExtArgs extends runtime.T
  */
 export interface ModuleFieldRefs {
   readonly id: Prisma.FieldRef<"Module", 'String'>
-  readonly companyId: Prisma.FieldRef<"Module", 'String'>
   readonly name: Prisma.FieldRef<"Module", 'String'>
   readonly price: Prisma.FieldRef<"Module", 'Float'>
   readonly version: Prisma.FieldRef<"Module", 'String'>
@@ -1259,10 +1243,6 @@ export type ModuleCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensio
    */
   data: Prisma.ModuleCreateManyInput | Prisma.ModuleCreateManyInput[]
   skipDuplicates?: boolean
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ModuleIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1333,10 +1313,6 @@ export type ModuleUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many Modules to update.
    */
   limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ModuleIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1403,6 +1379,30 @@ export type ModuleDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many Modules to delete.
    */
   limit?: number
+}
+
+/**
+ * Module.companies
+ */
+export type Module$companiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Company
+   */
+  select?: Prisma.CompanySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Company
+   */
+  omit?: Prisma.CompanyOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CompanyInclude<ExtArgs> | null
+  where?: Prisma.CompanyWhereInput
+  orderBy?: Prisma.CompanyOrderByWithRelationInput | Prisma.CompanyOrderByWithRelationInput[]
+  cursor?: Prisma.CompanyWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CompanyScalarFieldEnum | Prisma.CompanyScalarFieldEnum[]
 }
 
 /**

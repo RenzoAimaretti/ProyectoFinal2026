@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Put } from '@nestjs/common';
 import { FarmService } from './farm.service';
 
 @Controller('farms')
@@ -16,7 +16,11 @@ export class FarmController {
   }
 
   @Post()
-  create(@Body() data: any) {
+  create(@Body() data: {name: string; location: string; companyId: string;surface: number;}) {
     return this.service.create(data);
+  }
+  @Put(':id')
+  update(@Param('id') id: string, @Body() data: {name?: string; location?: string; companyId?: string; surface?: number;}) {
+    return this.service.update(id, data);
   }
 }

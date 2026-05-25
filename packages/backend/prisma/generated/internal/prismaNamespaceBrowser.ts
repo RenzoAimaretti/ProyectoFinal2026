@@ -202,7 +202,6 @@ export type MachineUsageScalarFieldEnum = (typeof MachineUsageScalarFieldEnum)[k
 
 export const ModuleScalarFieldEnum = {
   id: 'id',
-  companyId: 'companyId',
   name: 'name',
   price: 'price',
   version: 'version',

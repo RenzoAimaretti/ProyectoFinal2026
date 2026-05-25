@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Put } from '@nestjs/common';
 import { ModuleEntityService } from './module-entity.service';
 
 @Controller('modules')
@@ -16,7 +16,12 @@ export class ModuleEntityController {
   }
 
   @Post()
-  create(@Body() data: any) {
+  create(@Body() data: {name: string; price: number; version: string;}) {
     return this.service.create(data);
+  }
+
+  @Put(':id')
+  update(@Param('id') id: string, @Body() data: {name: string; price: number; version: string;companyId?: string;}) {
+    return this.service.update(id, data);
   }
 }

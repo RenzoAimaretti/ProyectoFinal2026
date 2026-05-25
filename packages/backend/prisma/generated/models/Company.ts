@@ -324,7 +324,7 @@ export type CompanyCreateInput = {
   farms?: Prisma.FarmCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
-  modules?: Prisma.ModuleCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
   users?: Prisma.UserCreateNestedManyWithoutCompanyInput
 }
 
@@ -340,7 +340,7 @@ export type CompanyUncheckedCreateInput = {
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
-  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
 }
 
@@ -356,7 +356,7 @@ export type CompanyUpdateInput = {
   farms?: Prisma.FarmUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
-  modules?: Prisma.ModuleUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
   users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
 }
 
@@ -372,7 +372,7 @@ export type CompanyUncheckedUpdateInput = {
   farms?: Prisma.FarmUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
-  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
@@ -455,6 +455,16 @@ export type CompanyScalarRelationFilter = {
   isNot?: Prisma.CompanyWhereInput
 }
 
+export type CompanyListRelationFilter = {
+  every?: Prisma.CompanyWhereInput
+  some?: Prisma.CompanyWhereInput
+  none?: Prisma.CompanyWhereInput
+}
+
+export type CompanyOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -517,18 +527,42 @@ export type CompanyUpdateOneRequiredWithoutMachinesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutMachinesInput, Prisma.CompanyUpdateWithoutMachinesInput>, Prisma.CompanyUncheckedUpdateWithoutMachinesInput>
 }
 
-export type CompanyCreateNestedOneWithoutModulesInput = {
-  create?: Prisma.XOR<Prisma.CompanyCreateWithoutModulesInput, Prisma.CompanyUncheckedCreateWithoutModulesInput>
-  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutModulesInput
-  connect?: Prisma.CompanyWhereUniqueInput
+export type CompanyCreateNestedManyWithoutModulesInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutModulesInput, Prisma.CompanyUncheckedCreateWithoutModulesInput> | Prisma.CompanyCreateWithoutModulesInput[] | Prisma.CompanyUncheckedCreateWithoutModulesInput[]
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutModulesInput | Prisma.CompanyCreateOrConnectWithoutModulesInput[]
+  connect?: Prisma.CompanyWhereUniqueInput | Prisma.CompanyWhereUniqueInput[]
 }
 
-export type CompanyUpdateOneRequiredWithoutModulesNestedInput = {
-  create?: Prisma.XOR<Prisma.CompanyCreateWithoutModulesInput, Prisma.CompanyUncheckedCreateWithoutModulesInput>
-  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutModulesInput
-  upsert?: Prisma.CompanyUpsertWithoutModulesInput
-  connect?: Prisma.CompanyWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutModulesInput, Prisma.CompanyUpdateWithoutModulesInput>, Prisma.CompanyUncheckedUpdateWithoutModulesInput>
+export type CompanyUncheckedCreateNestedManyWithoutModulesInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutModulesInput, Prisma.CompanyUncheckedCreateWithoutModulesInput> | Prisma.CompanyCreateWithoutModulesInput[] | Prisma.CompanyUncheckedCreateWithoutModulesInput[]
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutModulesInput | Prisma.CompanyCreateOrConnectWithoutModulesInput[]
+  connect?: Prisma.CompanyWhereUniqueInput | Prisma.CompanyWhereUniqueInput[]
+}
+
+export type CompanyUpdateManyWithoutModulesNestedInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutModulesInput, Prisma.CompanyUncheckedCreateWithoutModulesInput> | Prisma.CompanyCreateWithoutModulesInput[] | Prisma.CompanyUncheckedCreateWithoutModulesInput[]
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutModulesInput | Prisma.CompanyCreateOrConnectWithoutModulesInput[]
+  upsert?: Prisma.CompanyUpsertWithWhereUniqueWithoutModulesInput | Prisma.CompanyUpsertWithWhereUniqueWithoutModulesInput[]
+  set?: Prisma.CompanyWhereUniqueInput | Prisma.CompanyWhereUniqueInput[]
+  disconnect?: Prisma.CompanyWhereUniqueInput | Prisma.CompanyWhereUniqueInput[]
+  delete?: Prisma.CompanyWhereUniqueInput | Prisma.CompanyWhereUniqueInput[]
+  connect?: Prisma.CompanyWhereUniqueInput | Prisma.CompanyWhereUniqueInput[]
+  update?: Prisma.CompanyUpdateWithWhereUniqueWithoutModulesInput | Prisma.CompanyUpdateWithWhereUniqueWithoutModulesInput[]
+  updateMany?: Prisma.CompanyUpdateManyWithWhereWithoutModulesInput | Prisma.CompanyUpdateManyWithWhereWithoutModulesInput[]
+  deleteMany?: Prisma.CompanyScalarWhereInput | Prisma.CompanyScalarWhereInput[]
+}
+
+export type CompanyUncheckedUpdateManyWithoutModulesNestedInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutModulesInput, Prisma.CompanyUncheckedCreateWithoutModulesInput> | Prisma.CompanyCreateWithoutModulesInput[] | Prisma.CompanyUncheckedCreateWithoutModulesInput[]
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutModulesInput | Prisma.CompanyCreateOrConnectWithoutModulesInput[]
+  upsert?: Prisma.CompanyUpsertWithWhereUniqueWithoutModulesInput | Prisma.CompanyUpsertWithWhereUniqueWithoutModulesInput[]
+  set?: Prisma.CompanyWhereUniqueInput | Prisma.CompanyWhereUniqueInput[]
+  disconnect?: Prisma.CompanyWhereUniqueInput | Prisma.CompanyWhereUniqueInput[]
+  delete?: Prisma.CompanyWhereUniqueInput | Prisma.CompanyWhereUniqueInput[]
+  connect?: Prisma.CompanyWhereUniqueInput | Prisma.CompanyWhereUniqueInput[]
+  update?: Prisma.CompanyUpdateWithWhereUniqueWithoutModulesInput | Prisma.CompanyUpdateWithWhereUniqueWithoutModulesInput[]
+  updateMany?: Prisma.CompanyUpdateManyWithWhereWithoutModulesInput | Prisma.CompanyUpdateManyWithWhereWithoutModulesInput[]
+  deleteMany?: Prisma.CompanyScalarWhereInput | Prisma.CompanyScalarWhereInput[]
 }
 
 export type CompanyCreateNestedOneWithoutLivestockInput = {
@@ -557,7 +591,7 @@ export type CompanyCreateWithoutUsersInput = {
   farms?: Prisma.FarmCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
-  modules?: Prisma.ModuleCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
 }
 
 export type CompanyUncheckedCreateWithoutUsersInput = {
@@ -572,7 +606,7 @@ export type CompanyUncheckedCreateWithoutUsersInput = {
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
-  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
 }
 
 export type CompanyCreateOrConnectWithoutUsersInput = {
@@ -603,7 +637,7 @@ export type CompanyUpdateWithoutUsersInput = {
   farms?: Prisma.FarmUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
-  modules?: Prisma.ModuleUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
 }
 
 export type CompanyUncheckedUpdateWithoutUsersInput = {
@@ -618,7 +652,7 @@ export type CompanyUncheckedUpdateWithoutUsersInput = {
   farms?: Prisma.FarmUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
-  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
 }
 
 export type CompanyCreateWithoutFarmsInput = {
@@ -632,7 +666,7 @@ export type CompanyCreateWithoutFarmsInput = {
   deleted?: boolean
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
-  modules?: Prisma.ModuleCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
   users?: Prisma.UserCreateNestedManyWithoutCompanyInput
 }
 
@@ -647,7 +681,7 @@ export type CompanyUncheckedCreateWithoutFarmsInput = {
   deleted?: boolean
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
-  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
 }
 
@@ -678,7 +712,7 @@ export type CompanyUpdateWithoutFarmsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
-  modules?: Prisma.ModuleUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
   users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
 }
 
@@ -693,7 +727,7 @@ export type CompanyUncheckedUpdateWithoutFarmsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
-  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
@@ -708,7 +742,7 @@ export type CompanyCreateWithoutMachinesInput = {
   deleted?: boolean
   farms?: Prisma.FarmCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
-  modules?: Prisma.ModuleCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
   users?: Prisma.UserCreateNestedManyWithoutCompanyInput
 }
 
@@ -723,7 +757,7 @@ export type CompanyUncheckedCreateWithoutMachinesInput = {
   deleted?: boolean
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
-  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
 }
 
@@ -754,7 +788,7 @@ export type CompanyUpdateWithoutMachinesInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   farms?: Prisma.FarmUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
-  modules?: Prisma.ModuleUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
   users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
 }
 
@@ -769,7 +803,7 @@ export type CompanyUncheckedUpdateWithoutMachinesInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   farms?: Prisma.FarmUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
-  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
@@ -808,15 +842,110 @@ export type CompanyCreateOrConnectWithoutModulesInput = {
   create: Prisma.XOR<Prisma.CompanyCreateWithoutModulesInput, Prisma.CompanyUncheckedCreateWithoutModulesInput>
 }
 
-export type CompanyUpsertWithoutModulesInput = {
+export type CompanyUpsertWithWhereUniqueWithoutModulesInput = {
+  where: Prisma.CompanyWhereUniqueInput
   update: Prisma.XOR<Prisma.CompanyUpdateWithoutModulesInput, Prisma.CompanyUncheckedUpdateWithoutModulesInput>
   create: Prisma.XOR<Prisma.CompanyCreateWithoutModulesInput, Prisma.CompanyUncheckedCreateWithoutModulesInput>
+}
+
+export type CompanyUpdateWithWhereUniqueWithoutModulesInput = {
+  where: Prisma.CompanyWhereUniqueInput
+  data: Prisma.XOR<Prisma.CompanyUpdateWithoutModulesInput, Prisma.CompanyUncheckedUpdateWithoutModulesInput>
+}
+
+export type CompanyUpdateManyWithWhereWithoutModulesInput = {
+  where: Prisma.CompanyScalarWhereInput
+  data: Prisma.XOR<Prisma.CompanyUpdateManyMutationInput, Prisma.CompanyUncheckedUpdateManyWithoutModulesInput>
+}
+
+export type CompanyScalarWhereInput = {
+  AND?: Prisma.CompanyScalarWhereInput | Prisma.CompanyScalarWhereInput[]
+  OR?: Prisma.CompanyScalarWhereInput[]
+  NOT?: Prisma.CompanyScalarWhereInput | Prisma.CompanyScalarWhereInput[]
+  id?: Prisma.StringFilter<"Company"> | string
+  name?: Prisma.StringFilter<"Company"> | string
+  cuit?: Prisma.StringFilter<"Company"> | string
+  active?: Prisma.BoolFilter<"Company"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"Company"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Company"> | Date | string
+  version?: Prisma.IntFilter<"Company"> | number
+  deleted?: Prisma.BoolFilter<"Company"> | boolean
+}
+
+export type CompanyCreateWithoutLivestockInput = {
+  id?: string
+  name: string
+  cuit: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  farms?: Prisma.FarmCreateNestedManyWithoutCompanyInput
+  machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  users?: Prisma.UserCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyUncheckedCreateWithoutLivestockInput = {
+  id?: string
+  name: string
+  cuit: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  farms?: Prisma.FarmUncheckedCreateNestedManyWithoutCompanyInput
+  machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyCreateOrConnectWithoutLivestockInput = {
+  where: Prisma.CompanyWhereUniqueInput
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutLivestockInput, Prisma.CompanyUncheckedCreateWithoutLivestockInput>
+}
+
+export type CompanyUpsertWithoutLivestockInput = {
+  update: Prisma.XOR<Prisma.CompanyUpdateWithoutLivestockInput, Prisma.CompanyUncheckedUpdateWithoutLivestockInput>
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutLivestockInput, Prisma.CompanyUncheckedCreateWithoutLivestockInput>
   where?: Prisma.CompanyWhereInput
 }
 
-export type CompanyUpdateToOneWithWhereWithoutModulesInput = {
+export type CompanyUpdateToOneWithWhereWithoutLivestockInput = {
   where?: Prisma.CompanyWhereInput
-  data: Prisma.XOR<Prisma.CompanyUpdateWithoutModulesInput, Prisma.CompanyUncheckedUpdateWithoutModulesInput>
+  data: Prisma.XOR<Prisma.CompanyUpdateWithoutLivestockInput, Prisma.CompanyUncheckedUpdateWithoutLivestockInput>
+}
+
+export type CompanyUpdateWithoutLivestockInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cuit?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  farms?: Prisma.FarmUpdateManyWithoutCompanyNestedInput
+  machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyUncheckedUpdateWithoutLivestockInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cuit?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  farms?: Prisma.FarmUncheckedUpdateManyWithoutCompanyNestedInput
+  machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
 export type CompanyUpdateWithoutModulesInput = {
@@ -849,53 +978,7 @@ export type CompanyUncheckedUpdateWithoutModulesInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
-export type CompanyCreateWithoutLivestockInput = {
-  id?: string
-  name: string
-  cuit: string
-  active?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  version?: number
-  deleted?: boolean
-  farms?: Prisma.FarmCreateNestedManyWithoutCompanyInput
-  machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
-  modules?: Prisma.ModuleCreateNestedManyWithoutCompanyInput
-  users?: Prisma.UserCreateNestedManyWithoutCompanyInput
-}
-
-export type CompanyUncheckedCreateWithoutLivestockInput = {
-  id?: string
-  name: string
-  cuit: string
-  active?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  version?: number
-  deleted?: boolean
-  farms?: Prisma.FarmUncheckedCreateNestedManyWithoutCompanyInput
-  machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
-  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompanyInput
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
-}
-
-export type CompanyCreateOrConnectWithoutLivestockInput = {
-  where: Prisma.CompanyWhereUniqueInput
-  create: Prisma.XOR<Prisma.CompanyCreateWithoutLivestockInput, Prisma.CompanyUncheckedCreateWithoutLivestockInput>
-}
-
-export type CompanyUpsertWithoutLivestockInput = {
-  update: Prisma.XOR<Prisma.CompanyUpdateWithoutLivestockInput, Prisma.CompanyUncheckedUpdateWithoutLivestockInput>
-  create: Prisma.XOR<Prisma.CompanyCreateWithoutLivestockInput, Prisma.CompanyUncheckedCreateWithoutLivestockInput>
-  where?: Prisma.CompanyWhereInput
-}
-
-export type CompanyUpdateToOneWithWhereWithoutLivestockInput = {
-  where?: Prisma.CompanyWhereInput
-  data: Prisma.XOR<Prisma.CompanyUpdateWithoutLivestockInput, Prisma.CompanyUncheckedUpdateWithoutLivestockInput>
-}
-
-export type CompanyUpdateWithoutLivestockInput = {
+export type CompanyUncheckedUpdateManyWithoutModulesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   cuit?: Prisma.StringFieldUpdateOperationsInput | string
@@ -904,25 +987,6 @@ export type CompanyUpdateWithoutLivestockInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  farms?: Prisma.FarmUpdateManyWithoutCompanyNestedInput
-  machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
-  modules?: Prisma.ModuleUpdateManyWithoutCompanyNestedInput
-  users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
-}
-
-export type CompanyUncheckedUpdateWithoutLivestockInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  cuit?: Prisma.StringFieldUpdateOperationsInput | string
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  version?: Prisma.IntFieldUpdateOperationsInput | number
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  farms?: Prisma.FarmUncheckedUpdateManyWithoutCompanyNestedInput
-  machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
-  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompanyNestedInput
-  users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
 
