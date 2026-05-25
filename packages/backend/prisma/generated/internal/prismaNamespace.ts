@@ -1490,7 +1490,6 @@ export type TaskTypeScalarFieldEnum = (typeof TaskTypeScalarFieldEnum)[keyof typ
 export const TaskScalarFieldEnum = {
   id: 'id',
   lotId: 'lotId',
-  operatorId: 'operatorId',
   taskTypeId: 'taskTypeId',
   status: 'status',
   startedAt: 'startedAt',
@@ -1551,6 +1550,7 @@ export type ModuleScalarFieldEnum = (typeof ModuleScalarFieldEnum)[keyof typeof 
 export const LivestockScalarFieldEnum = {
   id: 'id',
   companyId: 'companyId',
+  lotId: 'lotId',
   tagNumber: 'tagNumber',
   species: 'species',
   breed: 'breed',

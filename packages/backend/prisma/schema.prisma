@@ -35,7 +35,7 @@ model User {
   version         Int              @default(1)
   deleted         Boolean          @default(false)
   livestockEvents LivestockEvent[]
-  tasks           Task[]
+  tasks           Task[]           @relation("TaskOperators")
   company         Company          @relation(fields: [companyId], references: [id])
   weightRecords   WeightRecord[]
 }
@@ -68,6 +68,8 @@ model Lot {
   movements LivestockMovement[]
   farm      Farm                @relation(fields: [farmId], references: [id])
   tasks     Task[]
+  // Relacion nueva a lotes y ganado para permitir que un lote tenga control de que animales tiene en un momento dado
+  livestock Livestock[]         @relation("LotLivestock")
 }
 
 model TaskType {
@@ -80,7 +82,6 @@ model TaskType {
 model Task {
   id            String         @id @default(uuid())
   lotId         String
-  operatorId    String?
   taskTypeId    String
   status        TaskStatus     @default(PENDIENTE)
   startedAt     DateTime?
@@ -92,7 +93,8 @@ model Task {
   deleted       Boolean        @default(false)
   machineLogs   MachineUsage[]
   lot           Lot            @relation(fields: [lotId], references: [id])
-  operator      User?          @relation(fields: [operatorId], references: [id])
+  //Se cambio de relacion de un solo usuario a varios operadores para permitir que varias personas puedan trabajar en la misma tarea
+  operators     User[]         @relation("TaskOperators")
   taskType      TaskType       @relation(fields: [taskTypeId], references: [id])
 }
 
@@ -138,6 +140,7 @@ model Module {
 model Livestock {
   id        String              @id @default(uuid())
   companyId String
+  lotId     String? // Relacion nueva a lotes para permitir que un animal pueda estar asignado a un lote
   tagNumber String              @unique
   species   String
   breed     String?
@@ -153,6 +156,8 @@ model Livestock {
   events    LivestockEvent[]
   movements LivestockMovement[]
   weights   WeightRecord[]
+  // Yo creo que esta no es necesaria por reglas de transitividad, pero la dejo por si acaso para facilitar consultas
+  lot       Lot?                @relation("LotLivestock", fields: [lotId], references: [id])
 }
 
 model LivestockEvent {

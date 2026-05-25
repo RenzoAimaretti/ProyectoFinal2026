@@ -344,7 +344,7 @@ export type UserCreateInput = {
   version?: number
   deleted?: boolean
   livestockEvents?: Prisma.LivestockEventCreateNestedManyWithoutOperatorInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorsInput
   company: Prisma.CompanyCreateNestedOneWithoutUsersInput
   weightRecords?: Prisma.WeightRecordCreateNestedManyWithoutOperatorInput
 }
@@ -361,7 +361,7 @@ export type UserUncheckedCreateInput = {
   version?: number
   deleted?: boolean
   livestockEvents?: Prisma.LivestockEventUncheckedCreateNestedManyWithoutOperatorInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorsInput
   weightRecords?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutOperatorInput
 }
 
@@ -376,7 +376,7 @@ export type UserUpdateInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   livestockEvents?: Prisma.LivestockEventUpdateManyWithoutOperatorNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutOperatorsNestedInput
   company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
   weightRecords?: Prisma.WeightRecordUpdateManyWithoutOperatorNestedInput
 }
@@ -393,7 +393,7 @@ export type UserUncheckedUpdateInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   livestockEvents?: Prisma.LivestockEventUncheckedUpdateManyWithoutOperatorNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorsNestedInput
   weightRecords?: Prisma.WeightRecordUncheckedUpdateManyWithoutOperatorNestedInput
 }
 
@@ -543,20 +543,42 @@ export type EnumUserRoleFieldUpdateOperationsInput = {
   set?: $Enums.UserRole
 }
 
-export type UserCreateNestedOneWithoutTasksInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutTasksInput, Prisma.UserUncheckedCreateWithoutTasksInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTasksInput
-  connect?: Prisma.UserWhereUniqueInput
+export type UserCreateNestedManyWithoutTasksInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTasksInput, Prisma.UserUncheckedCreateWithoutTasksInput> | Prisma.UserCreateWithoutTasksInput[] | Prisma.UserUncheckedCreateWithoutTasksInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTasksInput | Prisma.UserCreateOrConnectWithoutTasksInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
 }
 
-export type UserUpdateOneWithoutTasksNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutTasksInput, Prisma.UserUncheckedCreateWithoutTasksInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTasksInput
-  upsert?: Prisma.UserUpsertWithoutTasksInput
-  disconnect?: Prisma.UserWhereInput | boolean
-  delete?: Prisma.UserWhereInput | boolean
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTasksInput, Prisma.UserUpdateWithoutTasksInput>, Prisma.UserUncheckedUpdateWithoutTasksInput>
+export type UserUncheckedCreateNestedManyWithoutTasksInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTasksInput, Prisma.UserUncheckedCreateWithoutTasksInput> | Prisma.UserCreateWithoutTasksInput[] | Prisma.UserUncheckedCreateWithoutTasksInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTasksInput | Prisma.UserCreateOrConnectWithoutTasksInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+}
+
+export type UserUpdateManyWithoutTasksNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTasksInput, Prisma.UserUncheckedCreateWithoutTasksInput> | Prisma.UserCreateWithoutTasksInput[] | Prisma.UserUncheckedCreateWithoutTasksInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTasksInput | Prisma.UserCreateOrConnectWithoutTasksInput[]
+  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutTasksInput | Prisma.UserUpsertWithWhereUniqueWithoutTasksInput[]
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  update?: Prisma.UserUpdateWithWhereUniqueWithoutTasksInput | Prisma.UserUpdateWithWhereUniqueWithoutTasksInput[]
+  updateMany?: Prisma.UserUpdateManyWithWhereWithoutTasksInput | Prisma.UserUpdateManyWithWhereWithoutTasksInput[]
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+}
+
+export type UserUncheckedUpdateManyWithoutTasksNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTasksInput, Prisma.UserUncheckedCreateWithoutTasksInput> | Prisma.UserCreateWithoutTasksInput[] | Prisma.UserUncheckedCreateWithoutTasksInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTasksInput | Prisma.UserCreateOrConnectWithoutTasksInput[]
+  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutTasksInput | Prisma.UserUpsertWithWhereUniqueWithoutTasksInput[]
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  update?: Prisma.UserUpdateWithWhereUniqueWithoutTasksInput | Prisma.UserUpdateWithWhereUniqueWithoutTasksInput[]
+  updateMany?: Prisma.UserUpdateManyWithWhereWithoutTasksInput | Prisma.UserUpdateManyWithWhereWithoutTasksInput[]
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
 }
 
 export type UserCreateNestedOneWithoutLivestockEventsInput = {
@@ -602,7 +624,7 @@ export type UserCreateWithoutCompanyInput = {
   version?: number
   deleted?: boolean
   livestockEvents?: Prisma.LivestockEventCreateNestedManyWithoutOperatorInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorsInput
   weightRecords?: Prisma.WeightRecordCreateNestedManyWithoutOperatorInput
 }
 
@@ -617,7 +639,7 @@ export type UserUncheckedCreateWithoutCompanyInput = {
   version?: number
   deleted?: boolean
   livestockEvents?: Prisma.LivestockEventUncheckedCreateNestedManyWithoutOperatorInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorsInput
   weightRecords?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutOperatorInput
 }
 
@@ -698,15 +720,226 @@ export type UserCreateOrConnectWithoutTasksInput = {
   create: Prisma.XOR<Prisma.UserCreateWithoutTasksInput, Prisma.UserUncheckedCreateWithoutTasksInput>
 }
 
-export type UserUpsertWithoutTasksInput = {
+export type UserUpsertWithWhereUniqueWithoutTasksInput = {
+  where: Prisma.UserWhereUniqueInput
   update: Prisma.XOR<Prisma.UserUpdateWithoutTasksInput, Prisma.UserUncheckedUpdateWithoutTasksInput>
   create: Prisma.XOR<Prisma.UserCreateWithoutTasksInput, Prisma.UserUncheckedCreateWithoutTasksInput>
+}
+
+export type UserUpdateWithWhereUniqueWithoutTasksInput = {
+  where: Prisma.UserWhereUniqueInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTasksInput, Prisma.UserUncheckedUpdateWithoutTasksInput>
+}
+
+export type UserUpdateManyWithWhereWithoutTasksInput = {
+  where: Prisma.UserScalarWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutTasksInput>
+}
+
+export type UserCreateWithoutLivestockEventsInput = {
+  id?: string
+  username: string
+  passwordHash: string
+  role: $Enums.UserRole
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorsInput
+  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
+  weightRecords?: Prisma.WeightRecordCreateNestedManyWithoutOperatorInput
+}
+
+export type UserUncheckedCreateWithoutLivestockEventsInput = {
+  id?: string
+  companyId: string
+  username: string
+  passwordHash: string
+  role: $Enums.UserRole
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorsInput
+  weightRecords?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutOperatorInput
+}
+
+export type UserCreateOrConnectWithoutLivestockEventsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutLivestockEventsInput, Prisma.UserUncheckedCreateWithoutLivestockEventsInput>
+}
+
+export type UserUpsertWithoutLivestockEventsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutLivestockEventsInput, Prisma.UserUncheckedUpdateWithoutLivestockEventsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutLivestockEventsInput, Prisma.UserUncheckedCreateWithoutLivestockEventsInput>
   where?: Prisma.UserWhereInput
 }
 
-export type UserUpdateToOneWithWhereWithoutTasksInput = {
+export type UserUpdateToOneWithWhereWithoutLivestockEventsInput = {
   where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutTasksInput, Prisma.UserUncheckedUpdateWithoutTasksInput>
+  data: Prisma.XOR<Prisma.UserUpdateWithoutLivestockEventsInput, Prisma.UserUncheckedUpdateWithoutLivestockEventsInput>
+}
+
+export type UserUpdateWithoutLivestockEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tasks?: Prisma.TaskUpdateManyWithoutOperatorsNestedInput
+  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
+  weightRecords?: Prisma.WeightRecordUpdateManyWithoutOperatorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutLivestockEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorsNestedInput
+  weightRecords?: Prisma.WeightRecordUncheckedUpdateManyWithoutOperatorNestedInput
+}
+
+export type UserCreateWithoutWeightRecordsInput = {
+  id?: string
+  username: string
+  passwordHash: string
+  role: $Enums.UserRole
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  livestockEvents?: Prisma.LivestockEventCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorsInput
+  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
+}
+
+export type UserUncheckedCreateWithoutWeightRecordsInput = {
+  id?: string
+  companyId: string
+  username: string
+  passwordHash: string
+  role: $Enums.UserRole
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  livestockEvents?: Prisma.LivestockEventUncheckedCreateNestedManyWithoutOperatorInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorsInput
+}
+
+export type UserCreateOrConnectWithoutWeightRecordsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutWeightRecordsInput, Prisma.UserUncheckedCreateWithoutWeightRecordsInput>
+}
+
+export type UserUpsertWithoutWeightRecordsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutWeightRecordsInput, Prisma.UserUncheckedUpdateWithoutWeightRecordsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutWeightRecordsInput, Prisma.UserUncheckedCreateWithoutWeightRecordsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutWeightRecordsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutWeightRecordsInput, Prisma.UserUncheckedUpdateWithoutWeightRecordsInput>
+}
+
+export type UserUpdateWithoutWeightRecordsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  livestockEvents?: Prisma.LivestockEventUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutOperatorsNestedInput
+  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
+}
+
+export type UserUncheckedUpdateWithoutWeightRecordsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  livestockEvents?: Prisma.LivestockEventUncheckedUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorsNestedInput
+}
+
+export type UserCreateManyCompanyInput = {
+  id?: string
+  username: string
+  passwordHash: string
+  role: $Enums.UserRole
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+}
+
+export type UserUpdateWithoutCompanyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  livestockEvents?: Prisma.LivestockEventUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutOperatorsNestedInput
+  weightRecords?: Prisma.WeightRecordUpdateManyWithoutOperatorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCompanyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  livestockEvents?: Prisma.LivestockEventUncheckedUpdateManyWithoutOperatorNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorsNestedInput
+  weightRecords?: Prisma.WeightRecordUncheckedUpdateManyWithoutOperatorNestedInput
+}
+
+export type UserUncheckedUpdateManyWithoutCompanyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserUpdateWithoutTasksInput = {
@@ -739,202 +972,9 @@ export type UserUncheckedUpdateWithoutTasksInput = {
   weightRecords?: Prisma.WeightRecordUncheckedUpdateManyWithoutOperatorNestedInput
 }
 
-export type UserCreateWithoutLivestockEventsInput = {
-  id?: string
-  username: string
-  passwordHash: string
-  role: $Enums.UserRole
-  active?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  version?: number
-  deleted?: boolean
-  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
-  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
-  weightRecords?: Prisma.WeightRecordCreateNestedManyWithoutOperatorInput
-}
-
-export type UserUncheckedCreateWithoutLivestockEventsInput = {
-  id?: string
-  companyId: string
-  username: string
-  passwordHash: string
-  role: $Enums.UserRole
-  active?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  version?: number
-  deleted?: boolean
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorInput
-  weightRecords?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutOperatorInput
-}
-
-export type UserCreateOrConnectWithoutLivestockEventsInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutLivestockEventsInput, Prisma.UserUncheckedCreateWithoutLivestockEventsInput>
-}
-
-export type UserUpsertWithoutLivestockEventsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutLivestockEventsInput, Prisma.UserUncheckedUpdateWithoutLivestockEventsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutLivestockEventsInput, Prisma.UserUncheckedCreateWithoutLivestockEventsInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutLivestockEventsInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutLivestockEventsInput, Prisma.UserUncheckedUpdateWithoutLivestockEventsInput>
-}
-
-export type UserUpdateWithoutLivestockEventsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  username?: Prisma.StringFieldUpdateOperationsInput | string
-  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  version?: Prisma.IntFieldUpdateOperationsInput | number
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
-  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
-  weightRecords?: Prisma.WeightRecordUpdateManyWithoutOperatorNestedInput
-}
-
-export type UserUncheckedUpdateWithoutLivestockEventsInput = {
+export type UserUncheckedUpdateManyWithoutTasksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
-  username?: Prisma.StringFieldUpdateOperationsInput | string
-  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  version?: Prisma.IntFieldUpdateOperationsInput | number
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorNestedInput
-  weightRecords?: Prisma.WeightRecordUncheckedUpdateManyWithoutOperatorNestedInput
-}
-
-export type UserCreateWithoutWeightRecordsInput = {
-  id?: string
-  username: string
-  passwordHash: string
-  role: $Enums.UserRole
-  active?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  version?: number
-  deleted?: boolean
-  livestockEvents?: Prisma.LivestockEventCreateNestedManyWithoutOperatorInput
-  tasks?: Prisma.TaskCreateNestedManyWithoutOperatorInput
-  company: Prisma.CompanyCreateNestedOneWithoutUsersInput
-}
-
-export type UserUncheckedCreateWithoutWeightRecordsInput = {
-  id?: string
-  companyId: string
-  username: string
-  passwordHash: string
-  role: $Enums.UserRole
-  active?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  version?: number
-  deleted?: boolean
-  livestockEvents?: Prisma.LivestockEventUncheckedCreateNestedManyWithoutOperatorInput
-  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutOperatorInput
-}
-
-export type UserCreateOrConnectWithoutWeightRecordsInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutWeightRecordsInput, Prisma.UserUncheckedCreateWithoutWeightRecordsInput>
-}
-
-export type UserUpsertWithoutWeightRecordsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutWeightRecordsInput, Prisma.UserUncheckedUpdateWithoutWeightRecordsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutWeightRecordsInput, Prisma.UserUncheckedCreateWithoutWeightRecordsInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutWeightRecordsInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutWeightRecordsInput, Prisma.UserUncheckedUpdateWithoutWeightRecordsInput>
-}
-
-export type UserUpdateWithoutWeightRecordsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  username?: Prisma.StringFieldUpdateOperationsInput | string
-  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  version?: Prisma.IntFieldUpdateOperationsInput | number
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  livestockEvents?: Prisma.LivestockEventUpdateManyWithoutOperatorNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
-  company?: Prisma.CompanyUpdateOneRequiredWithoutUsersNestedInput
-}
-
-export type UserUncheckedUpdateWithoutWeightRecordsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  companyId?: Prisma.StringFieldUpdateOperationsInput | string
-  username?: Prisma.StringFieldUpdateOperationsInput | string
-  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  version?: Prisma.IntFieldUpdateOperationsInput | number
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  livestockEvents?: Prisma.LivestockEventUncheckedUpdateManyWithoutOperatorNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorNestedInput
-}
-
-export type UserCreateManyCompanyInput = {
-  id?: string
-  username: string
-  passwordHash: string
-  role: $Enums.UserRole
-  active?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  version?: number
-  deleted?: boolean
-}
-
-export type UserUpdateWithoutCompanyInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  username?: Prisma.StringFieldUpdateOperationsInput | string
-  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  version?: Prisma.IntFieldUpdateOperationsInput | number
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  livestockEvents?: Prisma.LivestockEventUpdateManyWithoutOperatorNestedInput
-  tasks?: Prisma.TaskUpdateManyWithoutOperatorNestedInput
-  weightRecords?: Prisma.WeightRecordUpdateManyWithoutOperatorNestedInput
-}
-
-export type UserUncheckedUpdateWithoutCompanyInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  username?: Prisma.StringFieldUpdateOperationsInput | string
-  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  version?: Prisma.IntFieldUpdateOperationsInput | number
-  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  livestockEvents?: Prisma.LivestockEventUncheckedUpdateManyWithoutOperatorNestedInput
-  tasks?: Prisma.TaskUncheckedUpdateManyWithoutOperatorNestedInput
-  weightRecords?: Prisma.WeightRecordUncheckedUpdateManyWithoutOperatorNestedInput
-}
-
-export type UserUncheckedUpdateManyWithoutCompanyInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole

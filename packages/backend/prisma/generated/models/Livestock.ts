@@ -37,6 +37,7 @@ export type LivestockSumAggregateOutputType = {
 export type LivestockMinAggregateOutputType = {
   id: string | null
   companyId: string | null
+  lotId: string | null
   tagNumber: string | null
   species: string | null
   breed: string | null
@@ -53,6 +54,7 @@ export type LivestockMinAggregateOutputType = {
 export type LivestockMaxAggregateOutputType = {
   id: string | null
   companyId: string | null
+  lotId: string | null
   tagNumber: string | null
   species: string | null
   breed: string | null
@@ -69,6 +71,7 @@ export type LivestockMaxAggregateOutputType = {
 export type LivestockCountAggregateOutputType = {
   id: number
   companyId: number
+  lotId: number
   tagNumber: number
   species: number
   breed: number
@@ -95,6 +98,7 @@ export type LivestockSumAggregateInputType = {
 export type LivestockMinAggregateInputType = {
   id?: true
   companyId?: true
+  lotId?: true
   tagNumber?: true
   species?: true
   breed?: true
@@ -111,6 +115,7 @@ export type LivestockMinAggregateInputType = {
 export type LivestockMaxAggregateInputType = {
   id?: true
   companyId?: true
+  lotId?: true
   tagNumber?: true
   species?: true
   breed?: true
@@ -127,6 +132,7 @@ export type LivestockMaxAggregateInputType = {
 export type LivestockCountAggregateInputType = {
   id?: true
   companyId?: true
+  lotId?: true
   tagNumber?: true
   species?: true
   breed?: true
@@ -230,6 +236,7 @@ export type LivestockGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 export type LivestockGroupByOutputType = {
   id: string
   companyId: string
+  lotId: string | null
   tagNumber: string
   species: string
   breed: string | null
@@ -269,6 +276,7 @@ export type LivestockWhereInput = {
   NOT?: Prisma.LivestockWhereInput | Prisma.LivestockWhereInput[]
   id?: Prisma.StringFilter<"Livestock"> | string
   companyId?: Prisma.StringFilter<"Livestock"> | string
+  lotId?: Prisma.StringNullableFilter<"Livestock"> | string | null
   tagNumber?: Prisma.StringFilter<"Livestock"> | string
   species?: Prisma.StringFilter<"Livestock"> | string
   breed?: Prisma.StringNullableFilter<"Livestock"> | string | null
@@ -284,11 +292,13 @@ export type LivestockWhereInput = {
   events?: Prisma.LivestockEventListRelationFilter
   movements?: Prisma.LivestockMovementListRelationFilter
   weights?: Prisma.WeightRecordListRelationFilter
+  lot?: Prisma.XOR<Prisma.LotNullableScalarRelationFilter, Prisma.LotWhereInput> | null
 }
 
 export type LivestockOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
+  lotId?: Prisma.SortOrderInput | Prisma.SortOrder
   tagNumber?: Prisma.SortOrder
   species?: Prisma.SortOrder
   breed?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -304,6 +314,7 @@ export type LivestockOrderByWithRelationInput = {
   events?: Prisma.LivestockEventOrderByRelationAggregateInput
   movements?: Prisma.LivestockMovementOrderByRelationAggregateInput
   weights?: Prisma.WeightRecordOrderByRelationAggregateInput
+  lot?: Prisma.LotOrderByWithRelationInput
 }
 
 export type LivestockWhereUniqueInput = Prisma.AtLeast<{
@@ -313,6 +324,7 @@ export type LivestockWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.LivestockWhereInput[]
   NOT?: Prisma.LivestockWhereInput | Prisma.LivestockWhereInput[]
   companyId?: Prisma.StringFilter<"Livestock"> | string
+  lotId?: Prisma.StringNullableFilter<"Livestock"> | string | null
   species?: Prisma.StringFilter<"Livestock"> | string
   breed?: Prisma.StringNullableFilter<"Livestock"> | string | null
   sex?: Prisma.StringFilter<"Livestock"> | string
@@ -327,11 +339,13 @@ export type LivestockWhereUniqueInput = Prisma.AtLeast<{
   events?: Prisma.LivestockEventListRelationFilter
   movements?: Prisma.LivestockMovementListRelationFilter
   weights?: Prisma.WeightRecordListRelationFilter
+  lot?: Prisma.XOR<Prisma.LotNullableScalarRelationFilter, Prisma.LotWhereInput> | null
 }, "id" | "tagNumber">
 
 export type LivestockOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
+  lotId?: Prisma.SortOrderInput | Prisma.SortOrder
   tagNumber?: Prisma.SortOrder
   species?: Prisma.SortOrder
   breed?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -356,6 +370,7 @@ export type LivestockScalarWhereWithAggregatesInput = {
   NOT?: Prisma.LivestockScalarWhereWithAggregatesInput | Prisma.LivestockScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Livestock"> | string
   companyId?: Prisma.StringWithAggregatesFilter<"Livestock"> | string
+  lotId?: Prisma.StringNullableWithAggregatesFilter<"Livestock"> | string | null
   tagNumber?: Prisma.StringWithAggregatesFilter<"Livestock"> | string
   species?: Prisma.StringWithAggregatesFilter<"Livestock"> | string
   breed?: Prisma.StringNullableWithAggregatesFilter<"Livestock"> | string | null
@@ -386,11 +401,13 @@ export type LivestockCreateInput = {
   events?: Prisma.LivestockEventCreateNestedManyWithoutLivestockInput
   movements?: Prisma.LivestockMovementCreateNestedManyWithoutLivestockInput
   weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
+  lot?: Prisma.LotCreateNestedOneWithoutLivestockInput
 }
 
 export type LivestockUncheckedCreateInput = {
   id?: string
   companyId: string
+  lotId?: string | null
   tagNumber: string
   species: string
   breed?: string | null
@@ -424,11 +441,13 @@ export type LivestockUpdateInput = {
   events?: Prisma.LivestockEventUpdateManyWithoutLivestockNestedInput
   movements?: Prisma.LivestockMovementUpdateManyWithoutLivestockNestedInput
   weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
+  lot?: Prisma.LotUpdateOneWithoutLivestockNestedInput
 }
 
 export type LivestockUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tagNumber?: Prisma.StringFieldUpdateOperationsInput | string
   species?: Prisma.StringFieldUpdateOperationsInput | string
   breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -448,6 +467,7 @@ export type LivestockUncheckedUpdateInput = {
 export type LivestockCreateManyInput = {
   id?: string
   companyId: string
+  lotId?: string | null
   tagNumber: string
   species: string
   breed?: string | null
@@ -479,6 +499,7 @@ export type LivestockUpdateManyMutationInput = {
 export type LivestockUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tagNumber?: Prisma.StringFieldUpdateOperationsInput | string
   species?: Prisma.StringFieldUpdateOperationsInput | string
   breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -505,6 +526,7 @@ export type LivestockOrderByRelationAggregateInput = {
 export type LivestockCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
+  lotId?: Prisma.SortOrder
   tagNumber?: Prisma.SortOrder
   species?: Prisma.SortOrder
   breed?: Prisma.SortOrder
@@ -525,6 +547,7 @@ export type LivestockAvgOrderByAggregateInput = {
 export type LivestockMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
+  lotId?: Prisma.SortOrder
   tagNumber?: Prisma.SortOrder
   species?: Prisma.SortOrder
   breed?: Prisma.SortOrder
@@ -541,6 +564,7 @@ export type LivestockMaxOrderByAggregateInput = {
 export type LivestockMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
+  lotId?: Prisma.SortOrder
   tagNumber?: Prisma.SortOrder
   species?: Prisma.SortOrder
   breed?: Prisma.SortOrder
@@ -602,6 +626,48 @@ export type LivestockUncheckedUpdateManyWithoutCompanyNestedInput = {
   connect?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
   update?: Prisma.LivestockUpdateWithWhereUniqueWithoutCompanyInput | Prisma.LivestockUpdateWithWhereUniqueWithoutCompanyInput[]
   updateMany?: Prisma.LivestockUpdateManyWithWhereWithoutCompanyInput | Prisma.LivestockUpdateManyWithWhereWithoutCompanyInput[]
+  deleteMany?: Prisma.LivestockScalarWhereInput | Prisma.LivestockScalarWhereInput[]
+}
+
+export type LivestockCreateNestedManyWithoutLotInput = {
+  create?: Prisma.XOR<Prisma.LivestockCreateWithoutLotInput, Prisma.LivestockUncheckedCreateWithoutLotInput> | Prisma.LivestockCreateWithoutLotInput[] | Prisma.LivestockUncheckedCreateWithoutLotInput[]
+  connectOrCreate?: Prisma.LivestockCreateOrConnectWithoutLotInput | Prisma.LivestockCreateOrConnectWithoutLotInput[]
+  createMany?: Prisma.LivestockCreateManyLotInputEnvelope
+  connect?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
+}
+
+export type LivestockUncheckedCreateNestedManyWithoutLotInput = {
+  create?: Prisma.XOR<Prisma.LivestockCreateWithoutLotInput, Prisma.LivestockUncheckedCreateWithoutLotInput> | Prisma.LivestockCreateWithoutLotInput[] | Prisma.LivestockUncheckedCreateWithoutLotInput[]
+  connectOrCreate?: Prisma.LivestockCreateOrConnectWithoutLotInput | Prisma.LivestockCreateOrConnectWithoutLotInput[]
+  createMany?: Prisma.LivestockCreateManyLotInputEnvelope
+  connect?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
+}
+
+export type LivestockUpdateManyWithoutLotNestedInput = {
+  create?: Prisma.XOR<Prisma.LivestockCreateWithoutLotInput, Prisma.LivestockUncheckedCreateWithoutLotInput> | Prisma.LivestockCreateWithoutLotInput[] | Prisma.LivestockUncheckedCreateWithoutLotInput[]
+  connectOrCreate?: Prisma.LivestockCreateOrConnectWithoutLotInput | Prisma.LivestockCreateOrConnectWithoutLotInput[]
+  upsert?: Prisma.LivestockUpsertWithWhereUniqueWithoutLotInput | Prisma.LivestockUpsertWithWhereUniqueWithoutLotInput[]
+  createMany?: Prisma.LivestockCreateManyLotInputEnvelope
+  set?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
+  disconnect?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
+  delete?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
+  connect?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
+  update?: Prisma.LivestockUpdateWithWhereUniqueWithoutLotInput | Prisma.LivestockUpdateWithWhereUniqueWithoutLotInput[]
+  updateMany?: Prisma.LivestockUpdateManyWithWhereWithoutLotInput | Prisma.LivestockUpdateManyWithWhereWithoutLotInput[]
+  deleteMany?: Prisma.LivestockScalarWhereInput | Prisma.LivestockScalarWhereInput[]
+}
+
+export type LivestockUncheckedUpdateManyWithoutLotNestedInput = {
+  create?: Prisma.XOR<Prisma.LivestockCreateWithoutLotInput, Prisma.LivestockUncheckedCreateWithoutLotInput> | Prisma.LivestockCreateWithoutLotInput[] | Prisma.LivestockUncheckedCreateWithoutLotInput[]
+  connectOrCreate?: Prisma.LivestockCreateOrConnectWithoutLotInput | Prisma.LivestockCreateOrConnectWithoutLotInput[]
+  upsert?: Prisma.LivestockUpsertWithWhereUniqueWithoutLotInput | Prisma.LivestockUpsertWithWhereUniqueWithoutLotInput[]
+  createMany?: Prisma.LivestockCreateManyLotInputEnvelope
+  set?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
+  disconnect?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
+  delete?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
+  connect?: Prisma.LivestockWhereUniqueInput | Prisma.LivestockWhereUniqueInput[]
+  update?: Prisma.LivestockUpdateWithWhereUniqueWithoutLotInput | Prisma.LivestockUpdateWithWhereUniqueWithoutLotInput[]
+  updateMany?: Prisma.LivestockUpdateManyWithWhereWithoutLotInput | Prisma.LivestockUpdateManyWithWhereWithoutLotInput[]
   deleteMany?: Prisma.LivestockScalarWhereInput | Prisma.LivestockScalarWhereInput[]
 }
 
@@ -667,10 +733,12 @@ export type LivestockCreateWithoutCompanyInput = {
   events?: Prisma.LivestockEventCreateNestedManyWithoutLivestockInput
   movements?: Prisma.LivestockMovementCreateNestedManyWithoutLivestockInput
   weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
+  lot?: Prisma.LotCreateNestedOneWithoutLivestockInput
 }
 
 export type LivestockUncheckedCreateWithoutCompanyInput = {
   id?: string
+  lotId?: string | null
   tagNumber: string
   species: string
   breed?: string | null
@@ -719,6 +787,7 @@ export type LivestockScalarWhereInput = {
   NOT?: Prisma.LivestockScalarWhereInput | Prisma.LivestockScalarWhereInput[]
   id?: Prisma.StringFilter<"Livestock"> | string
   companyId?: Prisma.StringFilter<"Livestock"> | string
+  lotId?: Prisma.StringNullableFilter<"Livestock"> | string | null
   tagNumber?: Prisma.StringFilter<"Livestock"> | string
   species?: Prisma.StringFilter<"Livestock"> | string
   breed?: Prisma.StringNullableFilter<"Livestock"> | string | null
@@ -730,6 +799,70 @@ export type LivestockScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Livestock"> | Date | string
   version?: Prisma.IntFilter<"Livestock"> | number
   deleted?: Prisma.BoolFilter<"Livestock"> | boolean
+}
+
+export type LivestockCreateWithoutLotInput = {
+  id?: string
+  tagNumber: string
+  species: string
+  breed?: string | null
+  sex: string
+  birthDate?: Date | string | null
+  status?: $Enums.LivestockStatus
+  entryDate?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  company: Prisma.CompanyCreateNestedOneWithoutLivestockInput
+  events?: Prisma.LivestockEventCreateNestedManyWithoutLivestockInput
+  movements?: Prisma.LivestockMovementCreateNestedManyWithoutLivestockInput
+  weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
+}
+
+export type LivestockUncheckedCreateWithoutLotInput = {
+  id?: string
+  companyId: string
+  tagNumber: string
+  species: string
+  breed?: string | null
+  sex: string
+  birthDate?: Date | string | null
+  status?: $Enums.LivestockStatus
+  entryDate?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  events?: Prisma.LivestockEventUncheckedCreateNestedManyWithoutLivestockInput
+  movements?: Prisma.LivestockMovementUncheckedCreateNestedManyWithoutLivestockInput
+  weights?: Prisma.WeightRecordUncheckedCreateNestedManyWithoutLivestockInput
+}
+
+export type LivestockCreateOrConnectWithoutLotInput = {
+  where: Prisma.LivestockWhereUniqueInput
+  create: Prisma.XOR<Prisma.LivestockCreateWithoutLotInput, Prisma.LivestockUncheckedCreateWithoutLotInput>
+}
+
+export type LivestockCreateManyLotInputEnvelope = {
+  data: Prisma.LivestockCreateManyLotInput | Prisma.LivestockCreateManyLotInput[]
+  skipDuplicates?: boolean
+}
+
+export type LivestockUpsertWithWhereUniqueWithoutLotInput = {
+  where: Prisma.LivestockWhereUniqueInput
+  update: Prisma.XOR<Prisma.LivestockUpdateWithoutLotInput, Prisma.LivestockUncheckedUpdateWithoutLotInput>
+  create: Prisma.XOR<Prisma.LivestockCreateWithoutLotInput, Prisma.LivestockUncheckedCreateWithoutLotInput>
+}
+
+export type LivestockUpdateWithWhereUniqueWithoutLotInput = {
+  where: Prisma.LivestockWhereUniqueInput
+  data: Prisma.XOR<Prisma.LivestockUpdateWithoutLotInput, Prisma.LivestockUncheckedUpdateWithoutLotInput>
+}
+
+export type LivestockUpdateManyWithWhereWithoutLotInput = {
+  where: Prisma.LivestockScalarWhereInput
+  data: Prisma.XOR<Prisma.LivestockUpdateManyMutationInput, Prisma.LivestockUncheckedUpdateManyWithoutLotInput>
 }
 
 export type LivestockCreateWithoutEventsInput = {
@@ -748,11 +881,13 @@ export type LivestockCreateWithoutEventsInput = {
   company: Prisma.CompanyCreateNestedOneWithoutLivestockInput
   movements?: Prisma.LivestockMovementCreateNestedManyWithoutLivestockInput
   weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
+  lot?: Prisma.LotCreateNestedOneWithoutLivestockInput
 }
 
 export type LivestockUncheckedCreateWithoutEventsInput = {
   id?: string
   companyId: string
+  lotId?: string | null
   tagNumber: string
   species: string
   breed?: string | null
@@ -800,11 +935,13 @@ export type LivestockUpdateWithoutEventsInput = {
   company?: Prisma.CompanyUpdateOneRequiredWithoutLivestockNestedInput
   movements?: Prisma.LivestockMovementUpdateManyWithoutLivestockNestedInput
   weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
+  lot?: Prisma.LotUpdateOneWithoutLivestockNestedInput
 }
 
 export type LivestockUncheckedUpdateWithoutEventsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tagNumber?: Prisma.StringFieldUpdateOperationsInput | string
   species?: Prisma.StringFieldUpdateOperationsInput | string
   breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -836,11 +973,13 @@ export type LivestockCreateWithoutWeightsInput = {
   company: Prisma.CompanyCreateNestedOneWithoutLivestockInput
   events?: Prisma.LivestockEventCreateNestedManyWithoutLivestockInput
   movements?: Prisma.LivestockMovementCreateNestedManyWithoutLivestockInput
+  lot?: Prisma.LotCreateNestedOneWithoutLivestockInput
 }
 
 export type LivestockUncheckedCreateWithoutWeightsInput = {
   id?: string
   companyId: string
+  lotId?: string | null
   tagNumber: string
   species: string
   breed?: string | null
@@ -888,11 +1027,13 @@ export type LivestockUpdateWithoutWeightsInput = {
   company?: Prisma.CompanyUpdateOneRequiredWithoutLivestockNestedInput
   events?: Prisma.LivestockEventUpdateManyWithoutLivestockNestedInput
   movements?: Prisma.LivestockMovementUpdateManyWithoutLivestockNestedInput
+  lot?: Prisma.LotUpdateOneWithoutLivestockNestedInput
 }
 
 export type LivestockUncheckedUpdateWithoutWeightsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tagNumber?: Prisma.StringFieldUpdateOperationsInput | string
   species?: Prisma.StringFieldUpdateOperationsInput | string
   breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -924,11 +1065,13 @@ export type LivestockCreateWithoutMovementsInput = {
   company: Prisma.CompanyCreateNestedOneWithoutLivestockInput
   events?: Prisma.LivestockEventCreateNestedManyWithoutLivestockInput
   weights?: Prisma.WeightRecordCreateNestedManyWithoutLivestockInput
+  lot?: Prisma.LotCreateNestedOneWithoutLivestockInput
 }
 
 export type LivestockUncheckedCreateWithoutMovementsInput = {
   id?: string
   companyId: string
+  lotId?: string | null
   tagNumber: string
   species: string
   breed?: string | null
@@ -976,11 +1119,13 @@ export type LivestockUpdateWithoutMovementsInput = {
   company?: Prisma.CompanyUpdateOneRequiredWithoutLivestockNestedInput
   events?: Prisma.LivestockEventUpdateManyWithoutLivestockNestedInput
   weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
+  lot?: Prisma.LotUpdateOneWithoutLivestockNestedInput
 }
 
 export type LivestockUncheckedUpdateWithoutMovementsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tagNumber?: Prisma.StringFieldUpdateOperationsInput | string
   species?: Prisma.StringFieldUpdateOperationsInput | string
   breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -998,6 +1143,7 @@ export type LivestockUncheckedUpdateWithoutMovementsInput = {
 
 export type LivestockCreateManyCompanyInput = {
   id?: string
+  lotId?: string | null
   tagNumber: string
   species: string
   breed?: string | null
@@ -1027,10 +1173,12 @@ export type LivestockUpdateWithoutCompanyInput = {
   events?: Prisma.LivestockEventUpdateManyWithoutLivestockNestedInput
   movements?: Prisma.LivestockMovementUpdateManyWithoutLivestockNestedInput
   weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
+  lot?: Prisma.LotUpdateOneWithoutLivestockNestedInput
 }
 
 export type LivestockUncheckedUpdateWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tagNumber?: Prisma.StringFieldUpdateOperationsInput | string
   species?: Prisma.StringFieldUpdateOperationsInput | string
   breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1049,6 +1197,77 @@ export type LivestockUncheckedUpdateWithoutCompanyInput = {
 
 export type LivestockUncheckedUpdateManyWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  lotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tagNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  species?: Prisma.StringFieldUpdateOperationsInput | string
+  breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sex?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumLivestockStatusFieldUpdateOperationsInput | $Enums.LivestockStatus
+  entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+}
+
+export type LivestockCreateManyLotInput = {
+  id?: string
+  companyId: string
+  tagNumber: string
+  species: string
+  breed?: string | null
+  sex: string
+  birthDate?: Date | string | null
+  status?: $Enums.LivestockStatus
+  entryDate?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+}
+
+export type LivestockUpdateWithoutLotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tagNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  species?: Prisma.StringFieldUpdateOperationsInput | string
+  breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sex?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumLivestockStatusFieldUpdateOperationsInput | $Enums.LivestockStatus
+  entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  company?: Prisma.CompanyUpdateOneRequiredWithoutLivestockNestedInput
+  events?: Prisma.LivestockEventUpdateManyWithoutLivestockNestedInput
+  movements?: Prisma.LivestockMovementUpdateManyWithoutLivestockNestedInput
+  weights?: Prisma.WeightRecordUpdateManyWithoutLivestockNestedInput
+}
+
+export type LivestockUncheckedUpdateWithoutLotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  tagNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  species?: Prisma.StringFieldUpdateOperationsInput | string
+  breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sex?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumLivestockStatusFieldUpdateOperationsInput | $Enums.LivestockStatus
+  entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  events?: Prisma.LivestockEventUncheckedUpdateManyWithoutLivestockNestedInput
+  movements?: Prisma.LivestockMovementUncheckedUpdateManyWithoutLivestockNestedInput
+  weights?: Prisma.WeightRecordUncheckedUpdateManyWithoutLivestockNestedInput
+}
+
+export type LivestockUncheckedUpdateManyWithoutLotInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyId?: Prisma.StringFieldUpdateOperationsInput | string
   tagNumber?: Prisma.StringFieldUpdateOperationsInput | string
   species?: Prisma.StringFieldUpdateOperationsInput | string
   breed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1114,6 +1333,7 @@ export type LivestockCountOutputTypeCountWeightsArgs<ExtArgs extends runtime.Typ
 export type LivestockSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   companyId?: boolean
+  lotId?: boolean
   tagNumber?: boolean
   species?: boolean
   breed?: boolean
@@ -1129,12 +1349,14 @@ export type LivestockSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   events?: boolean | Prisma.Livestock$eventsArgs<ExtArgs>
   movements?: boolean | Prisma.Livestock$movementsArgs<ExtArgs>
   weights?: boolean | Prisma.Livestock$weightsArgs<ExtArgs>
+  lot?: boolean | Prisma.Livestock$lotArgs<ExtArgs>
   _count?: boolean | Prisma.LivestockCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["livestock"]>
 
 export type LivestockSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   companyId?: boolean
+  lotId?: boolean
   tagNumber?: boolean
   species?: boolean
   breed?: boolean
@@ -1147,11 +1369,13 @@ export type LivestockSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   version?: boolean
   deleted?: boolean
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
+  lot?: boolean | Prisma.Livestock$lotArgs<ExtArgs>
 }, ExtArgs["result"]["livestock"]>
 
 export type LivestockSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   companyId?: boolean
+  lotId?: boolean
   tagNumber?: boolean
   species?: boolean
   breed?: boolean
@@ -1164,11 +1388,13 @@ export type LivestockSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   version?: boolean
   deleted?: boolean
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
+  lot?: boolean | Prisma.Livestock$lotArgs<ExtArgs>
 }, ExtArgs["result"]["livestock"]>
 
 export type LivestockSelectScalar = {
   id?: boolean
   companyId?: boolean
+  lotId?: boolean
   tagNumber?: boolean
   species?: boolean
   breed?: boolean
@@ -1182,19 +1408,22 @@ export type LivestockSelectScalar = {
   deleted?: boolean
 }
 
-export type LivestockOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "companyId" | "tagNumber" | "species" | "breed" | "sex" | "birthDate" | "status" | "entryDate" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["livestock"]>
+export type LivestockOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "companyId" | "lotId" | "tagNumber" | "species" | "breed" | "sex" | "birthDate" | "status" | "entryDate" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["livestock"]>
 export type LivestockInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   events?: boolean | Prisma.Livestock$eventsArgs<ExtArgs>
   movements?: boolean | Prisma.Livestock$movementsArgs<ExtArgs>
   weights?: boolean | Prisma.Livestock$weightsArgs<ExtArgs>
+  lot?: boolean | Prisma.Livestock$lotArgs<ExtArgs>
   _count?: boolean | Prisma.LivestockCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type LivestockIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
+  lot?: boolean | Prisma.Livestock$lotArgs<ExtArgs>
 }
 export type LivestockIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
+  lot?: boolean | Prisma.Livestock$lotArgs<ExtArgs>
 }
 
 export type $LivestockPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1204,10 +1433,12 @@ export type $LivestockPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     events: Prisma.$LivestockEventPayload<ExtArgs>[]
     movements: Prisma.$LivestockMovementPayload<ExtArgs>[]
     weights: Prisma.$WeightRecordPayload<ExtArgs>[]
+    lot: Prisma.$LotPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     companyId: string
+    lotId: string | null
     tagNumber: string
     species: string
     breed: string | null
@@ -1617,6 +1848,7 @@ export interface Prisma__LivestockClient<T, Null = never, ExtArgs extends runtim
   events<T extends Prisma.Livestock$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Livestock$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LivestockEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   movements<T extends Prisma.Livestock$movementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Livestock$movementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LivestockMovementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   weights<T extends Prisma.Livestock$weightsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Livestock$weightsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WeightRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  lot<T extends Prisma.Livestock$lotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Livestock$lotArgs<ExtArgs>>): Prisma.Prisma__LotClient<runtime.Types.Result.GetResult<Prisma.$LotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1648,6 +1880,7 @@ export interface Prisma__LivestockClient<T, Null = never, ExtArgs extends runtim
 export interface LivestockFieldRefs {
   readonly id: Prisma.FieldRef<"Livestock", 'String'>
   readonly companyId: Prisma.FieldRef<"Livestock", 'String'>
+  readonly lotId: Prisma.FieldRef<"Livestock", 'String'>
   readonly tagNumber: Prisma.FieldRef<"Livestock", 'String'>
   readonly species: Prisma.FieldRef<"Livestock", 'String'>
   readonly breed: Prisma.FieldRef<"Livestock", 'String'>
@@ -2129,6 +2362,25 @@ export type Livestock$weightsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.WeightRecordScalarFieldEnum | Prisma.WeightRecordScalarFieldEnum[]
+}
+
+/**
+ * Livestock.lot
+ */
+export type Livestock$lotArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Lot
+   */
+  select?: Prisma.LotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Lot
+   */
+  omit?: Prisma.LotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LotInclude<ExtArgs> | null
+  where?: Prisma.LotWhereInput
 }
 
 /**
