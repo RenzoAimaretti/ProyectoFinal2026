@@ -137,6 +137,7 @@ model Module {
 }
 
 model Livestock {
+  // No es tonto tener el id de la compania? ya por transitividad se saca del lote
   id        String              @id @default(uuid())
   companyId String
   lotId     String? // Relacion nueva a lotes para permitir que un animal pueda estar asignado a un lote

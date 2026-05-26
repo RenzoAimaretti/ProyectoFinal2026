@@ -37,9 +37,9 @@ export class LotService {
 
     try {
       const farm = await this.prisma.farm.findUnique({ where: { id: data.farmId } });
-
-      if (!farm) {
-        throw new NotFoundException('Farm with this ID does not exist');
+      const existingLot = await this.prisma.lot.findFirst({ where: { name: data.name, farmId: data.farmId } });
+      if (!farm || existingLot) {
+        throw new NotFoundException('Farm with this ID does not exist or lot with this name already exists in the farm');
       }
 
       return await this.prisma.lot.create({
@@ -86,6 +86,50 @@ export class LotService {
       if (error instanceof NotFoundException || error instanceof BadRequestException) throw error;
       console.error('Error updating lot:', error);
       throw new InternalServerErrorException('Error updating lot');
+    }
+  }
+
+  async addLiveStock(lotId: string, stockId: string) {
+    // Funcion usada para agregar un ganado al lote
+    //Nos falta definir el usuario que hace la operacion
+    //quitarlo del lote anterior si es que tenia uno y crear el registro de movimiento correspondiente
+    try {
+      const lot = await this.prisma.lot.findUnique({ where: { id: lotId } });
+      const livestock = await this.prisma.livestock.findUnique({ where: { id: stockId } });
+
+      if (!lot || !livestock) {
+        throw new NotFoundException('Lot or livestock not found');
+      }
+
+      const company = await this.prisma.company.findUnique({
+        where: { id: livestock.companyId },
+        include: { farms: { select: { id: true } } },
+      });
+
+      if (!company) {
+        throw new NotFoundException(`Company with id ${livestock.companyId} not found`);
+      }
+
+      const farmBelongsToCompany = company.farms.some((farm) => farm.id === lot.farmId);
+
+      if (!farmBelongsToCompany) {
+        throw new BadRequestException('Lot farm does not belong to livestock company');
+      }
+
+      await this.prisma.livestock.update({
+        where: { id: stockId },
+        data: { lotId },
+      });
+      await this.prisma.lot.update({
+        where: { id: lotId },
+        data: { livestock: { connect: { id: stockId } } },
+      });
+
+      // faltaria la logica para validar el usuario que lleva a cabo el movimiento y crear el registro de movimiento correspondiente.
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) throw error;
+      console.error('Error adding livestock to lot:', error);
+      throw new InternalServerErrorException('Error adding livestock to lot');
     }
   }
 }

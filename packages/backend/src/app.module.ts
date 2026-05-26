@@ -3,6 +3,7 @@ import { CompanyModule } from './entities/company/company.module';
 import { ModuleEntityModule } from './entities/module-entity/module-entity.module';
 import { FarmModule } from './entities/farm/farm.module';
 import { LotModule } from './entities/lot/lot.module';
+import { LivestockModule } from './entities/livestock/livestock.module';
 
 
 @Module({
@@ -10,7 +11,8 @@ import { LotModule } from './entities/lot/lot.module';
     CompanyModule,
     ModuleEntityModule,
     FarmModule,
-    LotModule
+    LotModule,
+    LivestockModule
   ],
   controllers: [],
   providers: [],
