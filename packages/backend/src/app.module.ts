@@ -4,6 +4,7 @@ import { ModuleEntityModule } from './entities/module-entity/module-entity.modul
 import { FarmModule } from './entities/farm/farm.module';
 import { LotModule } from './entities/lot/lot.module';
 import { LivestockModule } from './entities/livestock/livestock.module';
+import { UserModule } from './entities/user/user.module';
 
 
 @Module({
@@ -12,7 +13,8 @@ import { LivestockModule } from './entities/livestock/livestock.module';
     ModuleEntityModule,
     FarmModule,
     LotModule,
-    LivestockModule
+    LivestockModule,
+    UserModule
   ],
   controllers: [],
   providers: [],

@@ -1,5 +1,14 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
+import { UserRole } from '../../../prisma/generated/client';
 import { UserService } from './user.service';
+
+type CreateUserBody = {
+  companyId: string;
+  username: string;
+  password: string;
+  role: UserRole;
+  active?: boolean;
+};
 
 @Controller('users')
 export class UserController {
@@ -11,12 +20,17 @@ export class UserController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
   @Post()
-  create(@Body() data: any) {
+  create(@Body() data: CreateUserBody) {
     return this.service.create(data);
+  }
+
+  @Put(':id')
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() data: Partial<CreateUserBody>) {
+    return this.service.update(id, data);
   }
 }
