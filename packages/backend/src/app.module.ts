@@ -5,6 +5,8 @@ import { FarmModule } from './entities/farm/farm.module';
 import { LotModule } from './entities/lot/lot.module';
 import { LivestockModule } from './entities/livestock/livestock.module';
 import { UserModule } from './entities/user/user.module';
+import { LivestockEventModule } from './entities/livestock-event/livestock-event.module';
+import { WeightRecordModule } from './entities/weight-record/weight-record.module';
 
 
 @Module({
@@ -14,7 +16,9 @@ import { UserModule } from './entities/user/user.module';
     FarmModule,
     LotModule,
     LivestockModule,
-    UserModule
+    UserModule,
+    LivestockEventModule,
+    WeightRecordModule
   ],
   controllers: [],
   providers: [],
