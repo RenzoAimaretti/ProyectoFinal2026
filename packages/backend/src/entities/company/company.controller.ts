@@ -24,4 +24,9 @@ export class CompanyController {
   update(@Param('id') id: string, @Body() data: {nombre?: string; cuit?: string; estado?: string}) {
     return this.service.update(id, data);
   } 
+
+@Post("/add-module")
+ async addModule(@Body() data: {companyId: string; moduleId: string}) {
+    return this.service.addModule(data.companyId, data.moduleId);
+  }
 }

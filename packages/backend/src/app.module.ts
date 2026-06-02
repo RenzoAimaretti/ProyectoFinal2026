@@ -7,6 +7,7 @@ import { LivestockModule } from './entities/livestock/livestock.module';
 import { UserModule } from './entities/user/user.module';
 import { LivestockEventModule } from './entities/livestock-event/livestock-event.module';
 import { WeightRecordModule } from './entities/weight-record/weight-record.module';
+import { TaskTypeModule } from './entities/task-type/task-type.module';
 
 
 @Module({
@@ -18,7 +19,8 @@ import { WeightRecordModule } from './entities/weight-record/weight-record.modul
     LivestockModule,
     UserModule,
     LivestockEventModule,
-    WeightRecordModule
+    WeightRecordModule,
+    TaskTypeModule
   ],
   controllers: [],
   providers: [],

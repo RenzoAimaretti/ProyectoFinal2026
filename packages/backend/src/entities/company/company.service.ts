@@ -15,7 +15,7 @@ export class CompanyService {
 
   async findOne(id: string): Promise<Company | null> {
     try{
-      return this.prisma.company.findUnique({ where: { id } });
+      return this.prisma.company.findUnique({ where: { id }, include: { modules: true } });
     }catch(error){
       throw new BadRequestException('Error fetching company by ID');
     }
@@ -23,7 +23,7 @@ export class CompanyService {
 
   async findByCuit(cuit: string): Promise<Company | null> {
     try{
-      return this.prisma.company.findUnique({ where: { cuit } });
+      return this.prisma.company.findUnique({ where: { cuit }, include: { modules: true } });
     }catch(error){
       throw new BadRequestException('Error fetching company by CUIT');
     }
@@ -54,6 +54,25 @@ export class CompanyService {
     }
 
     return this.prisma.company.update({ where: { id }, data });
+  }
+
+  async addModule(companyId: string, moduleId: string) {
+    try{
+      const company = await this.prisma.company.findUnique({ where: { id: companyId }, include: { modules: true } });
+      const existingModule = await this.prisma.module.findUnique({ where: { id: moduleId } });
+      if (!company||!existingModule) {
+        throw new NotFoundException('Company or module not found');
+      }else if(company.modules.some(m => m.id === moduleId)){
+        throw new ConflictException('Module already added to company');
+      }
+      await this.prisma.company.update({
+        where: { id: companyId },
+        data: { modules: { connect: { id: moduleId } } }
+      });
+      return { message: `${existingModule.name} added successfully to company: ${company.name}` };
+    }catch(error){
+      throw new BadRequestException('Error adding module to company');
+    }
   }
 }
 
