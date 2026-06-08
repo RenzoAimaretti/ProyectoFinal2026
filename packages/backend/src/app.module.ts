@@ -9,6 +9,7 @@ import { LivestockEventModule } from './entities/livestock-event/livestock-event
 import { WeightRecordModule } from './entities/weight-record/weight-record.module';
 import { TaskTypeModule } from './entities/task-type/task-type.module';
 import { TaskModule } from './entities/task/task.module';
+import { MachineModule } from './entities/machine/machine.module';
 
 
 @Module({
@@ -22,7 +23,8 @@ import { TaskModule } from './entities/task/task.module';
     LivestockEventModule,
     WeightRecordModule,
     TaskTypeModule,
-    TaskModule
+    TaskModule,
+    MachineModule
   ],
   controllers: [],
   providers: [],
