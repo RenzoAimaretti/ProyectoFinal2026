@@ -10,6 +10,7 @@ import { WeightRecordModule } from './entities/weight-record/weight-record.modul
 import { TaskTypeModule } from './entities/task-type/task-type.module';
 import { TaskModule } from './entities/task/task.module';
 import { MachineModule } from './entities/machine/machine.module';
+import { MachineUsageModule } from './entities/machine-usage/machine-usage.module';
 
 
 @Module({
@@ -24,7 +25,8 @@ import { MachineModule } from './entities/machine/machine.module';
     WeightRecordModule,
     TaskTypeModule,
     TaskModule,
-    MachineModule
+    MachineModule,
+    MachineUsageModule
   ],
   controllers: [],
   providers: [],
