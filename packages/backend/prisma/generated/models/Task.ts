@@ -640,10 +640,6 @@ export type EnumTaskStatusFieldUpdateOperationsInput = {
   set?: $Enums.TaskStatus
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type TaskCreateNestedOneWithoutMachineLogsInput = {
   create?: Prisma.XOR<Prisma.TaskCreateWithoutMachineLogsInput, Prisma.TaskUncheckedCreateWithoutMachineLogsInput>
   connectOrCreate?: Prisma.TaskCreateOrConnectWithoutMachineLogsInput

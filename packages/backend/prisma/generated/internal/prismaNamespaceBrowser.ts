@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Company: 'Company',
   User: 'User',
+  RefreshToken: 'RefreshToken',
   Farm: 'Farm',
   Lot: 'Lot',
   TaskType: 'TaskType',
@@ -100,8 +101,11 @@ export const UserScalarFieldEnum = {
   id: 'id',
   companyId: 'companyId',
   username: 'username',
+  email: 'email',
   passwordHash: 'passwordHash',
   role: 'role',
+  failedLoginAttempts: 'failedLoginAttempts',
+  lockedUntil: 'lockedUntil',
   active: 'active',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -110,6 +114,18 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const RefreshTokenScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
 
 
 export const FarmScalarFieldEnum = {

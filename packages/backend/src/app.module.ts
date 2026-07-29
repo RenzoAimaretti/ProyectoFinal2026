@@ -11,10 +11,11 @@ import { TaskTypeModule } from './entities/task-type/task-type.module';
 import { TaskModule } from './entities/task/task.module';
 import { MachineModule } from './entities/machine/machine.module';
 import { MachineUsageModule } from './entities/machine-usage/machine-usage.module';
-
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     CompanyModule,
     ModuleEntityModule,
     FarmModule,
@@ -32,3 +33,4 @@ import { MachineUsageModule } from './entities/machine-usage/machine-usage.modul
   providers: [],
 })
 export class AppModule {}
+

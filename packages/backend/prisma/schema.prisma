@@ -24,21 +24,38 @@ model Company {
 }
 
 model User {
-  id              String           @id @default(uuid())
-  companyId       String
-  username        String           @unique
-  passwordHash    String
-  role            UserRole
-  active          Boolean          @default(true)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  version         Int              @default(1)
-  deleted         Boolean          @default(false)
-  livestockEvents LivestockEvent[]
-  tasks           Task[]           @relation("TaskOperators")
-  company         Company          @relation(fields: [companyId], references: [id])
-  weightRecords   WeightRecord[]
+  id                  String           @id @default(uuid())
+  companyId           String
+  username            String?          @unique
+  email               String           @unique
+  passwordHash        String
+  role                UserRole
+  failedLoginAttempts Int              @default(0)
+  lockedUntil         DateTime?
+  active              Boolean          @default(true)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  version             Int              @default(1)
+  deleted             Boolean          @default(false)
+  livestockEvents     LivestockEvent[]
+  tasks               Task[]           @relation("TaskOperators")
+  company             Company          @relation(fields: [companyId], references: [id])
+  weightRecords       WeightRecord[]
+  refreshTokens       RefreshToken[]
 }
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 
 model Farm {
   id        String   @id @default(uuid())
