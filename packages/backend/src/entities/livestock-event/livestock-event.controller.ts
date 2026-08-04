@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Param, Body, Put } from '@nestjs/common';
 import { LivestockEventService } from './livestock-event.service';
-import { EventType } from '../../../prisma/generated/enums';
+import { EventType } from './domain/event-type';
 
 @Controller('livestock-events')
 export class LivestockEventController {
@@ -17,12 +17,35 @@ export class LivestockEventController {
   }
 
   @Post()
-  create(@Body() data: {eventDate: string; eventType:EventType, livestockId: string, operatorId: string,obs?:string,vaccine?:string,dose?:number}) {
+  create(
+    @Body()
+    data: {
+      eventDate: string;
+      eventType: EventType;
+      livestockId: string;
+      operatorId: string;
+      obs?: string;
+      vaccine?: string;
+      dose?: number;
+    },
+  ) {
     return this.service.create(data);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {eventDate?: string; eventType?:EventType, livestockId: string, operatorId: string,obs?:string,vaccine?:string,dose?:number}) {
+  update(
+    @Param('id') id: string,
+    @Body()
+    data: {
+      eventDate?: string;
+      eventType?: EventType;
+      livestockId: string;
+      operatorId: string;
+      obs?: string;
+      vaccine?: string;
+      dose?: number;
+    },
+  ) {
     return this.service.update(id, data);
   }
 }

@@ -1,14 +1,40 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EventType } from '../../../prisma/generated/enums';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { EventType } from './domain/event-type';
+import {
+  CreateLivestockEventData,
+  LIVESTOCK_EVENT_REPOSITORY,
+  LivestockEventRepositoryPort,
+  UpdateLivestockEventData,
+} from './ports/livestock-event.repository';
+import {
+  LIVESTOCK_REPOSITORY,
+  LivestockRepositoryPort,
+} from '../livestock/ports/livestock.repository';
+import {
+  USER_REPOSITORY,
+  UserRepositoryPort,
+} from '../user/ports/user.repository';
 
 @Injectable()
 export class LivestockEventService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(LIVESTOCK_EVENT_REPOSITORY)
+    private readonly livestockEventRepository: LivestockEventRepositoryPort,
+    @Inject(LIVESTOCK_REPOSITORY)
+    private readonly livestockRepository: LivestockRepositoryPort,
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: UserRepositoryPort,
+  ) {}
 
   async findAll() {
     try {
-      return await this.prisma.livestockEvent.findMany();
+      return await this.livestockEventRepository.findAll();
     } catch (error) {
       console.error('Error fetching livestock events:', error);
       throw new InternalServerErrorException('Error fetching livestock events');
@@ -17,7 +43,7 @@ export class LivestockEventService {
 
   async findOne(id: string) {
     try {
-      const event = await this.prisma.livestockEvent.findUnique({ where: { id } });
+      const event = await this.livestockEventRepository.findById(id);
 
       if (!event) {
         throw new NotFoundException(`Livestock event with id ${id} not found`);
@@ -32,35 +58,44 @@ export class LivestockEventService {
     }
   }
 
-  async update(id: string, data: {
-    eventDate?: string;
-    eventType?: EventType;
-    livestockId?: string;
-    operatorId?: string;
-    obs?: string;
-    vaccine?: string;
-    dose?: number;
-  }) {
+  async update(
+    id: string,
+    data: {
+      eventDate?: string;
+      eventType?: EventType;
+      livestockId?: string;
+      operatorId?: string;
+      obs?: string;
+      vaccine?: string;
+      dose?: number;
+    },
+  ) {
     try {
-      const existingEvent = await this.prisma.livestockEvent.findUnique({ where: { id } });
+      const existingEvent = await this.livestockEventRepository.findById(id);
 
       if (!existingEvent) {
         throw new NotFoundException(`Livestock event with id ${id} not found`);
       }
 
       if (data.livestockId !== undefined) {
-        const livestock = await this.prisma.livestock.findUnique({ where: { id: data.livestockId } });
+        const livestock = await this.livestockRepository.findById(
+          data.livestockId,
+        );
 
         if (!livestock) {
-          throw new NotFoundException(`Livestock with id ${data.livestockId} not found`);
+          throw new NotFoundException(
+            `Livestock with id ${data.livestockId} not found`,
+          );
         }
       }
 
       if (data.operatorId !== undefined) {
-        const operator = await this.prisma.user.findUnique({ where: { id: data.operatorId } });
+        const operator = await this.userRepository.findById(data.operatorId);
 
         if (!operator) {
-          throw new NotFoundException(`Operator with id ${data.operatorId} not found`);
+          throw new NotFoundException(
+            `Operator with id ${data.operatorId} not found`,
+          );
         }
       }
 
@@ -74,14 +109,19 @@ export class LivestockEventService {
         }
       }
       // Si `eventType` viene definido y no es VACUNACION, limpiar vaccine y dose (setear a null)
-      const updateData = {
+      const updateData: UpdateLivestockEventData = {
         ...(eventDate !== undefined ? { eventDate } : {}),
         ...(data.eventType !== undefined ? { type: data.eventType } : {}),
-        ...(data.livestockId !== undefined ? { livestockId: data.livestockId } : {}),
-        ...(data.operatorId !== undefined ? { operatorId: data.operatorId } : {}),
+        ...(data.livestockId !== undefined
+          ? { livestockId: data.livestockId }
+          : {}),
+        ...(data.operatorId !== undefined
+          ? { operatorId: data.operatorId }
+          : {}),
         ...(data.obs !== undefined ? { observations: data.obs } : {}),
         // Si se especifica eventType y NO es VACUNACION, forzamos limpiar vaccine/dose
-        ...(data.eventType !== undefined && data.eventType !== EventType.VACUNACION
+        ...(data.eventType !== undefined &&
+        data.eventType !== EventType.VACUNACION
           ? { vaccine: null, dose: null }
           : {
               ...(data.vaccine !== undefined ? { vaccine: data.vaccine } : {}),
@@ -93,12 +133,12 @@ export class LivestockEventService {
         throw new BadRequestException('No data provided for update');
       }
 
-      return await this.prisma.livestockEvent.update({
-        where: { id },
-        data: updateData,
-      });
+      return await this.livestockEventRepository.update(id, updateData);
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
 
@@ -117,21 +157,32 @@ export class LivestockEventService {
     dose?: number;
   }) {
     try {
-      if (!data.livestockId || !data.operatorId || !data.eventDate || !data.eventType) {
-        throw new BadRequestException('livestockId, operatorId, eventDate and eventType are required');
+      if (
+        !data.livestockId ||
+        !data.operatorId ||
+        !data.eventDate ||
+        !data.eventType
+      ) {
+        throw new BadRequestException(
+          'livestockId, operatorId, eventDate and eventType are required',
+        );
       }
 
       const [livestock, operator] = await Promise.all([
-        this.prisma.livestock.findUnique({ where: { id: data.livestockId } }),
-        this.prisma.user.findUnique({ where: { id: data.operatorId } }),
+        this.livestockRepository.findById(data.livestockId),
+        this.userRepository.findById(data.operatorId),
       ]);
 
       if (!livestock) {
-        throw new NotFoundException(`Livestock with id ${data.livestockId} not found`);
+        throw new NotFoundException(
+          `Livestock with id ${data.livestockId} not found`,
+        );
       }
 
       if (!operator) {
-        throw new NotFoundException(`Operator with id ${data.operatorId} not found`);
+        throw new NotFoundException(
+          `Operator with id ${data.operatorId} not found`,
+        );
       }
 
       const eventDate = new Date(data.eventDate);
@@ -139,26 +190,30 @@ export class LivestockEventService {
       if (Number.isNaN(eventDate.getTime())) {
         throw new BadRequestException('eventDate must be a valid date');
       }
-      if (data.eventType !== undefined && data.eventType !== EventType.VACUNACION) {
-        data.vaccine = undefined;
-        data.dose = undefined;
-      }
+      // Si eventType no es VACUNACION, no enviar vaccine ni dose (comportamiento
+      // legacy de livestock-event.service.ts líneas 142-145, byte-idéntico: el
+      // legacy mutaba el input; acá se replica en la construcción del createData).
+      const isVacunacion =
+        data.eventType !== undefined && data.eventType === EventType.VACUNACION;
 
-      const createData = {
+      const createData: CreateLivestockEventData = {
         eventDate,
         type: data.eventType,
         livestockId: data.livestockId,
         operatorId: data.operatorId,
         ...(data.obs !== undefined ? { observations: data.obs } : {}),
-        ...(data.vaccine !== undefined ? { vaccine: data.vaccine } : {}),
-        ...(data.dose !== undefined ? { dose: data.dose } : {}),
+        ...(isVacunacion && data.vaccine !== undefined
+          ? { vaccine: data.vaccine }
+          : {}),
+        ...(isVacunacion && data.dose !== undefined ? { dose: data.dose } : {}),
       };
 
-      return await this.prisma.livestockEvent.create({
-        data: createData,
-      });
+      return await this.livestockEventRepository.create(createData);
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
 
@@ -167,5 +222,3 @@ export class LivestockEventService {
     }
   }
 }
-
- 

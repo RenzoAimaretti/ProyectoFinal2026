@@ -60,16 +60,12 @@ export default tseslint.config(
       '**/adapters/**',
 
       // --- F2 horizon: remover al completar F2 ---
-      'src/entities/livestock-event/livestock-event.service.ts',
-      'src/entities/livestock-event/livestock-event.controller.ts',
       'src/entities/task/task.service.ts',
       'src/entities/task/task.controller.ts',
       'src/entities/user/user.service.ts',
       'src/entities/machine/machine.service.ts',
       'src/entities/machine/machine.controller.ts',
       'src/entities/machine-usage/machine-usage.service.ts',
-      'src/entities/weight-record/weight-record.service.ts',
-      'src/entities/weight-record/weight-record.controller.ts',
 
       // --- F3 horizon: remover al completar F3 ---
       'src/auth/auth.service.spec.ts',
