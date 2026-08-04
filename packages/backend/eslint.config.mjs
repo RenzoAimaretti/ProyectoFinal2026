@@ -59,7 +59,6 @@ export default tseslint.config(
       '**/adapters/**',
 
       // --- F2 horizon: remover al completar F2 ---
-      'src/entities/company/company.service.ts',
       'src/entities/farm/farm.service.ts',
       'src/entities/lot/lot.service.ts',
       'src/entities/livestock-event/livestock-event.service.ts',

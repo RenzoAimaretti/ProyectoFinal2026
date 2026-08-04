@@ -1,35 +1,61 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { Company } from '../../../prisma/generated/client';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  COMPANY_REPOSITORY,
+  CompanyEntity,
+  CompanyRepositoryPort,
+  CompanyWithModules,
+  CreateCompanyData,
+  UpdateCompanyData,
+} from './ports/company.repository';
+import {
+  MODULE_ENTITY_REPOSITORY,
+  ModuleEntityRepositoryPort,
+} from '../module-entity/ports/module-entity.repository';
+
+// Service refactorizado a puertos (T-F2-09): conserva EXACTAMENTE el contrato
+// observable de antes (400/404/409 y mensajes byte-idénticos, REQ-C-01/03).
+// La lectura cruzada de Module se resuelve vía el puerto exportado por
+// module-entity (MODULE_ENTITY_REPOSITORY) — REQ-F2-03 / D1.
 @Injectable()
 export class CompanyService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(COMPANY_REPOSITORY)
+    private readonly repository: CompanyRepositoryPort,
+    @Inject(MODULE_ENTITY_REPOSITORY)
+    private readonly moduleRepository: ModuleEntityRepositoryPort,
+  ) {}
 
-  async findAll(): Promise<Company[]> {
-    try{
-      return this.prisma.company.findMany();
-    }catch(error){
+  async findAll(): Promise<CompanyEntity[]> {
+    try {
+      return this.repository.findAll();
+    } catch {
       throw new BadRequestException('Error fetching all companies');
     }
   }
 
-  async findOne(id: string): Promise<Company | null> {
-    try{
-      return this.prisma.company.findUnique({ where: { id }, include: { modules: true } });
-    }catch(error){
+  async findOne(id: string): Promise<CompanyWithModules | null> {
+    try {
+      return this.repository.findByIdWithModules(id);
+    } catch {
       throw new BadRequestException('Error fetching company by ID');
     }
   }
 
-  async findByCuit(cuit: string): Promise<Company | null> {
-    try{
-      return this.prisma.company.findUnique({ where: { cuit }, include: { modules: true } });
-    }catch(error){
+  async findByCuit(cuit: string): Promise<CompanyWithModules | null> {
+    try {
+      return this.repository.findByCuit(cuit);
+    } catch {
       throw new BadRequestException('Error fetching company by CUIT');
     }
   }
 
-  async create(data: {name: string; cuit: string;}): Promise<Company> {
+  async create(data: CreateCompanyData): Promise<CompanyEntity> {
     if (!data.name || !data.cuit) {
       throw new BadRequestException('Missing required fields: name and cuit');
     }
@@ -40,39 +66,38 @@ export class CompanyService {
       throw new ConflictException('Company with this CUIT already exists');
     }
 
-    return this.prisma.company.create({ data });
+    return this.repository.create(data);
   }
-  async update(id: string, data: {nombre?: string; cuit?: string; estado?: string}): Promise<Company> {
+
+  async update(id: string, data: UpdateCompanyData): Promise<CompanyEntity> {
     if (Object.keys(data).length === 0) {
       throw new BadRequestException('No data provided for update');
     }
 
-    const company = await this.prisma.company.findUnique({ where: { id } });
+    const company = await this.repository.findById(id);
 
     if (!company) {
       throw new NotFoundException(`Company with id ${id} not found`);
     }
 
-    return this.prisma.company.update({ where: { id }, data });
+    return this.repository.update(id, data);
   }
 
   async addModule(companyId: string, moduleId: string) {
-    try{
-      const company = await this.prisma.company.findUnique({ where: { id: companyId }, include: { modules: true } });
-      const existingModule = await this.prisma.module.findUnique({ where: { id: moduleId } });
-      if (!company||!existingModule) {
+    try {
+      const company = await this.repository.findByIdWithModules(companyId);
+      const existingModule = await this.moduleRepository.findById(moduleId);
+      if (!company || !existingModule) {
         throw new NotFoundException('Company or module not found');
-      }else if(company.modules.some(m => m.id === moduleId)){
+      } else if (company.modules.some((m) => m.id === moduleId)) {
         throw new ConflictException('Module already added to company');
       }
-      await this.prisma.company.update({
-        where: { id: companyId },
-        data: { modules: { connect: { id: moduleId } } }
-      });
-      return { message: `${existingModule.name} added successfully to company: ${company.name}` };
-    }catch(error){
+      await this.repository.assignModule(companyId, moduleId);
+      return {
+        message: `${existingModule.name} added successfully to company: ${company.name}`,
+      };
+    } catch {
       throw new BadRequestException('Error adding module to company');
     }
   }
 }
-
