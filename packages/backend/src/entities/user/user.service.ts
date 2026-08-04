@@ -1,8 +1,24 @@
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
-import { UserRole } from '../../../prisma/generated/client';
-import { PrismaService } from '../../prisma/prisma.service';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import * as argon2 from 'argon2';
+import { UserRole } from './domain/user-role';
+import {
+  CreateUserData,
+  UpdateUserData,
+  USER_REPOSITORY,
+  UserRepositoryPort,
+} from './ports/user.repository';
+import {
+  COMPANY_REPOSITORY,
+  CompanyRepositoryPort,
+} from '../company/ports/company.repository';
+
 type CreateUserInput = {
   companyId: string;
   username?: string;
@@ -21,11 +37,16 @@ type UpdateUserInput = {
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: UserRepositoryPort,
+    @Inject(COMPANY_REPOSITORY)
+    private readonly companyRepository: CompanyRepositoryPort,
+  ) {}
 
   async findAll() {
     try {
-      return await this.prisma.user.findMany();
+      return await this.userRepository.findAll();
     } catch (error) {
       console.error('Error fetching users:', error);
       throw new InternalServerErrorException('Error fetching users');
@@ -34,7 +55,7 @@ export class UserService {
 
   async findOne(id: string) {
     try {
-      const user = await this.prisma.user.findUnique({ where: { id } });
+      const user = await this.userRepository.findById(id);
 
       if (!user) {
         throw new NotFoundException(`User with id ${id} not found`);
@@ -51,31 +72,35 @@ export class UserService {
   async create(data: CreateUserInput) {
     this.assertRequiredString(data.companyId, 'companyId');
     const userEmail = data.email ?? data.username;
-    if (!userEmail || typeof userEmail !== 'string' || userEmail.trim().length === 0) {
+    if (
+      !userEmail ||
+      typeof userEmail !== 'string' ||
+      userEmail.trim().length === 0
+    ) {
       throw new BadRequestException('email or username is required');
     }
     this.assertRequiredString(data.password, 'password');
     this.assertValidRole(data.role);
 
     try {
-      const company = await this.prisma.company.findUnique({ where: { id: data.companyId } });
+      const company = await this.companyRepository.findById(data.companyId);
 
       if (!company) {
-        throw new NotFoundException(`Company with id ${data.companyId} not found`);
+        throw new NotFoundException(
+          `Company with id ${data.companyId} not found`,
+        );
       }
 
-      const existingByEmail = await this.prisma.user.findUnique({
-        where: { email: userEmail },
-      });
+      const existingByEmail = await this.userRepository.findByEmail(userEmail);
 
       if (existingByEmail) {
         throw new ConflictException('User with this email already exists');
       }
 
       if (data.username) {
-        const existingByUsername = await this.prisma.user.findUnique({
-          where: { username: data.username },
-        });
+        const existingByUsername = await this.userRepository.findByUsername(
+          data.username,
+        );
 
         if (existingByUsername) {
           throw new ConflictException('User with this username already exists');
@@ -84,23 +109,23 @@ export class UserService {
 
       const passwordHash = await argon2.hash(data.password);
 
-      return await this.prisma.user.create({
-        data: {
-          companyId: data.companyId,
-          email: userEmail,
-          ...(data.username ? { username: data.username } : {}),
-          passwordHash: passwordHash,
-          role: data.role,
-          active: data.active ?? true,
-        },
-      });
-    } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ConflictException || error instanceof BadRequestException) {
-        throw error;
-      }
+      const createData: CreateUserData = {
+        companyId: data.companyId,
+        email: userEmail,
+        ...(data.username ? { username: data.username } : {}),
+        passwordHash,
+        role: data.role,
+        active: data.active ?? true,
+      };
 
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw new ConflictException('A user with this username or email already exists');
+      return await this.userRepository.create(createData);
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
       }
 
       console.error('Error creating user:', error);
@@ -113,7 +138,7 @@ export class UserService {
       throw new BadRequestException('No data provided for update');
     }
     try {
-      const user = await this.prisma.user.findUnique({ where: { id } });
+      const user = await this.userRepository.findById(id);
 
       if (!user) {
         throw new NotFoundException(`User with id ${id} not found`);
@@ -122,9 +147,9 @@ export class UserService {
       if (data.username !== undefined) {
         this.assertRequiredString(data.username, 'username');
 
-        const existingUser = await this.prisma.user.findUnique({
-          where: { username: data.username },
-        });
+        const existingUser = await this.userRepository.findByUsername(
+          data.username,
+        );
 
         if (existingUser && existingUser.id !== id) {
           throw new ConflictException('User with this username already exists');
@@ -135,19 +160,27 @@ export class UserService {
         this.assertValidRole(data.role);
       }
 
-      const hashedPassword = data.password !== undefined ? await argon2.hash(data.password) : undefined;
+      const hashedPassword =
+        data.password !== undefined
+          ? await argon2.hash(data.password)
+          : undefined;
 
-      return await this.prisma.user.update({
-        where: { id },
-        data: {
-          ...(data.username !== undefined ? { username: data.username } : {}),
-          ...(hashedPassword !== undefined ? { passwordHash: hashedPassword } : {}),
-          ...(data.role !== undefined ? { role: data.role } : {}),
-          ...(data.active !== undefined ? { active: data.active } : {}),
-        },
-      });
+      const updateData: UpdateUserData = {
+        ...(data.username !== undefined ? { username: data.username } : {}),
+        ...(hashedPassword !== undefined
+          ? { passwordHash: hashedPassword }
+          : {}),
+        ...(data.role !== undefined ? { role: data.role } : {}),
+        ...(data.active !== undefined ? { active: data.active } : {}),
+      };
+
+      return await this.userRepository.update(id, updateData);
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ConflictException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
 
@@ -163,8 +196,13 @@ export class UserService {
   }
 
   private assertValidRole(role: unknown) {
-    if (typeof role !== 'string' || !Object.values(UserRole).includes(role as UserRole)) {
-      throw new BadRequestException(`role must be one of: ${Object.values(UserRole).join(', ')}`);
+    if (
+      typeof role !== 'string' ||
+      !Object.values(UserRole).includes(role as UserRole)
+    ) {
+      throw new BadRequestException(
+        `role must be one of: ${Object.values(UserRole).join(', ')}`,
+      );
     }
   }
   //Revisar si hacemos el manejo del login aca o en otro servicio

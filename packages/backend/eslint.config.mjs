@@ -52,6 +52,7 @@ export default tseslint.config(
   // no serán detectados; mitigación: disciplina de poda + T-F2-69 end-state check.
   // Nota: machine.controller.ts y user.controller.ts se agregaron post-inventario
   // (hallazgo del primer lint run, 2026-08-04) — mismos imports legacy, horizonte F2.
+  // user.controller.ts se PODÓ en wave 3 (2026-08-04): ahora importa el enum de dominio.
   {
     files: [
       // --- Exento permanente (allowlist por convención, docs/hexagonal-conventions.md §3) ---
@@ -64,7 +65,6 @@ export default tseslint.config(
       'src/entities/task/task.service.ts',
       'src/entities/task/task.controller.ts',
       'src/entities/user/user.service.ts',
-      'src/entities/user/user.controller.ts',
       'src/entities/machine/machine.service.ts',
       'src/entities/machine/machine.controller.ts',
       'src/entities/machine-usage/machine-usage.service.ts',

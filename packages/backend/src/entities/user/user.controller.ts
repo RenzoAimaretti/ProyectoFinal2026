@@ -1,5 +1,13 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
-import { UserRole } from '../../../prisma/generated/client';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { UserRole } from './domain/user-role';
 import { UserService } from './user.service';
 
 type CreateUserBody = {
@@ -31,7 +39,10 @@ export class UserController {
   }
 
   @Put(':id')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() data: Partial<CreateUserBody>) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() data: Partial<CreateUserBody>,
+  ) {
     return this.service.update(id, data);
   }
 }
