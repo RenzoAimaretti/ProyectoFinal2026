@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
 import { LivestockService } from './livestock.service';
-import { LivestockStatus } from '../../../prisma/generated/client';
+import { LivestockStatus } from './domain/livestock-status';
 
 type CreateLivestockBody = {
   companyId: string;

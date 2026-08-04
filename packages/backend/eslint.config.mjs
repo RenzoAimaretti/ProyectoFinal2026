@@ -32,4 +32,59 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'warn'
     },
   },
+  // === Frontera de imports de Prisma (REQ-A-04) ===
+  // prisma/generated y @prisma/client SOLO se importan desde **/adapters/** y src/prisma/**.
+  {
+    files: ['**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: ['**/prisma/generated/**', '@prisma/client'],
+          message: 'prisma/generated only in adapters + src/prisma',
+        }],
+      }],
+    },
+  },
+  // === Grandfather list — decisión 2026-08-04 (Opción A aprobada) ===
+  // no-restricted-imports desactivado SOLO para estos archivos mientras la migración
+  // strangler los limpia. Horizonte de remoción por grupo: podar cada entrada al
+  // completar la fase. Blind spot aceptado: archivos NUEVOS con imports prohibidos
+  // no serán detectados; mitigación: disciplina de poda + T-F2-69 end-state check.
+  // Nota: machine.controller.ts y user.controller.ts se agregaron post-inventario
+  // (hallazgo del primer lint run, 2026-08-04) — mismos imports legacy, horizonte F2.
+  {
+    files: [
+      // --- Exento permanente (allowlist por convención, docs/hexagonal-conventions.md §3) ---
+      'src/prisma/**',
+      '**/adapters/**',
+
+      // --- F2 horizon: remover al completar F2 ---
+      'src/entities/company/company.service.ts',
+      'src/entities/farm/farm.service.ts',
+      'src/entities/lot/lot.service.ts',
+      'src/entities/livestock-event/livestock-event.service.ts',
+      'src/entities/livestock-event/livestock-event.controller.ts',
+      'src/entities/task/task.service.ts',
+      'src/entities/task/task.controller.ts',
+      'src/entities/user/user.service.ts',
+      'src/entities/user/user.controller.ts',
+      'src/entities/machine/machine.service.ts',
+      'src/entities/machine/machine.controller.ts',
+      'src/entities/machine-usage/machine-usage.service.ts',
+      'src/entities/weight-record/weight-record.service.ts',
+      'src/entities/weight-record/weight-record.controller.ts',
+
+      // --- F3 horizon: remover al completar F3 ---
+      'src/auth/auth.service.spec.ts',
+      'src/auth/guards/roles.guard.ts',
+      'src/auth/interfaces/jwt-payload.interface.ts',
+      'src/auth/decorators/roles.decorator.ts',
+
+      // --- F3 ex-post: remover cuando exista el puerto de F3 (fase post-F3) ---
+      'test/auth.e2e-spec.ts',
+    ],
+    rules: {
+      'no-restricted-imports': 'off',
+    },
+  },
 );

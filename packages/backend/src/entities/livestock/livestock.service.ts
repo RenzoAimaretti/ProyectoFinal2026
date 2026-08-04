@@ -1,6 +1,8 @@
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { LivestockStatus } from '../../../prisma/generated/client';
+import { BadRequestException, ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { LivestockStatus } from './domain/livestock-status';
+import { LIVESTOCK_REPOSITORY, LivestockRepositoryPort } from './ports/livestock.repository';
+import { COMPANY_LOOKUP, CompanyLookupPort } from './ports/company-lookup.port';
+import { LOT_LOOKUP, LotLookupPort } from './ports/lot-lookup.port';
 
 type CreateLivestockInput = {
   companyId: string;
@@ -25,11 +27,15 @@ type UpdateLivestockInput = {
 
 @Injectable()
 export class LivestockService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(LIVESTOCK_REPOSITORY) private readonly livestockRepository: LivestockRepositoryPort,
+    @Inject(COMPANY_LOOKUP) private readonly companyLookup: CompanyLookupPort,
+    @Inject(LOT_LOOKUP) private readonly lotLookup: LotLookupPort,
+  ) {}
 
   async findAll() {
     try {
-      return await this.prisma.livestock.findMany();
+      return await this.livestockRepository.findAll();
     } catch (error) {
       console.error('Error fetching livestock:', error);
       throw new InternalServerErrorException('Error fetching livestock');
@@ -38,7 +44,7 @@ export class LivestockService {
 
   async findOne(id: string) {
     try {
-      const livestock = await this.prisma.livestock.findUnique({ where: { id } });
+      const livestock = await this.livestockRepository.findById(id);
 
       if (!livestock) {
         throw new NotFoundException(`Livestock with id ${id} not found`);
@@ -59,17 +65,14 @@ export class LivestockService {
     this.assertRequiredString(data.sex, 'sex');
 
     try {
-      const company = await this.prisma.company.findUnique({ where: { id: data.companyId } });
+      const companyExists = await this.companyLookup.companyExists(data.companyId);
 
-      if (!company) {
+      if (!companyExists) {
         throw new NotFoundException(`Company with id ${data.companyId} not found`);
       }
 
       if (data.lotId) {
-        const lot = await this.prisma.lot.findUnique({
-          where: { id: data.lotId },
-          include: { farm: true },
-        });
+        const lot = await this.lotLookup.findLotWithFarm(data.lotId);
 
         if (!lot) {
           throw new NotFoundException(`Lot with id ${data.lotId} not found`);
@@ -80,24 +83,22 @@ export class LivestockService {
         }
       }
 
-      const existingTagNumber = await this.prisma.livestock.findUnique({
-        where: { tagNumber: data.tagNumber },
-      });
+      const existingTagNumber = await this.livestockRepository.findByTagNumber(data.tagNumber);
 
       if (existingTagNumber) {
         throw new ConflictException('Livestock with this tagNumber already exists');
       }
 
-      return await this.prisma.livestock.create({
-        data: {
-          companyId: data.companyId,
-          lotId: data.lotId ?? null,
-          tagNumber: data.tagNumber,
-          breed: data.breed ?? null,
-          species: data.species,
-          birthDate: this.parseDate(data.birthDate),
-          sex: data.sex,
-        },
+      const birthDate = this.parseDate(data.birthDate);
+
+      return await this.livestockRepository.create({
+        companyId: data.companyId,
+        lotId: data.lotId ?? null,
+        tagNumber: data.tagNumber,
+        breed: data.breed ?? null,
+        species: data.species,
+        birthDate,
+        sex: data.sex,
       });
     } catch (error) {
       if (error instanceof BadRequestException || error instanceof ConflictException || error instanceof NotFoundException) {
@@ -115,10 +116,7 @@ export class LivestockService {
     }
 
     try {
-      const livestock = await this.prisma.livestock.findUnique({
-        where: { id },
-        include: { lot: { include: { farm: true } } },
-      });
+      const livestock = await this.livestockRepository.findByIdWithLotFarm(id);
 
       if (!livestock) {
         throw new NotFoundException(`Livestock with id ${id} not found`);
@@ -128,18 +126,15 @@ export class LivestockService {
       const nextLotId = data.lotId !== undefined ? data.lotId : livestock.lotId;
 
       if (data.companyId) {
-        const company = await this.prisma.company.findUnique({ where: { id: data.companyId } });
+        const companyExists = await this.companyLookup.companyExists(data.companyId);
 
-        if (!company) {
+        if (!companyExists) {
           throw new NotFoundException(`Company with id ${data.companyId} not found`);
         }
       }
 
-      if (nextLotId) {
-        const lot = await this.prisma.lot.findUnique({
-          where: { id: nextLotId },
-          include: { farm: true },
-        });
+      if (data.lotId !== undefined && nextLotId) {
+        const lot = await this.lotLookup.findLotWithFarm(nextLotId);
 
         if (!lot) {
           throw new NotFoundException(`Lot with id ${nextLotId} not found`);
@@ -153,12 +148,7 @@ export class LivestockService {
       if (data.tagNumber !== undefined) {
         this.assertRequiredString(data.tagNumber, 'tagNumber');
 
-        const duplicateTagNumber = await this.prisma.livestock.findFirst({
-          where: {
-            tagNumber: data.tagNumber,
-            id: { not: id },
-          },
-        });
+        const duplicateTagNumber = await this.livestockRepository.findByTagNumberExcluding(data.tagNumber, id);
 
         if (duplicateTagNumber) {
           throw new ConflictException('Livestock with this tagNumber already exists');
@@ -175,18 +165,15 @@ export class LivestockService {
 
       const birthDate = data.birthDate !== undefined ? this.parseDate(data.birthDate) : undefined;
 
-      return await this.prisma.livestock.update({
-        where: { id },
-        data: {
-          ...(data.companyId !== undefined ? { companyId: data.companyId } : {}),
-          ...(data.lotId !== undefined ? { lotId: data.lotId } : {}),
-          ...(data.tagNumber !== undefined ? { tagNumber: data.tagNumber } : {}),
-          ...(data.breed !== undefined ? { breed: data.breed } : {}),
-          ...(data.species !== undefined ? { species: data.species } : {}),
-          ...(birthDate !== undefined ? { birthDate } : {}),
-          ...(data.sex !== undefined ? { sex: data.sex } : {}),
-          ...(data.status !== undefined ? { status: data.status } : {}),
-        },
+      return await this.livestockRepository.update(id, {
+        ...(data.companyId !== undefined ? { companyId: data.companyId } : {}),
+        ...(data.lotId !== undefined ? { lotId: data.lotId } : {}),
+        ...(data.tagNumber !== undefined ? { tagNumber: data.tagNumber } : {}),
+        ...(data.breed !== undefined ? { breed: data.breed } : {}),
+        ...(data.species !== undefined ? { species: data.species } : {}),
+        ...(birthDate !== undefined ? { birthDate } : {}),
+        ...(data.sex !== undefined ? { sex: data.sex } : {}),
+        ...(data.status !== undefined ? { status: data.status } : {}),
       });
     } catch (error) {
       if (error instanceof BadRequestException || error instanceof ConflictException || error instanceof NotFoundException) {
@@ -200,13 +187,13 @@ export class LivestockService {
 
   async remove(id: string) {
     try {
-      const livestock = await this.prisma.livestock.findUnique({ where: { id } });
+      const livestock = await this.livestockRepository.findById(id);
 
       if (!livestock) {
         throw new NotFoundException(`Livestock with id ${id} not found`);
       }
 
-      await this.prisma.livestock.delete({ where: { id } });
+      await this.livestockRepository.delete(id);
 
       return { message: `Livestock with id ${id} deleted successfully` };
     } catch (error) {

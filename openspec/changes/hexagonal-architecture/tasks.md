@@ -1,0 +1,139 @@
+# Tasks: Hexagonal Architecture Migration (Strangler per Module)
+
+**Change**: `hexagonal-architecture` | **Project**: `proyectofinal2026` | **Branch**: `refactor/hexagonal-architecture`
+**Strict TDD**: `pnpm --filter backend run test` — each module's contract-locking spec is written BEFORE its refactor (REQ-T-01). Tests mock ports with plain objects + `jest.fn()` (REQ-T-03), no test-double library.
+**Batching**: **FIRST BATCH = F0 + F1 (T-F0-01..T-F1-11)** — the immediate executable scope. F2/F3/F4 are later batches; F2 tasks are grouped per-wave so apply can run wave by wave.
+**Per-module sequence (F1 pattern)**: 1) contract-locking spec → 2) port + Symbol → 3) Prisma adapter → 4) service refactor (inject ports) → 5) module wiring → (6) wave verify. Layout: `src/entities/{module}/{ports,domain,adapters/outbound/prisma}` (design.md Target Layout).
+
+## F0 — Baseline & Conventions (FIRST BATCH)
+
+- [x] **T-F0-01** — Verify green baseline gate: run `pnpm --filter backend run test` and confirm the whole suite passes before any refactor. Deps: none. Phase F0. Accept: REQ-F0-04.
+- [x] **T-F0-02** — Verify baseline `pnpm --filter backend run test:e2e` and `pnpm --filter backend run build` pass before F1. Deps: T-F0-01. Phase F0. Accept: REQ-F0-05 (should). *Nota 2026-08-04: se aplicaron los 2 harness fixes aprobados (import default de supertest en `test/app.e2e-spec.ts`, `setupFiles: ["dotenv/config"]` en `test/jest-e2e.json`) y se eliminó `test/app.e2e-spec.ts` (test de scaffold de `nest new` obsoleto: espera `GET /` → "Hello World!" pero la app no tiene AppController ni ruta raíz; nunca pudo pasar y bloqueaba la suite). e2e 5/5 PASS, build PASS.*
+- [x] **T-F0-03** — Write `docs/hexagonal-conventions.md`: module layout (`ports/`, `domain/`, `adapters/outbound/prisma/`, service/controller/module), `Symbol` token naming (`export const {MODULE}_REPOSITORY = Symbol('...')`), `prisma/generated` import boundary (only `**/adapters/**` + `src/prisma/**`). Deps: T-F0-01. Phase F0. Accept: REQ-F0-01.
+- [x] **T-F0-04** — Add core eslint boundary rule to `packages/backend/eslint.config.mjs`: `no-restricted-imports: ['error', { patterns: [{ group: ['**/prisma/generated/**', '@prisma/client'], message: 'prisma/generated only in adapters + src/prisma' }] }]` with `files: ['**/adapters/**', 'src/prisma/**']` turning it off. Zero new devDependencies. Deps: T-F0-01. Phase F0. Accept: REQ-F0-02, REQ-A-04. *Nota 2026-08-04: implementado según decisión aprobada (Opción A): bloque de regla sobre `**/*.ts` + bloque grandfather DESPUÉS (flat config, último bloque gana) con exenciones permanentes (`src/prisma/**`, `**/adapters/**`) y 21 archivos legacy con horizonte de remoción. `machine.controller.ts` y `user.controller.ts` se agregaron al horizonte F2 post-inventario (primer lint run los flaggeó; eran imports legacy no enumerados). Verificado: 0 hits de `no-restricted-imports` fuera del grandfather.*
+- [x] **T-F0-05** — Normalize generated-client import paths in any `src/` file the new rule flags (e.g. `@prisma/client` → `prisma/generated`), EXCEPT the legacy `user.service.ts` runtime import which stays untouched in F0; `pnpm --filter backend run lint` must pass. Deps: T-F0-04. Phase F0. Accept: REQ-F0-03, REQ-F0-02. *Nota 2026-08-04: la normalización quedó reemplazada por la decisión aprobada (Opción A = grandfather list). La regla NO flaggea ningún archivo fuera del grandfather (0 hits, verificado). El criterio literal "lint must pass" es inalcanzable por baseline pre-existente ajeno al cambio: 2882 errores prettier/prettier por CRLF (`core.autocrlf=true`, sin `.gitattributes`) + ~126 recommendedTypeChecked (verificado con config original de HEAD). Ver docs/hexagonal-conventions.md §4.*
+
+## F1 — Livestock Pilot (FIRST BATCH)
+
+- [x] **T-F1-01** — Write contract-locking spec `packages/backend/src/entities/livestock/livestock.service.spec.ts` against MOCKED ports (plain objects + `jest.fn()`), freezing REQ-C rules: errors (REQ-C-03), `assertRequiredString` (REQ-C-04), `parseDate` (REQ-C-05), ownership recompute + self-excluding uniqueness (REQ-C-06), create/update normalization (REQ-C-07), rethrow policy (REQ-C-08). Cover SC-LV-01..15. RED (ports don't exist yet). Deps: T-F0-04. Phase F1. Accept: REQ-F1-01, REQ-T-01/02/03/05. *Nota 2026-08-04: RED verificado (3 TS2307 por ./ports inexistentes). 29 tests.*
+- [x] **T-F1-02** — Create `packages/backend/src/entities/livestock/ports/livestock.repository.ts`: `export const LIVESTOCK_REPOSITORY = Symbol('LIVESTOCK_REPOSITORY')` + `LivestockRepositoryPort` with exactly `findAll`, `findById`, `findByIdWithLotFarm`, `findByTagNumber`, `findByTagNumberExcluding`, `create`, `update`, `delete` returning `LivestockEntity` (full row, byte-identical to today's Prisma returns). Deps: T-F1-01. Phase F1. Accept: REQ-F1-02, REQ-A-01/02.
+- [x] **T-F1-03** — Create `ports/company-lookup.port.ts` (`COMPANY_LOOKUP` Symbol + `companyExists(id): Promise<boolean>`) and `ports/lot-lookup.port.ts` (`LOT_LOOKUP` Symbol + `findLotWithFarm(id): Promise<{ id; farm: { companyId } } | null>`) — narrow capability ports per D1 Option A. Deps: T-F1-01. Phase F1. Accept: REQ-F1-03, REQ-A-03.
+- [x] **T-F1-04** — Create `domain/livestock-status.ts`: `export enum LivestockStatus { ACTIVO='ACTIVO', VENDIDO='VENDIDO', MUERTO='MUERTO', ENFERMO='ENFERMO' }` (identical member names to generated enum). Deps: T-F1-01. Phase F1. Accept: REQ-F1-05, REQ-A-05 (copy part).
+- [x] **T-F1-05** — Create `adapters/outbound/prisma/prisma-livestock.repository.ts` implementing `LivestockRepositoryPort` via injected `PrismaService`; maps generated enum → `LivestockStatus` domain copy; the ONLY livestock file importing `prisma/generated`. Deps: T-F1-02, T-F1-04. Phase F1. Accept: REQ-F1-04, REQ-A-04. *Nota 2026-08-04: DOMAIN_STATUS_TO_PRISMA usa string literals ('ACTIVO', etc.) porque el enum generado es objeto as-const; LivestockRow = Omit<LivestockEntity,'status'> & { status: PrismaLivestockStatus }.*
+- [x] **T-F1-06** — Create `adapters/outbound/prisma/prisma-company-lookup.ts` and `prisma-lot-lookup.ts` implementing `CompanyLookupPort`/`LotLookupPort` (one-method thin adapters). Deps: T-F1-03, T-F1-05. Phase F1. Accept: REQ-F1-03/04, REQ-A-04. *Nota 2026-08-04: ambos adapters documentan reemplazo en T-F2-23 por puertos dueños (D1).*
+- [x] **T-F1-07** — Refactor `livestock.service.ts` to inject `LIVESTOCK_REPOSITORY`, `COMPANY_LOOKUP`, `LOT_LOOKUP` (no `PrismaService`, no `prisma/generated`); public method signatures unchanged; `@nestjs/common` exceptions kept (REQ-A-06); rethrow policy byte-identical. GREEN. Deps: T-F1-01..T-F1-06. Phase F1. Accept: REQ-F1-06, REQ-C-01..08, REQ-A-06. *Nota 2026-08-04: la validación de lote solo se ejecuta cuando data.lotId !== undefined (SC-LV-08 actualiza solo tagNumber sin mockear findLotWithFarm); birthDate se pasa como clave explícita porque CreateLivestockData la declara como clave requerida Date | undefined (TS2345 si se usa spread condicional).*
+- [x] **T-F1-08** — Wire `livestock.module.ts`: `providers: [{ provide: LIVESTOCK_REPOSITORY, useClass: PrismaLivestockRepository }, { provide: COMPANY_LOOKUP, useClass: PrismaCompanyLookup }, { provide: LOT_LOOKUP, useClass: PrismaLotLookup }]`; remove `PrismaService` provider from the module if the service no longer needs it. Deps: T-F1-07. Phase F1. Accept: REQ-F1-07, REQ-A-08. *Nota 2026-08-04: se mantiene imports: [PrismaModule] (los adapters inyectan PrismaService); exports: [LivestockService].*
+- [x] **T-F1-09** — Change `livestock.controller.ts` ONLY the `LivestockStatus` import line to the domain copy (no route/decorator/signature/type changes). Deps: T-F1-04, T-F1-07. Phase F1. Accept: REQ-F1-08, REQ-A-07.
+- [x] **T-F1-10** — Verify pilot: `pnpm --filter backend run test`, `lint`, `build` all green; commit per-module sequence. Deps: T-F1-08, T-F1-09. Phase F1. Accept: REQ-F1-09, REQ-T-04. *Nota 2026-08-04: unit 43/43 (14 baseline + 29 livestock), e2e 9/9, build EXIT=0. no-restricted-imports 0 hits fuera de **/adapters/**; entradas F1 del grandfather podadas de eslint.config.mjs. Fix de scaffolding de 3 tests de la spec (tests NO implementables contra ningún service correcto: SC-LV-05/06 sin mock de findLotWithFarm pese a lotId truthy — SC-LV-01 exige llamarlo; SC-LV-07 species spread {} nunca quitaba species).*
+- [x] **T-F1-11** — OPTIONAL (should): add `/livestocks` e2e via `supertest` in the existing e2e suite covering create/update/remove happy paths. Deps: T-F1-10. Phase F1. Accept: REQ-F1-10. *Nota 2026-08-04: test/livestock.e2e-spec.ts con PrismaService override (patrón auth.e2e); cubre POST 201 + 400, PUT 200 (solo tagNumber), DELETE 200. e2e 9/9.*
+
+## F2 — Twelve CRUD Modules (later batches; 7 waves)
+
+Wave 1 (module-entity → company — order flipped from design's literal listing so company's `module` cross-read uses the exported port, REQ-F2-03):
+
+- **T-F2-01** — Contract-locking spec `module-entity.service.spec.ts` against mocked port (findAll/findById/findByName/create/update rules). Deps: T-F1-10. Phase F2/W1. Accept: REQ-F2-02, REQ-T-01/02.
+- **T-F2-02** — Create `module-entity/ports/module-entity.repository.ts`: `MODULE_ENTITY_REPOSITORY` Symbol + port mirroring today's Prisma calls (leaf module — no cross reads). Deps: T-F2-01. Phase F2/W1. Accept: REQ-A-01.
+- **T-F2-03** — Create `module-entity/adapters/outbound/prisma/prisma-module-entity.repository.ts` (only module-entity file importing `prisma/generated`). Deps: T-F2-02. Phase F2/W1. Accept: REQ-A-04.
+- **T-F2-04** — Refactor `module-entity.service.ts` to inject the port; signatures + errors unchanged. Deps: T-F2-02, T-F2-03. Phase F2/W1. Accept: REQ-F2-04, REQ-C-01/03.
+- **T-F2-05** — Wire `module-entity.module.ts` `{ provide: MODULE_ENTITY_REPOSITORY, useClass: PrismaModuleEntityRepository }`. Deps: T-F2-04. Phase F2/W1. Accept: REQ-A-08.
+- **T-F2-06** — Contract-locking spec `company.service.spec.ts` (incl. addModuleToCompany cross-read of module via `MODULE_ENTITY_REPOSITORY` exported port). Deps: T-F2-05. Phase F2/W1. Accept: REQ-F2-02/03.
+- **T-F2-07** — Create `company/ports/company.repository.ts`: `COMPANY_REPOSITORY` Symbol + port (findAll/findById/findByCuit/create/findByIdWithModules/update/assignModule). Deps: T-F2-06. Phase F2/W1. Accept: REQ-A-01.
+- **T-F2-08** — Create `company/adapters/outbound/prisma/prisma-company.repository.ts`; company service's `module` reads go through `MODULE_ENTITY_REPOSITORY` (imported port), NOT direct Prisma. Deps: T-F2-07, T-F2-05. Phase F2/W1. Accept: REQ-A-04, REQ-F2-03.
+- **T-F2-09** — Refactor `company.service.ts` to inject `COMPANY_REPOSITORY` + `MODULE_ENTITY_REPOSITORY`. Deps: T-F2-08. Phase F2/W1. Accept: REQ-F2-04.
+- **T-F2-10** — Wire `company.module.ts` providers (`COMPANY_REPOSITORY` → adapter; import `ModuleEntityModule`/provider for the module port). Deps: T-F2-09. Phase F2/W1. Accept: REQ-A-08.
+- **T-F2-11** — Wave 1 verify: `test` + `lint` + `build` green; pre-existing tests untouched; commit. Deps: T-F2-05, T-F2-10. Phase F2/W1. Accept: REQ-F2-06, REQ-T-04.
+
+Wave 2 (farm → lot):
+
+- **T-F2-12** — Contract-locking spec `farm.service.spec.ts` (company-exists check via `COMPANY_REPOSITORY`; name+companyId uniqueness). Deps: T-F2-11. Phase F2/W2. Accept: REQ-F2-02/03.
+- **T-F2-13** — Create `farm/ports/farm.repository.ts`: `FARM_REPOSITORY` Symbol + port. Deps: T-F2-12. Phase F2/W2. Accept: REQ-A-01.
+- **T-F2-14** — Create `farm/adapters/outbound/prisma/prisma-farm.repository.ts`. Deps: T-F2-13. Phase F2/W2. Accept: REQ-A-04.
+- **T-F2-15** — Refactor `farm.service.ts` to inject `FARM_REPOSITORY` + company's exported `COMPANY_REPOSITORY` (extracted wave 1). Deps: T-F2-14, T-F2-10. Phase F2/W2. Accept: REQ-F2-03/04.
+- **T-F2-16** — Wire `farm.module.ts` providers. Deps: T-F2-15. Phase F2/W2. Accept: REQ-A-08.
+- **T-F2-17** — Contract-locking spec `lot.service.spec.ts` (farm-exists; assignStock uses `FARM_REPOSITORY`/`COMPANY_REPOSITORY` exported ports + livestock write via `LIVESTOCK_REPOSITORY` from F1). Deps: T-F2-16. Phase F2/W2. Accept: REQ-F2-02/03.
+- **T-F2-18** — Create `lot/ports/lot.repository.ts`: `LOT_REPOSITORY` Symbol + port incl. `assignStock` (writes lot + livestock internally in the adapter, or lot service composes `LIVESTOCK_REPOSITORY.update` — contract identical either way). Deps: T-F2-17. Phase F2/W2. Accept: REQ-A-01, REQ-F2-03.
+- **T-F2-19** — Create `lot/adapters/outbound/prisma/prisma-lot.repository.ts`. Deps: T-F2-18. Phase F2/W2. Accept: REQ-A-04.
+- **T-F2-20** — Refactor `lot.service.ts` to inject ports (no `prisma.livestock` inline). Deps: T-F2-19. Phase F2/W2. Accept: REQ-F2-04.
+- **T-F2-21** — Wire `lot.module.ts` providers. Deps: T-F2-20. Phase F2/W2. Accept: REQ-A-08.
+- **T-F2-22** — Wave 2 verify (`test`+`lint`+`build` green, no test deletions) + commit. Deps: T-F2-21. Phase F2/W2. Accept: REQ-F2-06.
+- **T-F2-23** — Swap livestock pilot's narrow capability ports for owner-exported ports (D1): `COMPANY_LOOKUP` → `COMPANY_REPOSITORY`, `LOT_LOOKUP` → `LOT_REPOSITORY` in `livestock.service.ts`/`livestock.module.ts`; API contract unchanged. Deps: T-F2-22. Phase F2/W2. Accept: REQ-F2-03.
+
+Wave 3 (user):
+
+- **T-F2-24** — Contract-locking spec `user.service.spec.ts` (company-exists; email/username uniqueness). Deps: T-F2-22. Phase F2/W3. Accept: REQ-F2-02/03.
+- **T-F2-25** — Create `user/ports/user.repository.ts`: `USER_REPOSITORY` Symbol + port (incl. `findByEmail`, `findByUsername` as used by user.service today). Deps: T-F2-24. Phase F2/W3. Accept: REQ-A-01.
+- **T-F2-26** — Create `user/adapters/outbound/prisma/prisma-user.repository.ts`; the legacy `@prisma/client/runtime/client` type import from `user.service.ts` moves into this adapter naturally (REQ-F0-03). Deps: T-F2-25. Phase F2/W3. Accept: REQ-A-04.
+- **T-F2-27** — Refactor `user.service.ts` to inject `USER_REPOSITORY` + `COMPANY_REPOSITORY`. Deps: T-F2-26, T-F2-10. Phase F2/W3. Accept: REQ-F2-03/04.
+- **T-F2-28** — Wire `user.module.ts` providers. Deps: T-F2-27. Phase F2/W3. Accept: REQ-A-08.
+- **T-F2-29** — Wave 3 verify (`test`+`lint`+`build` green) + commit. Deps: T-F2-28. Phase F2/W3. Accept: REQ-F2-06.
+
+Wave 4 (livestock-event → weight-record):
+
+- **T-F2-30** — Contract-locking spec `livestock-event.service.spec.ts` (livestock/user-exists checks via exported ports). Deps: T-F2-29. Phase F2/W4. Accept: REQ-F2-02/03.
+- **T-F2-31** — Create `livestock-event/ports/livestock-event.repository.ts` + `LIVESTOCK_EVENT_REPOSITORY` Symbol. Deps: T-F2-30. Phase F2/W4. Accept: REQ-A-01.
+- **T-F2-32** — Create `livestock-event/adapters/outbound/prisma/prisma-livestock-event.repository.ts`. Deps: T-F2-31. Phase F2/W4. Accept: REQ-A-04.
+- **T-F2-33** — Refactor `livestock-event.service.ts` to inject port + `LIVESTOCK_REPOSITORY` (F1) + `USER_REPOSITORY` (wave 3). Deps: T-F2-32, T-F1-07, T-F2-28. Phase F2/W4. Accept: REQ-F2-03/04.
+- **T-F2-34** — Wire `livestock-event.module.ts` providers. Deps: T-F2-33. Phase F2/W4. Accept: REQ-A-08.
+- **T-F2-35** — Contract-locking spec `weight-record.service.spec.ts` (operator/livestock-exists; delete-then-update semantics frozen). Deps: T-F2-34. Phase F2/W4. Accept: REQ-F2-02/03.
+- **T-F2-36** — Create `weight-record/ports/weight-record.repository.ts` + `WEIGHT_RECORD_REPOSITORY` Symbol. Deps: T-F2-35. Phase F2/W4. Accept: REQ-A-01.
+- **T-F2-37** — Create `weight-record/adapters/outbound/prisma/prisma-weight-record.repository.ts`. Deps: T-F2-36. Phase F2/W4. Accept: REQ-A-04.
+- **T-F2-38** — Refactor `weight-record.service.ts` to inject port + `USER_REPOSITORY` + `LIVESTOCK_REPOSITORY`. Deps: T-F2-37, T-F2-28, T-F1-07. Phase F2/W4. Accept: REQ-F2-03/04.
+- **T-F2-39** — Wire `weight-record.module.ts` providers. Deps: T-F2-38. Phase F2/W4. Accept: REQ-A-08.
+- **T-F2-40** — Wave 4 verify (`test`+`lint`+`build` green) + commit. Deps: T-F2-34, T-F2-39. Phase F2/W4. Accept: REQ-F2-06.
+
+Wave 5 (task → task-type; circular read resolved via capability port + in-wave swap):
+
+- **T-F2-41** — Contract-locking spec `task.service.spec.ts` (taskType-exists via narrow capability port D1; lot/user via exported ports; add/remove-operator rules). Deps: T-F2-40. Phase F2/W5. Accept: REQ-F2-02/03.
+- **T-F2-42** — Create `task/ports/task.repository.ts` + `TASK_REPOSITORY` Symbol, plus `ports/task-type-lookup.port.ts` (`TASK_TYPE_LOOKUP` Symbol, narrow capability port — task-type not extracted yet, D1). Deps: T-F2-41. Phase F2/W5. Accept: REQ-A-01/03.
+- **T-F2-43** — Create `task/adapters/outbound/prisma/prisma-task.repository.ts` + `prisma-task-type-lookup.ts`. Deps: T-F2-42. Phase F2/W5. Accept: REQ-A-04.
+- **T-F2-44** — Refactor `task.service.ts` to inject `TASK_REPOSITORY` + `LOT_REPOSITORY` (wave 2) + `USER_REPOSITORY` (wave 3) + `TASK_TYPE_LOOKUP`. Deps: T-F2-43, T-F2-21, T-F2-28. Phase F2/W5. Accept: REQ-F2-03/04.
+- **T-F2-45** — Wire `task.module.ts` providers. Deps: T-F2-44. Phase F2/W5. Accept: REQ-A-08.
+- **T-F2-46** — Contract-locking spec `task-type.service.spec.ts` (name uniqueness; taskIds read via `TASK_REPOSITORY` exported port). Deps: T-F2-45. Phase F2/W5. Accept: REQ-F2-02/03.
+- **T-F2-47** — Create `task-type/ports/task-type.repository.ts` + `TASK_TYPE_REPOSITORY` Symbol. Deps: T-F2-46. Phase F2/W5. Accept: REQ-A-01.
+- **T-F2-48** — Create `task-type/adapters/outbound/prisma/prisma-task-type.repository.ts`. Deps: T-F2-47. Phase F2/W5. Accept: REQ-A-04.
+- **T-F2-49** — Refactor `task-type.service.ts` to inject `TASK_TYPE_REPOSITORY` + `TASK_REPOSITORY`. Deps: T-F2-48, T-F2-45. Phase F2/W5. Accept: REQ-F2-03/04.
+- **T-F2-50** — Wire `task-type.module.ts` providers. Deps: T-F2-49. Phase F2/W5. Accept: REQ-A-08.
+- **T-F2-51** — In-wave swap (D1, REQ-F2-03): replace `TASK_TYPE_LOOKUP` capability port in task module with task-type's exported `TASK_TYPE_REPOSITORY`; contract unchanged. Deps: T-F2-50. Phase F2/W5. Accept: REQ-F2-03.
+- **T-F2-52** — Wave 5 verify (`test`+`lint`+`build` green) + commit. Deps: T-F2-45, T-F2-51. Phase F2/W5. Accept: REQ-F2-06.
+
+Wave 6 (machine → machine-usage):
+
+- **T-F2-53** — Contract-locking spec `machine.service.spec.ts` (company-exists via exported port; companyId required). Deps: T-F2-52. Phase F2/W6. Accept: REQ-F2-02/03.
+- **T-F2-54** — Create `machine/ports/machine.repository.ts` + `MACHINE_REPOSITORY` Symbol. Deps: T-F2-53. Phase F2/W6. Accept: REQ-A-01.
+- **T-F2-55** — Create `machine/adapters/outbound/prisma/prisma-machine.repository.ts`. Deps: T-F2-54. Phase F2/W6. Accept: REQ-A-04.
+- **T-F2-56** — Refactor `machine.service.ts` to inject `MACHINE_REPOSITORY` + `COMPANY_REPOSITORY`. Deps: T-F2-55, T-F2-10. Phase F2/W6. Accept: REQ-F2-03/04.
+- **T-F2-57** — Wire `machine.module.ts` providers. Deps: T-F2-56. Phase F2/W6. Accept: REQ-A-08.
+- **T-F2-58** — Contract-locking spec `machine-usage.service.spec.ts` (machine/task/operator-exists via exported ports). Deps: T-F2-57. Phase F2/W6. Accept: REQ-F2-02/03.
+- **T-F2-59** — Create `machine-usage/ports/machine-usage.repository.ts` + `MACHINE_USAGE_REPOSITORY` Symbol. Deps: T-F2-58. Phase F2/W6. Accept: REQ-A-01.
+- **T-F2-60** — Create `machine-usage/adapters/outbound/prisma/prisma-machine-usage.repository.ts`. Deps: T-F2-59. Phase F2/W6. Accept: REQ-A-04.
+- **T-F2-61** — Refactor `machine-usage.service.ts` to inject `MACHINE_USAGE_REPOSITORY` + `MACHINE_REPOSITORY` (wave 6) + `TASK_REPOSITORY` (wave 5) + `USER_REPOSITORY` (wave 3). Deps: T-F2-60, T-F2-57, T-F2-45, T-F2-28. Phase F2/W6. Accept: REQ-F2-03/04.
+- **T-F2-62** — Wire `machine-usage.module.ts` providers. Deps: T-F2-61. Phase F2/W6. Accept: REQ-A-08.
+- **T-F2-63** — Wave 6 verify (`test`+`lint`+`build` green) + commit. Deps: T-F2-57, T-F2-62. Phase F2/W6. Accept: REQ-F2-06.
+
+Wave 7 (livestock-movement):
+
+- **T-F2-64** — Contract-locking spec `livestock-movement.service.spec.ts` (leaf module; findAll/findById/create). NOTE: pre-existing AppModule wiring bug stays untouched (out of scope). Deps: T-F2-63. Phase F2/W7. Accept: REQ-F2-02.
+- **T-F2-65** — Create `livestock-movement/ports/livestock-movement.repository.ts` + `LIVESTOCK_MOVEMENT_REPOSITORY` Symbol. Deps: T-F2-64. Phase F2/W7. Accept: REQ-A-01.
+- **T-F2-66** — Create `livestock-movement/adapters/outbound/prisma/prisma-livestock-movement.repository.ts`. Deps: T-F2-65. Phase F2/W7. Accept: REQ-A-04.
+- **T-F2-67** — Refactor `livestock-movement.service.ts` to inject the port. Deps: T-F2-66. Phase F2/W7. Accept: REQ-F2-04.
+- **T-F2-68** — Wire `livestock-movement.module.ts` providers (do NOT register in AppModule — pre-existing bug stays). Deps: T-F2-67. Phase F2/W7. Accept: REQ-A-08.
+- **T-F2-69** — Wave 7 + final F2 verify: `test` + `lint` + `build` green; end-state check — zero `src/` files outside `**/adapters/**` + `src/prisma/**` import `prisma/generated`; no service among the 12 imports `PrismaService`; commit. Deps: T-F2-68. Phase F2/W7. Accept: REQ-F2-04/05/06.
+
+## F3 — Auth Extraction (later batch)
+
+- **T-F3-01** — Migrate `auth.service.spec.ts` from mocking `PrismaService` to mocking the new ports (plain objects + `jest.fn()`), keeping coverage: 423 lockout payload (SC-AUTH-01), failed-attempt increment/reset, login, rotation + bcrypt→argon2 migration (SC-AUTH-02), logout. RED (ports don't exist yet). Deps: T-F2-69. Phase F3. Accept: REQ-F3-02, REQ-T-06, REQ-T-03.
+- **T-F3-02** — Create `src/auth/ports/user-credentials.repository.ts` (`USER_CREDENTIALS_REPOSITORY` Symbol; `findByEmail`, `update`) and `src/auth/ports/refresh-token.repository.ts` (`REFRESH_TOKEN_REPOSITORY` Symbol; `create`, `findActiveWithUser`, `revoke`). Deps: T-F3-01. Phase F3. Accept: REQ-F3-01, REQ-A-01.
+- **T-F3-03** — Create `src/auth/adapters/outbound/prisma/prisma-user-credentials.repository.ts` + `prisma-refresh-token.repository.ts` (only auth files importing `prisma/generated`). Deps: T-F3-02. Phase F3. Accept: REQ-A-04.
+- **T-F3-04** — Refactor `auth.service.ts` to inject both ports (no `PrismaService`); ZERO logic changes — O(n) refresh-token scan, 423 payload (remaining time), bcrypt→argon2 migration, `MAX_FAILED_ATTEMPTS=5`, `LOCKOUT_MINUTES=15`, rotation, active/deleted re-checks byte-identical (REQ-F3-03). GREEN. Deps: T-F3-01..T-F3-03. Phase F3. Accept: REQ-F3-01/03, REQ-C-01/03, SC-AUTH-01/02.
+- **T-F3-05** — Wire `auth.module.ts` providers `{ provide: USER_CREDENTIALS_REPOSITORY, useClass: PrismaUserCredentialsRepository }` + `{ provide: REFRESH_TOKEN_REPOSITORY, useClass: PrismaRefreshTokenRepository }`. Deps: T-F3-04. Phase F3. Accept: REQ-F3-04, REQ-A-08.
+- **T-F3-06** — Verify: `test` + `lint` + `build` green; no coverage lost vs pre-migration spec; commit. Deps: T-F3-05. Phase F3. Accept: REQ-F3-04, REQ-T-04.
+
+## F4 — Mobile Composition Root (later batch)
+
+- **T-F4-01** — Relocate `AuthRepository` interface to `packages/mobile/lib/domain/repositories/auth_repository.dart` (keep `login({required email, required password})` signature); re-export from old path so existing imports stay green (REQ-F4-02). Deps: T-F3-06. Phase F4. Accept: REQ-F4-02.
+- **T-F4-02** — Create `packages/mobile/lib/domain/usecases/login_usecase.dart` (orchestrator-requested extension beyond design.md — verify against codebase; MUST preserve behavior). Deps: T-F4-01. Phase F4. Accept: REQ-F4-03 (no behavior change).
+- **T-F4-03** — Ensure `HttpAuthRepository` (in `lib/data/repositories/auth_repository.dart`) implements the domain port from `domain/repositories`; update its import path. Deps: T-F4-01. Phase F4. Accept: REQ-F4-02.
+- **T-F4-04** — `LoginViewModel`: receive dependency by constructor as a REQUIRED param (no hidden default `?? HttpAuthRepository()`); keep `login()`, `validateInputs()`, error mapping, state transitions identical (REQ-F4-03). Deps: T-F4-01, T-F4-03. Phase F4. Accept: REQ-F4-01/03.
+- **T-F4-05** — `main.dart` composition root: construct `HttpAuthRepository()` → `LoginViewModel(authRepository: ...)` explicitly at the top and pass via constructor (SC-MOB-01). Deps: T-F4-04. Phase F4. Accept: REQ-F4-01, SC-MOB-01.
+- **T-F4-06** — Clean now-empty directories after interface relocation (e.g. `lib/domain/repositories/` created, stale copies removed); keep manual DI only — NO get_it/riverpod/provider package. Deps: T-F4-05. Phase F4. Accept: REQ-F4-04.
+- **T-F4-07** — Verify: `flutter analyze` and `flutter test` green; existing mobile tests unchanged in behavior; commit. Deps: T-F4-05, T-F4-06. Phase F4. Accept: REQ-F4-05, REQ-T-07.
