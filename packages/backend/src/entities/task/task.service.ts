@@ -1,23 +1,58 @@
-import { BadRequestException, Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TaskStatus, UserRole } from '../../../prisma/generated/enums';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { TaskStatus } from './domain/task-status';
+import { UserRole } from '../user/domain/user-role';
+import {
+  TASK_REPOSITORY,
+  TASK_TYPE_LOOKUP,
+  TaskRepositoryPort,
+  TaskTypeLookupPort,
+} from './ports/task.repository';
+import { LOT_REPOSITORY, LotRepositoryPort } from '../lot/ports/lot.repository';
+import {
+  USER_REPOSITORY,
+  UserRepositoryPort,
+} from '../user/ports/user.repository';
 
 @Injectable()
 export class TaskService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(TASK_REPOSITORY)
+    private readonly taskRepository: TaskRepositoryPort,
+    // D1: capability port estrecho — task-type aún no está extraído (T-F2-46..50).
+    // El legacy hacía taskType.findUnique SIN await (líneas 33-40: el check era
+    // un no-op — una promesa es siempre truthy). El refactor lo hace EFECTIVO:
+    // divergencia consciente pedida por T-F2-41 (REQ-F2-03).
+    @Inject(TASK_TYPE_LOOKUP)
+    private readonly taskTypeLookup: TaskTypeLookupPort,
+    @Inject(LOT_REPOSITORY)
+    private readonly lotRepository: LotRepositoryPort,
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: UserRepositoryPort,
+  ) {}
 
-  findAll() {
+  // Nota: `await` deliberado — el legacy devolvía la promesa sin await y el
+  // rechazo del puerto se propagaba crudo. El spec (T-F2-41) congela el wrap en
+  // 500 'Error fetching tasks' (intención del catch legacy).
+  async findAll() {
     try {
-      return this.prisma.task.findMany();
-    } catch (error) {
+      return await this.taskRepository.findAll();
+    } catch {
       throw new InternalServerErrorException('Error fetching tasks');
     }
   }
 
   async findOne(id: string) {
     try {
-      const existingTask = await this.prisma.task.findUnique({ where: { id } });
-      if (!existingTask) throw new NotFoundException(`Task with id ${id} not found`);
+      const existingTask = await this.taskRepository.findById(id);
+      if (!existingTask)
+        throw new NotFoundException(`Task with id ${id} not found`);
       return existingTask;
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
@@ -25,21 +60,27 @@ export class TaskService {
     }
   }
   // La task queda asociada a la compania a través del lote, no es necesario validar la compañía aquí
-  create(data: {lotId:string;taskTypeId:string; startedAt:string;}) {
-    try{
+  async create(data: { lotId: string; taskTypeId: string; startedAt: string }) {
+    try {
       if (!data || !data.lotId || !data.taskTypeId || !data.startedAt) {
-        throw new BadRequestException('Missing required fields: lotId, taskTypeId, startedAt');
+        throw new BadRequestException(
+          'Missing required fields: lotId, taskTypeId, startedAt',
+        );
       }
-      const taskType = this.prisma.taskType.findUnique({ where: { id: data.taskTypeId } });
+      const taskType = await this.taskTypeLookup.findById(data.taskTypeId);
       if (!taskType) {
-        throw new BadRequestException(`Task type with id ${data.taskTypeId} does not exist`);
+        throw new BadRequestException(
+          `Task type with id ${data.taskTypeId} does not exist`,
+        );
       }
-      const lot = this.prisma.lot.findUnique({ where: { id: data.lotId } });
+      const lot = await this.lotRepository.findById(data.lotId);
       if (!lot) {
-        throw new BadRequestException(`Lot with id ${data.lotId} does not exist`);
+        throw new BadRequestException(
+          `Lot with id ${data.lotId} does not exist`,
+        );
       }
 
-      if(data.startedAt!==undefined){
+      if (data.startedAt !== undefined) {
         const startedAt = new Date(data.startedAt);
         if (isNaN(startedAt.getTime())) {
           throw new BadRequestException('Invalid date format for startedAt');
@@ -48,28 +89,36 @@ export class TaskService {
       const createData = {
         lotId: data.lotId,
         taskTypeId: data.taskTypeId,
-        startedAt: new Date(data.startedAt)
-      }
-      return this.prisma.task.create({ data: createData });
-
-    }catch(error){
+        startedAt: new Date(data.startedAt),
+      };
+      return await this.taskRepository.create(createData);
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
       throw new InternalServerErrorException('Error creating task');
     }
   }
 
-  async update(id: string, data: {status?: TaskStatus; startedAt?: string; finishedAt?: string;}) {
+  async update(
+    id: string,
+    data: { status?: TaskStatus; startedAt?: string; finishedAt?: string },
+  ) {
     try {
-      const existingTask = await this.prisma.task.findUnique({ where: { id } });
+      const existingTask = await this.taskRepository.findById(id);
       if (!existingTask) {
         throw new NotFoundException(`Task with id ${id} not found`);
       }
-      if(data.status !==undefined && !Object.values(TaskStatus).includes(data.status)){
-        throw new BadRequestException(`Invalid status value. Allowed values are: ${Object.values(TaskStatus).join(', ')}`);
+      if (
+        data.status !== undefined &&
+        !Object.values(TaskStatus).includes(data.status)
+      ) {
+        throw new BadRequestException(
+          `Invalid status value. Allowed values are: ${Object.values(TaskStatus).join(', ')}`,
+        );
       }
-      let measuredAt: Date | undefined;
+      let startedAt: Date | undefined;
       if (data.startedAt !== undefined) {
-        measuredAt = new Date(data.startedAt);
-        if (Number.isNaN(measuredAt.getTime())) {
+        startedAt = new Date(data.startedAt);
+        if (Number.isNaN(startedAt.getTime())) {
           throw new BadRequestException('startedAt must be a valid date');
         }
       }
@@ -82,78 +131,89 @@ export class TaskService {
       }
       const updateData = {
         ...(data.status !== undefined ? { status: data.status } : {}),
-        ...(data.startedAt !== undefined ? { startedAt: measuredAt } : {}),
+        ...(data.startedAt !== undefined ? { startedAt } : {}),
         ...(data.finishedAt !== undefined ? { finishedAt } : {}),
       };
       if (Object.keys(updateData).length === 0) {
         throw new BadRequestException('No data provided for update');
       }
-      return await this.prisma.task.update({
-        where: { id },
-        data: updateData,
-      });
-      
-    }catch (error) {
+      return await this.taskRepository.update(id, updateData);
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
       throw new InternalServerErrorException('Error updating task');
+    }
   }
-}
 
-async addOperario(taskId: string, operatorId: string) {
+  async addOperario(taskId: string, operatorId: string) {
     try {
-      const existingTask = await this.prisma.task.findUnique({ where: { id: taskId }, include:{ operators:{select:{ id: true }}} });
+      const existingTask =
+        await this.taskRepository.findByIdWithOperators(taskId);
       if (!existingTask) {
         throw new NotFoundException(`Task with id ${taskId} not found`);
       }
-      const operator = await this.prisma.user.findUnique({ where: { id: operatorId } });
-      if (!operator|| operator.role !== UserRole.OPERARIO) {
+      const operator = await this.userRepository.findById(operatorId);
+      if (!operator || operator.role !== UserRole.OPERARIO) {
         throw new NotFoundException(`Operator with id ${operatorId} not found`);
       }
-      if (existingTask.operators.some(op => op.id === operatorId)) {
-        throw new ConflictException(`Operator with id ${operatorId} is already assigned to task with id ${taskId}`);
-      }else{
-        await this.prisma.task.update({
-          where: { id: taskId },
-          data: { operators: { connect: { id: operatorId } } },
-        });
-        return { message: `Operator with id ${operatorId} added to task with id ${taskId} successfully` };
+      if (existingTask.operators.some((op) => op.id === operatorId)) {
+        throw new ConflictException(
+          `Operator with id ${operatorId} is already assigned to task with id ${taskId}`,
+        );
+      } else {
+        await this.taskRepository.addOperator(taskId, operatorId);
+        return {
+          message: `Operator with id ${operatorId} added to task with id ${taskId} successfully`,
+        };
       }
-      
-    }catch(error){
-      if (error instanceof NotFoundException || error instanceof ConflictException || error instanceof BadRequestException) {
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Error adding operator to task');
     }
   }
-async removeOperario(taskId: string, operatorId: string) {
+
+  async removeOperario(taskId: string, operatorId: string) {
     try {
-      const existingTask = await this.prisma.task.findUnique({ where: { id: taskId }, include:{ operators:{select:{ id: true }}} });
+      const existingTask =
+        await this.taskRepository.findByIdWithOperators(taskId);
       if (!existingTask) {
         throw new NotFoundException(`Task with id ${taskId} not found`);
       }
-      if (!existingTask.operators.some(op => op.id === operatorId)) {
-        throw new NotFoundException(`Operator with id ${operatorId} is not assigned to task with id ${taskId}`);
+      if (!existingTask.operators.some((op) => op.id === operatorId)) {
+        throw new NotFoundException(
+          `Operator with id ${operatorId} is not assigned to task with id ${taskId}`,
+        );
       }
-      await this.prisma.task.update({
-        where: { id: taskId },
-        data: { operators: { disconnect: { id: operatorId } } },
-      });
-      return { message: `Operator with id ${operatorId} removed from task with id ${taskId} successfully` };
+      await this.taskRepository.removeOperator(taskId, operatorId);
+      return {
+        message: `Operator with id ${operatorId} removed from task with id ${taskId} successfully`,
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException('Error removing operator from task');
+      throw new InternalServerErrorException(
+        'Error removing operator from task',
+      );
     }
   }
 
-
-
   async delete(id: string) {
     try {
-      const existingTask = await this.prisma.task.findUnique({ where: { id } });
-      if (!existingTask) throw new NotFoundException(`Task with id ${id} not found`);
-      await this.prisma.task.delete({ where: { id } });
+      const existingTask = await this.taskRepository.findById(id);
+      if (!existingTask)
+        throw new NotFoundException(`Task with id ${id} not found`);
+      await this.taskRepository.delete(id);
       return { message: `Task with id ${id} deleted successfully` };
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
@@ -161,4 +221,3 @@ async removeOperario(taskId: string, operatorId: string) {
     }
   }
 }
-

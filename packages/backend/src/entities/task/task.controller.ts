@@ -1,6 +1,16 @@
-import { Controller, Get, Post, Param, Body, Put, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { TaskService } from './task.service';
-import { TaskStatus } from '../../../prisma/generated/enums';
+// T-F2-44: el controller NO importa prisma (exención solo para adapters) — el
+// DTO usa el enum de dominio; en runtime ambos son los mismos strings.
+import { TaskStatus } from './domain/task-status';
 
 @Controller('tasks')
 export class TaskController {
@@ -17,22 +27,38 @@ export class TaskController {
   }
 
   @Post()
-  create(@Body() data: {lotId:string;taskTypeId:string; startedAt:string;}) {
+  create(
+    @Body() data: { lotId: string; taskTypeId: string; startedAt: string },
+  ) {
     return this.service.create(data);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {status?: TaskStatus; startedAt?: string; finishedAt?: string;}) {
+  update(
+    @Param('id') id: string,
+    @Body()
+    data: {
+      status?: TaskStatus;
+      startedAt?: string;
+      finishedAt?: string;
+    },
+  ) {
     return this.service.update(id, data);
   }
 
   @Post(':id/:operatorId')
-  addOperario(@Param('id') taskId: string, @Param('operatorId') operatorId: string) {
+  addOperario(
+    @Param('id') taskId: string,
+    @Param('operatorId') operatorId: string,
+  ) {
     return this.service.addOperario(taskId, operatorId);
   }
 
   @Put(':id/:operatorId')
-  removeOperario(@Param('id') taskId: string, @Param('operatorId') operatorId: string) {
+  removeOperario(
+    @Param('id') taskId: string,
+    @Param('operatorId') operatorId: string,
+  ) {
     return this.service.removeOperario(taskId, operatorId);
   }
 
