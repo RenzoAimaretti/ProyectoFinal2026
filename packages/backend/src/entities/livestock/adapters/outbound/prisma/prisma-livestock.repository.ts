@@ -3,7 +3,6 @@ import { PrismaService } from '../../../../../prisma/prisma.service';
 import { LivestockStatus as PrismaLivestockStatus } from '../../../../../../prisma/generated/client';
 import { LivestockStatus } from '../../../domain/livestock-status';
 import {
-  LIVESTOCK_REPOSITORY,
   CreateLivestockData,
   LivestockEntity,
   LivestockRepositoryPort,
@@ -13,22 +12,26 @@ import {
 // Mapeo explícito generado ↔ dominio (REQ-A-04): el enum generado por Prisma es un
 // const object; la copia de dominio es un enum TS con miembros idénticos. Este es
 // el ÚNICO archivo del módulo livestock que importa prisma/generated (REQ-A-04).
-const PRISMA_STATUS_TO_DOMAIN: Record<PrismaLivestockStatus, LivestockStatus> = {
-  ACTIVO: LivestockStatus.ACTIVO,
-  VENDIDO: LivestockStatus.VENDIDO,
-  MUERTO: LivestockStatus.MUERTO,
-  ENFERMO: LivestockStatus.ENFERMO,
-};
+const PRISMA_STATUS_TO_DOMAIN: Record<PrismaLivestockStatus, LivestockStatus> =
+  {
+    ACTIVO: LivestockStatus.ACTIVO,
+    VENDIDO: LivestockStatus.VENDIDO,
+    MUERTO: LivestockStatus.MUERTO,
+    ENFERMO: LivestockStatus.ENFERMO,
+  };
 
-const DOMAIN_STATUS_TO_PRISMA: Record<LivestockStatus, PrismaLivestockStatus> = {
-  [LivestockStatus.ACTIVO]: 'ACTIVO',
-  [LivestockStatus.VENDIDO]: 'VENDIDO',
-  [LivestockStatus.MUERTO]: 'MUERTO',
-  [LivestockStatus.ENFERMO]: 'ENFERMO',
-};
+const DOMAIN_STATUS_TO_PRISMA: Record<LivestockStatus, PrismaLivestockStatus> =
+  {
+    [LivestockStatus.ACTIVO]: 'ACTIVO',
+    [LivestockStatus.VENDIDO]: 'VENDIDO',
+    [LivestockStatus.MUERTO]: 'MUERTO',
+    [LivestockStatus.ENFERMO]: 'ENFERMO',
+  };
 
 // Fila escalar de Prisma (status en el enum generado) — base del mapeo a entidad.
-type LivestockRow = Omit<LivestockEntity, 'status'> & { status: PrismaLivestockStatus };
+type LivestockRow = Omit<LivestockEntity, 'status'> & {
+  status: PrismaLivestockStatus;
+};
 
 @Injectable()
 export class PrismaLivestockRepository implements LivestockRepositoryPort {
@@ -53,11 +56,16 @@ export class PrismaLivestockRepository implements LivestockRepositoryPort {
   }
 
   async findByTagNumber(tagNumber: string): Promise<LivestockEntity | null> {
-    const row = await this.prisma.livestock.findUnique({ where: { tagNumber } });
+    const row = await this.prisma.livestock.findUnique({
+      where: { tagNumber },
+    });
     return row ? this.toEntity(row) : null;
   }
 
-  async findByTagNumberExcluding(tagNumber: string, excludeId: string): Promise<LivestockEntity | null> {
+  async findByTagNumberExcluding(
+    tagNumber: string,
+    excludeId: string,
+  ): Promise<LivestockEntity | null> {
     const row = await this.prisma.livestock.findFirst({
       where: { tagNumber, id: { not: excludeId } },
     });
@@ -79,7 +87,10 @@ export class PrismaLivestockRepository implements LivestockRepositoryPort {
     return this.toEntity(row);
   }
 
-  async update(id: string, data: UpdateLivestockData): Promise<LivestockEntity> {
+  async update(
+    id: string,
+    data: UpdateLivestockData,
+  ): Promise<LivestockEntity> {
     const row = await this.prisma.livestock.update({
       where: { id },
       data: {
@@ -90,7 +101,9 @@ export class PrismaLivestockRepository implements LivestockRepositoryPort {
         ...(data.species !== undefined ? { species: data.species } : {}),
         ...(data.birthDate !== undefined ? { birthDate: data.birthDate } : {}),
         ...(data.sex !== undefined ? { sex: data.sex } : {}),
-        ...(data.status !== undefined ? { status: DOMAIN_STATUS_TO_PRISMA[data.status] } : {}),
+        ...(data.status !== undefined
+          ? { status: DOMAIN_STATUS_TO_PRISMA[data.status] }
+          : {}),
       },
     });
     return this.toEntity(row);

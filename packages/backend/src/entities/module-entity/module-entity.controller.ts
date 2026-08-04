@@ -16,12 +16,16 @@ export class ModuleEntityController {
   }
 
   @Post()
-  create(@Body() data: {name: string; price: number; version: string;}) {
+  create(@Body() data: { name: string; price: number; version: string }) {
     return this.service.create(data);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {name: string; price: number; version: string;companyId?: string;}) {
+  update(
+    @Param('id') id: string,
+    @Body()
+    data: { name: string; price: number; version: string; companyId?: string },
+  ) {
     return this.service.update(id, data);
   }
 }

@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { LivestockService } from './livestock.service';
 import { LivestockStatus } from './domain/livestock-status';
 
@@ -36,7 +45,10 @@ export class LivestockController {
   }
 
   @Put(':id')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() data: UpdateLivestockBody) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() data: UpdateLivestockBody,
+  ) {
     return this.service.update(id, data);
   }
 

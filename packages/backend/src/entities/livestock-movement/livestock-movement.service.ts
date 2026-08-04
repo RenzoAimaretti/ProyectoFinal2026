@@ -1,19 +1,27 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  CreateLivestockMovementData,
+  LivestockMovementEntity,
+  LIVESTOCK_MOVEMENT_REPOSITORY,
+  LivestockMovementRepositoryPort,
+} from './ports/livestock-movement.repository';
 
 @Injectable()
 export class LivestockMovementService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(LIVESTOCK_MOVEMENT_REPOSITORY)
+    private readonly repository: LivestockMovementRepositoryPort,
+  ) {}
 
-  findAll() {
-    return this.prisma.livestockMovement.findMany();
+  findAll(): Promise<LivestockMovementEntity[]> {
+    return this.repository.findAll();
   }
 
-  findOne(id: string) {
-    return this.prisma.livestockMovement.findUnique({ where: { id } });
+  findOne(id: string): Promise<LivestockMovementEntity | null> {
+    return this.repository.findById(id);
   }
 
-  create(data: any) {
-    return this.prisma.livestockMovement.create({ data });
+  create(data: CreateLivestockMovementData): Promise<LivestockMovementEntity> {
+    return this.repository.create(data);
   }
 }

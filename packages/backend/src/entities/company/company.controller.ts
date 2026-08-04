@@ -15,18 +15,21 @@ export class CompanyController {
     return this.service.findOne(id);
   }
 
-@Post()
- async create(@Body() data: {name: string; cuit: string;}) {
+  @Post()
+  async create(@Body() data: { name: string; cuit: string }) {
     return this.service.create(data);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {nombre?: string; cuit?: string; estado?: string}) {
+  update(
+    @Param('id') id: string,
+    @Body() data: { nombre?: string; cuit?: string; estado?: string },
+  ) {
     return this.service.update(id, data);
-  } 
+  }
 
-@Post("/add-module")
- async addModule(@Body() data: {companyId: string; moduleId: string}) {
+  @Post('/add-module')
+  async addModule(@Body() data: { companyId: string; moduleId: string }) {
     return this.service.addModule(data.companyId, data.moduleId);
   }
 }

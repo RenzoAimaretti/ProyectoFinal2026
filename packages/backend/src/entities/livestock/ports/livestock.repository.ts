@@ -50,7 +50,10 @@ export interface LivestockRepositoryPort {
   // solo usa los campos escalares — comportamiento byte-idéntico (REQ-C-01).
   findByIdWithLotFarm(id: string): Promise<LivestockEntity | null>;
   findByTagNumber(tagNumber: string): Promise<LivestockEntity | null>;
-  findByTagNumberExcluding(tagNumber: string, excludeId: string): Promise<LivestockEntity | null>;
+  findByTagNumberExcluding(
+    tagNumber: string,
+    excludeId: string,
+  ): Promise<LivestockEntity | null>;
   create(data: CreateLivestockData): Promise<LivestockEntity>;
   update(id: string, data: UpdateLivestockData): Promise<LivestockEntity>;
   delete(id: string): Promise<LivestockEntity>;

@@ -16,7 +16,17 @@ export class LivestockMovementController {
   }
 
   @Post()
-  create(@Body() data: any) {
+  // T-F2-68: body tipado inline — movementDate llega como string ISO del body
+  // JSON y el service lo pasa crudo al puerto (byte-idéntico al legacy).
+  create(
+    @Body()
+    data: {
+      livestockId: string;
+      lotId: string;
+      movementDate: string;
+      observations?: string;
+    },
+  ) {
     return this.service.create(data);
   }
 }

@@ -60,10 +60,8 @@ export default tseslint.config(
       '**/adapters/**',
 
       // --- F2 horizon: remover al completar F2 ---
-      'src/entities/task/task.service.ts',
-      'src/entities/task/task.controller.ts',
-      'src/entities/user/user.service.ts',
-      // machine-usage.service.ts PODADO en wave 6 (2026-08-04): refactor a puertos.
+      // task.service.ts, task.controller.ts y user.service.ts PODADOS en wave 7
+      // (2026-08-04): ya refactorizados a puertos, no importan prisma/generated.
 
       // --- F3 horizon: remover al completar F3 ---
       'src/auth/auth.service.spec.ts',
