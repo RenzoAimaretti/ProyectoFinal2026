@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { LotService } from './lot.service';
 import { LotController } from './lot.controller';
 import { PrismaModule } from '../../prisma/prisma.module';
@@ -12,7 +12,14 @@ import { LivestockModule } from '../livestock/livestock.module';
   // FarmModule/CompanyModule/LivestockModule proveen FARM_REPOSITORY,
   // COMPANY_REPOSITORY y LIVESTOCK_REPOSITORY (puertos exportados por sus
   // dueños, REQ-F2-03 / D1) para los cross-reads del service (T-F2-20).
-  imports: [PrismaModule, FarmModule, CompanyModule, LivestockModule],
+  // forwardRef(LivestockModule): desde T-F2-23 livestock.module importa LotModule
+  // (LOT_REPOSITORY) → ciclo livestock ↔ lot roto por forwardRef en ambos lados.
+  imports: [
+    PrismaModule,
+    FarmModule,
+    CompanyModule,
+    forwardRef(() => LivestockModule),
+  ],
   controllers: [LotController],
   providers: [
     LotService,

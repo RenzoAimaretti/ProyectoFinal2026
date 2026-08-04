@@ -1,8 +1,25 @@
-import { BadRequestException, ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { LivestockStatus } from './domain/livestock-status';
-import { LIVESTOCK_REPOSITORY, LivestockRepositoryPort } from './ports/livestock.repository';
-import { COMPANY_LOOKUP, CompanyLookupPort } from './ports/company-lookup.port';
-import { LOT_LOOKUP, LotLookupPort } from './ports/lot-lookup.port';
+import {
+  LIVESTOCK_REPOSITORY,
+  LivestockRepositoryPort,
+} from './ports/livestock.repository';
+import {
+  COMPANY_REPOSITORY,
+  CompanyRepositoryPort,
+} from '../company/ports/company.repository';
+import { LOT_REPOSITORY, LotRepositoryPort } from '../lot/ports/lot.repository';
+import {
+  FARM_REPOSITORY,
+  FarmRepositoryPort,
+} from '../farm/ports/farm.repository';
 
 type CreateLivestockInput = {
   companyId: string;
@@ -28,9 +45,13 @@ type UpdateLivestockInput = {
 @Injectable()
 export class LivestockService {
   constructor(
-    @Inject(LIVESTOCK_REPOSITORY) private readonly livestockRepository: LivestockRepositoryPort,
-    @Inject(COMPANY_LOOKUP) private readonly companyLookup: CompanyLookupPort,
-    @Inject(LOT_LOOKUP) private readonly lotLookup: LotLookupPort,
+    @Inject(LIVESTOCK_REPOSITORY)
+    private readonly livestockRepository: LivestockRepositoryPort,
+    @Inject(COMPANY_REPOSITORY)
+    private readonly companyRepository: CompanyRepositoryPort,
+    @Inject(LOT_REPOSITORY) private readonly lotRepository: LotRepositoryPort,
+    @Inject(FARM_REPOSITORY)
+    private readonly farmRepository: FarmRepositoryPort,
   ) {}
 
   async findAll() {
@@ -65,28 +86,41 @@ export class LivestockService {
     this.assertRequiredString(data.sex, 'sex');
 
     try {
-      const companyExists = await this.companyLookup.companyExists(data.companyId);
+      const company = await this.companyRepository.findById(data.companyId);
 
-      if (!companyExists) {
-        throw new NotFoundException(`Company with id ${data.companyId} not found`);
+      if (!company) {
+        throw new NotFoundException(
+          `Company with id ${data.companyId} not found`,
+        );
       }
 
       if (data.lotId) {
-        const lot = await this.lotLookup.findLotWithFarm(data.lotId);
+        const lot = await this.lotRepository.findById(data.lotId);
 
         if (!lot) {
           throw new NotFoundException(`Lot with id ${data.lotId} not found`);
         }
 
-        if (lot.farm.companyId !== data.companyId) {
-          throw new BadRequestException('Lot must belong to the same company as the livestock');
+        // La empresa del lote se lee vía el agregado Farm (D1): el lote pertenece
+        // a una farm y la farm a una empresa. Byte-idéntico al findLotWithFarm
+        // del piloto F1 (REQ-C-03/SC-LV-04).
+        const farm = await this.farmRepository.findById(lot.farmId);
+
+        if (!farm || farm.companyId !== data.companyId) {
+          throw new BadRequestException(
+            'Lot must belong to the same company as the livestock',
+          );
         }
       }
 
-      const existingTagNumber = await this.livestockRepository.findByTagNumber(data.tagNumber);
+      const existingTagNumber = await this.livestockRepository.findByTagNumber(
+        data.tagNumber,
+      );
 
       if (existingTagNumber) {
-        throw new ConflictException('Livestock with this tagNumber already exists');
+        throw new ConflictException(
+          'Livestock with this tagNumber already exists',
+        );
       }
 
       const birthDate = this.parseDate(data.birthDate);
@@ -101,7 +135,11 @@ export class LivestockService {
         sex: data.sex,
       });
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof ConflictException || error instanceof NotFoundException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
 
@@ -111,7 +149,12 @@ export class LivestockService {
   }
 
   async update(id: string, data: UpdateLivestockInput) {
-    if (!data || Object.keys(data).every((key) => data[key as keyof UpdateLivestockInput] === undefined)) {
+    if (
+      !data ||
+      Object.keys(data).every(
+        (key) => data[key as keyof UpdateLivestockInput] === undefined,
+      )
+    ) {
       throw new BadRequestException('No data provided for update');
     }
 
@@ -126,32 +169,44 @@ export class LivestockService {
       const nextLotId = data.lotId !== undefined ? data.lotId : livestock.lotId;
 
       if (data.companyId) {
-        const companyExists = await this.companyLookup.companyExists(data.companyId);
+        const company = await this.companyRepository.findById(data.companyId);
 
-        if (!companyExists) {
-          throw new NotFoundException(`Company with id ${data.companyId} not found`);
+        if (!company) {
+          throw new NotFoundException(
+            `Company with id ${data.companyId} not found`,
+          );
         }
       }
 
       if (data.lotId !== undefined && nextLotId) {
-        const lot = await this.lotLookup.findLotWithFarm(nextLotId);
+        const lot = await this.lotRepository.findById(nextLotId);
 
         if (!lot) {
           throw new NotFoundException(`Lot with id ${nextLotId} not found`);
         }
 
-        if (lot.farm.companyId !== nextCompanyId) {
-          throw new BadRequestException('Lot must belong to the same company as the livestock');
+        const farm = await this.farmRepository.findById(lot.farmId);
+
+        if (!farm || farm.companyId !== nextCompanyId) {
+          throw new BadRequestException(
+            'Lot must belong to the same company as the livestock',
+          );
         }
       }
 
       if (data.tagNumber !== undefined) {
         this.assertRequiredString(data.tagNumber, 'tagNumber');
 
-        const duplicateTagNumber = await this.livestockRepository.findByTagNumberExcluding(data.tagNumber, id);
+        const duplicateTagNumber =
+          await this.livestockRepository.findByTagNumberExcluding(
+            data.tagNumber,
+            id,
+          );
 
         if (duplicateTagNumber) {
-          throw new ConflictException('Livestock with this tagNumber already exists');
+          throw new ConflictException(
+            'Livestock with this tagNumber already exists',
+          );
         }
       }
 
@@ -163,7 +218,10 @@ export class LivestockService {
         this.assertRequiredString(data.sex, 'sex');
       }
 
-      const birthDate = data.birthDate !== undefined ? this.parseDate(data.birthDate) : undefined;
+      const birthDate =
+        data.birthDate !== undefined
+          ? this.parseDate(data.birthDate)
+          : undefined;
 
       return await this.livestockRepository.update(id, {
         ...(data.companyId !== undefined ? { companyId: data.companyId } : {}),
@@ -176,7 +234,11 @@ export class LivestockService {
         ...(data.status !== undefined ? { status: data.status } : {}),
       });
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof ConflictException || error instanceof NotFoundException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
 
