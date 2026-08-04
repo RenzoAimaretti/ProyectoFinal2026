@@ -63,9 +63,7 @@ export default tseslint.config(
       'src/entities/task/task.service.ts',
       'src/entities/task/task.controller.ts',
       'src/entities/user/user.service.ts',
-      'src/entities/machine/machine.service.ts',
-      'src/entities/machine/machine.controller.ts',
-      'src/entities/machine-usage/machine-usage.service.ts',
+      // machine-usage.service.ts PODADO en wave 6 (2026-08-04): refactor a puertos.
 
       // --- F3 horizon: remover al completar F3 ---
       'src/auth/auth.service.spec.ts',

@@ -16,12 +16,31 @@ export class MachineUsageController {
   }
 
   @Post()
-  create(@Body() data: {machineId: string; taskId: string; operatorId: string; intialFuel:number; }) {
+  // T-F2-62: el body typea `initialFuel` (no el typo legacy `intialFuel`) — el
+  // service espera CreateMachineUsageData con el nombre correcto del schema.
+  create(
+    @Body()
+    data: {
+      machineId: string;
+      taskId: string;
+      operatorId: string;
+      initialFuel: number;
+    },
+  ) {
     return this.service.create(data);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {initialFuel?: number;finalFuel?: number; usageHours?: number; observations?: string;}) {
+  update(
+    @Param('id') id: string,
+    @Body()
+    data: {
+      initialFuel?: number;
+      finalFuel?: number;
+      usageHours?: number;
+      observations?: string;
+    },
+  ) {
     return this.service.update(id, data);
   }
 }
