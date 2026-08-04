@@ -45,11 +45,11 @@ Wave 1 (module-entity → company — order flipped from design's literal listin
 
 Wave 2 (farm → lot):
 
-- **T-F2-12** — Contract-locking spec `farm.service.spec.ts` (company-exists check via `COMPANY_REPOSITORY`; name+companyId uniqueness). Deps: T-F2-11. Phase F2/W2. Accept: REQ-F2-02/03.
-- **T-F2-13** — Create `farm/ports/farm.repository.ts`: `FARM_REPOSITORY` Symbol + port. Deps: T-F2-12. Phase F2/W2. Accept: REQ-A-01.
-- **T-F2-14** — Create `farm/adapters/outbound/prisma/prisma-farm.repository.ts`. Deps: T-F2-13. Phase F2/W2. Accept: REQ-A-04.
-- **T-F2-15** — Refactor `farm.service.ts` to inject `FARM_REPOSITORY` + company's exported `COMPANY_REPOSITORY` (extracted wave 1). Deps: T-F2-14, T-F2-10. Phase F2/W2. Accept: REQ-F2-03/04.
-- **T-F2-16** — Wire `farm.module.ts` providers. Deps: T-F2-15. Phase F2/W2. Accept: REQ-A-08.
+- [x] **T-F2-12** — Contract-locking spec `farm.service.spec.ts` (company-exists check via `COMPANY_REPOSITORY`; name+companyId uniqueness). Deps: T-F2-11. Phase F2/W2. Accept: REQ-F2-02/03. *Nota 2026-08-04: RED verificado (TS2307 ./ports/farm.repository); luego GREEN 21/21. El spec congela que los cross-reads del create (empresa + duplicado) corren FUERA del try/catch y propagan rechazos crudos; solo el create final envuelve en 500 'Error creating farm'.*
+- [x] **T-F2-13** — Create `farm/ports/farm.repository.ts`: `FARM_REPOSITORY` Symbol + port. Deps: T-F2-12. Phase F2/W2. Accept: REQ-A-01. *Nota 2026-08-04: port = findAll/findById/findByNameAndCompany/create/update; FarmEntity byte-idéntica (location nullable, version, deleted).*
+- [x] **T-F2-14** — Create `farm/adapters/outbound/prisma/prisma-farm.repository.ts`. Deps: T-F2-13. Phase F2/W2. Accept: REQ-A-04. *Nota 2026-08-04: único archivo farm que toca PrismaService.*
+- [x] **T-F2-15** — Refactor `farm.service.ts` to inject `FARM_REPOSITORY` + company's exported `COMPANY_REPOSITORY` (extracted wave 1). Deps: T-F2-14, T-F2-10. Phase F2/W2. Accept: REQ-F2-03/04. *Nota 2026-08-04: contrato byte-idéntico (await dentro de try → 500; cross-reads fuera de try → propagan crudo; mensajes 400/404 intactos). Entrada farm.service.ts podada del grandfather eslint.*
+- [x] **T-F2-16** — Wire `farm.module.ts` providers. Deps: T-F2-15. Phase F2/W2. Accept: REQ-A-08. *Nota 2026-08-04: farm.module importa CompanyModule; exports [FarmService, FARM_REPOSITORY]. Se agregó COMPANY_REPOSITORY a exports de company.module.ts (consumidores farm/lot/livestock, REQ-F2-03).*
 - **T-F2-17** — Contract-locking spec `lot.service.spec.ts` (farm-exists; assignStock uses `FARM_REPOSITORY`/`COMPANY_REPOSITORY` exported ports + livestock write via `LIVESTOCK_REPOSITORY` from F1). Deps: T-F2-16. Phase F2/W2. Accept: REQ-F2-02/03.
 - **T-F2-18** — Create `lot/ports/lot.repository.ts`: `LOT_REPOSITORY` Symbol + port incl. `assignStock` (writes lot + livestock internally in the adapter, or lot service composes `LIVESTOCK_REPOSITORY.update` — contract identical either way). Deps: T-F2-17. Phase F2/W2. Accept: REQ-A-01, REQ-F2-03.
 - **T-F2-19** — Create `lot/adapters/outbound/prisma/prisma-lot.repository.ts`. Deps: T-F2-18. Phase F2/W2. Accept: REQ-A-04.

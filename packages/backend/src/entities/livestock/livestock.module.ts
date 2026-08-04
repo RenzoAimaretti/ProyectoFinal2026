@@ -18,6 +18,6 @@ import { PrismaLotLookup } from './adapters/outbound/prisma/prisma-lot-lookup';
     { provide: COMPANY_LOOKUP, useClass: PrismaCompanyLookup },
     { provide: LOT_LOOKUP, useClass: PrismaLotLookup },
   ],
-  exports: [LivestockService],
+  exports: [LivestockService, LIVESTOCK_REPOSITORY],
 })
 export class LivestockModule {}

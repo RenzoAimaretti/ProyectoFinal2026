@@ -15,6 +15,8 @@ import { PrismaCompanyRepository } from './adapters/outbound/prisma/prisma-compa
     CompanyService,
     { provide: COMPANY_REPOSITORY, useClass: PrismaCompanyRepository },
   ],
-  exports: [CompanyService],
+  // COMPANY_REPOSITORY exportado para los cross-reads de farm/lot/livestock
+  // (T-F2-15/T-F2-20/T-F2-23, REQ-F2-03 / D1).
+  exports: [CompanyService, COMPANY_REPOSITORY],
 })
 export class CompanyModule {}
