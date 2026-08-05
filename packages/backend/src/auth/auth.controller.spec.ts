@@ -26,16 +26,29 @@ describe('AuthController', () => {
   });
 
   it('debería procesar login correctamente', async () => {
-    const mockUser = { id: 'u-1', email: 'test@firma.com', role: 'ADMIN', companyId: 'c-1' };
+    const mockUser = {
+      id: 'u-1',
+      email: 'test@firma.com',
+      role: 'ADMIN',
+      companyId: 'c-1',
+    };
     const mockResult = {
       accessToken: 'acc',
       refreshToken: 'ref',
-      user: { id: 'u-1', email: 'test@firma.com', role: 'ADMIN', firmaId: 'c-1' },
+      user: {
+        id: 'u-1',
+        email: 'test@firma.com',
+        role: 'ADMIN',
+        firmaId: 'c-1',
+      },
     };
     authService.login.mockResolvedValue(mockResult);
 
     const req = { user: mockUser } as any;
-    const result = await controller.login(req, { email: 'test@firma.com', password: 'Password123!' });
+    const result = await controller.login(req, {
+      email: 'test@firma.com',
+      password: 'Password123!',
+    });
 
     expect(authService.login).toHaveBeenCalledWith(mockUser);
     expect(result).toEqual(mockResult);
@@ -52,7 +65,9 @@ describe('AuthController', () => {
   });
 
   it('debería procesar logout correctamente', async () => {
-    authService.logout.mockResolvedValue({ message: 'Sesión cerrada correctamente' });
+    authService.logout.mockResolvedValue({
+      message: 'Sesión cerrada correctamente',
+    });
 
     const result = await controller.logout({ refreshToken: 'valid-ref' });
 

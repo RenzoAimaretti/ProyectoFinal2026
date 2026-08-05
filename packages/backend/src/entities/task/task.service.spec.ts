@@ -41,7 +41,7 @@ describe('TaskService', () => {
 
     service = new TaskService(
       taskRepository as any,
-      taskTypeLookup as any,
+      taskTypeLookup,
       lotRepository as any,
       userRepository as any,
     );
@@ -179,9 +179,9 @@ describe('TaskService', () => {
     it('debería lanzar 404 si la tarea no existe', async () => {
       taskRepository.findById.mockResolvedValue(null);
 
-      await expect(service.update('task-1', { status: TaskStatus.EN_PROGRESO })).rejects.toThrow(
-        'Task with id task-1 not found',
-      );
+      await expect(
+        service.update('task-1', { status: TaskStatus.EN_PROGRESO }),
+      ).rejects.toThrow('Task with id task-1 not found');
       expect(taskRepository.update).not.toHaveBeenCalled();
     });
 
@@ -331,9 +331,13 @@ describe('TaskService', () => {
       taskRepository.addOperator.mockResolvedValue(undefined);
 
       await expect(service.addOperario('task-1', 'user-1')).resolves.toEqual({
-        message: 'Operator with id user-1 added to task with id task-1 successfully',
+        message:
+          'Operator with id user-1 added to task with id task-1 successfully',
       });
-      expect(taskRepository.addOperator).toHaveBeenCalledWith('task-1', 'user-1');
+      expect(taskRepository.addOperator).toHaveBeenCalledWith(
+        'task-1',
+        'user-1',
+      );
     });
 
     it('debería envolver el rechazo del puerto en 500', async () => {
@@ -382,10 +386,16 @@ describe('TaskService', () => {
       });
       taskRepository.removeOperator.mockResolvedValue(undefined);
 
-      await expect(service.removeOperario('task-1', 'user-1')).resolves.toEqual({
-        message: 'Operator with id user-1 removed from task with id task-1 successfully',
-      });
-      expect(taskRepository.removeOperator).toHaveBeenCalledWith('task-1', 'user-1');
+      await expect(service.removeOperario('task-1', 'user-1')).resolves.toEqual(
+        {
+          message:
+            'Operator with id user-1 removed from task with id task-1 successfully',
+        },
+      );
+      expect(taskRepository.removeOperator).toHaveBeenCalledWith(
+        'task-1',
+        'user-1',
+      );
     });
 
     it('debería envolver el rechazo del puerto en 500', async () => {

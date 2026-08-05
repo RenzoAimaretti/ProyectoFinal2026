@@ -206,7 +206,9 @@ describe('MachineUsageService', () => {
       expect(taskRepository.findByIdWithOperators).toHaveBeenCalledWith(
         validBody.taskId,
       );
-      expect(userRepository.findById).toHaveBeenCalledWith(validBody.operatorId);
+      expect(userRepository.findById).toHaveBeenCalledWith(
+        validBody.operatorId,
+      );
       expect(machineUsageRepository.create).toHaveBeenCalledWith({
         machineId: validBody.machineId,
         taskId: validBody.taskId,
@@ -368,7 +370,10 @@ describe('MachineUsageService', () => {
 
       const result = await service.update(baseUsage.id, {});
 
-      expect(machineUsageRepository.update).toHaveBeenCalledWith(baseUsage.id, {});
+      expect(machineUsageRepository.update).toHaveBeenCalledWith(
+        baseUsage.id,
+        {},
+      );
       expect(result).toEqual(baseUsage);
     });
 

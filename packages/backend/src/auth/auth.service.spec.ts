@@ -60,7 +60,10 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: USER_CREDENTIALS_REPOSITORY, useValue: userCredentialsRepository },
+        {
+          provide: USER_CREDENTIALS_REPOSITORY,
+          useValue: userCredentialsRepository,
+        },
         { provide: REFRESH_TOKEN_REPOSITORY, useValue: refreshTokenRepository },
         { provide: JwtService, useValue: jwtService },
       ],
@@ -93,7 +96,10 @@ describe('AuthService', () => {
       userCredentialsRepository.findByEmail.mockResolvedValue(null);
 
       await expect(
-        service.validateUserCredentials('inexistente@firma.com', 'Password123!'),
+        service.validateUserCredentials(
+          'inexistente@firma.com',
+          'Password123!',
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -119,10 +125,13 @@ describe('AuthService', () => {
         service.validateUserCredentials('admin@firma.com', 'WrongPassword'),
       ).rejects.toThrow(UnauthorizedException);
 
-      expect(userCredentialsRepository.update).toHaveBeenCalledWith(mockUser.id, {
-        failedLoginAttempts: 1,
-        lockedUntil: null,
-      });
+      expect(userCredentialsRepository.update).toHaveBeenCalledWith(
+        mockUser.id,
+        {
+          failedLoginAttempts: 1,
+          lockedUntil: null,
+        },
+      );
     });
 
     it('debería bloquear la cuenta (lockedUntil = 15m) al llegar a 5 intentos fallidos', async () => {
@@ -188,10 +197,13 @@ describe('AuthService', () => {
 
       await service.validateUserCredentials('admin@firma.com', 'Password123!');
 
-      expect(userCredentialsRepository.update).toHaveBeenCalledWith(mockUser.id, {
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-      });
+      expect(userCredentialsRepository.update).toHaveBeenCalledWith(
+        mockUser.id,
+        {
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+      );
     });
 
     it('debería migrar el hash bcrypt a argon2 en un login exitoso', async () => {
@@ -270,7 +282,9 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('refreshToken');
       // Flujo congelado (REQ-F3-03): el refresh escanea con findActiveWithUser
       // (filtro de expiración + include user), NO con findAllActive.
-      expect(refreshTokenRepository.findActiveWithUser).toHaveBeenCalledTimes(1);
+      expect(refreshTokenRepository.findActiveWithUser).toHaveBeenCalledTimes(
+        1,
+      );
       expect(refreshTokenRepository.findAllActive).not.toHaveBeenCalled();
       expect(refreshTokenRepository.revoke).toHaveBeenCalledWith('rt-1');
       expect(refreshTokenRepository.create).toHaveBeenCalledTimes(1);
@@ -279,9 +293,9 @@ describe('AuthService', () => {
     it('debería rechazar con 401 si el token no matchea ningún registro activo', async () => {
       refreshTokenRepository.findActiveWithUser.mockResolvedValue([]);
 
-      await expect(
-        service.refreshTokens('token-sin-match'),
-      ).rejects.toThrow('Refresh token inválido, expirado o revocado');
+      await expect(service.refreshTokens('token-sin-match')).rejects.toThrow(
+        'Refresh token inválido, expirado o revocado',
+      );
     });
 
     it('debería rechazar con 401 si el usuario asociado está inactivo o eliminado', async () => {
@@ -299,9 +313,9 @@ describe('AuthService', () => {
         },
       ]);
 
-      await expect(
-        service.refreshTokens(rawToken),
-      ).rejects.toThrow('Usuario inactivo');
+      await expect(service.refreshTokens(rawToken)).rejects.toThrow(
+        'Usuario inactivo',
+      );
       expect(refreshTokenRepository.revoke).not.toHaveBeenCalled();
     });
   });

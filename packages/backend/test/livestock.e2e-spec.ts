@@ -84,11 +84,17 @@ describe('LivestockController (e2e)', () => {
           // findByTagNumberExcluding (update): sin duplicados
           findFirst: jest.fn().mockResolvedValue(null),
           create: jest.fn().mockImplementation(({ data }) =>
-            Promise.resolve({ ...baseLivestock, ...data, id: baseLivestock.id }),
+            Promise.resolve({
+              ...baseLivestock,
+              ...data,
+              id: baseLivestock.id,
+            }),
           ),
-          update: jest.fn().mockImplementation(({ data }) =>
-            Promise.resolve({ ...baseLivestock, ...data }),
-          ),
+          update: jest
+            .fn()
+            .mockImplementation(({ data }) =>
+              Promise.resolve({ ...baseLivestock, ...data }),
+            ),
           delete: jest.fn().mockResolvedValue(baseLivestock),
         },
       })
@@ -150,7 +156,9 @@ describe('LivestockController (e2e)', () => {
       await request(app.getHttpServer())
         .delete(`/livestocks/${baseLivestock.id}`)
         .expect(200)
-        .expect({ message: `Livestock with id ${baseLivestock.id} deleted successfully` });
+        .expect({
+          message: `Livestock with id ${baseLivestock.id} deleted successfully`,
+        });
     });
   });
 });

@@ -97,7 +97,9 @@ describe('AuthController (e2e)', () => {
         })
         .expect(401)
         .expect((res) => {
-          expect(res.body.message).toContain('Usuario o contraseña incorrectos');
+          expect(res.body.message).toContain(
+            'Usuario o contraseña incorrectos',
+          );
         });
     });
 

@@ -27,10 +27,9 @@ import { AuthModule } from './auth/auth.module';
     TaskTypeModule,
     TaskModule,
     MachineModule,
-    MachineUsageModule
+    MachineUsageModule,
   ],
   controllers: [],
   providers: [],
 })
 export class AppModule {}
-

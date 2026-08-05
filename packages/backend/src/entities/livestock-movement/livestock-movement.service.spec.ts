@@ -107,7 +107,9 @@ describe('LivestockMovementService', () => {
 
       const result = await service.create(validBody);
 
-      expect(livestockMovementRepository.create).toHaveBeenCalledWith(validBody);
+      expect(livestockMovementRepository.create).toHaveBeenCalledWith(
+        validBody,
+      );
       expect(result).toEqual({ ...baseMovement, ...validBody });
     });
 
@@ -117,7 +119,9 @@ describe('LivestockMovementService', () => {
       livestockMovementRepository.create.mockRejectedValue(new Error('boom'));
 
       await expect(service.create(validBody)).rejects.toThrow('boom');
-      expect(livestockMovementRepository.create).toHaveBeenCalledWith(validBody);
+      expect(livestockMovementRepository.create).toHaveBeenCalledWith(
+        validBody,
+      );
     });
   });
 });

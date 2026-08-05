@@ -25,10 +25,7 @@ describe('TaskTypeService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    service = new TaskTypeService(
-      taskTypeRepository as any,
-      taskRepository as any,
-    );
+    service = new TaskTypeService(taskTypeRepository, taskRepository as any);
   });
 
   const taskTypeFixture = {
@@ -105,7 +102,9 @@ describe('TaskTypeService', () => {
       await expect(service.create({ name: 'Siembra' })).resolves.toEqual(
         taskTypeFixture,
       );
-      expect(taskTypeRepository.create).toHaveBeenCalledWith({ name: 'Siembra' });
+      expect(taskTypeRepository.create).toHaveBeenCalledWith({
+        name: 'Siembra',
+      });
     });
 
     it('debería envolver el rechazo del puerto en 500', async () => {
@@ -143,7 +142,10 @@ describe('TaskTypeService', () => {
       await expect(
         service.update('task-type-1', { taskIds: ['task-1', 'task-2'] }),
       ).rejects.toThrow('Tasks with ids task-2 not found');
-      expect(taskRepository.findByIds).toHaveBeenCalledWith(['task-1', 'task-2']);
+      expect(taskRepository.findByIds).toHaveBeenCalledWith([
+        'task-1',
+        'task-2',
+      ]);
       expect(taskTypeRepository.update).not.toHaveBeenCalled();
     });
 
