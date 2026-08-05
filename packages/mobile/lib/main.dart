@@ -3,6 +3,7 @@ import 'app/auth/login_view.dart';
 import 'app/auth/login_view_model.dart';
 import 'app/home/home_view.dart';
 import 'core/theme/app_theme.dart';
+import 'data/repositories/auth_repository.dart';
 import 'domain/models/auth_user.dart';
 
 void main() {
@@ -23,7 +24,10 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _loginViewModel = LoginViewModel();
+    // Composition root (SC-MOB-01): wiring explícito, manual DI, sin defaults
+    // ocultos. El puerto de dominio AuthRepository se construye como
+    // HttpAuthRepository y se inyecta al ViewModel por constructor.
+    _loginViewModel = LoginViewModel(authRepository: HttpAuthRepository());
   }
 
   @override

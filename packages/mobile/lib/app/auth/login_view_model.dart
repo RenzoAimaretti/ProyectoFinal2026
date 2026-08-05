@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import '../../data/models/login_response_model.dart';
-import '../../data/repositories/auth_repository.dart';
 import '../../domain/models/auth_user.dart';
+import '../../domain/repositories/auth_repository.dart';
 
 class LoginViewModel extends ChangeNotifier {
-  LoginViewModel({AuthRepository? authRepository})
-      : _authRepository = authRepository ?? HttpAuthRepository();
+  LoginViewModel({required AuthRepository authRepository})
+      : _authRepository = authRepository;
 
   final AuthRepository _authRepository;
 
