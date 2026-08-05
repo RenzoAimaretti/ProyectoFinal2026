@@ -7,7 +7,8 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { Request } from 'express';
+import { AuthService, AuthenticatedUser } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RefreshDto } from './dto/refresh.dto';
 import { LogoutDto } from './dto/logout.dto';
@@ -22,8 +23,14 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@Req() req: any, @Body() _loginDto: LoginDto) {
-    return this.authService.login(req.user);
+  async login(
+    @Req() req: Request & { user?: AuthenticatedUser },
+    @Body() _loginDto: LoginDto,
+  ) {
+    // _loginDto se inyecta solo para que Nest valide el body (ValidationPipe);
+    // las credenciales ya fueron verificadas por LocalAuthGuard.
+    void _loginDto;
+    return this.authService.login(req.user as AuthenticatedUser);
   }
 
   @HttpCode(HttpStatus.OK)

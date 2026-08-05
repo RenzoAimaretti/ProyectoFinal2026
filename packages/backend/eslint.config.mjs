@@ -63,14 +63,12 @@ export default tseslint.config(
       // task.service.ts, task.controller.ts y user.service.ts PODADOS en wave 7
       // (2026-08-04): ya refactorizados a puertos, no importan prisma/generated.
 
-      // --- F3 horizon: remover al completar F3 ---
-      'src/auth/auth.service.spec.ts',
-      'src/auth/guards/roles.guard.ts',
-      'src/auth/interfaces/jwt-payload.interface.ts',
-      'src/auth/decorators/roles.decorator.ts',
-
-      // --- F3 ex-post: remover cuando exista el puerto de F3 (fase post-F3) ---
-      'test/auth.e2e-spec.ts',
+      // --- F3 horizon: PODADO COMPLETO 2026-08-04 (T-F3-06) ---
+      // auth.service.spec.ts, roles.guard.ts, jwt-payload.interface.ts,
+      // roles.decorator.ts y test/auth.e2e-spec.ts migrados al enum de dominio
+      // (src/entities/user/domain/user-role). End-state F3: ZERO archivos
+      // non-exempt importan prisma/generated/@prisma/client fuera de
+      // **/adapters/** y src/prisma/**.
     ],
     rules: {
       'no-restricted-imports': 'off',

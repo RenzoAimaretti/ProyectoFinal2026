@@ -3,7 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { UserRole } from '../prisma/generated/client';
+import { UserRole } from '../src/entities/user/domain/user-role';
 import * as argon2 from 'argon2';
 
 describe('AuthController (e2e)', () => {

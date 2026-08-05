@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  validate(payload: JwtPayload) {
     if (!payload || !payload.sub) {
       throw new UnauthorizedException('Token payload inválido');
     }

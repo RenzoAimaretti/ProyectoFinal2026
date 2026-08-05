@@ -1,4 +1,4 @@
-import { UserRole } from '../../../prisma/generated/client';
+import { UserRole } from '../../entities/user/domain/user-role';
 
 export interface JwtPayload {
   sub: string;

@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   UnauthorizedException,
   HttpException,
@@ -6,27 +7,47 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
+import { UserRole } from '../entities/user/domain/user-role';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import {
+  REFRESH_TOKEN_REPOSITORY,
+  RefreshTokenRepositoryPort,
+  RefreshTokenWithUser,
+} from './ports/refresh-token.repository';
+import {
+  USER_CREDENTIALS_REPOSITORY,
+  UserCredentialsRepositoryPort,
+} from './ports/user-credentials.repository';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 const ACCESS_TOKEN_EXPIRATION = '15m';
 const REFRESH_TOKEN_EXPIRATION_DAYS = 7;
 
+// Usuario autenticado que llega a login(): lo inyecta el LocalStrategy en
+// req.user (entidad completa). Acá solo se consumen estos campos, así que se
+// declara un tipo mínimo en vez de acoplar login() a la shape de UserEntity.
+export interface AuthenticatedUser {
+  id: string;
+  companyId: string;
+  email: string;
+  role: UserRole;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(USER_CREDENTIALS_REPOSITORY)
+    private readonly userCredentialsRepository: UserCredentialsRepositoryPort,
+    @Inject(REFRESH_TOKEN_REPOSITORY)
+    private readonly refreshTokenRepository: RefreshTokenRepositoryPort,
     private readonly jwtService: JwtService,
   ) {}
 
   async validateUserCredentials(email: string, password: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await this.userCredentialsRepository.findByEmail(email);
 
     if (!user) {
       throw new UnauthorizedException('Usuario o contraseña incorrectos');
@@ -63,9 +84,14 @@ export class AuthService {
     let isPasswordValid = false;
     let shouldMigrateHash = false;
 
-    if (user.passwordHash.startsWith('$2b$') || user.passwordHash.startsWith('$2a$')) {
+    if (
+      user.passwordHash.startsWith('$2b$') ||
+      user.passwordHash.startsWith('$2a$')
+    ) {
       try {
-        const bcrypt = await import('bcrypt');
+        const bcrypt = (await import('bcrypt')) as {
+          compare: (password: string, hash: string) => Promise<boolean>;
+        };
         isPasswordValid = await bcrypt.compare(password, user.passwordHash);
         if (isPasswordValid) {
           shouldMigrateHash = true;
@@ -89,35 +115,35 @@ export class AuthService {
         lockedUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000);
       }
 
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          failedLoginAttempts: newAttempts,
-          lockedUntil,
-        },
+      await this.userCredentialsRepository.update(user.id, {
+        failedLoginAttempts: newAttempts,
+        lockedUntil,
       });
 
       throw new UnauthorizedException('Usuario o contraseña incorrectos');
     }
 
     // Si las credenciales son correctas, resetear intentos fallidos y migrar el hash a Argon2 si era legacy (bcrypt)
-    const newPasswordHash = shouldMigrateHash ? await argon2.hash(password) : undefined;
+    const newPasswordHash = shouldMigrateHash
+      ? await argon2.hash(password)
+      : undefined;
 
-    if (user.failedLoginAttempts > 0 || user.lockedUntil !== null || shouldMigrateHash) {
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          failedLoginAttempts: 0,
-          lockedUntil: null,
-          ...(newPasswordHash ? { passwordHash: newPasswordHash } : {}),
-        },
+    if (
+      user.failedLoginAttempts > 0 ||
+      user.lockedUntil !== null ||
+      shouldMigrateHash
+    ) {
+      await this.userCredentialsRepository.update(user.id, {
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        ...(newPasswordHash ? { passwordHash: newPasswordHash } : {}),
       });
     }
 
     return user;
   }
 
-  async login(user: any) {
+  async login(user: AuthenticatedUser) {
     const payload: JwtPayload = {
       sub: user.id,
       role: user.role,
@@ -136,12 +162,10 @@ export class AuthService {
       Date.now() + REFRESH_TOKEN_EXPIRATION_DAYS * 24 * 60 * 60 * 1000,
     );
 
-    await this.prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: refreshTokenHash,
-        expiresAt,
-      },
+    await this.refreshTokenRepository.create({
+      userId: user.id,
+      tokenHash: refreshTokenHash,
+      expiresAt,
     });
 
     return {
@@ -162,18 +186,15 @@ export class AuthService {
     }
 
     // Buscar tokens de actualización activos
-    const activeTokens = await this.prisma.refreshToken.findMany({
-      where: {
-        revokedAt: null,
-        expiresAt: { gt: new Date() },
-      },
-      include: { user: true },
-    });
+    const activeTokens = await this.refreshTokenRepository.findActiveWithUser();
 
-    let matchedTokenRecord: (typeof activeTokens)[0] | null = null;
+    let matchedTokenRecord: RefreshTokenWithUser | null = null;
 
     for (const tokenRecord of activeTokens) {
-      const matches = await argon2.verify(tokenRecord.tokenHash, refreshTokenRaw);
+      const matches = await argon2.verify(
+        tokenRecord.tokenHash,
+        refreshTokenRaw,
+      );
       if (matches) {
         matchedTokenRecord = tokenRecord;
         break;
@@ -181,7 +202,9 @@ export class AuthService {
     }
 
     if (!matchedTokenRecord || !matchedTokenRecord.user) {
-      throw new UnauthorizedException('Refresh token inválido, expirado o revocado');
+      throw new UnauthorizedException(
+        'Refresh token inválido, expirado o revocado',
+      );
     }
 
     const user = matchedTokenRecord.user;
@@ -190,10 +213,7 @@ export class AuthService {
     }
 
     // Rotación de Refresh Token: revocar el token usado
-    await this.prisma.refreshToken.update({
-      where: { id: matchedTokenRecord.id },
-      data: { revokedAt: new Date() },
-    });
+    await this.refreshTokenRepository.revoke(matchedTokenRecord.id);
 
     // Generar nuevo par de tokens
     const payload: JwtPayload = {
@@ -214,12 +234,10 @@ export class AuthService {
       Date.now() + REFRESH_TOKEN_EXPIRATION_DAYS * 24 * 60 * 60 * 1000,
     );
 
-    await this.prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: newRefreshTokenHash,
-        expiresAt,
-      },
+    await this.refreshTokenRepository.create({
+      userId: user.id,
+      tokenHash: newRefreshTokenHash,
+      expiresAt,
     });
 
     return {
@@ -233,19 +251,15 @@ export class AuthService {
       return { message: 'Sesión cerrada correctamente' };
     }
 
-    const activeTokens = await this.prisma.refreshToken.findMany({
-      where: {
-        revokedAt: null,
-      },
-    });
+    const activeTokens = await this.refreshTokenRepository.findAllActive();
 
     for (const tokenRecord of activeTokens) {
-      const matches = await argon2.verify(tokenRecord.tokenHash, refreshTokenRaw);
+      const matches = await argon2.verify(
+        tokenRecord.tokenHash,
+        refreshTokenRaw,
+      );
       if (matches) {
-        await this.prisma.refreshToken.update({
-          where: { id: tokenRecord.id },
-          data: { revokedAt: new Date() },
-        });
+        await this.refreshTokenRepository.revoke(tokenRecord.id);
         break;
       }
     }

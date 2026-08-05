@@ -13,6 +13,11 @@ describe('LivestockController (e2e)', () => {
 
   const testCompany = { id: '11111111-1111-4111-8111-111111111111' };
 
+  // Farm del lote (agregado D1): el service lee lot.farmId y resuelve la
+  // empresa del lote vía el port de farm (T-F2-15, wave 3). El mock de lot
+  // devuelve farmId, no el shape anidado del piloto F1.
+  const testFarm = { id: '44444444-4444-4444-8444-444444444444' };
+
   const validBody = {
     companyId: testCompany.id,
     lotId: '22222222-2222-4222-8222-222222222222',
@@ -52,7 +57,13 @@ describe('LivestockController (e2e)', () => {
         lot: {
           findUnique: jest.fn().mockResolvedValue({
             id: validBody.lotId,
-            farm: { companyId: testCompany.id },
+            farmId: testFarm.id,
+          }),
+        },
+        farm: {
+          findUnique: jest.fn().mockResolvedValue({
+            id: testFarm.id,
+            companyId: testCompany.id,
           }),
         },
         livestock: {

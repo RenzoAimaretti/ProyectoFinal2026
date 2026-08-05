@@ -34,7 +34,7 @@ describe('AuthController', () => {
     };
     authService.login.mockResolvedValue(mockResult);
 
-    const req = { user: mockUser };
+    const req = { user: mockUser } as any;
     const result = await controller.login(req, { email: 'test@firma.com', password: 'Password123!' });
 
     expect(authService.login).toHaveBeenCalledWith(mockUser);
