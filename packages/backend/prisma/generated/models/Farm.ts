@@ -509,10 +509,6 @@ export type FarmUncheckedUpdateManyWithoutCompanyNestedInput = {
   deleteMany?: Prisma.FarmScalarWhereInput | Prisma.FarmScalarWhereInput[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type FloatFieldUpdateOperationsInput = {
   set?: number
   increment?: number

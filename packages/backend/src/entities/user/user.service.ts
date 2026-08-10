@@ -1,16 +1,19 @@
 import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { UserRole } from '../../../prisma/generated/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 type CreateUserInput = {
   companyId: string;
-  username: string;
+  username?: string;
+  email?: string;
   password: string;
   role: UserRole;
   active?: boolean;
 };
 type UpdateUserInput = {
   username?: string;
+  email?: string;
   password?: string;
   role?: UserRole;
   active?: boolean;
@@ -47,7 +50,10 @@ export class UserService {
 
   async create(data: CreateUserInput) {
     this.assertRequiredString(data.companyId, 'companyId');
-    this.assertRequiredString(data.username, 'username');
+    const userEmail = data.email ?? data.username;
+    if (!userEmail || typeof userEmail !== 'string' || userEmail.trim().length === 0) {
+      throw new BadRequestException('email or username is required');
+    }
     this.assertRequiredString(data.password, 'password');
     this.assertValidRole(data.role);
 
@@ -58,22 +64,31 @@ export class UserService {
         throw new NotFoundException(`Company with id ${data.companyId} not found`);
       }
 
-      const existingUser = await this.prisma.user.findUnique({
-        where: { username: data.username },
+      const existingByEmail = await this.prisma.user.findUnique({
+        where: { email: userEmail },
       });
 
-      if (existingUser) {
-        throw new ConflictException('User with this username already exists');
+      if (existingByEmail) {
+        throw new ConflictException('User with this email already exists');
       }
-      // Hasheo del password usando bcrypt
-      const passwordHash = await bcrypt.hash(data.password, 10);
 
+      if (data.username) {
+        const existingByUsername = await this.prisma.user.findUnique({
+          where: { username: data.username },
+        });
 
+        if (existingByUsername) {
+          throw new ConflictException('User with this username already exists');
+        }
+      }
+
+      const passwordHash = await argon2.hash(data.password);
 
       return await this.prisma.user.create({
         data: {
           companyId: data.companyId,
-          username: data.username,
+          email: userEmail,
+          ...(data.username ? { username: data.username } : {}),
           passwordHash: passwordHash,
           role: data.role,
           active: data.active ?? true,
@@ -82,6 +97,10 @@ export class UserService {
     } catch (error) {
       if (error instanceof NotFoundException || error instanceof ConflictException || error instanceof BadRequestException) {
         throw error;
+      }
+
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException('A user with this username or email already exists');
       }
 
       console.error('Error creating user:', error);
@@ -116,7 +135,7 @@ export class UserService {
         this.assertValidRole(data.role);
       }
 
-      const hashedPassword = data.password !== undefined ? await bcrypt.hash(data.password, 10) : undefined;
+      const hashedPassword = data.password !== undefined ? await argon2.hash(data.password) : undefined;
 
       return await this.prisma.user.update({
         where: { id },

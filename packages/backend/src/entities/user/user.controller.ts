@@ -4,7 +4,8 @@ import { UserService } from './user.service';
 
 type CreateUserBody = {
   companyId: string;
-  username: string;
+  username?: string;
+  email?: string;
   password: string;
   role: UserRole;
   active?: boolean;
