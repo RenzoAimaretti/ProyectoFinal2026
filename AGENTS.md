@@ -23,6 +23,7 @@ This workspace currently centers on Flutter app development plus supporting fron
 | `nodejs-backend-patterns` | Express/Fastify backend patterns, auth, middleware, APIs | [.agents/skills/nodejs-backend-patterns/SKILL.md](.agents/skills/nodejs-backend-patterns/SKILL.md) |
 | `prisma-database-setup` | Prisma ORM setup and database provider configuration | [.agents/skills/prisma-database-setup/SKILL.md](.agents/skills/prisma-database-setup/SKILL.md) |
 | `hexagonal-architecture` | Ports and adapters, dependency inversion, clean boundaries | [.agents/skills/hexagonal-architecture/SKILL.md](.agents/skills/hexagonal-architecture/SKILL.md) |
+| `agrolify-hexagonal-architecture` | Local Agrolify conventions for NestJS, Prisma, Flutter ports, adapters, use cases, and composition roots | [.agents/skills/agrolify-hexagonal-architecture/SKILL.md](.agents/skills/agrolify-hexagonal-architecture/SKILL.md) |
 | `skill-creator` | Create or improve skills for this workspace | [.agents/skills/skill-creator/SKILL.md](.agents/skills/skill-creator/SKILL.md) |
 
 ## Skill Triggers
@@ -45,6 +46,7 @@ Invoke the matching skill first when the task clearly fits one of these cases:
 | Backend API / middleware work | `nodejs-backend-patterns` | Applies production backend conventions |
 | Prisma or database setup | `prisma-database-setup` | Uses the right provider and client setup |
 | Domain boundaries or clean architecture | `hexagonal-architecture` | Keeps dependencies pointed inward |
+| Agrolify hexagonal migration or review | `agrolify-hexagonal-architecture` | Applies local module layout, port, adapter, and composition-root rules |
 | Creating or editing a skill | `skill-creator` | Uses the correct skill workflow |
 
 ## Working Rules
@@ -59,6 +61,7 @@ Invoke the matching skill first when the task clearly fits one of these cases:
 
 - Skills live under [.agents/skills](.agents/skills), not under a top-level `skills/` folder.
 - `skills-lock.json` is part of the workspace context and should be kept in sync with the skills layout.
+- `docs/hexagonal-conventions.md` is the local source of truth for Agrolify hexagonal migration rules.
 - When adding a new skill, use `skill-creator` and register it here so future agents can find it quickly.
 
 ## Project Identity

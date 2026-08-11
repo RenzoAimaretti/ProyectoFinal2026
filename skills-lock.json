@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "agrolify-hexagonal-architecture": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/agrolify-hexagonal-architecture/SKILL.md",
+      "computedHash": "ad210edae0e729490fea0c7d95318ca453b76b2770a46aba4b764ed1482584c3"
+    },
     "flutter-add-integration-test": {
       "source": "flutter/skills",
       "sourceType": "github",

@@ -1,239 +1,99 @@
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { LivestockStatus } from '../../../prisma/generated/client';
-
-type CreateLivestockInput = {
-  companyId: string;
-  lotId?: string | null;
-  tagNumber: string;
-  breed?: string | null;
-  species: string;
-  birthDate?: string | Date | null;
-  sex: string;
-};
-
-type UpdateLivestockInput = {
-  companyId?: string;
-  lotId?: string | null;
-  tagNumber?: string;
-  breed?: string | null;
-  species?: string;
-  birthDate?: string | Date | null;
-  sex?: string;
-  status?: LivestockStatus;
-};
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  DuplicateEntityError,
+  EntityNotFoundError,
+  InvalidInputError,
+  InvalidRelationError,
+} from './domain/errors';
+import { CreateLivestockUseCase } from './application/use-cases/create-livestock.use-case';
+import { FindAllLivestockUseCase } from './application/use-cases/find-all-livestock.use-case';
+import { FindLivestockUseCase } from './application/use-cases/find-livestock.use-case';
+import { RemoveLivestockUseCase } from './application/use-cases/remove-livestock.use-case';
+import { UpdateLivestockUseCase } from './application/use-cases/update-livestock.use-case';
+import {
+  CreateLivestockInput,
+  UpdateLivestockInput,
+} from './application/livestock.types';
 
 @Injectable()
 export class LivestockService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly findAllUseCase: FindAllLivestockUseCase,
+    private readonly findOneUseCase: FindLivestockUseCase,
+    private readonly createUseCase: CreateLivestockUseCase,
+    private readonly updateUseCase: UpdateLivestockUseCase,
+    private readonly removeUseCase: RemoveLivestockUseCase,
+  ) {}
 
-  async findAll() {
+  findAll() {
+    return this.handle(
+      () => this.findAllUseCase.execute(),
+      'fetching livestock',
+    );
+  }
+
+  findOne(id: string) {
+    return this.handle(
+      () => this.findOneUseCase.execute(id),
+      'fetching livestock',
+    );
+  }
+
+  create(data: CreateLivestockInput) {
+    return this.handle(
+      () => this.createUseCase.execute(data),
+      'creating livestock',
+    );
+  }
+
+  update(id: string, data: UpdateLivestockInput) {
+    return this.handle(
+      () => this.updateUseCase.execute(id, data),
+      'updating livestock',
+    );
+  }
+
+  remove(id: string) {
+    return this.handle(
+      () => this.removeUseCase.execute(id),
+      'deleting livestock',
+    );
+  }
+
+  private async handle<T>(
+    operation: () => Promise<T>,
+    action: string,
+  ): Promise<T> {
     try {
-      return await this.prisma.livestock.findMany();
+      return await operation();
     } catch (error) {
-      console.error('Error fetching livestock:', error);
-      throw new InternalServerErrorException('Error fetching livestock');
+      throw this.translateError(error, action);
     }
   }
 
-  async findOne(id: string) {
-    try {
-      const livestock = await this.prisma.livestock.findUnique({ where: { id } });
-
-      if (!livestock) {
-        throw new NotFoundException(`Livestock with id ${id} not found`);
-      }
-
-      return livestock;
-    } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-      console.error('Error fetching livestock:', error);
-      throw new InternalServerErrorException('Error fetching livestock');
-    }
-  }
-
-  async create(data: CreateLivestockInput) {
-    this.assertRequiredString(data.companyId, 'companyId');
-    this.assertRequiredString(data.tagNumber, 'tagNumber');
-    this.assertRequiredString(data.species, 'species');
-    this.assertRequiredString(data.sex, 'sex');
-
-    try {
-      const company = await this.prisma.company.findUnique({ where: { id: data.companyId } });
-
-      if (!company) {
-        throw new NotFoundException(`Company with id ${data.companyId} not found`);
-      }
-
-      if (data.lotId) {
-        const lot = await this.prisma.lot.findUnique({
-          where: { id: data.lotId },
-          include: { farm: true },
-        });
-
-        if (!lot) {
-          throw new NotFoundException(`Lot with id ${data.lotId} not found`);
-        }
-
-        if (lot.farm.companyId !== data.companyId) {
-          throw new BadRequestException('Lot must belong to the same company as the livestock');
-        }
-      }
-
-      const existingTagNumber = await this.prisma.livestock.findUnique({
-        where: { tagNumber: data.tagNumber },
-      });
-
-      if (existingTagNumber) {
-        throw new ConflictException('Livestock with this tagNumber already exists');
-      }
-
-      return await this.prisma.livestock.create({
-        data: {
-          companyId: data.companyId,
-          lotId: data.lotId ?? null,
-          tagNumber: data.tagNumber,
-          breed: data.breed ?? null,
-          species: data.species,
-          birthDate: this.parseDate(data.birthDate),
-          sex: data.sex,
-        },
-      });
-    } catch (error) {
-      if (error instanceof BadRequestException || error instanceof ConflictException || error instanceof NotFoundException) {
-        throw error;
-      }
-
-      console.error('Error creating livestock:', error);
-      throw new InternalServerErrorException('Error creating livestock');
-    }
-  }
-
-  async update(id: string, data: UpdateLivestockInput) {
-    if (!data || Object.keys(data).every((key) => data[key as keyof UpdateLivestockInput] === undefined)) {
-      throw new BadRequestException('No data provided for update');
+  private translateError(error: unknown, action: string): Error {
+    if (error instanceof EntityNotFoundError) {
+      return new NotFoundException(error.message);
     }
 
-    try {
-      const livestock = await this.prisma.livestock.findUnique({
-        where: { id },
-        include: { lot: { include: { farm: true } } },
-      });
-
-      if (!livestock) {
-        throw new NotFoundException(`Livestock with id ${id} not found`);
-      }
-
-      const nextCompanyId = data.companyId ?? livestock.companyId;
-      const nextLotId = data.lotId !== undefined ? data.lotId : livestock.lotId;
-
-      if (data.companyId) {
-        const company = await this.prisma.company.findUnique({ where: { id: data.companyId } });
-
-        if (!company) {
-          throw new NotFoundException(`Company with id ${data.companyId} not found`);
-        }
-      }
-
-      if (nextLotId) {
-        const lot = await this.prisma.lot.findUnique({
-          where: { id: nextLotId },
-          include: { farm: true },
-        });
-
-        if (!lot) {
-          throw new NotFoundException(`Lot with id ${nextLotId} not found`);
-        }
-
-        if (lot.farm.companyId !== nextCompanyId) {
-          throw new BadRequestException('Lot must belong to the same company as the livestock');
-        }
-      }
-
-      if (data.tagNumber !== undefined) {
-        this.assertRequiredString(data.tagNumber, 'tagNumber');
-
-        const duplicateTagNumber = await this.prisma.livestock.findFirst({
-          where: {
-            tagNumber: data.tagNumber,
-            id: { not: id },
-          },
-        });
-
-        if (duplicateTagNumber) {
-          throw new ConflictException('Livestock with this tagNumber already exists');
-        }
-      }
-
-      if (data.species !== undefined) {
-        this.assertRequiredString(data.species, 'species');
-      }
-
-      if (data.sex !== undefined) {
-        this.assertRequiredString(data.sex, 'sex');
-      }
-
-      const birthDate = data.birthDate !== undefined ? this.parseDate(data.birthDate) : undefined;
-
-      return await this.prisma.livestock.update({
-        where: { id },
-        data: {
-          ...(data.companyId !== undefined ? { companyId: data.companyId } : {}),
-          ...(data.lotId !== undefined ? { lotId: data.lotId } : {}),
-          ...(data.tagNumber !== undefined ? { tagNumber: data.tagNumber } : {}),
-          ...(data.breed !== undefined ? { breed: data.breed } : {}),
-          ...(data.species !== undefined ? { species: data.species } : {}),
-          ...(birthDate !== undefined ? { birthDate } : {}),
-          ...(data.sex !== undefined ? { sex: data.sex } : {}),
-          ...(data.status !== undefined ? { status: data.status } : {}),
-        },
-      });
-    } catch (error) {
-      if (error instanceof BadRequestException || error instanceof ConflictException || error instanceof NotFoundException) {
-        throw error;
-      }
-
-      console.error('Error updating livestock:', error);
-      throw new InternalServerErrorException('Error updating livestock');
-    }
-  }
-
-  async remove(id: string) {
-    try {
-      const livestock = await this.prisma.livestock.findUnique({ where: { id } });
-
-      if (!livestock) {
-        throw new NotFoundException(`Livestock with id ${id} not found`);
-      }
-
-      await this.prisma.livestock.delete({ where: { id } });
-
-      return { message: `Livestock with id ${id} deleted successfully` };
-    } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-
-      console.error('Error deleting livestock:', error);
-      throw new InternalServerErrorException('Error deleting livestock');
-    }
-  }
-
-  private assertRequiredString(value: unknown, fieldName: string) {
-    if (typeof value !== 'string' || value.trim().length === 0) {
-      throw new BadRequestException(`${fieldName} is required`);
-    }
-  }
-
-  private parseDate(value: string | Date | null | undefined) {
-    if (value === undefined || value === null || value === '') {
-      return undefined;
+    if (error instanceof DuplicateEntityError) {
+      return new ConflictException(error.message);
     }
 
-    const date = value instanceof Date ? value : new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      throw new BadRequestException('birthDate must be a valid date');
+    if (
+      error instanceof InvalidRelationError ||
+      error instanceof InvalidInputError
+    ) {
+      return new BadRequestException(error.message);
     }
 
-    return date;
+    console.error(`Error ${action}:`, error);
+    return new InternalServerErrorException(`Error ${action}`);
   }
 }

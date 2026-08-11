@@ -1,18 +1,23 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { LivestockStatus } from './domain/livestock-status';
+import {
+  CreateLivestockInput,
+  UpdateLivestockInput,
+} from './application/livestock.types';
 import { LivestockService } from './livestock.service';
-import { LivestockStatus } from '../../../prisma/generated/client';
 
-type CreateLivestockBody = {
-  companyId: string;
-  lotId?: string | null;
-  tagNumber: string;
-  breed?: string | null;
-  species: string;
-  birthDate?: string | null;
-  sex: string;
-};
+type CreateLivestockBody = CreateLivestockInput;
 
-type UpdateLivestockBody = Partial<CreateLivestockBody> & {
+type UpdateLivestockBody = UpdateLivestockInput & {
   status?: LivestockStatus;
 };
 
@@ -36,7 +41,10 @@ export class LivestockController {
   }
 
   @Put(':id')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() data: UpdateLivestockBody) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() data: UpdateLivestockBody,
+  ) {
     return this.service.update(id, data);
   }
 
