@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Param, Body, Delete, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { CreateTaskTypeInput, UpdateTaskTypeInput } from './application/task-type.types';
 import { TaskTypeService } from './task-type.service';
 
 @Controller('task-types')
@@ -16,12 +17,12 @@ export class TaskTypeController {
   }
 
   @Post()
-  create(@Body() data: {name: string;description?: string;}) {
+  create(@Body() data: CreateTaskTypeInput) {
     return this.service.create(data);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {name?: string;description?: string; taskIds?: string[]}) {
+  update(@Param('id') id: string, @Body() data: UpdateTaskTypeInput) {
     return this.service.update(id, data);
   }
   @Delete(':id')

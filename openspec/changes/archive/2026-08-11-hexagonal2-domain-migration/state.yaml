@@ -1,0 +1,27 @@
+change: hexagonal2-domain-migration
+status: archived
+artifact_store: openspec
+updated_at: 2026-08-11
+mode: auto
+branch: hexagonal2
+scope:
+  backend:
+    migrated_slices:
+      - livestock-event
+      - weight-record
+      - task-type
+      - task
+      - machine
+      - machine-usage
+      - user
+      - auth
+    next_slices: []
+constraints:
+  no_build: true
+  no_lint_fix: true
+  strict_tdd: true
+verification:
+  command: pnpm --filter backend run test
+  result: pass
+    suites: 23
+    tests: 233

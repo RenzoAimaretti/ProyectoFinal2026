@@ -1,4 +1,8 @@
-import { Controller, Get, Post, Param, Body, Put, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  CreateWeightRecordInput,
+  UpdateWeightRecordInput,
+} from './application/weight-record.types';
 import { WeightRecordService } from './weight-record.service';
 
 @Controller('weight-records')
@@ -16,11 +20,11 @@ export class WeightRecordController {
   }
 
   @Post()
-  create(@Body() data: {livestockId: string; operatorId: string; weight:number; measuredAt:string;}) {
+  create(@Body() data: CreateWeightRecordInput) {
     return this.service.create(data);
   }
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: { operatorId?: string; weight?:number; measuredAt?:string;}) {
+  update(@Param('id') id: string, @Body() data: UpdateWeightRecordInput) {
     return this.service.update(id, data);
   }
 

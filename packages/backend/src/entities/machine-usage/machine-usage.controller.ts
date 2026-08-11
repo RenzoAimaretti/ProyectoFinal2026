@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Param, Body, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { CreateMachineUsageInput, UpdateMachineUsageInput } from './application/machine-usage.types';
 import { MachineUsageService } from './machine-usage.service';
 
 @Controller('machine-usages')
@@ -16,12 +17,12 @@ export class MachineUsageController {
   }
 
   @Post()
-  create(@Body() data: {machineId: string; taskId: string; operatorId: string; intialFuel:number; }) {
+  create(@Body() data: CreateMachineUsageInput) {
     return this.service.create(data);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {initialFuel?: number;finalFuel?: number; usageHours?: number; observations?: string;}) {
+  update(@Param('id') id: string, @Body() data: UpdateMachineUsageInput) {
     return this.service.update(id, data);
   }
 }
