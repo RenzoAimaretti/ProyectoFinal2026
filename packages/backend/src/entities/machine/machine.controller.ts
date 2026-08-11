@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Param, Body, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { CreateMachineInput, UpdateMachineInput } from './application/machine.types';
 import { MachineService } from './machine.service';
-import { MachineStatus } from '../../../prisma/generated/enums';
 
 @Controller('machines')
 export class MachineController {
@@ -17,12 +17,12 @@ export class MachineController {
   }
 
   @Post()
-  create(@Body() data: any) {
+  create(@Body() data: CreateMachineInput) {
     return this.service.create(data);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {name?: string; brand?: string; entryDate?: string; status?: MachineStatus; maintenanceDate?: string; }) {
+  update(@Param('id') id: string, @Body() data: UpdateMachineInput) {
     return this.service.update(id, data);
   }
   //no va un delete pues no se borra una máquina, se le pone una baja logica

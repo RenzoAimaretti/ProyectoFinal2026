@@ -16,11 +16,28 @@ export class FarmController {
   }
 
   @Post()
-  create(@Body() data: {name: string; location: string; companyId: string;surface: number;}) {
+  create(
+    @Body()
+    data: {
+      name: string;
+      location: string;
+      companyId: string;
+      surface: number;
+    },
+  ) {
     return this.service.create(data);
   }
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {name?: string; location?: string; companyId?: string; surface?: number;}) {
+  update(
+    @Param('id') id: string,
+    @Body()
+    data: {
+      name?: string;
+      location?: string;
+      companyId?: string;
+      surface?: number;
+    },
+  ) {
     return this.service.update(id, data);
   }
 }

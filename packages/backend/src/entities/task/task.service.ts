@@ -1,164 +1,88 @@
-import { BadRequestException, Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TaskStatus, UserRole } from '../../../prisma/generated/enums';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { AddTaskOperatorUseCase } from './application/use-cases/add-task-operator.use-case';
+import { CreateTaskUseCase } from './application/use-cases/create-task.use-case';
+import { DeleteTaskUseCase } from './application/use-cases/delete-task.use-case';
+import { FindAllTasksUseCase } from './application/use-cases/find-all-tasks.use-case';
+import { FindTaskUseCase } from './application/use-cases/find-task.use-case';
+import { RemoveTaskOperatorUseCase } from './application/use-cases/remove-task-operator.use-case';
+import { UpdateTaskUseCase } from './application/use-cases/update-task.use-case';
+import { CreateTaskInput, UpdateTaskInput } from './application/task.types';
+import { DuplicateEntityError, EntityNotFoundError, InvalidInputError } from './domain/errors';
 
 @Injectable()
 export class TaskService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly findAllUseCase: FindAllTasksUseCase,
+    private readonly findOneUseCase: FindTaskUseCase,
+    private readonly createUseCase: CreateTaskUseCase,
+    private readonly updateUseCase: UpdateTaskUseCase,
+    private readonly addOperatorUseCase: AddTaskOperatorUseCase,
+    private readonly removeOperatorUseCase: RemoveTaskOperatorUseCase,
+    private readonly deleteUseCase: DeleteTaskUseCase,
+  ) {}
 
-  findAll() {
-    try {
-      return this.prisma.task.findMany();
-    } catch (error) {
-      throw new InternalServerErrorException('Error fetching tasks');
-    }
+  async findAll() {
+    return this.handle(() => this.findAllUseCase.execute(), 'fetching tasks');
   }
 
   async findOne(id: string) {
-    try {
-      const existingTask = await this.prisma.task.findUnique({ where: { id } });
-      if (!existingTask) throw new NotFoundException(`Task with id ${id} not found`);
-      return existingTask;
-    } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-      throw new InternalServerErrorException('Error fetching task');
-    }
-  }
-  // La task queda asociada a la compania a través del lote, no es necesario validar la compañía aquí
-  create(data: {lotId:string;taskTypeId:string; startedAt:string;}) {
-    try{
-      if (!data || !data.lotId || !data.taskTypeId || !data.startedAt) {
-        throw new BadRequestException('Missing required fields: lotId, taskTypeId, startedAt');
-      }
-      const taskType = this.prisma.taskType.findUnique({ where: { id: data.taskTypeId } });
-      if (!taskType) {
-        throw new BadRequestException(`Task type with id ${data.taskTypeId} does not exist`);
-      }
-      const lot = this.prisma.lot.findUnique({ where: { id: data.lotId } });
-      if (!lot) {
-        throw new BadRequestException(`Lot with id ${data.lotId} does not exist`);
-      }
-
-      if(data.startedAt!==undefined){
-        const startedAt = new Date(data.startedAt);
-        if (isNaN(startedAt.getTime())) {
-          throw new BadRequestException('Invalid date format for startedAt');
-        }
-      }
-      const createData = {
-        lotId: data.lotId,
-        taskTypeId: data.taskTypeId,
-        startedAt: new Date(data.startedAt)
-      }
-      return this.prisma.task.create({ data: createData });
-
-    }catch(error){
-      throw new InternalServerErrorException('Error creating task');
-    }
+    return this.handle(() => this.findOneUseCase.execute(id), 'fetching task');
   }
 
-  async update(id: string, data: {status?: TaskStatus; startedAt?: string; finishedAt?: string;}) {
-    try {
-      const existingTask = await this.prisma.task.findUnique({ where: { id } });
-      if (!existingTask) {
-        throw new NotFoundException(`Task with id ${id} not found`);
-      }
-      if(data.status !==undefined && !Object.values(TaskStatus).includes(data.status)){
-        throw new BadRequestException(`Invalid status value. Allowed values are: ${Object.values(TaskStatus).join(', ')}`);
-      }
-      let measuredAt: Date | undefined;
-      if (data.startedAt !== undefined) {
-        measuredAt = new Date(data.startedAt);
-        if (Number.isNaN(measuredAt.getTime())) {
-          throw new BadRequestException('startedAt must be a valid date');
-        }
-      }
-      let finishedAt: Date | undefined;
-      if (data.finishedAt !== undefined) {
-        finishedAt = new Date(data.finishedAt);
-        if (Number.isNaN(finishedAt.getTime())) {
-          throw new BadRequestException('finishedAt must be a valid date');
-        }
-      }
-      const updateData = {
-        ...(data.status !== undefined ? { status: data.status } : {}),
-        ...(data.startedAt !== undefined ? { startedAt: measuredAt } : {}),
-        ...(data.finishedAt !== undefined ? { finishedAt } : {}),
-      };
-      if (Object.keys(updateData).length === 0) {
-        throw new BadRequestException('No data provided for update');
-      }
-      return await this.prisma.task.update({
-        where: { id },
-        data: updateData,
-      });
-      
-    }catch (error) {
-      throw new InternalServerErrorException('Error updating task');
-  }
-}
-
-async addOperario(taskId: string, operatorId: string) {
-    try {
-      const existingTask = await this.prisma.task.findUnique({ where: { id: taskId }, include:{ operators:{select:{ id: true }}} });
-      if (!existingTask) {
-        throw new NotFoundException(`Task with id ${taskId} not found`);
-      }
-      const operator = await this.prisma.user.findUnique({ where: { id: operatorId } });
-      if (!operator|| operator.role !== UserRole.OPERARIO) {
-        throw new NotFoundException(`Operator with id ${operatorId} not found`);
-      }
-      if (existingTask.operators.some(op => op.id === operatorId)) {
-        throw new ConflictException(`Operator with id ${operatorId} is already assigned to task with id ${taskId}`);
-      }else{
-        await this.prisma.task.update({
-          where: { id: taskId },
-          data: { operators: { connect: { id: operatorId } } },
-        });
-        return { message: `Operator with id ${operatorId} added to task with id ${taskId} successfully` };
-      }
-      
-    }catch(error){
-      if (error instanceof NotFoundException || error instanceof ConflictException || error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error adding operator to task');
-    }
-  }
-async removeOperario(taskId: string, operatorId: string) {
-    try {
-      const existingTask = await this.prisma.task.findUnique({ where: { id: taskId }, include:{ operators:{select:{ id: true }}} });
-      if (!existingTask) {
-        throw new NotFoundException(`Task with id ${taskId} not found`);
-      }
-      if (!existingTask.operators.some(op => op.id === operatorId)) {
-        throw new NotFoundException(`Operator with id ${operatorId} is not assigned to task with id ${taskId}`);
-      }
-      await this.prisma.task.update({
-        where: { id: taskId },
-        data: { operators: { disconnect: { id: operatorId } } },
-      });
-      return { message: `Operator with id ${operatorId} removed from task with id ${taskId} successfully` };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Error removing operator from task');
-    }
+  async create(data: CreateTaskInput) {
+    return this.handle(() => this.createUseCase.execute(data), 'creating task');
   }
 
+  async update(id: string, data: UpdateTaskInput) {
+    return this.handle(() => this.updateUseCase.execute(id, data), 'updating task');
+  }
 
+  async addOperario(taskId: string, operatorId: string) {
+    return this.handle(
+      () => this.addOperatorUseCase.execute(taskId, operatorId),
+      'adding operator to task',
+    );
+  }
+
+  async removeOperario(taskId: string, operatorId: string) {
+    return this.handle(
+      () => this.removeOperatorUseCase.execute(taskId, operatorId),
+      'removing operator from task',
+    );
+  }
 
   async delete(id: string) {
+    return this.handle(() => this.deleteUseCase.execute(id), 'deleting task');
+  }
+
+  private async handle<T>(operation: () => Promise<T>, action: string) {
     try {
-      const existingTask = await this.prisma.task.findUnique({ where: { id } });
-      if (!existingTask) throw new NotFoundException(`Task with id ${id} not found`);
-      await this.prisma.task.delete({ where: { id } });
-      return { message: `Task with id ${id} deleted successfully` };
+      return await operation();
     } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-      throw new InternalServerErrorException('Error deleting task');
+      throw this.translateError(error, action);
     }
   }
-}
 
+  private translateError(error: unknown, action: string): Error {
+    if (error instanceof EntityNotFoundError) {
+      return new NotFoundException(error.message);
+    }
+
+    if (error instanceof DuplicateEntityError) {
+      return new ConflictException(error.message);
+    }
+
+    if (error instanceof InvalidInputError) {
+      return new BadRequestException(error.message);
+    }
+
+    console.error(`Error ${action}:`, error);
+    return new InternalServerErrorException(`Error ${action}`);
+  }
+}

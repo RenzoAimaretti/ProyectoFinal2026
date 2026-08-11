@@ -1,46 +1,83 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { DuplicateEntityError, InvalidInputError } from './domain/errors';
+import {
+  CreateModuleEntityInput,
+  UpdateModuleEntityInput,
+} from './application/module-entity.types';
+import { CreateModuleEntityUseCase } from './application/use-cases/create-module-entity.use-case';
+import { FindAllModuleEntitiesUseCase } from './application/use-cases/find-all-module-entities.use-case';
+import { FindModuleEntityByNameUseCase } from './application/use-cases/find-module-entity-by-name.use-case';
+import { FindModuleEntityUseCase } from './application/use-cases/find-module-entity.use-case';
+import { UpdateModuleEntityUseCase } from './application/use-cases/update-module-entity.use-case';
 
 @Injectable()
 export class ModuleEntityService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly findAllUseCase: FindAllModuleEntitiesUseCase,
+    private readonly findOneUseCase: FindModuleEntityUseCase,
+    private readonly findByNameUseCase: FindModuleEntityByNameUseCase,
+    private readonly createUseCase: CreateModuleEntityUseCase,
+    private readonly updateUseCase: UpdateModuleEntityUseCase,
+  ) {}
 
   findAll() {
-    return this.prisma.module.findMany();
+    return this.handle(() => this.findAllUseCase.execute(), 'fetching modules');
   }
 
   findOne(id: string) {
-    return this.prisma.module.findUnique({ where: { id } });
+    return this.handle(
+      () => this.findOneUseCase.execute(id),
+      'fetching module',
+    );
   }
 
   findByName(name: string) {
-    return this.prisma.module.findFirst({ where: { name } });
+    return this.handle(
+      () => this.findByNameUseCase.execute(name),
+      'fetching module',
+    );
   }
 
-  async create(data: {name: string; price: number; version: string;}) {
-  try{
-    if (!data.name || !data.price || !data.version|| data.price <= 0) {
-      throw new Error('Missing required fields: name, price, and version');
-    }else if(await this.findByName(data.name)){
-      throw new Error('Module with this name already exists');
-    }else{
-      return this.prisma.module.create({ data });
-
-    }
-  }catch(error){
-    throw new Error('Error creating module');
+  create(data: CreateModuleEntityInput) {
+    return this.handle(
+      () => this.createUseCase.execute(data),
+      'creating module',
+    );
   }
-}
 
-  async update(id: string, data: {name: string; price: number; version: string;companyId?: string;}) {
-    try{
-      if (!data.name || !data.price || !data.version) {
-      throw new Error('Missing required fields: name, price, and version');
-    }else{
-      return this.prisma.module.update({ where: { id }, data }); 
+  update(id: string, data: UpdateModuleEntityInput) {
+    return this.handle(
+      () => this.updateUseCase.execute(id, data),
+      'updating module',
+    );
+  }
+
+  private async handle<T>(
+    operation: () => Promise<T>,
+    action: string,
+  ): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      throw this.translateError(error, action);
     }
-    }catch(error){
-      throw new Error('Error updating module');
+  }
+
+  private translateError(error: unknown, action: string): Error {
+    if (error instanceof DuplicateEntityError) {
+      return new ConflictException(error.message);
     }
+
+    if (error instanceof InvalidInputError) {
+      return new BadRequestException(error.message);
+    }
+
+    console.error(`Error ${action}:`, error);
+    return new InternalServerErrorException(`Error ${action}`);
   }
 }

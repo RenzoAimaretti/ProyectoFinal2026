@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
-import { UserRole } from '../../../prisma/generated/client';
 import { UserService } from './user.service';
+import { UserRoleValue } from './application/user.types';
 
 type CreateUserBody = {
   companyId: string;
   username?: string;
   email?: string;
   password: string;
-  role: UserRole;
+  role: UserRoleValue;
   active?: boolean;
 };
 

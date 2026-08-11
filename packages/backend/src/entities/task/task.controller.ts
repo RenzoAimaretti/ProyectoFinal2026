@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Param, Body, Put, Delete } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { CreateTaskInput, UpdateTaskInput } from './application/task.types';
 import { TaskService } from './task.service';
-import { TaskStatus } from '../../../prisma/generated/enums';
 
 @Controller('tasks')
 export class TaskController {
@@ -17,12 +17,12 @@ export class TaskController {
   }
 
   @Post()
-  create(@Body() data: {lotId:string;taskTypeId:string; startedAt:string;}) {
+  create(@Body() data: CreateTaskInput) {
     return this.service.create(data);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {status?: TaskStatus; startedAt?: string; finishedAt?: string;}) {
+  update(@Param('id') id: string, @Body() data: UpdateTaskInput) {
     return this.service.update(id, data);
   }
 

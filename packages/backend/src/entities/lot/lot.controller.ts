@@ -16,12 +16,30 @@ export class LotController {
   }
 
   @Post()
-  create(@Body() data: {name: string; farmId: string; coords: string; area: number; }) {
+  create(
+    @Body()
+    data: {
+      name: string;
+      farmId: string;
+      coords: string;
+      area: number;
+    },
+  ) {
     return this.service.create(data);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: {name?: string; farmId?: string; coords?: string; area?: number; active?: boolean; }) {
+  update(
+    @Param('id') id: string,
+    @Body()
+    data: {
+      name?: string;
+      farmId?: string;
+      coords?: string;
+      area?: number;
+      active?: boolean;
+    },
+  ) {
     return this.service.update(id, data);
   }
 }

@@ -1,86 +1,59 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { MachineStatus } from '../../../prisma/generated/enums';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { CreateMachineUsageInput, UpdateMachineUsageInput } from './application/machine-usage.types';
+import { CreateMachineUsageUseCase } from './application/use-cases/create-machine-usage.use-case';
+import { FindAllMachineUsagesUseCase } from './application/use-cases/find-all-machine-usages.use-case';
+import { FindMachineUsageUseCase } from './application/use-cases/find-machine-usage.use-case';
+import { UpdateMachineUsageUseCase } from './application/use-cases/update-machine-usage.use-case';
+import { EntityNotFoundError, InvalidInputError, InvalidRelationError } from './domain/errors';
 
 @Injectable()
 export class MachineUsageService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly findAllUseCase: FindAllMachineUsagesUseCase,
+    private readonly findOneUseCase: FindMachineUsageUseCase,
+    private readonly createUseCase: CreateMachineUsageUseCase,
+    private readonly updateUseCase: UpdateMachineUsageUseCase,
+  ) {}
 
-  findAll() {
-    try{
-      return this.prisma.machineUsage.findMany();
-    }catch(error){
-      throw new InternalServerErrorException('Error finding all machine usages');
+  async findAll() {
+    return this.handle(() => this.findAllUseCase.execute(), 'finding all machine usages');
+  }
+
+  async findOne(id: string) {
+    return this.handle(() => this.findOneUseCase.execute(id), 'finding machine usage');
+  }
+
+  async create(data: CreateMachineUsageInput) {
+    return this.handle(() => this.createUseCase.execute(data), 'creating machine usage');
+  }
+
+  async update(id: string, data: UpdateMachineUsageInput) {
+    return this.handle(() => this.updateUseCase.execute(id, data), 'updating machine usage');
+  }
+
+  private async handle<T>(operation: () => Promise<T>, action: string) {
+    try {
+      return await operation();
+    } catch (error) {
+      throw this.translateError(error, action);
     }
   }
 
-  findOne(id: string) {
-    try{
-      return this.prisma.machineUsage.findUnique({ where: { id } });
-    }catch(error){
-      throw new InternalServerErrorException('Error finding machine usage');
+  private translateError(error: unknown, action: string): Error {
+    if (error instanceof EntityNotFoundError) {
+      return new NotFoundException(error.message);
     }
-  }
-  
-async update(id: string, data: {initialFuel?: number; finalFuel?: number; usageHours?: number; observations?: string;}) {
-    try{
-      const existingUsage = await this.prisma.machineUsage.findUnique({ where: { id } });
-      if (!existingUsage) {
-        throw new InternalServerErrorException(`Machine usage with id ${id} not found`);
-      } else {
-        const updateData: any = {};
-        if (data.initialFuel !== undefined) {
-          updateData.initialFuel = data.initialFuel;
-        }
-        if (data.finalFuel !== undefined) {
-          updateData.finalFuel = data.finalFuel;
-        }
-        if (data.usageHours !== undefined) {
-          updateData.usageHours = data.usageHours;
-        }
-        if (data.observations !== undefined) {
-          updateData.observations = data.observations;
-        }
-        return this.prisma.machineUsage.update({ where: { id }, data: updateData });
-      }
-    }catch(error){
-      throw new InternalServerErrorException('Error updating machine usage');
-    }
-  }
 
-  async create(data: {machineId: string; taskId: string; operatorId: string; intialFuel:number; }) {
-    
-    //no comprendo el registro inicial de las horas, obs y combustible final de la tarea
-    try{
-      
-      if (!data.machineId || !data.taskId || !data.operatorId) {
-        throw new InternalServerErrorException('Missing required fields: machineId, taskId, operatorId, and intialFuel');
-      }
-      const existingMachine = await this.prisma.machine.findUnique({ where: { id: data.machineId } });
-      const existingTask = await this.prisma.task.findUnique({ where: { id: data.taskId }, include:{ operators:{select:{ id: true }}} });
-      const existingOperator = await this.prisma.user.findUnique({ where: { id: data.operatorId } });
-      // valido que el operario este incluido en la tarea
-      console.log('existingMachine:', existingMachine);
-      console.log('existingTask:', existingTask);
-      console.log('existingOperator:', existingOperator);
-      if (!existingMachine || !existingTask || !existingOperator){
-        throw new InternalServerErrorException('Machine, task, or operator not found');
-      }else if (!existingTask.operators.some(op => op.id === existingOperator.id)) {
-        throw new InternalServerErrorException('Operator is not assigned to the task');
-       }else if(existingMachine.status !== MachineStatus.ACTIVA){
-        throw new InternalServerErrorException('Machine esta en mantenimiento o inactiva');
-       }else{
-        //deberiamos incluir el operario?
-        const createData = {
-          machineId: data.machineId,
-          taskId: data.taskId,
-          intialFuel: data.intialFuel,
-       }
-       return this.prisma.machineUsage.create({ data: createData });
-      }
-    }catch(error){
-      //ojo se esta capturando cualquier error, se podria mejorar capturando errores mas especificos
-      throw new InternalServerErrorException('Error creating machine usage');
+    if (error instanceof InvalidInputError || error instanceof InvalidRelationError) {
+      return new BadRequestException(error.message);
     }
+
+    console.error(`Error ${action}:`, error);
+    return new InternalServerErrorException(`Error ${action}`);
   }
 }

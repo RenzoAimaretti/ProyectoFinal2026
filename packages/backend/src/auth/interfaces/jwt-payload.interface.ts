@@ -1,10 +1,3 @@
-import { UserRole } from '../../../prisma/generated/client';
+import { AuthJwtPayload } from '../application/auth.types';
 
-export interface JwtPayload {
-  sub: string;
-  role: UserRole;
-  firmaId: string;
-  email?: string;
-  iat?: number;
-  exp?: number;
-}
+export type JwtPayload = AuthJwtPayload;

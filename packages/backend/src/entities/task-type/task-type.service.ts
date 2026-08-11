@@ -1,90 +1,70 @@
-import { BadRequestException, Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { CreateTaskTypeUseCase } from './application/use-cases/create-task-type.use-case';
+import { DeleteTaskTypeUseCase } from './application/use-cases/delete-task-type.use-case';
+import { FindAllTaskTypesUseCase } from './application/use-cases/find-all-task-types.use-case';
+import { FindTaskTypeUseCase } from './application/use-cases/find-task-type.use-case';
+import { UpdateTaskTypeUseCase } from './application/use-cases/update-task-type.use-case';
+import { CreateTaskTypeInput, UpdateTaskTypeInput } from './application/task-type.types';
+import { DuplicateEntityError, EntityNotFoundError, InvalidInputError } from './domain/errors';
 
 @Injectable()
 export class TaskTypeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly findAllUseCase: FindAllTaskTypesUseCase,
+    private readonly findOneUseCase: FindTaskTypeUseCase,
+    private readonly createUseCase: CreateTaskTypeUseCase,
+    private readonly updateUseCase: UpdateTaskTypeUseCase,
+    private readonly deleteUseCase: DeleteTaskTypeUseCase,
+  ) {}
 
-  findAll() {
-    try {
-      return this.prisma.taskType.findMany();
-    } catch (error) {
-      throw new BadRequestException('Error fetching task types');
-    }
+  async findAll() {
+    return this.handle(() => this.findAllUseCase.execute(), 'fetching task types');
   }
 
-  findOne(id: string) {
-    try {
-      const taskType = this.prisma.taskType.findUnique({ where: { id } });
-      if (!taskType) {
-        // Note: prisma returns null for not found; check after resolving
-      }
-      return taskType;
-    } catch (error) {
-      throw new BadRequestException('Error fetching task type by ID');
-    }
+  async findOne(id: string) {
+    return this.handle(() => this.findOneUseCase.execute(id), 'fetching task type');
   }
 
-  async create(data: {name: string;description?: string;}) {
-    try {
-      if (!data || !data.name) {
-        throw new BadRequestException('Missing required field: name');
-      }
-
-      // optional: prevent duplicate names
-      const existing = await this.prisma.taskType.findFirst({ where: { name: data.name } });
-      if (existing) {
-        throw new ConflictException('Task type with this name already exists');
-      }
-
-      return await this.prisma.taskType.create({ data });
-    } catch (error) {
-      if (error instanceof BadRequestException || error instanceof ConflictException) throw error;
-      throw new InternalServerErrorException('Error creating task type');
-    }
+  async create(data: CreateTaskTypeInput) {
+    return this.handle(() => this.createUseCase.execute(data), 'creating task type');
   }
 
-  async update(id: string, data: {name?: string;description?: string; taskIds?: string[]}) {
-    try {
-      if (!data || Object.keys(data).length === 0) {
-        throw new BadRequestException('No data provided for update');
-      }
-
-      const existing = await this.prisma.taskType.findUnique({ where: { id } });
-      if (!existing) throw new NotFoundException(`Task type with id ${id} not found`);
-
-      if(data.taskIds) {
-        // validate task IDs
-        const tasks = await this.prisma.task.findMany({ where: { id: { in: data.taskIds } } });
-        const foundTaskIds = tasks.map(t => t.id);
-        const invalidIds = data.taskIds.filter(id => !foundTaskIds.includes(id));
-        if (invalidIds.length > 0) {
-          throw new NotFoundException(`Tasks with ids ${invalidIds.join(', ')} not found`);
-        }
-      }
-      return await this.prisma.taskType.update({ where: { id }, data: {
-        ...(data.name !== undefined ? { name: data.name } : {}),
-        ...(data.description !== undefined ? { description: data.description } : {}),
-        ...(data.taskIds !== undefined ? { tasks: { set: data.taskIds.map(id => ({ id })) } } : {}),
-      } });
-    } catch (error) {
-      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
-      throw new InternalServerErrorException('Error updating task type');
-    }
+  async update(id: string, data: UpdateTaskTypeInput) {
+    return this.handle(() => this.updateUseCase.execute(id, data), 'updating task type');
   }
 
   async delete(id: string) {
+    return this.handle(() => this.deleteUseCase.execute(id), 'deleting task type');
+  }
+
+  private async handle<T>(operation: () => Promise<T>, action: string) {
     try {
-      const existingTaskType = await this.prisma.taskType.findUnique({ where: { id } });
-      if (!existingTaskType) {
-        throw new NotFoundException(`Task type with id ${id} not found`);
-      }
-      await this.prisma.taskType.delete({ where: { id } });
-      return { message: `Task type with id ${id} deleted successfully` };
+      return await operation();
     } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-      throw new InternalServerErrorException('Error deleting task type');
+      throw this.translateError(error, action);
     }
-    
+  }
+
+  private translateError(error: unknown, action: string): Error {
+    if (error instanceof EntityNotFoundError) {
+      return new NotFoundException(error.message);
+    }
+
+    if (error instanceof DuplicateEntityError) {
+      return new ConflictException(error.message);
+    }
+
+    if (error instanceof InvalidInputError) {
+      return new BadRequestException(error.message);
+    }
+
+    console.error(`Error ${action}:`, error);
+    return new InternalServerErrorException(`Error ${action}`);
   }
 }
