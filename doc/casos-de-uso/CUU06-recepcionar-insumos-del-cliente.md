@@ -31,7 +31,7 @@ El cliente adquiere insumos y los entrega en el campo/lote, indicando la cantida
 ## Flujo principal
 
 1. El cliente entrega los insumos en el campo e indica la cantidad de cada insumo adquirido.
-2. El operario/admin abre el formulario de recepción (móvil o web) y selecciona el cliente.
+2. El operario/admin abre el formulario de recepción (móvil o web) y selecciona el cliente. ## ACA LO CARGA EL OPERARIO O EL CLIENTE?
 3. Para cada insumo agrega un ítem: insumo del catálogo + cantidad + unidad.
 4. Adjunta hasta 5 fotografías opcionales de los productos/bidones recibidos.
 5. Confirma la recepción; el sistema registra la recepción con estado `Pendiente de validación` y notifica al administrador/contratista.

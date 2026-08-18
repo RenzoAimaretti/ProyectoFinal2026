@@ -35,7 +35,7 @@ Un operario a campo carga un parte diario de labor desde el móvil (online u off
 1. El operario abre la app móvil y crea un parte diario (formulario "Parte Diario Express"): selecciona `Cliente → Firma → Campo → Lote → Labor`.
 2. Ingresa fecha, hectáreas trabajadas y horas/jornada.
 3. Para cada insumo aplicado agrega un ítem de consumo: insumo del catálogo + cantidad real consumida (L/kg/unidad), de carga manual.
-4. Adjunta hasta 5 fotografías opcionales del cuaderno o constancia física como respaldo (R008).
+4. Adjunta hasta 5 fotografías opcionales del cuaderno o constancia física como respaldo (R008). ## VER SI SE HACE ASI
 5. Si no hay conectividad, el parte se almacena localmente y queda en cola de sincronización; al recuperar señal se sincroniza con el backend (R007). Con el parte sincronizado, el sistema lo marca como `Pendiente de aprobación`.
 6. El administrador/dueño abre la bandeja de partes pendientes en el web y selecciona el parte.
 7. El sistema presenta los datos del parte, las fotografías adjuntas y el impacto de stock que generaría sobre el cliente.
