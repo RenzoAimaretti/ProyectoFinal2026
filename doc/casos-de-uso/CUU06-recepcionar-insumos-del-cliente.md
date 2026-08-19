@@ -13,7 +13,7 @@
 | Requerimiento(s) asociado(s) | R014 |
 | Complejidad | Media |
 | Prioridad | Alta |
-| Estado | Borrador |
+| Estado | Revisado |
 
 ## Propósito
 
@@ -27,11 +27,12 @@ El cliente adquiere insumos y los entrega en el campo/lote, indicando la cantida
 
 - Debe existir un cliente con lote(s) asociado(s) y firma/razón social (R014).
 - Los insumos deben existir en el catálogo de insumos (clase/tabla con ID, descripción y unidad).
+- El cliente esta logueado
 
 ## Flujo principal
 
 1. El cliente entrega los insumos en el campo e indica la cantidad de cada insumo adquirido.
-2. El operario/admin abre el formulario de recepción (móvil o web) y selecciona el cliente. ## ACA LO CARGA EL OPERARIO O EL CLIENTE?
+2. El cliente abre el formulario de recepción.
 3. Para cada insumo agrega un ítem: insumo del catálogo + cantidad + unidad.
 4. Adjunta hasta 5 fotografías opcionales de los productos/bidones recibidos.
 5. Confirma la recepción; el sistema registra la recepción con estado `Pendiente de validación` y notifica al administrador/contratista.

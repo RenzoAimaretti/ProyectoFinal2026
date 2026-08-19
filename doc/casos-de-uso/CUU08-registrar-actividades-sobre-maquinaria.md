@@ -13,7 +13,7 @@
 | Requerimiento(s) asociado(s) | R018, R019, R020, R021 (referencia del PDF: RF-MAQ-01/02/03) |
 | Complejidad | Alta |
 | Prioridad | Alta |
-| Estado | Borrador |
+| Estado | Revisado |
 
 ## Propósito
 

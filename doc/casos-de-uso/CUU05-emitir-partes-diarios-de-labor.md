@@ -13,7 +13,7 @@
 | Requerimiento(s) asociado(s) | R007, R008, R017 (referencia: R009, R021, R023, R032) |
 | Complejidad | Alta |
 | Prioridad | Alta |
-| Estado | Borrador |
+| Estado | Revisado |
 
 ## Propósito
 
@@ -21,22 +21,23 @@ Emitir y aprobar los partes diarios de labor cargados por los operarios desde el
 
 ## Disparador
 
-Un operario a campo carga un parte diario de labor desde el móvil (online u offline) y el parte queda pendiente de aprobación en la bandeja del administrador.
-
+El operario termina la tarea y desea cargar la tarea
 ## Precondiciones
 
 - El operario debe contar con el rol Operario a Campo y permisos de carga de partes (R007).
 - Debe existir un lote delimitado (CUU02) asociado a un cliente y a una firma/razón social.
 - El lote debe contar con una receta agronómica cargada por el ingeniero agrónomo (R009) para habilitar el trabajo y posibilitar el cálculo del consumo teórico.
 - El parte debe incluir fecha, cliente/firma, lote, hectáreas, tarea/labor y, si corresponde, cantidades de insumos consumidas.
+- La tarea debe tener asignada una firma.
+- El operario esta logueado.
 
 ## Flujo principal
 
-1. El operario abre la app móvil y crea un parte diario (formulario "Parte Diario Express"): selecciona `Cliente → Firma → Campo → Lote → Labor`.
+1. El operario abre la app móvil e ingresa a las tareas asignadas y selecciona la tarea realizada.
 2. Ingresa fecha, hectáreas trabajadas y horas/jornada.
 3. Para cada insumo aplicado agrega un ítem de consumo: insumo del catálogo + cantidad real consumida (L/kg/unidad), de carga manual.
 4. Adjunta hasta 5 fotografías opcionales del cuaderno o constancia física como respaldo (R008). ## VER SI SE HACE ASI
-5. Si no hay conectividad, el parte se almacena localmente y queda en cola de sincronización; al recuperar señal se sincroniza con el backend (R007). Con el parte sincronizado, el sistema lo marca como `Pendiente de aprobación`.
+5. El sistema lo marca como `Pendiente de aprobación`.
 6. El administrador/dueño abre la bandeja de partes pendientes en el web y selecciona el parte.
 7. El sistema presenta los datos del parte, las fotografías adjuntas y el impacto de stock que generaría sobre el cliente.
 8. El administrador aprueba el parte (se completa el mutuo acuerdo) y el sistema registra fecha/hora de aprobación e inicia en cascada:
@@ -56,6 +57,12 @@ Un operario a campo carga un parte diario de labor desde el móvil (online u off
 4. El parte pasa a estado `Rechazado` y se reabre el mismo registro para corrección por parte del operario, conservando el historial de rechazos (motivos y fechas).
 5. El operario recibe el aviso, corrige los datos sobre el mismo parte abierto y lo reenvía.
 6. El parte vuelve a quedar `Pendiente de aprobación`, iniciando un nuevo ciclo de mutuo acuerdo.
+
+### A2: No hay contectividad
+
+1. El sistema almacena localmente y queda en cola de sincronizacion.
+2. Recuperada la señal se sincroniza con el backend (R007)
+3. Vuelve al paso 5
 
 ## Postcondiciones
 

@@ -13,7 +13,7 @@
 | Requerimiento(s) asociado(s) | R015 (referencia: R009, R014, R017) |
 | Complejidad | Media |
 | Prioridad | Alta |
-| Estado | Borrador |
+| Estado | Revisado |
 
 ## Propósito
 
@@ -27,6 +27,7 @@ Se completa un lote o se cierra una campaña (verificación automática), o el a
 
 - Deben existir recepciones validadas de insumos (CUU06 / R014) y partes aprobados con consumos registrados (CUU05 / R017) para el cliente.
 - Los lotes trabajados deben contar con una receta agronómica (R009) para el cálculo del consumo teórico.
+- El usuario esta registrado con el rol correspondiente.
 
 ## Flujo principal
 

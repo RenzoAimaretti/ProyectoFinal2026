@@ -13,7 +13,7 @@
 | Requerimiento(s) asociado(s) | R026, R027, R028, R029, R030 |
 | Complejidad | Alta |
 | Prioridad | Alta |
-| Estado | Borrador |
+| Estado | Revisado |
 
 ## Propósito
 
