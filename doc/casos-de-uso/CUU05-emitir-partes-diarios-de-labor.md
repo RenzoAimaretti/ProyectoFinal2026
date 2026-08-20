@@ -27,8 +27,8 @@ El operario termina la tarea y desea cargar la tarea
 - El operario debe contar con el rol Operario a Campo y permisos de carga de partes (R007).
 - Debe existir un lote delimitado (CUU02) asociado a un cliente y a una firma/razón social.
 - El lote debe contar con una receta agronómica cargada por el ingeniero agrónomo (R009) para habilitar el trabajo y posibilitar el cálculo del consumo teórico.
-- El parte debe incluir fecha, cliente/firma, lote, hectáreas, tarea/labor y, si corresponde, cantidades de insumos consumidas.
-- La tarea debe tener asignada una firma.
+- El parte incluye fecha, cliente/firma, lote, hectáreas, tarea/labor y, si corresponde, cantidades de insumos consumidas.
+- La tarea tiene asignada una firma.
 - El operario esta logueado.
 
 ## Flujo principal
@@ -36,7 +36,7 @@ El operario termina la tarea y desea cargar la tarea
 1. El operario abre la app móvil e ingresa a las tareas asignadas y selecciona la tarea realizada.
 2. Ingresa fecha, hectáreas trabajadas y horas/jornada.
 3. Para cada insumo aplicado agrega un ítem de consumo: insumo del catálogo + cantidad real consumida (L/kg/unidad), de carga manual.
-4. Adjunta hasta 5 fotografías opcionales del cuaderno o constancia física como respaldo (R008). ## VER SI SE HACE ASI
+4. Adjunta hasta 5 fotografías opcionales del cuaderno o constancia física como respaldo (R008).
 5. El sistema lo marca como `Pendiente de aprobación`.
 6. El administrador/dueño abre la bandeja de partes pendientes en el web y selecciona el parte.
 7. El sistema presenta los datos del parte, las fotografías adjuntas y el impacto de stock que generaría sobre el cliente.
