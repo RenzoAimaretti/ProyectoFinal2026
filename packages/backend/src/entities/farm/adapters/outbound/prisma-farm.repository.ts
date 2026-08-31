@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import {
-  CompanyReaderPort,
-  FarmRepositoryPort,
-} from '../../application/farm.ports';
+import { FarmRepositoryPort } from '../../application/farm.ports';
 import {
   CreateFarmInput,
   FarmRecord,
@@ -11,18 +8,18 @@ import {
 } from '../../application/farm.types';
 
 @Injectable()
-export class PrismaFarmRepository
-  implements FarmRepositoryPort, CompanyReaderPort
-{
+export class PrismaFarmRepository implements FarmRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<FarmRecord[]> {
-    return this.prisma.farm.findMany();
+  findAllByCompanyId(companyId: string): Promise<FarmRecord[]> {
+    return this.prisma.farm.findMany({
+      where: { companyId },
+    });
   }
 
-  findById(id: string): Promise<FarmRecord | null> {
-    return this.prisma.farm.findUnique({
-      where: { id },
+  findByIdForCompany(id: string, companyId: string): Promise<FarmRecord | null> {
+    return this.prisma.farm.findFirst({
+      where: { id, companyId },
     });
   }
 
@@ -35,7 +32,7 @@ export class PrismaFarmRepository
     });
   }
 
-  create(data: CreateFarmInput): Promise<FarmRecord> {
+  create(data: CreateFarmInput & { companyId: string }): Promise<FarmRecord> {
     return this.prisma.farm.create({
       data: {
         name: data.name,
@@ -46,13 +43,25 @@ export class PrismaFarmRepository
     });
   }
 
-  update(id: string, data: UpdateFarmInput): Promise<FarmRecord> {
+  async updateForCompany(
+    id: string,
+    companyId: string,
+    data: UpdateFarmInput,
+  ): Promise<FarmRecord> {
+    const farm = await this.prisma.farm.findFirst({
+      where: { id, companyId },
+      select: { id: true },
+    });
+
+    if (!farm) {
+      throw new Error(`Farm with id ${id} not found for company ${companyId}`);
+    }
+
     return this.prisma.farm.update({
-      where: { id },
+      where: { id: farm.id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.location !== undefined ? { location: data.location } : {}),
-        ...(data.companyId !== undefined ? { companyId: data.companyId } : {}),
         ...(data.surface !== undefined ? { surface: data.surface } : {}),
       },
     });

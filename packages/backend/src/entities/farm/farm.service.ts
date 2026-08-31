@@ -25,21 +25,30 @@ export class FarmService {
     private readonly updateUseCase: UpdateFarmUseCase,
   ) {}
 
-  findAll() {
-    return this.handle(() => this.findAllUseCase.execute(), 'fetching farms');
-  }
-
-  findOne(id: string) {
-    return this.handle(() => this.findOneUseCase.execute(id), 'fetching farm');
-  }
-
-  create(data: CreateFarmInput) {
-    return this.handle(() => this.createUseCase.execute(data), 'creating farm');
-  }
-
-  update(id: string, data: UpdateFarmInput) {
+  findAll(companyId: string) {
     return this.handle(
-      () => this.updateUseCase.execute(id, data),
+      () => this.findAllUseCase.execute(companyId),
+      'fetching farms',
+    );
+  }
+
+  findOne(id: string, companyId: string) {
+    return this.handle(
+      () => this.findOneUseCase.execute(id, companyId),
+      'fetching farm',
+    );
+  }
+
+  create(companyId: string, data: CreateFarmInput) {
+    return this.handle(
+      () => this.createUseCase.execute(companyId, data),
+      'creating farm',
+    );
+  }
+
+  update(id: string, companyId: string, data: UpdateFarmInput) {
+    return this.handle(
+      () => this.updateUseCase.execute(id, companyId, data),
       'updating farm',
     );
   }

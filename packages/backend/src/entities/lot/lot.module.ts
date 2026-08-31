@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { LotService } from './lot.service';
 import { LotController } from './lot.controller';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PrismaLotRepository } from './adapters/outbound/prisma-lot.repository';
 import { PrismaFarmReader } from './adapters/outbound/prisma-farm.reader';
 import {
@@ -20,6 +21,7 @@ import { UpdateLotUseCase } from './application/use-cases/update-lot.use-case';
   controllers: [LotController],
   providers: [
     LotService,
+    JwtAuthGuard,
     PrismaLotRepository,
     PrismaFarmReader,
     {

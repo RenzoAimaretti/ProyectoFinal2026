@@ -13,13 +13,13 @@ export type FarmRecord = {
 export type CreateFarmInput = {
   name: string;
   location: string;
-  companyId: string;
   surface: number;
+  companyId?: string;
 };
 
 export type UpdateFarmInput = {
   name?: string;
   location?: string;
-  companyId?: string;
   surface?: number;
+  companyId?: string;
 };

@@ -5,8 +5,8 @@ import { FarmRecord } from '../farm.types';
 export class FindFarmUseCase {
   constructor(private readonly repository: FarmRepositoryPort) {}
 
-  async execute(id: string): Promise<FarmRecord> {
-    const farm = await this.repository.findById(id);
+  async execute(id: string, companyId: string): Promise<FarmRecord> {
+    const farm = await this.repository.findByIdForCompany(id, companyId);
 
     if (!farm) {
       throw new EntityNotFoundError(`Farm with id ${id} not found`);

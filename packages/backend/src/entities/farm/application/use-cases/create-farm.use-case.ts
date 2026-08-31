@@ -9,20 +9,20 @@ export class CreateFarmUseCase {
     private readonly companyReader: CompanyReaderPort,
   ) {}
 
-  async execute(data: CreateFarmInput): Promise<FarmRecord> {
+  async execute(companyId: string, data: CreateFarmInput): Promise<FarmRecord> {
     const name = assertRequiredString(data.name, 'name');
     const location = assertRequiredString(data.location, 'location');
-    const companyId = assertRequiredString(data.companyId, 'companyId');
     const surface = assertPositiveNumber(data.surface, 'surface');
+    const tenantCompanyId = assertRequiredString(companyId, 'companyId');
 
-    const company = await this.companyReader.findById(companyId);
+    const company = await this.companyReader.findById(tenantCompanyId);
     if (!company) {
       throw new EntityNotFoundError('Company with this ID does not exist');
     }
 
     const existingFarm = await this.repository.findByNameAndCompanyId(
       name,
-      companyId,
+      tenantCompanyId,
     );
     if (existingFarm) {
       throw new DuplicateEntityError(
@@ -33,7 +33,7 @@ export class CreateFarmUseCase {
     return this.repository.create({
       name,
       location,
-      companyId,
+      companyId: tenantCompanyId,
       surface,
     });
   }

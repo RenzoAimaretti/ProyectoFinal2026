@@ -4,14 +4,21 @@ export const FARM_REPOSITORY = Symbol('FARM_REPOSITORY');
 export const COMPANY_READER = Symbol('COMPANY_READER');
 
 export interface FarmRepositoryPort {
-  findAll(): Promise<FarmRecord[]>;
-  findById(id: string): Promise<FarmRecord | null>;
+  findAllByCompanyId(companyId: string): Promise<FarmRecord[]>;
+  findByIdForCompany(
+    id: string,
+    companyId: string,
+  ): Promise<FarmRecord | null>;
   findByNameAndCompanyId(
     name: string,
     companyId: string,
   ): Promise<FarmRecord | null>;
-  create(data: CreateFarmInput): Promise<FarmRecord>;
-  update(id: string, data: UpdateFarmInput): Promise<FarmRecord>;
+  create(data: CreateFarmInput & { companyId: string }): Promise<FarmRecord>;
+  updateForCompany(
+    id: string,
+    companyId: string,
+    data: UpdateFarmInput,
+  ): Promise<FarmRecord>;
 }
 
 export interface CompanyReaderPort {

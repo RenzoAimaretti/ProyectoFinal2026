@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import {
   COMPANY_READER,
   FARM_REPOSITORY,
@@ -10,6 +11,7 @@ import { CreateFarmUseCase } from './application/use-cases/create-farm.use-case'
 import { FindAllFarmsUseCase } from './application/use-cases/find-all-farms.use-case';
 import { FindFarmUseCase } from './application/use-cases/find-farm.use-case';
 import { UpdateFarmUseCase } from './application/use-cases/update-farm.use-case';
+import { PrismaCompanyReader } from './adapters/outbound/prisma-company.reader';
 import { PrismaFarmRepository } from './adapters/outbound/prisma-farm.repository';
 import { FarmController } from './farm.controller';
 import { FarmService } from './farm.service';
@@ -19,9 +21,11 @@ import { FarmService } from './farm.service';
   controllers: [FarmController],
   providers: [
     FarmService,
+    JwtAuthGuard,
     PrismaFarmRepository,
+    PrismaCompanyReader,
     { provide: FARM_REPOSITORY, useExisting: PrismaFarmRepository },
-    { provide: COMPANY_READER, useExisting: PrismaFarmRepository },
+    { provide: COMPANY_READER, useExisting: PrismaCompanyReader },
     {
       provide: FindAllFarmsUseCase,
       useFactory: (repository: FarmRepositoryPort) =>

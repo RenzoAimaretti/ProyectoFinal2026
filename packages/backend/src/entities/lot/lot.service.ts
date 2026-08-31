@@ -8,6 +8,7 @@ import {
   DuplicateEntityError,
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
 } from './domain/errors';
 import { CreateLotUseCase } from './application/use-cases/create-lot.use-case';
 import { FindAllLotsUseCase } from './application/use-cases/find-all-lots.use-case';
@@ -24,33 +25,33 @@ export class LotService {
     private readonly updateLotUseCase: UpdateLotUseCase,
   ) {}
 
-  async findAll() {
+  async findAll(companyId: string) {
     try {
-      return await this.findAllLotsUseCase.execute();
+      return await this.findAllLotsUseCase.execute(companyId);
     } catch (error) {
       this.handleUnexpectedError('Error fetching lots', error);
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, companyId: string) {
     try {
-      return await this.findLotUseCase.execute(id);
+      return await this.findLotUseCase.execute(id, companyId);
     } catch (error) {
       this.handleLotReadError('Error fetching lot', error);
     }
   }
 
-  async create(data: CreateLotInput) {
+  async create(companyId: string, data: CreateLotInput) {
     try {
-      return await this.createLotUseCase.execute(data);
+      return await this.createLotUseCase.execute(companyId, data);
     } catch (error) {
       this.handleCreateError(error);
     }
   }
 
-  async update(id: string, data: UpdateLotInput) {
+  async update(id: string, companyId: string, data: UpdateLotInput) {
     try {
-      return await this.updateLotUseCase.execute(id, data);
+      return await this.updateLotUseCase.execute(id, companyId, data);
     } catch (error) {
       this.handleUpdateError(id, error);
     }
@@ -61,6 +62,10 @@ export class LotService {
       throw new BadRequestException(
         'Missing required fields: name, farmId, coords, and area',
       );
+    }
+
+    if (error instanceof InvalidRelationError) {
+      throw new BadRequestException(error.message);
     }
 
     if (
@@ -85,6 +90,10 @@ export class LotService {
 
   private handleUpdateError(id: string, error: unknown): never {
     if (error instanceof InvalidInputError) {
+      throw new BadRequestException(error.message);
+    }
+
+    if (error instanceof InvalidRelationError) {
       throw new BadRequestException(error.message);
     }
 

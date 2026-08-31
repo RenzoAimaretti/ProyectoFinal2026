@@ -9,40 +9,47 @@ export class UpdateFarmUseCase {
     private readonly companyReader: CompanyReaderPort,
   ) {}
 
-  async execute(id: string, data: UpdateFarmInput): Promise<FarmRecord> {
-    if (!data || Object.keys(data).length === 0) {
+  async execute(
+    id: string,
+    companyId: string,
+    data?: UpdateFarmInput,
+  ): Promise<FarmRecord> {
+    if (!data) {
       throw new InvalidInputError('No data provided for update');
     }
 
-    const farm = await this.repository.findById(id);
+    const sanitizedData: UpdateFarmInput = {
+      ...(data.name !== undefined ? { name: data.name } : {}),
+      ...(data.location !== undefined ? { location: data.location } : {}),
+      ...(data.surface !== undefined ? { surface: data.surface } : {}),
+    };
+
+    if (Object.keys(sanitizedData).length === 0) {
+      throw new InvalidInputError('No data provided for update');
+    }
+
+    const farm = await this.repository.findByIdForCompany(id, companyId);
     if (!farm) {
       throw new EntityNotFoundError(`Farm with id ${id} not found`);
     }
 
     const updateData: UpdateFarmInput = {};
 
-    if (data.name !== undefined) {
-      updateData.name = assertRequiredString(data.name, 'name');
+    if (sanitizedData.name !== undefined) {
+      updateData.name = assertRequiredString(sanitizedData.name, 'name');
     }
 
-    if (data.location !== undefined) {
-      updateData.location = assertRequiredString(data.location, 'location');
+    if (sanitizedData.location !== undefined) {
+      updateData.location = assertRequiredString(
+        sanitizedData.location,
+        'location',
+      );
     }
 
-    if (data.companyId !== undefined) {
-      const companyId = assertRequiredString(data.companyId, 'companyId');
-      const company = await this.companyReader.findById(companyId);
-      if (!company) {
-        throw new EntityNotFoundError('Company with this ID does not exist');
-      }
-
-      updateData.companyId = companyId;
+    if (sanitizedData.surface !== undefined) {
+      updateData.surface = assertPositiveNumber(sanitizedData.surface, 'surface');
     }
 
-    if (data.surface !== undefined) {
-      updateData.surface = assertPositiveNumber(data.surface, 'surface');
-    }
-
-    return this.repository.update(id, updateData);
+    return this.repository.updateForCompany(id, companyId, updateData);
   }
 }

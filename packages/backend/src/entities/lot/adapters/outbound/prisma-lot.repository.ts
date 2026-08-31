@@ -11,13 +11,15 @@ import {
 export class PrismaLotRepository implements LotRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<LotRecord[]> {
-    return this.prisma.lot.findMany();
+  findAllByCompanyId(companyId: string): Promise<LotRecord[]> {
+    return this.prisma.lot.findMany({
+      where: { farm: { companyId } },
+    });
   }
 
-  findById(id: string): Promise<LotRecord | null> {
-    return this.prisma.lot.findUnique({
-      where: { id },
+  findByIdForCompany(id: string, companyId: string): Promise<LotRecord | null> {
+    return this.prisma.lot.findFirst({
+      where: { id, farm: { companyId } },
     });
   }
 
@@ -38,9 +40,22 @@ export class PrismaLotRepository implements LotRepositoryPort {
     });
   }
 
-  update(id: string, data: UpdateLotInput): Promise<LotRecord> {
+  async updateForCompany(
+    id: string,
+    companyId: string,
+    data: UpdateLotInput,
+  ): Promise<LotRecord> {
+    const lot = await this.prisma.lot.findFirst({
+      where: { id, farm: { companyId } },
+      select: { id: true },
+    });
+
+    if (!lot) {
+      throw new Error(`Lot with id ${id} not found for company ${companyId}`);
+    }
+
     return this.prisma.lot.update({
-      where: { id },
+      where: { id: lot.id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.farmId !== undefined ? { farmId: data.farmId } : {}),

@@ -16,6 +16,7 @@ export type CreateLotInput = {
   farmId: string;
   coords: string;
   area: number;
+  companyId?: string;
 };
 
 export type UpdateLotInput = {
@@ -24,4 +25,5 @@ export type UpdateLotInput = {
   coords?: string;
   area?: number;
   active?: boolean;
+  companyId?: string;
 };
