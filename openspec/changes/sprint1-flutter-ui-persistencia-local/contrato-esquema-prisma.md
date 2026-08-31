@@ -72,14 +72,14 @@ Convenciones: `PascalCase` modelos · `camelCase` campos · PK `TEXT` (uuid) · 
 ### 3.2 — Entidades nuevas (no existen en Prisma)
 `Client`, `Input`, `Recipe` + `RecipeItem`, `DailyReport` + `DailyReportItem`, `Reception` + `ReceptionItem`, `Stock`, `Photo`, y `MachineActivity` (extiende `MachineUsage`).
 
-### 3.3 — Naming de enums (español vs inglés)
-Backend usa `PENDIENTE`, `ACTIVA`, `FUERA_SERVICIO`. El móvil usa `PENDING_APPROVAL`, `APPROVED`, `ACTIVE`, `OUT_OF_SERVICE`. Hay que **unificar criterio** (recomendado: inglés, o mapear en el adaptador de sync).
+### 3.3 — Naming de enums (español vs inglés) — ✅ RESUELTO
+**Decisión:** enums en **inglés**. El móvil usa `PENDING_APPROVAL` / `APPROVED` / `ACTIVE` / `OUT_OF_SERVICE`. El backend debe alinear sus enums a inglés (o el adaptador de sync mapeará español→inglés).
 
 ### 3.4 — `TaskType` sin `version`/`deleted`
 Los demás catálogos del backend los tienen; `TaskType` no. Para la sync es conveniente que lo tenga.
 
-### 3.5 — Relación multi-firma `Client ↔ Company` sin modelar
-No existe ningún lugar que defina qué Firma atiende a qué Cliente. Es necesario para asignar correctamente el parte diario a la firma correcta y para el multi-tenant.
+### 3.5 — Relación multi-firma `Client ↔ Company` — ✅ RESUELTO
+**Decisión:** el **Campo pertenece al Cliente** (`Farm.clientId → Client`) y es **trabajado por una Firma**, resuelta a nivel de parte diario (`DailyReport.companyId`). **No se requiere** tabla de relación `Client ↔ Company` explícita.
 
 ---
 

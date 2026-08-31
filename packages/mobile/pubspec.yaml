@@ -36,6 +36,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.6.0
 
+  # Persistencia local (drift SQLite ORM). drift_flutter aporta los helpers
+  # nativos de path (path_provider + sqlite3_flutter_libs) de forma transitiva.
+  drift: ^2.32.1
+  drift_flutter: ^0.3.0
+  path: ^1.9.1
+  uuid: ^4.6.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -46,6 +53,10 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+
+  # Codegen de drift (build_runner + drift_dev).
+  drift_dev: ^2.32.1
+  build_runner: ^2.15.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

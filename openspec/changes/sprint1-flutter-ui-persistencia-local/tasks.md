@@ -4,9 +4,9 @@
 
 ## 1. Project setup (drift)
 
-- [ ] 1.1 En `packages/mobile/pubspec.yaml` agregar `drift`, `drift_flutter` (ya incluye `sqlite3_flutter_libs`), `path_provider`, `path`, `uuid`; dev: `drift_dev`, `build_runner`.
-- [ ] 1.2 Crear `packages/mobile/build.yaml` habilitando el codegen de `drift_dev` para el package `mobile`.
-- [ ] 1.3 Correr `dart run build_runner build` y verificar que genera los part files `*.g.dart` sin errores.
+- [x] 1.1 En `packages/mobile/pubspec.yaml` agregar `drift`, `drift_flutter` (ya incluye `sqlite3_flutter_libs`), `path`, `uuid`; dev: `drift_dev`, `build_runner`. (`path_provider` se omite: lo aporta `drift_flutter` transitivamente).
+- [x] 1.2 Crear `packages/mobile/build.yaml` habilitando el codegen de `drift_dev` para el package `mobile`.
+- [ ] 1.3 Correr `dart run build_runner build` y verificar que genera los part files `*.g.dart` sin errores. (Diferido a Phase 2: no hay tablas drift todavía.)
 
 ## 2. DB foundation (AppDatabase + 18 tablas, schema v1)
 
