@@ -9,15 +9,15 @@ export const TASK_TYPE_REPOSITORY = Symbol('TASK_TYPE_REPOSITORY');
 export const TASK_READER = Symbol('TASK_TYPE_TASK_READER');
 
 export interface TaskTypeRepositoryPort {
-  findAll(): Promise<TaskTypeRecord[]>;
-  findById(id: string): Promise<TaskTypeRecord | null>;
-  findByName(name: string): Promise<TaskTypeRecord | null>;
-  findByIds(ids: string[]): Promise<TaskLookupRecord[]>;
+  findAllByCompanyId(companyId: string): Promise<TaskTypeRecord[]>;
+  findByIdForCompany(id: string, companyId: string): Promise<TaskTypeRecord | null>;
+  findByNameAndCompanyId(name: string, companyId: string): Promise<TaskTypeRecord | null>;
+  findByIdsForCompany(ids: string[], companyId: string): Promise<TaskLookupRecord[]>;
   create(data: CreateTaskTypeData): Promise<TaskTypeRecord>;
-  update(id: string, data: UpdateTaskTypeData): Promise<TaskTypeRecord>;
-  delete(id: string): Promise<void>;
+  updateForCompany(id: string, companyId: string, data: UpdateTaskTypeData): Promise<TaskTypeRecord>;
+  deleteForCompany(id: string, companyId: string): Promise<void>;
 }
 
 export interface TaskReaderPort {
-  findByIds(ids: string[]): Promise<TaskLookupRecord[]>;
+  findByIdsForCompany(ids: string[], companyId: string): Promise<TaskLookupRecord[]>;
 }

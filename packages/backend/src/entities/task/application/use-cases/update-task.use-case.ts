@@ -10,9 +10,9 @@ import {
 export class UpdateTaskUseCase {
   constructor(private readonly repository: TaskRepositoryPort) {}
 
-  async execute(id: string, input: UpdateTaskInput): Promise<TaskOutput> {
+  async execute(id: string, companyId: string, input: UpdateTaskInput): Promise<TaskOutput> {
     const payload = assertNonEmptyObject(input);
-    const existing = await this.repository.findById(id);
+    const existing = await this.repository.findByIdForCompany(id, companyId);
 
     if (!existing) {
       throw new EntityNotFoundError(`Task with id ${id} not found`);
@@ -32,6 +32,6 @@ export class UpdateTaskUseCase {
       data.finishedAt = normalizeOptionalDate(payload.finishedAt, 'finishedAt');
     }
 
-    return this.repository.update(id, data);
+    return this.repository.updateForCompany(id, companyId, data);
   }
 }

@@ -9,12 +9,22 @@ export const COMPANY_READER = Symbol('COMPANY_READER');
 export const LOT_READER = Symbol('LOT_READER');
 
 export interface LivestockRepositoryPort {
-  findAll(): Promise<LivestockRecord[]>;
-  findById(id: string): Promise<LivestockRecord | null>;
-  findByTagNumber(tagNumber: string): Promise<LivestockRecord | null>;
-  create(data: CreateLivestockInput): Promise<LivestockRecord>;
-  update(id: string, data: UpdateLivestockInput): Promise<LivestockRecord>;
-  delete(id: string): Promise<void>;
+  findAllByCompanyId(companyId: string): Promise<LivestockRecord[]>;
+  findByIdForCompany(
+    id: string,
+    companyId: string,
+  ): Promise<LivestockRecord | null>;
+  findByTagNumberAndCompanyId(
+    tagNumber: string,
+    companyId: string,
+  ): Promise<LivestockRecord | null>;
+  create(data: CreateLivestockInput & { companyId: string }): Promise<LivestockRecord>;
+  updateForCompany(
+    id: string,
+    companyId: string,
+    data: UpdateLivestockInput,
+  ): Promise<LivestockRecord>;
+  deleteForCompany(id: string, companyId: string): Promise<void>;
 }
 
 export interface CompanyReaderPort {
@@ -22,5 +32,8 @@ export interface CompanyReaderPort {
 }
 
 export interface LotReaderPort {
-  findById(id: string): Promise<{ id: string; companyId: string } | null>;
+  findByIdForCompany(
+    id: string,
+    companyId: string,
+  ): Promise<{ id: string; companyId: string } | null>;
 }

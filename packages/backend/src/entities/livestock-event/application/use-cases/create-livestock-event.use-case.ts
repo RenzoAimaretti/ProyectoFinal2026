@@ -1,4 +1,4 @@
-import { EntityNotFoundError } from '../../domain/errors';
+import { EntityNotFoundError, InvalidRelationError } from '../../domain/errors';
 import {
   LivestockEventRepositoryPort,
   LivestockReaderPort,
@@ -22,7 +22,18 @@ export class CreateLivestockEventUseCase {
     private readonly userReader: UserReaderPort,
   ) {}
 
-  async execute(data: CreateLivestockEventInput): Promise<LivestockEventRecord> {
+  async execute(
+    companyIdOrData: string | CreateLivestockEventInput,
+    maybeData?: CreateLivestockEventInput,
+  ): Promise<LivestockEventRecord> {
+    const hasCompanyScope = typeof companyIdOrData === 'string';
+    const companyId = hasCompanyScope ? companyIdOrData : undefined;
+    const data = hasCompanyScope ? maybeData : companyIdOrData;
+
+    if (!data) {
+      throw new InvalidRelationError('Create livestock event requires input data');
+    }
+
     const livestockId = assertRequiredString(data.livestockId, 'livestockId');
     const operatorId = assertRequiredString(data.operatorId, 'operatorId');
     const eventType = data.eventType;
@@ -33,15 +44,31 @@ export class CreateLivestockEventUseCase {
 
     const eventDate = normalizeRequiredDate(data.eventDate, 'eventDate');
 
-    const livestock = await this.livestockReader.findById(livestockId);
+    const livestock = companyId
+      ? await this.livestockReader.findByIdForCompany(livestockId, companyId)
+      : await this.livestockReader.findById(livestockId);
     if (!livestock) {
-      throw new EntityNotFoundError(
-        `Livestock with id ${livestockId} not found`,
-      );
+      const existsElsewhere = companyId ? await this.livestockReader.findById(livestockId) : null;
+      if (existsElsewhere) {
+        throw new InvalidRelationError(
+          `Livestock with id ${livestockId} does not belong to company ${companyId}`,
+        );
+      }
+
+      throw new EntityNotFoundError(`Livestock with id ${livestockId} not found`);
     }
 
-    const operator = await this.userReader.findById(operatorId);
+    const operator = companyId
+      ? await this.userReader.findByIdForCompany(operatorId, companyId)
+      : await this.userReader.findById(operatorId);
     if (!operator) {
+      const existsElsewhere = companyId ? await this.userReader.findById(operatorId) : null;
+      if (existsElsewhere) {
+        throw new InvalidRelationError(
+          `Operator with id ${operatorId} does not belong to company ${companyId}`,
+        );
+      }
+
       throw new EntityNotFoundError(`Operator with id ${operatorId} not found`);
     }
 

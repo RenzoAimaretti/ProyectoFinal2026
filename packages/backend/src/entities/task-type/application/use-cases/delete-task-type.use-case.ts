@@ -5,14 +5,14 @@ import { RemoveTaskTypeOutput } from '../task-type.types';
 export class DeleteTaskTypeUseCase {
   constructor(private readonly repository: TaskTypeRepositoryPort) {}
 
-  async execute(id: string): Promise<RemoveTaskTypeOutput> {
-    const existing = await this.repository.findById(id);
+  async execute(id: string, companyId: string): Promise<RemoveTaskTypeOutput> {
+    const existing = await this.repository.findByIdForCompany(id, companyId);
 
     if (!existing) {
       throw new EntityNotFoundError(`Task type with id ${id} not found`);
     }
 
-    await this.repository.delete(id);
+    await this.repository.deleteForCompany(id, companyId);
 
     return { message: `Task type with id ${id} deleted successfully` };
   }

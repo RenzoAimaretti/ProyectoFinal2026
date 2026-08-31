@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import {
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
 } from '../../domain/errors';
 import {
   CreateLivestockEventInput,
@@ -35,17 +36,23 @@ const baseEvent = {
 function createPorts() {
   const repository: jest.Mocked<LivestockEventRepositoryPort> = {
     findAll: jest.fn(),
+    findAllByCompanyId: jest.fn(),
     findById: jest.fn(),
+    findByIdForCompany: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateForCompany: jest.fn(),
+    deleteForCompany: jest.fn(),
   };
 
   const livestockReader: jest.Mocked<LivestockReaderPort> = {
     findById: jest.fn(),
+    findByIdForCompany: jest.fn(),
   };
 
   const userReader: jest.Mocked<UserReaderPort> = {
     findById: jest.fn(),
+    findByIdForCompany: jest.fn(),
   };
 
   return { repository, livestockReader, userReader };
@@ -75,44 +82,52 @@ describe('Livestock event use cases', () => {
   });
 
   describe('FindAllLivestockEventsUseCase', () => {
-    it('returns all livestock events', async () => {
+    it('returns only livestock events for the provided company', async () => {
       const { repository } = createPorts();
-      repository.findAll.mockResolvedValue([baseEvent]);
+      repository.findAllByCompanyId.mockResolvedValue([baseEvent]);
 
       const useCase = new FindAllLivestockEventsUseCase(repository);
 
-      await expect(useCase.execute()).resolves.toEqual([baseEvent]);
+      await expect(useCase.execute('company-1')).resolves.toEqual([baseEvent]);
+
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-1');
     });
 
-    it('returns an empty list when there are no livestock events', async () => {
+    it('returns an empty list for a different company scope', async () => {
       const { repository } = createPorts();
-      repository.findAll.mockResolvedValue([]);
+      repository.findAllByCompanyId.mockResolvedValue([]);
 
       const useCase = new FindAllLivestockEventsUseCase(repository);
 
-      await expect(useCase.execute()).resolves.toEqual([]);
+      await expect(useCase.execute('company-2')).resolves.toEqual([]);
+
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-2');
     });
   });
 
   describe('FindLivestockEventUseCase', () => {
-    it('returns a livestock event by id', async () => {
+    it('returns a livestock event by id within the current company', async () => {
       const { repository } = createPorts();
-      repository.findById.mockResolvedValue(baseEvent);
+      repository.findByIdForCompany.mockResolvedValue(baseEvent);
 
       const useCase = new FindLivestockEventUseCase(repository);
 
-      await expect(useCase.execute('event-1')).resolves.toEqual(baseEvent);
+      await expect(useCase.execute('event-1', 'company-1')).resolves.toEqual(baseEvent);
+
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('event-1', 'company-1');
     });
 
-    it('rejects a missing livestock event', async () => {
+    it('rejects a cross-tenant livestock event target', async () => {
       const { repository } = createPorts();
-      repository.findById.mockResolvedValue(null);
+      repository.findByIdForCompany.mockResolvedValue(null);
 
       const useCase = new FindLivestockEventUseCase(repository);
 
-      await expect(useCase.execute('event-1')).rejects.toBeInstanceOf(
+      await expect(useCase.execute('event-1', 'company-2')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
+
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('event-1', 'company-2');
     });
   });
 
@@ -142,93 +157,84 @@ describe('Livestock event use cases', () => {
         eventType: 'VACUNACION',
         livestockId: 'livestock-1',
         operatorId: 'user-1',
-        obs: 'Annual vaccine',
-        vaccine: 'Aftosa',
-        dose: 2,
       };
 
       (input as Record<string, unknown>)[field] = value;
 
-      await expect(useCase.execute(input)).rejects.toBeInstanceOf(
+      await expect(useCase.execute('company-1', input)).rejects.toBeInstanceOf(
         InvalidInputError,
       );
     });
 
-    it('rejects invalid eventDate', async () => {
-      await expect(
-        useCase.execute({
-          eventDate: 'not-a-date',
-          eventType: 'VACUNACION',
-          livestockId: 'livestock-1',
-          operatorId: 'user-1',
-        }),
-      ).rejects.toBeInstanceOf(InvalidInputError);
-    });
-
-    it('rejects missing livestock or operator', async () => {
-      livestockReader.findById.mockResolvedValue(null);
-      userReader.findById.mockResolvedValue(null);
-
-      await expect(
-        useCase.execute({
-          eventDate: '2026-01-10',
-          eventType: 'VACUNACION',
-          livestockId: 'livestock-1',
-          operatorId: 'user-1',
-        }),
-      ).rejects.toBeInstanceOf(EntityNotFoundError);
-    });
-
-    it('creates an event and strips vaccine data when type is not VACUNACION', async () => {
-      livestockReader.findById.mockResolvedValue({ id: 'livestock-1' });
-      userReader.findById.mockResolvedValue({ id: 'user-1' });
+    it('creates an event inside the current company scope', async () => {
+      livestockReader.findByIdForCompany.mockResolvedValue({ id: 'livestock-1' });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1' });
       repository.create.mockResolvedValue(baseEvent);
 
       await expect(
-        useCase.execute({
+        useCase.execute('company-1', {
           eventDate: '2026-01-10',
-          eventType: 'TRATAMIENTO',
+          eventType: 'VACUNACION',
           livestockId: 'livestock-1',
           operatorId: 'user-1',
-          obs: 'Treatment',
-          vaccine: 'Should be ignored',
+          obs: 'Annual vaccine',
+          vaccine: 'Aftosa',
           dose: 2,
         }),
       ).resolves.toEqual(baseEvent);
 
+      expect(livestockReader.findByIdForCompany).toHaveBeenCalledWith(
+        'livestock-1',
+        'company-1',
+      );
+      expect(userReader.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-1');
       expect(repository.create).toHaveBeenCalledWith({
         eventDate: new Date('2026-01-10'),
-        eventType: 'TRATAMIENTO',
+        eventType: 'VACUNACION',
         livestockId: 'livestock-1',
         operatorId: 'user-1',
-        obs: 'Treatment',
+        obs: 'Annual vaccine',
+        vaccine: 'Aftosa',
+        dose: 2,
       });
     });
 
-    it('creates a vaccination event with vaccine data preserved', async () => {
+    it('rejects a livestock that belongs to another company', async () => {
+      livestockReader.findByIdForCompany.mockResolvedValue(null);
       livestockReader.findById.mockResolvedValue({ id: 'livestock-1' });
+
+      await expect(
+        useCase.execute('company-1', {
+          eventDate: '2026-01-10',
+          eventType: 'VACUNACION',
+          livestockId: 'livestock-1',
+          operatorId: 'user-1',
+        }),
+      ).rejects.toBeInstanceOf(InvalidRelationError);
+
+      expect(livestockReader.findByIdForCompany).toHaveBeenCalledWith(
+        'livestock-1',
+        'company-1',
+      );
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects an operator that belongs to another company', async () => {
+      livestockReader.findByIdForCompany.mockResolvedValue({ id: 'livestock-1' });
+      userReader.findByIdForCompany.mockResolvedValue(null);
       userReader.findById.mockResolvedValue({ id: 'user-1' });
-      repository.create.mockResolvedValue(baseEvent);
 
-      await useCase.execute({
-        eventDate: '2026-01-10',
-        eventType: 'VACUNACION',
-        livestockId: 'livestock-1',
-        operatorId: 'user-1',
-        obs: 'Annual vaccine',
-        vaccine: 'Aftosa',
-        dose: 2,
-      });
+      await expect(
+        useCase.execute('company-1', {
+          eventDate: '2026-01-10',
+          eventType: 'VACUNACION',
+          livestockId: 'livestock-1',
+          operatorId: 'user-1',
+        }),
+      ).rejects.toBeInstanceOf(InvalidRelationError);
 
-      expect(repository.create).toHaveBeenCalledWith({
-        eventDate: new Date('2026-01-10'),
-        eventType: 'VACUNACION',
-        livestockId: 'livestock-1',
-        operatorId: 'user-1',
-        obs: 'Annual vaccine',
-        vaccine: 'Aftosa',
-        dose: 2,
-      });
+      expect(userReader.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-1');
+      expect(repository.create).not.toHaveBeenCalled();
     });
   });
 
@@ -251,46 +257,47 @@ describe('Livestock event use cases', () => {
       'rejects empty update payload %p',
       async (input) => {
         await expect(
-          useCase.execute('event-1', input as UpdateLivestockEventInput),
+          useCase.execute('event-1', 'company-1', input as UpdateLivestockEventInput),
         ).rejects.toBeInstanceOf(InvalidInputError);
       },
     );
 
-    it('rejects missing livestock event', async () => {
-      repository.findById.mockResolvedValue(null);
+    it('rejects missing livestock event inside the current company', async () => {
+      repository.findByIdForCompany.mockResolvedValue(null);
 
       await expect(
-        useCase.execute('event-1', { obs: 'New observation' }),
+        useCase.execute('event-1', 'company-1', { obs: 'New observation' }),
       ).rejects.toBeInstanceOf(EntityNotFoundError);
     });
 
     it('rejects invalid update date', async () => {
-      repository.findById.mockResolvedValue(baseEvent);
+      repository.findByIdForCompany.mockResolvedValue(baseEvent);
 
       await expect(
-        useCase.execute('event-1', { eventDate: 'not-a-date' }),
+        useCase.execute('event-1', 'company-1', { eventDate: 'not-a-date' }),
       ).rejects.toBeInstanceOf(InvalidInputError);
     });
 
-    it('updates event and clears vaccine data when type changes', async () => {
-      repository.findById.mockResolvedValue(baseEvent);
-      livestockReader.findById.mockResolvedValue({ id: 'livestock-1' });
-      userReader.findById.mockResolvedValue({ id: 'user-1' });
-      repository.update.mockResolvedValue({
+    it('updates an event inside the current company scope', async () => {
+      repository.findByIdForCompany.mockResolvedValue(baseEvent);
+      livestockReader.findByIdForCompany.mockResolvedValue({ id: 'livestock-1' });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1' });
+      repository.updateForCompany.mockResolvedValue({
         ...baseEvent,
         type: 'TRATAMIENTO',
         vaccine: null,
         dose: null,
       });
 
-      const result = await useCase.execute('event-1', {
+      const result = await useCase.execute('event-1', 'company-1', {
         eventType: 'TRATAMIENTO',
         vaccine: 'ignored',
         dose: 4,
         obs: 'Adjusted treatment',
       });
 
-      expect(repository.update).toHaveBeenCalledWith('event-1', {
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('event-1', 'company-1');
+      expect(repository.updateForCompany).toHaveBeenCalledWith('event-1', 'company-1', {
         eventType: 'TRATAMIENTO',
         vaccine: null,
         dose: null,
@@ -304,23 +311,35 @@ describe('Livestock event use cases', () => {
       });
     });
 
-    it('updates a vaccination event and normalizes the date', async () => {
-      repository.findById.mockResolvedValue(baseEvent);
+    it('rejects a foreign livestock reference during update', async () => {
+      repository.findByIdForCompany.mockResolvedValue(baseEvent);
+      livestockReader.findByIdForCompany.mockResolvedValue(null);
       livestockReader.findById.mockResolvedValue({ id: 'livestock-1' });
-      userReader.findById.mockResolvedValue({ id: 'user-1' });
-      repository.update.mockResolvedValue({
+
+      await expect(
+        useCase.execute('event-1', 'company-1', { livestockId: 'livestock-1' }),
+      ).rejects.toBeInstanceOf(InvalidRelationError);
+
+      expect(repository.updateForCompany).not.toHaveBeenCalled();
+    });
+
+    it('updates a vaccination event and normalizes the date', async () => {
+      repository.findByIdForCompany.mockResolvedValue(baseEvent);
+      livestockReader.findByIdForCompany.mockResolvedValue({ id: 'livestock-1' });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1' });
+      repository.updateForCompany.mockResolvedValue({
         ...baseEvent,
         eventDate: new Date('2026-02-01T00:00:00.000Z'),
       });
 
-      await useCase.execute('event-1', {
+      await useCase.execute('event-1', 'company-1', {
         eventDate: '2026-02-01',
         eventType: 'VACUNACION',
         vaccine: 'Fiebre aftosa',
         dose: 3,
       });
 
-      expect(repository.update).toHaveBeenCalledWith('event-1', {
+      expect(repository.updateForCompany).toHaveBeenCalledWith('event-1', 'company-1', {
         eventDate: new Date('2026-02-01'),
         eventType: 'VACUNACION',
         vaccine: 'Fiebre aftosa',

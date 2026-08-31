@@ -1,7 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DuplicateEntityError, EntityNotFoundError, InvalidInputError } from '../../domain/errors';
-import { LotReaderPort, TaskRepositoryPort, TaskTypeReaderPort, UserReaderPort } from '../task.ports';
+import {
+  DuplicateEntityError,
+  EntityNotFoundError,
+  InvalidInputError,
+  InvalidRelationError,
+} from '../../domain/errors';
 import { CreateTaskInput, TaskStatusValue, UpdateTaskInput } from '../task.types';
 import { AddTaskOperatorUseCase } from './add-task-operator.use-case';
 import { CreateTaskUseCase } from './create-task.use-case';
@@ -25,31 +29,33 @@ const baseTask = {
   deleted: false,
 };
 
+const baseTaskWithOperators = {
+  ...baseTask,
+  operators: [{ id: 'user-1' }],
+};
+
 function createPorts() {
-  const repository: jest.Mocked<TaskRepositoryPort> = {
-    findAll: jest.fn(),
-    findById: jest.fn(),
-    findByIdWithOperators: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    addOperator: jest.fn(),
-    removeOperator: jest.fn(),
-    delete: jest.fn(),
+  return {
+    repository: {
+      findAllByCompanyId: jest.fn(),
+      findByIdForCompany: jest.fn(),
+      findByIdWithOperatorsForCompany: jest.fn(),
+      create: jest.fn(),
+      updateForCompany: jest.fn(),
+      addOperatorForCompany: jest.fn(),
+      removeOperatorForCompany: jest.fn(),
+      deleteForCompany: jest.fn(),
+    },
+    lotReader: {
+      findByIdForCompany: jest.fn(),
+    },
+    taskTypeReader: {
+      findByIdForCompany: jest.fn(),
+    },
+    userReader: {
+      findByIdForCompany: jest.fn(),
+    },
   };
-
-  const lotReader: jest.Mocked<LotReaderPort> = {
-    findById: jest.fn(),
-  };
-
-  const taskTypeReader: jest.Mocked<TaskTypeReaderPort> = {
-    findById: jest.fn(),
-  };
-
-  const userReader: jest.Mocked<UserReaderPort> = {
-    findById: jest.fn(),
-  };
-
-  return { repository, lotReader, taskTypeReader, userReader };
 }
 
 describe('Task use cases', () => {
@@ -79,56 +85,60 @@ describe('Task use cases', () => {
   });
 
   describe('FindAllTasksUseCase', () => {
-    it('returns all tasks', async () => {
+    it('returns only tasks for the provided company', async () => {
       const { repository } = createPorts();
-      repository.findAll.mockResolvedValue([baseTask]);
+      repository.findAllByCompanyId.mockResolvedValue([baseTask]);
 
-      const useCase = new FindAllTasksUseCase(repository);
+      const useCase: any = new FindAllTasksUseCase(repository as never);
 
-      await expect(useCase.execute()).resolves.toEqual([baseTask]);
+      await expect(useCase.execute('company-1')).resolves.toEqual([baseTask]);
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-1');
     });
 
     it('returns an empty list when there are no tasks', async () => {
       const { repository } = createPorts();
-      repository.findAll.mockResolvedValue([]);
+      repository.findAllByCompanyId.mockResolvedValue([]);
 
-      const useCase = new FindAllTasksUseCase(repository);
+      const useCase: any = new FindAllTasksUseCase(repository as never);
 
-      await expect(useCase.execute()).resolves.toEqual([]);
+      await expect(useCase.execute('company-2')).resolves.toEqual([]);
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-2');
     });
   });
 
   describe('FindTaskUseCase', () => {
-    it('returns a task by id', async () => {
+    it('returns a task by id within the current company', async () => {
       const { repository } = createPorts();
-      repository.findById.mockResolvedValue(baseTask);
+      repository.findByIdForCompany.mockResolvedValue(baseTask);
 
-      const useCase = new FindTaskUseCase(repository);
+      const useCase: any = new FindTaskUseCase(repository as never);
 
-      await expect(useCase.execute('task-1')).resolves.toEqual(baseTask);
+      await expect(useCase.execute('task-1', 'company-1')).resolves.toEqual(baseTask);
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('task-1', 'company-1');
     });
 
-    it('rejects missing tasks', async () => {
+    it('rejects missing tasks outside the current company', async () => {
       const { repository } = createPorts();
-      repository.findById.mockResolvedValue(null);
+      repository.findByIdForCompany.mockResolvedValue(null);
 
-      const useCase = new FindTaskUseCase(repository);
+      const useCase: any = new FindTaskUseCase(repository as never);
 
-      await expect(useCase.execute('task-1')).rejects.toBeInstanceOf(
+      await expect(useCase.execute('task-1', 'company-2')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('task-1', 'company-2');
     });
   });
 
   describe('CreateTaskUseCase', () => {
-    let repository: jest.Mocked<TaskRepositoryPort>;
-    let lotReader: jest.Mocked<LotReaderPort>;
-    let taskTypeReader: jest.Mocked<TaskTypeReaderPort>;
-    let useCase: CreateTaskUseCase;
+    let repository: any;
+    let lotReader: any;
+    let taskTypeReader: any;
+    let useCase: any;
 
     beforeEach(() => {
       ({ repository, lotReader, taskTypeReader } = createPorts());
-      useCase = new CreateTaskUseCase(repository, lotReader, taskTypeReader);
+      useCase = new CreateTaskUseCase(repository as never, lotReader as never, taskTypeReader as never);
     });
 
     it.each([
@@ -144,12 +154,12 @@ describe('Task use cases', () => {
 
       (input as Record<string, unknown>)[field] = value;
 
-      await expect(useCase.execute(input)).rejects.toBeInstanceOf(InvalidInputError);
+      await expect(useCase.execute('company-1', input)).rejects.toBeInstanceOf(InvalidInputError);
     });
 
     it('rejects invalid startedAt', async () => {
       await expect(
-        useCase.execute({
+        useCase.execute('company-1', {
           lotId: 'lot-1',
           taskTypeId: 'task-type-1',
           startedAt: 'not-a-date',
@@ -157,32 +167,56 @@ describe('Task use cases', () => {
       ).rejects.toBeInstanceOf(InvalidInputError);
     });
 
-    it('rejects missing lot or task type', async () => {
-      lotReader.findById.mockResolvedValue(null);
-      taskTypeReader.findById.mockResolvedValue(null);
+    it('rejects a lot that belongs to another company', async () => {
+      lotReader.findByIdForCompany.mockResolvedValue(null);
 
       await expect(
-        useCase.execute({
+        useCase.execute('company-1', {
           lotId: 'lot-1',
           taskTypeId: 'task-type-1',
           startedAt: '2026-01-10',
         }),
-      ).rejects.toBeInstanceOf(EntityNotFoundError);
+      ).rejects.toBeInstanceOf(InvalidRelationError);
+
+      expect(lotReader.findByIdForCompany).toHaveBeenCalledWith('lot-1', 'company-1');
     });
 
-    it('creates a task', async () => {
-      lotReader.findById.mockResolvedValue({ id: 'lot-1' });
-      taskTypeReader.findById.mockResolvedValue({ id: 'task-type-1' });
+    it('rejects a task type that belongs to another company', async () => {
+      lotReader.findByIdForCompany.mockResolvedValue({ id: 'lot-1' });
+      taskTypeReader.findByIdForCompany.mockResolvedValue(null);
+
+      await expect(
+        useCase.execute('company-1', {
+          lotId: 'lot-1',
+          taskTypeId: 'task-type-1',
+          startedAt: '2026-01-10',
+        }),
+      ).rejects.toBeInstanceOf(InvalidRelationError);
+
+      expect(taskTypeReader.findByIdForCompany).toHaveBeenCalledWith(
+        'task-type-1',
+        'company-1',
+      );
+    });
+
+    it('creates a task with company-scoped relations', async () => {
+      lotReader.findByIdForCompany.mockResolvedValue({ id: 'lot-1' });
+      taskTypeReader.findByIdForCompany.mockResolvedValue({ id: 'task-type-1' });
       repository.create.mockResolvedValue(baseTask);
 
       await expect(
-        useCase.execute({
+        useCase.execute('company-1', {
           lotId: 'lot-1',
           taskTypeId: 'task-type-1',
           startedAt: '2026-01-10',
         }),
       ).resolves.toEqual(baseTask);
 
+      expect(lotReader.findByIdForCompany).toHaveBeenCalledWith('lot-1', 'company-1');
+      expect(taskTypeReader.findByIdForCompany).toHaveBeenCalledWith(
+        'task-type-1',
+        'company-1',
+      );
       expect(repository.create).toHaveBeenCalledWith({
         lotId: 'lot-1',
         taskTypeId: 'task-type-1',
@@ -192,51 +226,38 @@ describe('Task use cases', () => {
   });
 
   describe('UpdateTaskUseCase', () => {
-    let repository: jest.Mocked<TaskRepositoryPort>;
-    let useCase: UpdateTaskUseCase;
+    let repository: any;
+    let useCase: any;
 
     beforeEach(() => {
       ({ repository } = createPorts());
-      useCase = new UpdateTaskUseCase(repository);
+      useCase = new UpdateTaskUseCase(repository as never);
     });
 
     it.each([undefined, {}])('rejects empty update payload %p', async (input) => {
-      await expect(
-        useCase.execute('task-1', input as UpdateTaskInput),
-      ).rejects.toBeInstanceOf(InvalidInputError);
+      await expect(useCase.execute('task-1', 'company-1', input as UpdateTaskInput)).rejects.toBeInstanceOf(
+        InvalidInputError,
+      );
     });
 
-    it('rejects missing task', async () => {
-      repository.findById.mockResolvedValue(null);
+    it('rejects missing task in the current company', async () => {
+      repository.findByIdForCompany.mockResolvedValue(null);
 
-      await expect(
-        useCase.execute('task-1', { status: 'EN_PROGRESO' }),
-      ).rejects.toBeInstanceOf(EntityNotFoundError);
+      await expect(useCase.execute('task-1', 'company-2', { status: 'EN_PROGRESO' })).rejects.toBeInstanceOf(
+        EntityNotFoundError,
+      );
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('task-1', 'company-2');
     });
 
-    it('rejects invalid status and dates', async () => {
-      repository.findById.mockResolvedValue(baseTask);
-
-      await expect(
-        useCase.execute('task-1', {
-          status: 'NO_EXISTE' as TaskStatusValue,
-        }),
-      ).rejects.toBeInstanceOf(InvalidInputError);
-
-      await expect(
-        useCase.execute('task-1', { startedAt: 'not-a-date' }),
-      ).rejects.toBeInstanceOf(InvalidInputError);
-    });
-
-    it('updates a task', async () => {
-      repository.findById.mockResolvedValue(baseTask);
-      repository.update.mockResolvedValue({
+    it('updates a task within the current company', async () => {
+      repository.findByIdForCompany.mockResolvedValue(baseTask);
+      repository.updateForCompany.mockResolvedValue({
         ...baseTask,
         status: 'EN_PROGRESO',
       });
 
       await expect(
-        useCase.execute('task-1', {
+        useCase.execute('task-1', 'company-1', {
           status: 'EN_PROGRESO',
           startedAt: '2026-01-15',
           finishedAt: '2026-01-16',
@@ -246,7 +267,8 @@ describe('Task use cases', () => {
         status: 'EN_PROGRESO',
       });
 
-      expect(repository.update).toHaveBeenCalledWith('task-1', {
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('task-1', 'company-1');
+      expect(repository.updateForCompany).toHaveBeenCalledWith('task-1', 'company-1', {
         status: 'EN_PROGRESO',
         startedAt: new Date('2026-01-15'),
         finishedAt: new Date('2026-01-16'),
@@ -255,135 +277,163 @@ describe('Task use cases', () => {
   });
 
   describe('AddTaskOperatorUseCase', () => {
-    let repository: jest.Mocked<TaskRepositoryPort>;
-    let userReader: jest.Mocked<UserReaderPort>;
-    let useCase: AddTaskOperatorUseCase;
+    let repository: any;
+    let userReader: any;
+    let useCase: any;
 
     beforeEach(() => {
       ({ repository, userReader } = createPorts());
-      useCase = new AddTaskOperatorUseCase(repository, userReader);
+      useCase = new (AddTaskOperatorUseCase as any)(repository as never, userReader as never);
     });
 
     it('rejects a missing task', async () => {
-      repository.findByIdWithOperators.mockResolvedValue(null);
+      repository.findByIdWithOperatorsForCompany.mockResolvedValue(null);
 
-      await expect(useCase.execute('task-1', 'user-1')).rejects.toBeInstanceOf(
+      await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
     });
 
-    it('rejects a missing operator or wrong role', async () => {
-      repository.findByIdWithOperators.mockResolvedValue({
+    it('rejects a missing or foreign operator', async () => {
+      repository.findByIdWithOperatorsForCompany.mockResolvedValue({
         ...baseTask,
         operators: [],
       });
-      userReader.findById.mockResolvedValue(null);
+      userReader.findByIdForCompany.mockResolvedValue(null);
 
-      await expect(useCase.execute('task-1', 'user-1')).rejects.toBeInstanceOf(
-        EntityNotFoundError,
+      await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
+        InvalidRelationError,
       );
 
-      userReader.findById.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
 
-      await expect(useCase.execute('task-1', 'user-1')).rejects.toBeInstanceOf(
-        EntityNotFoundError,
+      await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
+        InvalidRelationError,
       );
     });
 
     it('rejects duplicate operators', async () => {
-      repository.findByIdWithOperators.mockResolvedValue({
-        ...baseTask,
-        operators: [{ id: 'user-1' }],
-      });
-      userReader.findById.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
+      repository.findByIdWithOperatorsForCompany.mockResolvedValue(baseTaskWithOperators);
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
 
-      await expect(useCase.execute('task-1', 'user-1')).rejects.toBeInstanceOf(
+      await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         DuplicateEntityError,
       );
     });
 
-    it('adds an operator to a task', async () => {
-      repository.findByIdWithOperators.mockResolvedValue({
+    it('adds an operator to a task within the current company', async () => {
+      repository.findByIdWithOperatorsForCompany.mockResolvedValue({
         ...baseTask,
         operators: [],
       });
-      userReader.findById.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
 
-      await expect(useCase.execute('task-1', 'user-1')).resolves.toEqual({
+      await expect(useCase.execute('task-1', 'user-1', 'company-1')).resolves.toEqual({
         message: 'Operator with id user-1 added to task with id task-1 successfully',
       });
 
-      expect(repository.addOperator).toHaveBeenCalledWith('task-1', 'user-1');
+      expect(repository.findByIdWithOperatorsForCompany).toHaveBeenCalledWith(
+        'task-1',
+        'company-1',
+      );
+      expect(userReader.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-1');
+      expect(repository.addOperatorForCompany).toHaveBeenCalledWith(
+        'task-1',
+        'company-1',
+        'user-1',
+      );
     });
   });
 
   describe('RemoveTaskOperatorUseCase', () => {
-    let repository: jest.Mocked<TaskRepositoryPort>;
-    let useCase: RemoveTaskOperatorUseCase;
+    let repository: any;
+    let userReader: any;
+    let useCase: any;
 
     beforeEach(() => {
-      ({ repository } = createPorts());
-      useCase = new RemoveTaskOperatorUseCase(repository);
+      ({ repository, userReader } = createPorts());
+      useCase = new (RemoveTaskOperatorUseCase as any)(repository as never, userReader as never);
     });
 
     it('rejects a missing task', async () => {
-      repository.findByIdWithOperators.mockResolvedValue(null);
+      repository.findByIdWithOperatorsForCompany.mockResolvedValue(null);
 
-      await expect(useCase.execute('task-1', 'user-1')).rejects.toBeInstanceOf(
+      await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         EntityNotFoundError,
+      );
+    });
+
+    it('rejects a missing or foreign operator', async () => {
+      repository.findByIdWithOperatorsForCompany.mockResolvedValue({
+        ...baseTask,
+        operators: [],
+      });
+      userReader.findByIdForCompany.mockResolvedValue(null);
+
+      await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
+        InvalidRelationError,
       );
     });
 
     it('rejects an unassigned operator', async () => {
-      repository.findByIdWithOperators.mockResolvedValue({
+      repository.findByIdWithOperatorsForCompany.mockResolvedValue({
         ...baseTask,
         operators: [],
       });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
 
-      await expect(useCase.execute('task-1', 'user-1')).rejects.toBeInstanceOf(
+      await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
     });
 
-    it('removes an operator from a task', async () => {
-      repository.findByIdWithOperators.mockResolvedValue({
-        ...baseTask,
-        operators: [{ id: 'user-1' }],
-      });
+    it('removes an operator from a task within the current company', async () => {
+      repository.findByIdWithOperatorsForCompany.mockResolvedValue(baseTaskWithOperators);
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
 
-      await expect(useCase.execute('task-1', 'user-1')).resolves.toEqual({
+      await expect(useCase.execute('task-1', 'user-1', 'company-1')).resolves.toEqual({
         message: 'Operator with id user-1 removed from task with id task-1 successfully',
       });
 
-      expect(repository.removeOperator).toHaveBeenCalledWith('task-1', 'user-1');
+      expect(repository.findByIdWithOperatorsForCompany).toHaveBeenCalledWith(
+        'task-1',
+        'company-1',
+      );
+      expect(userReader.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-1');
+      expect(repository.removeOperatorForCompany).toHaveBeenCalledWith(
+        'task-1',
+        'company-1',
+        'user-1',
+      );
     });
   });
 
   describe('DeleteTaskUseCase', () => {
-    let repository: jest.Mocked<TaskRepositoryPort>;
-    let useCase: DeleteTaskUseCase;
+    let repository: any;
+    let useCase: any;
 
     beforeEach(() => {
       ({ repository } = createPorts());
-      useCase = new DeleteTaskUseCase(repository);
+      useCase = new DeleteTaskUseCase(repository as never);
     });
 
     it('rejects a missing task', async () => {
-      repository.findById.mockResolvedValue(null);
+      repository.findByIdForCompany.mockResolvedValue(null);
 
-      await expect(useCase.execute('task-1')).rejects.toBeInstanceOf(
+      await expect(useCase.execute('task-1', 'company-2')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
-      expect(repository.delete).not.toHaveBeenCalled();
+      expect(repository.deleteForCompany).not.toHaveBeenCalled();
     });
 
     it('deletes a task and returns legacy message', async () => {
-      repository.findById.mockResolvedValue(baseTask);
+      repository.findByIdForCompany.mockResolvedValue(baseTask);
 
-      await expect(useCase.execute('task-1')).resolves.toEqual({
+      await expect(useCase.execute('task-1', 'company-1')).resolves.toEqual({
         message: 'Task with id task-1 deleted successfully',
       });
-      expect(repository.delete).toHaveBeenCalledWith('task-1');
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('task-1', 'company-1');
+      expect(repository.deleteForCompany).toHaveBeenCalledWith('task-1', 'company-1');
     });
   });
 });

@@ -16,24 +16,34 @@ export const LOT_READER = Symbol('TASK_LOT_READER');
 export const USER_READER = Symbol('TASK_USER_READER');
 
 export interface TaskRepositoryPort {
-  findAll(): Promise<TaskOutput[]>;
-  findById(id: string): Promise<TaskOutput | null>;
-  findByIdWithOperators(id: string): Promise<TaskWithOperatorsRecord | null>;
+  findAllByCompanyId(companyId: string): Promise<TaskOutput[]>;
+  findByIdForCompany(id: string, companyId: string): Promise<TaskOutput | null>;
+  findByIdWithOperatorsForCompany(
+    id: string,
+    companyId: string,
+  ): Promise<TaskWithOperatorsRecord | null>;
   create(data: CreateTaskData): Promise<TaskOutput>;
-  update(id: string, data: UpdateTaskData): Promise<TaskOutput>;
-  addOperator(taskId: string, operatorId: string): Promise<void>;
-  removeOperator(taskId: string, operatorId: string): Promise<void>;
-  delete(id: string): Promise<void>;
+  updateForCompany(id: string, companyId: string, data: UpdateTaskData): Promise<TaskOutput>;
+  addOperatorForCompany(taskId: string, companyId: string, operatorId: string): Promise<void>;
+  removeOperatorForCompany(
+    taskId: string,
+    companyId: string,
+    operatorId: string,
+  ): Promise<void>;
+  deleteForCompany(id: string, companyId: string): Promise<void>;
 }
 
 export interface TaskTypeReaderPort {
-  findById(id: string): Promise<{ id: string } | null>;
+  findByIdForCompany(id: string, companyId: string): Promise<{ id: string } | null>;
 }
 
 export interface LotReaderPort {
-  findById(id: string): Promise<{ id: string } | null>;
+  findByIdForCompany(id: string, companyId: string): Promise<{ id: string } | null>;
 }
 
 export interface UserReaderPort {
-  findById(id: string): Promise<{ id: string; role: UserRoleValue } | null>;
+  findByIdForCompany(
+    id: string,
+    companyId: string,
+  ): Promise<{ id: string; role: UserRoleValue } | null>;
 }

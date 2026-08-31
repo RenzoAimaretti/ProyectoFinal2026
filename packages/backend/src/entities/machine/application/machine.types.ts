@@ -17,13 +17,14 @@ export type MachineRecord = {
 };
 
 export type CreateMachineInput = {
-  companyId: string;
+  companyId?: string;
   name: string;
   brand: string;
   entryDate: string;
 };
 
 export type UpdateMachineInput = {
+  companyId?: string;
   name?: string;
   brand?: string;
   entryDate?: string;

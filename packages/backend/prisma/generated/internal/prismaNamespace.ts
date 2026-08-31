@@ -1570,6 +1570,7 @@ export type LotScalarFieldEnum = (typeof LotScalarFieldEnum)[keyof typeof LotSca
 
 export const TaskTypeScalarFieldEnum = {
   id: 'id',
+  companyId: 'companyId',
   name: 'name',
   description: 'description'
 } as const

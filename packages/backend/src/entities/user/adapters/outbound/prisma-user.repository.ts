@@ -13,8 +13,18 @@ export class PrismaUserRepository implements UserRepositoryPort {
     return this.prisma.user.findMany() as unknown as Promise<UserRecord[]>;
   }
 
+  findAllByCompanyId(companyId: string): Promise<UserRecord[]> {
+    return this.prisma.user.findMany({ where: { companyId } }) as unknown as Promise<UserRecord[]>;
+  }
+
   findById(id: string): Promise<UserRecord | null> {
     return this.prisma.user.findUnique({ where: { id } }) as unknown as Promise<UserRecord | null>;
+  }
+
+  findByIdForCompany(id: string, companyId: string): Promise<UserRecord | null> {
+    return this.prisma.user.findFirst({ where: { id, companyId } }) as unknown as Promise<
+      UserRecord | null
+    >;
   }
 
   findByEmail(email: string): Promise<UserRecord | null> {
@@ -52,6 +62,35 @@ export class PrismaUserRepository implements UserRepositoryPort {
     try {
       return (await this.prisma.user.update({
         where: { id },
+        data: {
+          ...(data.username !== undefined ? { username: data.username } : {}),
+          ...(data.passwordHash !== undefined ? { passwordHash: data.passwordHash } : {}),
+          ...(data.role !== undefined ? { role: data.role } : {}),
+          ...(data.active !== undefined ? { active: data.active } : {}),
+        },
+      })) as UserRecord;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new DuplicateEntityError('User with this username already exists');
+      }
+
+      throw error;
+    }
+  }
+
+  async updateForCompany(id: string, companyId: string, data: UpdateUserData): Promise<UserRecord> {
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: { id, companyId },
+        select: { id: true },
+      });
+
+      if (!user) {
+        throw new Error(`User with id ${id} not found for company ${companyId}`);
+      }
+
+      return (await this.prisma.user.update({
+        where: { id: user.id },
         data: {
           ...(data.username !== undefined ? { username: data.username } : {}),
           ...(data.passwordHash !== undefined ? { passwordHash: data.passwordHash } : {}),

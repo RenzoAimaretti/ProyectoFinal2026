@@ -244,6 +244,7 @@ export type CompanyWhereInput = {
   livestock?: Prisma.LivestockListRelationFilter
   machines?: Prisma.MachineListRelationFilter
   modules?: Prisma.ModuleListRelationFilter
+  taskTypes?: Prisma.TaskTypeListRelationFilter
   users?: Prisma.UserListRelationFilter
 }
 
@@ -260,6 +261,7 @@ export type CompanyOrderByWithRelationInput = {
   livestock?: Prisma.LivestockOrderByRelationAggregateInput
   machines?: Prisma.MachineOrderByRelationAggregateInput
   modules?: Prisma.ModuleOrderByRelationAggregateInput
+  taskTypes?: Prisma.TaskTypeOrderByRelationAggregateInput
   users?: Prisma.UserOrderByRelationAggregateInput
 }
 
@@ -279,6 +281,7 @@ export type CompanyWhereUniqueInput = Prisma.AtLeast<{
   livestock?: Prisma.LivestockListRelationFilter
   machines?: Prisma.MachineListRelationFilter
   modules?: Prisma.ModuleListRelationFilter
+  taskTypes?: Prisma.TaskTypeListRelationFilter
   users?: Prisma.UserListRelationFilter
 }, "id" | "cuit">
 
@@ -325,6 +328,7 @@ export type CompanyCreateInput = {
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  taskTypes?: Prisma.TaskTypeCreateNestedManyWithoutCompanyInput
   users?: Prisma.UserCreateNestedManyWithoutCompanyInput
 }
 
@@ -341,6 +345,7 @@ export type CompanyUncheckedCreateInput = {
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  taskTypes?: Prisma.TaskTypeUncheckedCreateNestedManyWithoutCompanyInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
 }
 
@@ -357,6 +362,7 @@ export type CompanyUpdateInput = {
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  taskTypes?: Prisma.TaskTypeUpdateManyWithoutCompanyNestedInput
   users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
 }
 
@@ -373,6 +379,7 @@ export type CompanyUncheckedUpdateInput = {
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  taskTypes?: Prisma.TaskTypeUncheckedUpdateManyWithoutCompanyNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
@@ -513,6 +520,20 @@ export type CompanyUpdateOneRequiredWithoutFarmsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutFarmsInput, Prisma.CompanyUpdateWithoutFarmsInput>, Prisma.CompanyUncheckedUpdateWithoutFarmsInput>
 }
 
+export type CompanyCreateNestedOneWithoutTaskTypesInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutTaskTypesInput, Prisma.CompanyUncheckedCreateWithoutTaskTypesInput>
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutTaskTypesInput
+  connect?: Prisma.CompanyWhereUniqueInput
+}
+
+export type CompanyUpdateOneRequiredWithoutTaskTypesNestedInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutTaskTypesInput, Prisma.CompanyUncheckedCreateWithoutTaskTypesInput>
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutTaskTypesInput
+  upsert?: Prisma.CompanyUpsertWithoutTaskTypesInput
+  connect?: Prisma.CompanyWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutTaskTypesInput, Prisma.CompanyUpdateWithoutTaskTypesInput>, Prisma.CompanyUncheckedUpdateWithoutTaskTypesInput>
+}
+
 export type CompanyCreateNestedOneWithoutMachinesInput = {
   create?: Prisma.XOR<Prisma.CompanyCreateWithoutMachinesInput, Prisma.CompanyUncheckedCreateWithoutMachinesInput>
   connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutMachinesInput
@@ -592,6 +613,7 @@ export type CompanyCreateWithoutUsersInput = {
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  taskTypes?: Prisma.TaskTypeCreateNestedManyWithoutCompanyInput
 }
 
 export type CompanyUncheckedCreateWithoutUsersInput = {
@@ -607,6 +629,7 @@ export type CompanyUncheckedCreateWithoutUsersInput = {
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  taskTypes?: Prisma.TaskTypeUncheckedCreateNestedManyWithoutCompanyInput
 }
 
 export type CompanyCreateOrConnectWithoutUsersInput = {
@@ -638,6 +661,7 @@ export type CompanyUpdateWithoutUsersInput = {
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  taskTypes?: Prisma.TaskTypeUpdateManyWithoutCompanyNestedInput
 }
 
 export type CompanyUncheckedUpdateWithoutUsersInput = {
@@ -653,6 +677,7 @@ export type CompanyUncheckedUpdateWithoutUsersInput = {
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  taskTypes?: Prisma.TaskTypeUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
 export type CompanyCreateWithoutFarmsInput = {
@@ -667,6 +692,7 @@ export type CompanyCreateWithoutFarmsInput = {
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  taskTypes?: Prisma.TaskTypeCreateNestedManyWithoutCompanyInput
   users?: Prisma.UserCreateNestedManyWithoutCompanyInput
 }
 
@@ -682,6 +708,7 @@ export type CompanyUncheckedCreateWithoutFarmsInput = {
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  taskTypes?: Prisma.TaskTypeUncheckedCreateNestedManyWithoutCompanyInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
 }
 
@@ -713,6 +740,7 @@ export type CompanyUpdateWithoutFarmsInput = {
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  taskTypes?: Prisma.TaskTypeUpdateManyWithoutCompanyNestedInput
   users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
 }
 
@@ -725,6 +753,87 @@ export type CompanyUncheckedUpdateWithoutFarmsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
+  machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  taskTypes?: Prisma.TaskTypeUncheckedUpdateManyWithoutCompanyNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyCreateWithoutTaskTypesInput = {
+  id?: string
+  name: string
+  cuit: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  farms?: Prisma.FarmCreateNestedManyWithoutCompanyInput
+  livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
+  machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  users?: Prisma.UserCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyUncheckedCreateWithoutTaskTypesInput = {
+  id?: string
+  name: string
+  cuit: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  farms?: Prisma.FarmUncheckedCreateNestedManyWithoutCompanyInput
+  livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
+  machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyCreateOrConnectWithoutTaskTypesInput = {
+  where: Prisma.CompanyWhereUniqueInput
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutTaskTypesInput, Prisma.CompanyUncheckedCreateWithoutTaskTypesInput>
+}
+
+export type CompanyUpsertWithoutTaskTypesInput = {
+  update: Prisma.XOR<Prisma.CompanyUpdateWithoutTaskTypesInput, Prisma.CompanyUncheckedUpdateWithoutTaskTypesInput>
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutTaskTypesInput, Prisma.CompanyUncheckedCreateWithoutTaskTypesInput>
+  where?: Prisma.CompanyWhereInput
+}
+
+export type CompanyUpdateToOneWithWhereWithoutTaskTypesInput = {
+  where?: Prisma.CompanyWhereInput
+  data: Prisma.XOR<Prisma.CompanyUpdateWithoutTaskTypesInput, Prisma.CompanyUncheckedUpdateWithoutTaskTypesInput>
+}
+
+export type CompanyUpdateWithoutTaskTypesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cuit?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  farms?: Prisma.FarmUpdateManyWithoutCompanyNestedInput
+  livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
+  machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyUncheckedUpdateWithoutTaskTypesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cuit?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  farms?: Prisma.FarmUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
@@ -743,6 +852,7 @@ export type CompanyCreateWithoutMachinesInput = {
   farms?: Prisma.FarmCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  taskTypes?: Prisma.TaskTypeCreateNestedManyWithoutCompanyInput
   users?: Prisma.UserCreateNestedManyWithoutCompanyInput
 }
 
@@ -758,6 +868,7 @@ export type CompanyUncheckedCreateWithoutMachinesInput = {
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  taskTypes?: Prisma.TaskTypeUncheckedCreateNestedManyWithoutCompanyInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
 }
 
@@ -789,6 +900,7 @@ export type CompanyUpdateWithoutMachinesInput = {
   farms?: Prisma.FarmUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  taskTypes?: Prisma.TaskTypeUpdateManyWithoutCompanyNestedInput
   users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
 }
 
@@ -804,6 +916,7 @@ export type CompanyUncheckedUpdateWithoutMachinesInput = {
   farms?: Prisma.FarmUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  taskTypes?: Prisma.TaskTypeUncheckedUpdateManyWithoutCompanyNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
@@ -819,6 +932,7 @@ export type CompanyCreateWithoutModulesInput = {
   farms?: Prisma.FarmCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
+  taskTypes?: Prisma.TaskTypeCreateNestedManyWithoutCompanyInput
   users?: Prisma.UserCreateNestedManyWithoutCompanyInput
 }
 
@@ -834,6 +948,7 @@ export type CompanyUncheckedCreateWithoutModulesInput = {
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
+  taskTypes?: Prisma.TaskTypeUncheckedCreateNestedManyWithoutCompanyInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
 }
 
@@ -884,6 +999,7 @@ export type CompanyCreateWithoutLivestockInput = {
   farms?: Prisma.FarmCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  taskTypes?: Prisma.TaskTypeCreateNestedManyWithoutCompanyInput
   users?: Prisma.UserCreateNestedManyWithoutCompanyInput
 }
 
@@ -899,6 +1015,7 @@ export type CompanyUncheckedCreateWithoutLivestockInput = {
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutCompanyInput
   machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  taskTypes?: Prisma.TaskTypeUncheckedCreateNestedManyWithoutCompanyInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutCompanyInput
 }
 
@@ -930,6 +1047,7 @@ export type CompanyUpdateWithoutLivestockInput = {
   farms?: Prisma.FarmUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  taskTypes?: Prisma.TaskTypeUpdateManyWithoutCompanyNestedInput
   users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
 }
 
@@ -945,6 +1063,7 @@ export type CompanyUncheckedUpdateWithoutLivestockInput = {
   farms?: Prisma.FarmUncheckedUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  taskTypes?: Prisma.TaskTypeUncheckedUpdateManyWithoutCompanyNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
@@ -960,6 +1079,7 @@ export type CompanyUpdateWithoutModulesInput = {
   farms?: Prisma.FarmUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
+  taskTypes?: Prisma.TaskTypeUpdateManyWithoutCompanyNestedInput
   users?: Prisma.UserUpdateManyWithoutCompanyNestedInput
 }
 
@@ -975,6 +1095,7 @@ export type CompanyUncheckedUpdateWithoutModulesInput = {
   farms?: Prisma.FarmUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
+  taskTypes?: Prisma.TaskTypeUncheckedUpdateManyWithoutCompanyNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutCompanyNestedInput
 }
 
@@ -999,6 +1120,7 @@ export type CompanyCountOutputType = {
   livestock: number
   machines: number
   modules: number
+  taskTypes: number
   users: number
 }
 
@@ -1007,6 +1129,7 @@ export type CompanyCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   livestock?: boolean | CompanyCountOutputTypeCountLivestockArgs
   machines?: boolean | CompanyCountOutputTypeCountMachinesArgs
   modules?: boolean | CompanyCountOutputTypeCountModulesArgs
+  taskTypes?: boolean | CompanyCountOutputTypeCountTaskTypesArgs
   users?: boolean | CompanyCountOutputTypeCountUsersArgs
 }
 
@@ -1051,6 +1174,13 @@ export type CompanyCountOutputTypeCountModulesArgs<ExtArgs extends runtime.Types
 /**
  * CompanyCountOutputType without action
  */
+export type CompanyCountOutputTypeCountTaskTypesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TaskTypeWhereInput
+}
+
+/**
+ * CompanyCountOutputType without action
+ */
 export type CompanyCountOutputTypeCountUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserWhereInput
 }
@@ -1069,6 +1199,7 @@ export type CompanySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   livestock?: boolean | Prisma.Company$livestockArgs<ExtArgs>
   machines?: boolean | Prisma.Company$machinesArgs<ExtArgs>
   modules?: boolean | Prisma.Company$modulesArgs<ExtArgs>
+  taskTypes?: boolean | Prisma.Company$taskTypesArgs<ExtArgs>
   users?: boolean | Prisma.Company$usersArgs<ExtArgs>
   _count?: boolean | Prisma.CompanyCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["company"]>
@@ -1112,6 +1243,7 @@ export type CompanyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   livestock?: boolean | Prisma.Company$livestockArgs<ExtArgs>
   machines?: boolean | Prisma.Company$machinesArgs<ExtArgs>
   modules?: boolean | Prisma.Company$modulesArgs<ExtArgs>
+  taskTypes?: boolean | Prisma.Company$taskTypesArgs<ExtArgs>
   users?: boolean | Prisma.Company$usersArgs<ExtArgs>
   _count?: boolean | Prisma.CompanyCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1125,6 +1257,7 @@ export type $CompanyPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     livestock: Prisma.$LivestockPayload<ExtArgs>[]
     machines: Prisma.$MachinePayload<ExtArgs>[]
     modules: Prisma.$ModulePayload<ExtArgs>[]
+    taskTypes: Prisma.$TaskTypePayload<ExtArgs>[]
     users: Prisma.$UserPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1534,6 +1667,7 @@ export interface Prisma__CompanyClient<T, Null = never, ExtArgs extends runtime.
   livestock<T extends Prisma.Company$livestockArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$livestockArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LivestockPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   machines<T extends Prisma.Company$machinesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$machinesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MachinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   modules<T extends Prisma.Company$modulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$modulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  taskTypes<T extends Prisma.Company$taskTypesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$taskTypesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskTypePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   users<T extends Prisma.Company$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2058,6 +2192,30 @@ export type Company$modulesArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.ModuleScalarFieldEnum | Prisma.ModuleScalarFieldEnum[]
+}
+
+/**
+ * Company.taskTypes
+ */
+export type Company$taskTypesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TaskType
+   */
+  select?: Prisma.TaskTypeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TaskType
+   */
+  omit?: Prisma.TaskTypeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskTypeInclude<ExtArgs> | null
+  where?: Prisma.TaskTypeWhereInput
+  orderBy?: Prisma.TaskTypeOrderByWithRelationInput | Prisma.TaskTypeOrderByWithRelationInput[]
+  cursor?: Prisma.TaskTypeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TaskTypeScalarFieldEnum | Prisma.TaskTypeScalarFieldEnum[]
 }
 
 /**

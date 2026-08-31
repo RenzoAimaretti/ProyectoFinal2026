@@ -11,3 +11,10 @@ export class EntityNotFoundError extends Error {
     this.name = 'EntityNotFoundError';
   }
 }
+
+export class InvalidRelationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidRelationError';
+  }
+}

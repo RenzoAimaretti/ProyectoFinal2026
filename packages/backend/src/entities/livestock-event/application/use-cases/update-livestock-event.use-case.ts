@@ -1,6 +1,7 @@
 import {
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
 } from '../../domain/errors';
 import {
   LivestockEventRepositoryPort,
@@ -26,22 +27,38 @@ export class UpdateLivestockEventUseCase {
 
   async execute(
     id: string,
-    data?: UpdateLivestockEventInput,
+    companyIdOrData?: string | UpdateLivestockEventInput,
+    maybeData?: UpdateLivestockEventInput,
   ): Promise<LivestockEventRecord> {
+    const hasCompanyScope = typeof companyIdOrData === 'string';
+    const companyId = hasCompanyScope ? companyIdOrData : undefined;
+    const data = hasCompanyScope ? maybeData : companyIdOrData;
+
     if (!data || Object.values(data).every((value) => value === undefined)) {
       throw new InvalidInputError('No data provided for update');
     }
 
-    const event = await this.repository.findById(id);
+    const event = companyId
+      ? await this.repository.findByIdForCompany(id, companyId)
+      : await this.repository.findById(id);
     if (!event) {
       throw new EntityNotFoundError(`Livestock event with id ${id} not found`);
     }
 
     if (data.livestockId !== undefined) {
       const livestockId = assertRequiredString(data.livestockId, 'livestockId');
-      const livestock = await this.livestockReader.findById(livestockId);
+      const livestock = companyId
+        ? await this.livestockReader.findByIdForCompany(livestockId, companyId)
+        : await this.livestockReader.findById(livestockId);
 
       if (!livestock) {
+        const existsElsewhere = companyId ? await this.livestockReader.findById(livestockId) : null;
+        if (existsElsewhere) {
+          throw new InvalidRelationError(
+            `Livestock with id ${livestockId} does not belong to company ${companyId}`,
+          );
+        }
+
         throw new EntityNotFoundError(
           `Livestock with id ${livestockId} not found`,
         );
@@ -50,9 +67,18 @@ export class UpdateLivestockEventUseCase {
 
     if (data.operatorId !== undefined) {
       const operatorId = assertRequiredString(data.operatorId, 'operatorId');
-      const operator = await this.userReader.findById(operatorId);
+      const operator = companyId
+        ? await this.userReader.findByIdForCompany(operatorId, companyId)
+        : await this.userReader.findById(operatorId);
 
       if (!operator) {
+        const existsElsewhere = companyId ? await this.userReader.findById(operatorId) : null;
+        if (existsElsewhere) {
+          throw new InvalidRelationError(
+            `Operator with id ${operatorId} does not belong to company ${companyId}`,
+          );
+        }
+
         throw new EntityNotFoundError(`Operator with id ${operatorId} not found`);
       }
     }
@@ -81,6 +107,8 @@ export class UpdateLivestockEventUseCase {
       throw new InvalidInputError('No data provided for update');
     }
 
-    return this.repository.update(id, updateData);
+    return companyId
+      ? this.repository.updateForCompany(id, companyId, updateData)
+      : this.repository.update(id, updateData);
   }
 }

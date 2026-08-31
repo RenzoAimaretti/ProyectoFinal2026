@@ -6,12 +6,12 @@ import { UpdateUserInput, UserRepositoryPort } from '../user.ports';
 export class UpdateUserUseCase {
   constructor(private readonly repository: UserRepositoryPort) {}
 
-  async execute(id: string, input: UpdateUserInput) {
+  async execute(id: string, companyId: string, input: UpdateUserInput) {
     if (!input || Object.keys(input).length === 0) {
       throw new InvalidInputError('No data provided for update');
     }
 
-    const user = await this.repository.findById(id);
+    const user = await this.repository.findByIdForCompany(id, companyId);
     if (!user) {
       throw new EntityNotFoundError(`User with id ${id} not found`);
     }
@@ -31,7 +31,7 @@ export class UpdateUserUseCase {
 
     const hashedPassword = input.password !== undefined ? await argon2.hash(input.password) : undefined;
 
-    return this.repository.update(id, {
+    return this.repository.updateForCompany(id, companyId, {
       ...(input.username !== undefined ? { username: input.username } : {}),
       ...(hashedPassword !== undefined ? { passwordHash: hashedPassword } : {}),
       ...(input.role !== undefined ? { role: input.role } : {}),

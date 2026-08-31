@@ -20,6 +20,7 @@ model Company {
   livestock Livestock[]
   machines  Machine[]
   modules   Module[]
+  taskTypes TaskType[]
   users     User[]
 }
 
@@ -91,9 +92,15 @@ model Lot {
 
 model TaskType {
   id          String  @id @default(uuid())
+  companyId   String
   name        String
   description String?
   tasks       Task[]
+  company     Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@index([companyId, name])
 }
 
 model Task {

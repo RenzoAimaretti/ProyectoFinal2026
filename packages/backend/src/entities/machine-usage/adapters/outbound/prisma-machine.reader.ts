@@ -12,4 +12,11 @@ export class PrismaMachineReader implements MachineReaderPort {
       select: { id: true, status: true },
     });
   }
+
+  findByIdForCompany(id: string, companyId: string) {
+    return this.prisma.machine.findFirst({
+      where: { id, companyId },
+      select: { id: true, status: true },
+    });
+  }
 }

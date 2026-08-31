@@ -13,7 +13,12 @@ import { FindTaskUseCase } from './application/use-cases/find-task.use-case';
 import { RemoveTaskOperatorUseCase } from './application/use-cases/remove-task-operator.use-case';
 import { UpdateTaskUseCase } from './application/use-cases/update-task.use-case';
 import { CreateTaskInput, UpdateTaskInput } from './application/task.types';
-import { DuplicateEntityError, EntityNotFoundError, InvalidInputError } from './domain/errors';
+import {
+  DuplicateEntityError,
+  EntityNotFoundError,
+  InvalidInputError,
+  InvalidRelationError,
+} from './domain/errors';
 
 @Injectable()
 export class TaskService {
@@ -27,38 +32,38 @@ export class TaskService {
     private readonly deleteUseCase: DeleteTaskUseCase,
   ) {}
 
-  async findAll() {
-    return this.handle(() => this.findAllUseCase.execute(), 'fetching tasks');
+  async findAll(companyId: string) {
+    return this.handle(() => this.findAllUseCase.execute(companyId), 'fetching tasks');
   }
 
-  async findOne(id: string) {
-    return this.handle(() => this.findOneUseCase.execute(id), 'fetching task');
+  async findOne(id: string, companyId: string) {
+    return this.handle(() => this.findOneUseCase.execute(id, companyId), 'fetching task');
   }
 
-  async create(data: CreateTaskInput) {
-    return this.handle(() => this.createUseCase.execute(data), 'creating task');
+  async create(companyId: string, data: CreateTaskInput) {
+    return this.handle(() => this.createUseCase.execute(companyId, data), 'creating task');
   }
 
-  async update(id: string, data: UpdateTaskInput) {
-    return this.handle(() => this.updateUseCase.execute(id, data), 'updating task');
+  async update(id: string, companyId: string, data: UpdateTaskInput) {
+    return this.handle(() => this.updateUseCase.execute(id, companyId, data), 'updating task');
   }
 
-  async addOperario(taskId: string, operatorId: string) {
+  async addOperario(taskId: string, operatorId: string, companyId: string) {
     return this.handle(
-      () => this.addOperatorUseCase.execute(taskId, operatorId),
+      () => this.addOperatorUseCase.execute(taskId, operatorId, companyId),
       'adding operator to task',
     );
   }
 
-  async removeOperario(taskId: string, operatorId: string) {
+  async removeOperario(taskId: string, operatorId: string, companyId: string) {
     return this.handle(
-      () => this.removeOperatorUseCase.execute(taskId, operatorId),
+      () => this.removeOperatorUseCase.execute(taskId, operatorId, companyId),
       'removing operator from task',
     );
   }
 
-  async delete(id: string) {
-    return this.handle(() => this.deleteUseCase.execute(id), 'deleting task');
+  async delete(id: string, companyId: string) {
+    return this.handle(() => this.deleteUseCase.execute(id, companyId), 'deleting task');
   }
 
   private async handle<T>(operation: () => Promise<T>, action: string) {
@@ -79,6 +84,10 @@ export class TaskService {
     }
 
     if (error instanceof InvalidInputError) {
+      return new BadRequestException(error.message);
+    }
+
+    if (error instanceof InvalidRelationError) {
       return new BadRequestException(error.message);
     }
 

@@ -26,18 +26,21 @@ export type AggregateTaskType = {
 
 export type TaskTypeMinAggregateOutputType = {
   id: string | null
+  companyId: string | null
   name: string | null
   description: string | null
 }
 
 export type TaskTypeMaxAggregateOutputType = {
   id: string | null
+  companyId: string | null
   name: string | null
   description: string | null
 }
 
 export type TaskTypeCountAggregateOutputType = {
   id: number
+  companyId: number
   name: number
   description: number
   _all: number
@@ -46,18 +49,21 @@ export type TaskTypeCountAggregateOutputType = {
 
 export type TaskTypeMinAggregateInputType = {
   id?: true
+  companyId?: true
   name?: true
   description?: true
 }
 
 export type TaskTypeMaxAggregateInputType = {
   id?: true
+  companyId?: true
   name?: true
   description?: true
 }
 
 export type TaskTypeCountAggregateInputType = {
   id?: true
+  companyId?: true
   name?: true
   description?: true
   _all?: true
@@ -137,6 +143,7 @@ export type TaskTypeGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 
 export type TaskTypeGroupByOutputType = {
   id: string
+  companyId: string
   name: string
   description: string | null
   _count: TaskTypeCountAggregateOutputType | null
@@ -164,30 +171,38 @@ export type TaskTypeWhereInput = {
   OR?: Prisma.TaskTypeWhereInput[]
   NOT?: Prisma.TaskTypeWhereInput | Prisma.TaskTypeWhereInput[]
   id?: Prisma.StringFilter<"TaskType"> | string
+  companyId?: Prisma.StringFilter<"TaskType"> | string
   name?: Prisma.StringFilter<"TaskType"> | string
   description?: Prisma.StringNullableFilter<"TaskType"> | string | null
   tasks?: Prisma.TaskListRelationFilter
+  company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
 }
 
 export type TaskTypeOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   tasks?: Prisma.TaskOrderByRelationAggregateInput
+  company?: Prisma.CompanyOrderByWithRelationInput
 }
 
 export type TaskTypeWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  companyId_name?: Prisma.TaskTypeCompanyIdNameCompoundUniqueInput
   AND?: Prisma.TaskTypeWhereInput | Prisma.TaskTypeWhereInput[]
   OR?: Prisma.TaskTypeWhereInput[]
   NOT?: Prisma.TaskTypeWhereInput | Prisma.TaskTypeWhereInput[]
+  companyId?: Prisma.StringFilter<"TaskType"> | string
   name?: Prisma.StringFilter<"TaskType"> | string
   description?: Prisma.StringNullableFilter<"TaskType"> | string | null
   tasks?: Prisma.TaskListRelationFilter
-}, "id">
+  company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
+}, "id" | "companyId_name">
 
 export type TaskTypeOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TaskTypeCountOrderByAggregateInput
@@ -200,6 +215,7 @@ export type TaskTypeScalarWhereWithAggregatesInput = {
   OR?: Prisma.TaskTypeScalarWhereWithAggregatesInput[]
   NOT?: Prisma.TaskTypeScalarWhereWithAggregatesInput | Prisma.TaskTypeScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"TaskType"> | string
+  companyId?: Prisma.StringWithAggregatesFilter<"TaskType"> | string
   name?: Prisma.StringWithAggregatesFilter<"TaskType"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"TaskType"> | string | null
 }
@@ -209,10 +225,12 @@ export type TaskTypeCreateInput = {
   name: string
   description?: string | null
   tasks?: Prisma.TaskCreateNestedManyWithoutTaskTypeInput
+  company: Prisma.CompanyCreateNestedOneWithoutTaskTypesInput
 }
 
 export type TaskTypeUncheckedCreateInput = {
   id?: string
+  companyId: string
   name: string
   description?: string | null
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTaskTypeInput
@@ -223,10 +241,12 @@ export type TaskTypeUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tasks?: Prisma.TaskUpdateManyWithoutTaskTypeNestedInput
+  company?: Prisma.CompanyUpdateOneRequiredWithoutTaskTypesNestedInput
 }
 
 export type TaskTypeUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutTaskTypeNestedInput
@@ -234,6 +254,7 @@ export type TaskTypeUncheckedUpdateInput = {
 
 export type TaskTypeCreateManyInput = {
   id?: string
+  companyId: string
   name: string
   description?: string | null
 }
@@ -246,24 +267,43 @@ export type TaskTypeUpdateManyMutationInput = {
 
 export type TaskTypeUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
+export type TaskTypeListRelationFilter = {
+  every?: Prisma.TaskTypeWhereInput
+  some?: Prisma.TaskTypeWhereInput
+  none?: Prisma.TaskTypeWhereInput
+}
+
+export type TaskTypeOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type TaskTypeCompanyIdNameCompoundUniqueInput = {
+  companyId: string
+  name: string
+}
+
 export type TaskTypeCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
 }
 
 export type TaskTypeMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
 }
 
 export type TaskTypeMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
 }
@@ -271,6 +311,48 @@ export type TaskTypeMinOrderByAggregateInput = {
 export type TaskTypeScalarRelationFilter = {
   is?: Prisma.TaskTypeWhereInput
   isNot?: Prisma.TaskTypeWhereInput
+}
+
+export type TaskTypeCreateNestedManyWithoutCompanyInput = {
+  create?: Prisma.XOR<Prisma.TaskTypeCreateWithoutCompanyInput, Prisma.TaskTypeUncheckedCreateWithoutCompanyInput> | Prisma.TaskTypeCreateWithoutCompanyInput[] | Prisma.TaskTypeUncheckedCreateWithoutCompanyInput[]
+  connectOrCreate?: Prisma.TaskTypeCreateOrConnectWithoutCompanyInput | Prisma.TaskTypeCreateOrConnectWithoutCompanyInput[]
+  createMany?: Prisma.TaskTypeCreateManyCompanyInputEnvelope
+  connect?: Prisma.TaskTypeWhereUniqueInput | Prisma.TaskTypeWhereUniqueInput[]
+}
+
+export type TaskTypeUncheckedCreateNestedManyWithoutCompanyInput = {
+  create?: Prisma.XOR<Prisma.TaskTypeCreateWithoutCompanyInput, Prisma.TaskTypeUncheckedCreateWithoutCompanyInput> | Prisma.TaskTypeCreateWithoutCompanyInput[] | Prisma.TaskTypeUncheckedCreateWithoutCompanyInput[]
+  connectOrCreate?: Prisma.TaskTypeCreateOrConnectWithoutCompanyInput | Prisma.TaskTypeCreateOrConnectWithoutCompanyInput[]
+  createMany?: Prisma.TaskTypeCreateManyCompanyInputEnvelope
+  connect?: Prisma.TaskTypeWhereUniqueInput | Prisma.TaskTypeWhereUniqueInput[]
+}
+
+export type TaskTypeUpdateManyWithoutCompanyNestedInput = {
+  create?: Prisma.XOR<Prisma.TaskTypeCreateWithoutCompanyInput, Prisma.TaskTypeUncheckedCreateWithoutCompanyInput> | Prisma.TaskTypeCreateWithoutCompanyInput[] | Prisma.TaskTypeUncheckedCreateWithoutCompanyInput[]
+  connectOrCreate?: Prisma.TaskTypeCreateOrConnectWithoutCompanyInput | Prisma.TaskTypeCreateOrConnectWithoutCompanyInput[]
+  upsert?: Prisma.TaskTypeUpsertWithWhereUniqueWithoutCompanyInput | Prisma.TaskTypeUpsertWithWhereUniqueWithoutCompanyInput[]
+  createMany?: Prisma.TaskTypeCreateManyCompanyInputEnvelope
+  set?: Prisma.TaskTypeWhereUniqueInput | Prisma.TaskTypeWhereUniqueInput[]
+  disconnect?: Prisma.TaskTypeWhereUniqueInput | Prisma.TaskTypeWhereUniqueInput[]
+  delete?: Prisma.TaskTypeWhereUniqueInput | Prisma.TaskTypeWhereUniqueInput[]
+  connect?: Prisma.TaskTypeWhereUniqueInput | Prisma.TaskTypeWhereUniqueInput[]
+  update?: Prisma.TaskTypeUpdateWithWhereUniqueWithoutCompanyInput | Prisma.TaskTypeUpdateWithWhereUniqueWithoutCompanyInput[]
+  updateMany?: Prisma.TaskTypeUpdateManyWithWhereWithoutCompanyInput | Prisma.TaskTypeUpdateManyWithWhereWithoutCompanyInput[]
+  deleteMany?: Prisma.TaskTypeScalarWhereInput | Prisma.TaskTypeScalarWhereInput[]
+}
+
+export type TaskTypeUncheckedUpdateManyWithoutCompanyNestedInput = {
+  create?: Prisma.XOR<Prisma.TaskTypeCreateWithoutCompanyInput, Prisma.TaskTypeUncheckedCreateWithoutCompanyInput> | Prisma.TaskTypeCreateWithoutCompanyInput[] | Prisma.TaskTypeUncheckedCreateWithoutCompanyInput[]
+  connectOrCreate?: Prisma.TaskTypeCreateOrConnectWithoutCompanyInput | Prisma.TaskTypeCreateOrConnectWithoutCompanyInput[]
+  upsert?: Prisma.TaskTypeUpsertWithWhereUniqueWithoutCompanyInput | Prisma.TaskTypeUpsertWithWhereUniqueWithoutCompanyInput[]
+  createMany?: Prisma.TaskTypeCreateManyCompanyInputEnvelope
+  set?: Prisma.TaskTypeWhereUniqueInput | Prisma.TaskTypeWhereUniqueInput[]
+  disconnect?: Prisma.TaskTypeWhereUniqueInput | Prisma.TaskTypeWhereUniqueInput[]
+  delete?: Prisma.TaskTypeWhereUniqueInput | Prisma.TaskTypeWhereUniqueInput[]
+  connect?: Prisma.TaskTypeWhereUniqueInput | Prisma.TaskTypeWhereUniqueInput[]
+  update?: Prisma.TaskTypeUpdateWithWhereUniqueWithoutCompanyInput | Prisma.TaskTypeUpdateWithWhereUniqueWithoutCompanyInput[]
+  updateMany?: Prisma.TaskTypeUpdateManyWithWhereWithoutCompanyInput | Prisma.TaskTypeUpdateManyWithWhereWithoutCompanyInput[]
+  deleteMany?: Prisma.TaskTypeScalarWhereInput | Prisma.TaskTypeScalarWhereInput[]
 }
 
 export type TaskTypeCreateNestedOneWithoutTasksInput = {
@@ -287,14 +369,66 @@ export type TaskTypeUpdateOneRequiredWithoutTasksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TaskTypeUpdateToOneWithWhereWithoutTasksInput, Prisma.TaskTypeUpdateWithoutTasksInput>, Prisma.TaskTypeUncheckedUpdateWithoutTasksInput>
 }
 
+export type TaskTypeCreateWithoutCompanyInput = {
+  id?: string
+  name: string
+  description?: string | null
+  tasks?: Prisma.TaskCreateNestedManyWithoutTaskTypeInput
+}
+
+export type TaskTypeUncheckedCreateWithoutCompanyInput = {
+  id?: string
+  name: string
+  description?: string | null
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutTaskTypeInput
+}
+
+export type TaskTypeCreateOrConnectWithoutCompanyInput = {
+  where: Prisma.TaskTypeWhereUniqueInput
+  create: Prisma.XOR<Prisma.TaskTypeCreateWithoutCompanyInput, Prisma.TaskTypeUncheckedCreateWithoutCompanyInput>
+}
+
+export type TaskTypeCreateManyCompanyInputEnvelope = {
+  data: Prisma.TaskTypeCreateManyCompanyInput | Prisma.TaskTypeCreateManyCompanyInput[]
+  skipDuplicates?: boolean
+}
+
+export type TaskTypeUpsertWithWhereUniqueWithoutCompanyInput = {
+  where: Prisma.TaskTypeWhereUniqueInput
+  update: Prisma.XOR<Prisma.TaskTypeUpdateWithoutCompanyInput, Prisma.TaskTypeUncheckedUpdateWithoutCompanyInput>
+  create: Prisma.XOR<Prisma.TaskTypeCreateWithoutCompanyInput, Prisma.TaskTypeUncheckedCreateWithoutCompanyInput>
+}
+
+export type TaskTypeUpdateWithWhereUniqueWithoutCompanyInput = {
+  where: Prisma.TaskTypeWhereUniqueInput
+  data: Prisma.XOR<Prisma.TaskTypeUpdateWithoutCompanyInput, Prisma.TaskTypeUncheckedUpdateWithoutCompanyInput>
+}
+
+export type TaskTypeUpdateManyWithWhereWithoutCompanyInput = {
+  where: Prisma.TaskTypeScalarWhereInput
+  data: Prisma.XOR<Prisma.TaskTypeUpdateManyMutationInput, Prisma.TaskTypeUncheckedUpdateManyWithoutCompanyInput>
+}
+
+export type TaskTypeScalarWhereInput = {
+  AND?: Prisma.TaskTypeScalarWhereInput | Prisma.TaskTypeScalarWhereInput[]
+  OR?: Prisma.TaskTypeScalarWhereInput[]
+  NOT?: Prisma.TaskTypeScalarWhereInput | Prisma.TaskTypeScalarWhereInput[]
+  id?: Prisma.StringFilter<"TaskType"> | string
+  companyId?: Prisma.StringFilter<"TaskType"> | string
+  name?: Prisma.StringFilter<"TaskType"> | string
+  description?: Prisma.StringNullableFilter<"TaskType"> | string | null
+}
+
 export type TaskTypeCreateWithoutTasksInput = {
   id?: string
   name: string
   description?: string | null
+  company: Prisma.CompanyCreateNestedOneWithoutTaskTypesInput
 }
 
 export type TaskTypeUncheckedCreateWithoutTasksInput = {
   id?: string
+  companyId: string
   name: string
   description?: string | null
 }
@@ -319,9 +453,37 @@ export type TaskTypeUpdateWithoutTasksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  company?: Prisma.CompanyUpdateOneRequiredWithoutTaskTypesNestedInput
 }
 
 export type TaskTypeUncheckedUpdateWithoutTasksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type TaskTypeCreateManyCompanyInput = {
+  id?: string
+  name: string
+  description?: string | null
+}
+
+export type TaskTypeUpdateWithoutCompanyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tasks?: Prisma.TaskUpdateManyWithoutTaskTypeNestedInput
+}
+
+export type TaskTypeUncheckedUpdateWithoutCompanyInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutTaskTypeNestedInput
+}
+
+export type TaskTypeUncheckedUpdateManyWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -360,45 +522,59 @@ export type TaskTypeCountOutputTypeCountTasksArgs<ExtArgs extends runtime.Types.
 
 export type TaskTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  companyId?: boolean
   name?: boolean
   description?: boolean
   tasks?: boolean | Prisma.TaskType$tasksArgs<ExtArgs>
+  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.TaskTypeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["taskType"]>
 
 export type TaskTypeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  companyId?: boolean
   name?: boolean
   description?: boolean
+  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["taskType"]>
 
 export type TaskTypeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  companyId?: boolean
   name?: boolean
   description?: boolean
+  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["taskType"]>
 
 export type TaskTypeSelectScalar = {
   id?: boolean
+  companyId?: boolean
   name?: boolean
   description?: boolean
 }
 
-export type TaskTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description", ExtArgs["result"]["taskType"]>
+export type TaskTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "companyId" | "name" | "description", ExtArgs["result"]["taskType"]>
 export type TaskTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tasks?: boolean | Prisma.TaskType$tasksArgs<ExtArgs>
+  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.TaskTypeCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type TaskTypeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type TaskTypeIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type TaskTypeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
+}
+export type TaskTypeIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
+}
 
 export type $TaskTypePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TaskType"
   objects: {
     tasks: Prisma.$TaskPayload<ExtArgs>[]
+    company: Prisma.$CompanyPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    companyId: string
     name: string
     description: string | null
   }, ExtArgs["result"]["taskType"]>
@@ -796,6 +972,7 @@ readonly fields: TaskTypeFieldRefs;
 export interface Prisma__TaskTypeClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   tasks<T extends Prisma.TaskType$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TaskType$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  company<T extends Prisma.CompanyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CompanyDefaultArgs<ExtArgs>>): Prisma.Prisma__CompanyClient<runtime.Types.Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -826,6 +1003,7 @@ export interface Prisma__TaskTypeClient<T, Null = never, ExtArgs extends runtime
  */
 export interface TaskTypeFieldRefs {
   readonly id: Prisma.FieldRef<"TaskType", 'String'>
+  readonly companyId: Prisma.FieldRef<"TaskType", 'String'>
   readonly name: Prisma.FieldRef<"TaskType", 'String'>
   readonly description: Prisma.FieldRef<"TaskType", 'String'>
 }
@@ -1082,6 +1260,10 @@ export type TaskTypeCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extens
    */
   data: Prisma.TaskTypeCreateManyInput | Prisma.TaskTypeCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskTypeIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1152,6 +1334,10 @@ export type TaskTypeUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extens
    * Limit how many TaskTypes to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskTypeIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

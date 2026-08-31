@@ -18,3 +18,10 @@ export class DuplicateEntityError extends Error {
     this.name = 'DuplicateEntityError';
   }
 }
+
+export class InvalidRelationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidRelationError';
+  }
+}

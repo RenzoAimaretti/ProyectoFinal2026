@@ -4,7 +4,11 @@ import { LivestockEventRecord } from '../livestock-event.types';
 export class FindAllLivestockEventsUseCase {
   constructor(private readonly repository: LivestockEventRepositoryPort) {}
 
-  execute(): Promise<LivestockEventRecord[]> {
-    return this.repository.findAll();
+  execute(companyId?: string): Promise<LivestockEventRecord[]> {
+    if (!companyId) {
+      return this.repository.findAll();
+    }
+
+    return this.repository.findAllByCompanyId(companyId);
   }
 }

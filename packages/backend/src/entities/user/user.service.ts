@@ -21,20 +21,26 @@ export class UserService {
     private readonly updateUseCase: UpdateUserUseCase,
   ) {}
 
-  async findAll() {
-    return this.handle(() => this.findAllUseCase.execute(), 'fetching users');
+  async findAll(companyId: string) {
+    return this.handle(() => this.findAllUseCase.execute(companyId), 'fetching users');
   }
 
-  async findOne(id: string) {
-    return this.handle(() => this.findOneUseCase.execute(id), 'fetching user');
+  async findOne(id: string, companyId: string) {
+    return this.handle(() => this.findOneUseCase.execute(id, companyId), 'fetching user');
   }
 
-  async create(data: CreateUserInput) {
-    return this.handle(() => this.createUseCase.execute(data), 'creating user');
+  async create(companyId: string, data: Omit<CreateUserInput, 'companyId'>) {
+    return this.handle(
+      () => this.createUseCase.execute({ ...data, companyId }),
+      'creating user',
+    );
   }
 
-  async update(id: string, data: UpdateUserInput) {
-    return this.handle(() => this.updateUseCase.execute(id, data), 'updating user');
+  async update(id: string, companyId: string, data: UpdateUserInput) {
+    return this.handle(
+      () => this.updateUseCase.execute(id, companyId, data),
+      'updating user',
+    );
   }
 
   private async handle<T>(operation: () => Promise<T>, action: string) {

@@ -12,11 +12,14 @@ export const COMPANY_READER = Symbol('USER_COMPANY_READER');
 
 export interface UserRepositoryPort {
   findAll(): Promise<UserRecord[]>;
+  findAllByCompanyId(companyId: string): Promise<UserRecord[]>;
   findById(id: string): Promise<UserRecord | null>;
+  findByIdForCompany(id: string, companyId: string): Promise<UserRecord | null>;
   findByEmail(email: string): Promise<UserRecord | null>;
   findByUsername(username: string): Promise<UserRecord | null>;
   create(data: CreateUserData): Promise<UserRecord>;
   update(id: string, data: UpdateUserData): Promise<UserRecord>;
+  updateForCompany(id: string, companyId: string, data: UpdateUserData): Promise<UserRecord>;
 }
 
 export interface CompanyReaderPort {

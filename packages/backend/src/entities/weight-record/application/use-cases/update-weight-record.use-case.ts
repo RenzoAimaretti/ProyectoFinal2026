@@ -1,6 +1,7 @@
 import {
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
 } from '../../domain/errors';
 import {
   UserReaderPort,
@@ -24,22 +25,38 @@ export class UpdateWeightRecordUseCase {
 
   async execute(
     id: string,
-    data?: UpdateWeightRecordInput,
+    companyIdOrData?: string | UpdateWeightRecordInput,
+    maybeData?: UpdateWeightRecordInput,
   ): Promise<WeightRecordRecord> {
+    const hasCompanyScope = typeof companyIdOrData === 'string';
+    const companyId = hasCompanyScope ? companyIdOrData : undefined;
+    const data = hasCompanyScope ? maybeData : companyIdOrData;
+
     if (!data || Object.values(data).every((value) => value === undefined)) {
       throw new InvalidInputError('No data provided for update');
     }
 
-    const record = await this.repository.findById(id);
+    const record = companyId
+      ? await this.repository.findByIdForCompany(id, companyId)
+      : await this.repository.findById(id);
     if (!record) {
       throw new EntityNotFoundError(`Weight record with id ${id} not found`);
     }
 
     if (data.operatorId !== undefined) {
       const operatorId = assertRequiredString(data.operatorId, 'operatorId');
-      const operator = await this.userReader.findById(operatorId);
+      const operator = companyId
+        ? await this.userReader.findByIdForCompany(operatorId, companyId)
+        : await this.userReader.findById(operatorId);
 
       if (!operator) {
+        const existsElsewhere = companyId ? await this.userReader.findById(operatorId) : null;
+        if (existsElsewhere) {
+          throw new InvalidRelationError(
+            `Operator with id ${operatorId} does not belong to company ${companyId}`,
+          );
+        }
+
         throw new EntityNotFoundError(`Operator with id ${operatorId} not found`);
       }
     }
@@ -58,6 +75,8 @@ export class UpdateWeightRecordUseCase {
       throw new InvalidInputError('No data provided for update');
     }
 
-    return this.repository.update(id, updateData);
+    return companyId
+      ? this.repository.updateForCompany(id, companyId, updateData)
+      : this.repository.update(id, updateData);
   }
 }

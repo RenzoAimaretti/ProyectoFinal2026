@@ -18,7 +18,7 @@ export type LivestockRecord = {
 };
 
 export type CreateLivestockInput = {
-  companyId: string;
+  companyId?: string;
   lotId?: string | null;
   tagNumber: string;
   breed?: string | null;

@@ -5,8 +5,12 @@ import { MachineUsageRecord, UpdateMachineUsageData, UpdateMachineUsageInput } f
 export class UpdateMachineUsageUseCase {
   constructor(private readonly repository: MachineUsageRepositoryPort) {}
 
-  async execute(id: string, input: UpdateMachineUsageInput): Promise<MachineUsageRecord> {
-    const existing = await this.repository.findById(id);
+  async execute(
+    id: string,
+    companyId: string,
+    input: UpdateMachineUsageInput,
+  ): Promise<MachineUsageRecord> {
+    const existing = await this.repository.findByIdForCompany(id, companyId);
 
     if (!existing) {
       throw new EntityNotFoundError(`Machine usage with id ${id} not found`);
@@ -31,6 +35,6 @@ export class UpdateMachineUsageUseCase {
       data.observations = payload.observations;
     }
 
-    return this.repository.update(id, data);
+    return this.repository.updateForCompany(id, companyId, data);
   }
 }

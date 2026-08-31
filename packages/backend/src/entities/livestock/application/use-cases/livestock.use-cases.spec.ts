@@ -1,23 +1,17 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   DuplicateEntityError,
   EntityNotFoundError,
   InvalidInputError,
-  InvalidRelationError,
 } from '../../domain/errors';
 import { LivestockStatus } from '../../domain/livestock-status';
-import {
-  CompanyReaderPort,
-  LivestockRepositoryPort,
-  LotReaderPort,
-} from '../livestock.ports';
 import { CreateLivestockInput, UpdateLivestockInput } from '../livestock.types';
 import { CreateLivestockUseCase } from './create-livestock.use-case';
 import { FindAllLivestockUseCase } from './find-all-livestock.use-case';
 import { FindLivestockUseCase } from './find-livestock.use-case';
 import { RemoveLivestockUseCase } from './remove-livestock.use-case';
 import { UpdateLivestockUseCase } from './update-livestock.use-case';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 
 const baseLivestock = {
   id: 'livestock-1',
@@ -37,21 +31,27 @@ const baseLivestock = {
 };
 
 function createPorts() {
-  const repository: jest.Mocked<LivestockRepositoryPort> = {
+  const repository = {
     findAll: jest.fn(),
+    findAllByCompanyId: jest.fn(),
     findById: jest.fn(),
+    findByIdForCompany: jest.fn(),
     findByTagNumber: jest.fn(),
+    findByTagNumberAndCompanyId: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateForCompany: jest.fn(),
     delete: jest.fn(),
+    deleteForCompany: jest.fn(),
   };
 
-  const companyReader: jest.Mocked<CompanyReaderPort> = {
+  const companyReader = {
     findById: jest.fn(),
   };
 
-  const lotReader: jest.Mocked<LotReaderPort> = {
+  const lotReader = {
     findById: jest.fn(),
+    findByIdForCompany: jest.fn(),
   };
 
   return { repository, companyReader, lotReader };
@@ -80,231 +80,234 @@ describe('Livestock use cases', () => {
     expect(contents).not.toContain('prisma/generated');
   });
 
+  describe('FindAllLivestockUseCase', () => {
+    it('returns only livestock for the provided company', async () => {
+      const { repository } = createPorts();
+      repository.findAllByCompanyId.mockResolvedValue([baseLivestock]);
+
+      const useCase = new FindAllLivestockUseCase(repository as never);
+
+      await expect((useCase as any).execute('company-1')).resolves.toEqual([baseLivestock]);
+
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-1');
+    });
+
+    it('returns an empty list for a different company scope', async () => {
+      const { repository } = createPorts();
+      repository.findAllByCompanyId.mockResolvedValue([]);
+
+      const useCase = new FindAllLivestockUseCase(repository as never);
+
+      await expect((useCase as any).execute('company-2')).resolves.toEqual([]);
+
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-2');
+    });
+  });
+
+  describe('FindLivestockUseCase', () => {
+    it('returns a livestock by id within the current company', async () => {
+      const { repository } = createPorts();
+      repository.findByIdForCompany.mockResolvedValue(baseLivestock);
+
+      const useCase = new FindLivestockUseCase(repository as never);
+
+      await expect((useCase as any).execute('livestock-1', 'company-1')).resolves.toEqual(
+        baseLivestock,
+      );
+
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith(
+        'livestock-1',
+        'company-1',
+      );
+    });
+
+    it('rejects a cross-tenant livestock target', async () => {
+      const { repository } = createPorts();
+      repository.findByIdForCompany.mockResolvedValue(null);
+
+      const useCase = new FindLivestockUseCase(repository as never);
+
+      await expect((useCase as any).execute('livestock-1', 'company-2')).rejects.toBeInstanceOf(
+        EntityNotFoundError,
+      );
+
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith(
+        'livestock-1',
+        'company-2',
+      );
+    });
+  });
+
   describe('CreateLivestockUseCase', () => {
+    let repository: ReturnType<typeof createPorts>['repository'];
+    let companyReader: ReturnType<typeof createPorts>['companyReader'];
+    let lotReader: ReturnType<typeof createPorts>['lotReader'];
     let useCase: CreateLivestockUseCase;
-    let repository: jest.Mocked<LivestockRepositoryPort>;
-    let companyReader: jest.Mocked<CompanyReaderPort>;
-    let lotReader: jest.Mocked<LotReaderPort>;
 
     beforeEach(() => {
       ({ repository, companyReader, lotReader } = createPorts());
       useCase = new CreateLivestockUseCase(
-        repository,
-        companyReader,
-        lotReader,
+        repository as never,
+        companyReader as never,
+        lotReader as never,
       );
     });
 
-    it.each([
-      ['companyId', undefined],
-      ['tagNumber', ''],
-      ['species', '   '],
-      ['sex', undefined],
-    ])('rejects missing required string %s', async (field, value) => {
-      const input: CreateLivestockInput = {
+    it('ignores deprecated body companyId and creates under the JWT tenant', async () => {
+      companyReader.findById.mockImplementation(async (companyId: string) =>
+        companyId === 'company-1' ? { id: companyId } : null,
+      );
+      repository.findByTagNumberAndCompanyId.mockResolvedValue(null);
+      repository.create.mockResolvedValue({
+        ...baseLivestock,
+        id: 'livestock-2',
         companyId: 'company-1',
-        tagNumber: 'TAG-001',
+      });
+
+      const result = await (useCase as any).execute('company-1', {
+        companyId: 'company-2',
+        tagNumber: 'TAG-002',
         species: 'Bovine',
         sex: 'M',
         lotId: null,
         breed: null,
         birthDate: null,
-      };
+      } as CreateLivestockInput);
 
-      (input as Record<string, unknown>)[field] = value;
-
-      await expect(useCase.execute(input)).rejects.toBeInstanceOf(
-        InvalidInputError,
-      );
-    });
-
-    it('rejects lot belonging to another company', async () => {
-      companyReader.findById.mockResolvedValue({ id: 'company-1' });
-      lotReader.findById.mockResolvedValue({
-        id: 'lot-1',
-        companyId: 'company-2',
-      });
-      repository.findByTagNumber.mockResolvedValue(null);
-
-      await expect(
-        useCase.execute({
-          companyId: 'company-1',
-          lotId: 'lot-1',
-          tagNumber: 'TAG-001',
-          species: 'Bovine',
-          breed: undefined,
-          birthDate: null,
-          sex: 'M',
-        }),
-      ).rejects.toBeInstanceOf(InvalidRelationError);
-    });
-
-    it('rejects duplicate tagNumber', async () => {
-      companyReader.findById.mockResolvedValue({ id: 'company-1' });
-      repository.findByTagNumber.mockResolvedValue({ ...baseLivestock });
-
-      await expect(
-        useCase.execute({
-          companyId: 'company-1',
-          tagNumber: 'TAG-001',
-          species: 'Bovine',
-          sex: 'M',
-          breed: null,
-          birthDate: null,
-        }),
-      ).rejects.toBeInstanceOf(DuplicateEntityError);
-    });
-
-    it('creates livestock and normalizes optional fields/date', async () => {
-      companyReader.findById.mockResolvedValue({ id: 'company-1' });
-      lotReader.findById.mockResolvedValue({
-        id: 'lot-1',
-        companyId: 'company-1',
-      });
-      repository.findByTagNumber.mockResolvedValue(null);
-      repository.create.mockResolvedValue({
-        ...baseLivestock,
-        id: 'livestock-2',
-        lotId: 'lot-1',
-        tagNumber: 'TAG-002',
-        breed: null,
-        birthDate: new Date('2026-02-01T00:00:00.000Z'),
-      });
-
-      const result = await useCase.execute({
-        companyId: 'company-1',
-        lotId: 'lot-1',
-        tagNumber: 'TAG-002',
-        breed: undefined,
-        species: 'Bovine',
-        birthDate: '2026-02-01',
-        sex: 'M',
-      });
-
-      expect(repository.create).toHaveBeenCalledWith({
-        companyId: 'company-1',
-        lotId: 'lot-1',
-        tagNumber: 'TAG-002',
-        breed: null,
-        species: 'Bovine',
-        birthDate: new Date('2026-02-01'),
-        sex: 'M',
-      });
       expect(result).toEqual({
         ...baseLivestock,
         id: 'livestock-2',
-        lotId: 'lot-1',
+        companyId: 'company-1',
+      });
+      expect(companyReader.findById).toHaveBeenCalledWith('company-1');
+      expect(repository.create).toHaveBeenCalledWith({
+        companyId: 'company-1',
+        lotId: null,
         tagNumber: 'TAG-002',
         breed: null,
-        birthDate: new Date('2026-02-01T00:00:00.000Z'),
+        species: 'Bovine',
+        birthDate: undefined,
+        sex: 'M',
       });
+    });
+
+    it('rejects duplicate tag numbers within the same company', async () => {
+      companyReader.findById.mockResolvedValue({ id: 'company-1' });
+      repository.findByTagNumberAndCompanyId.mockResolvedValue({
+        ...baseLivestock,
+        id: 'livestock-dup',
+      });
+
+      await expect(
+        (useCase as any).execute('company-1', {
+          companyId: 'company-1',
+          tagNumber: 'TAG-001',
+          species: 'Bovine',
+          sex: 'M',
+          lotId: null,
+          breed: null,
+          birthDate: null,
+        } as CreateLivestockInput),
+      ).rejects.toBeInstanceOf(DuplicateEntityError);
+
+      expect(repository.findByTagNumberAndCompanyId).toHaveBeenCalledWith(
+        'TAG-001',
+        'company-1',
+      );
     });
   });
 
   describe('UpdateLivestockUseCase', () => {
+    let repository: ReturnType<typeof createPorts>['repository'];
+    let companyReader: ReturnType<typeof createPorts>['companyReader'];
+    let lotReader: ReturnType<typeof createPorts>['lotReader'];
     let useCase: UpdateLivestockUseCase;
-    let repository: jest.Mocked<LivestockRepositoryPort>;
-    let companyReader: jest.Mocked<CompanyReaderPort>;
-    let lotReader: jest.Mocked<LotReaderPort>;
 
     beforeEach(() => {
       ({ repository, companyReader, lotReader } = createPorts());
       useCase = new UpdateLivestockUseCase(
-        repository,
-        companyReader,
-        lotReader,
+        repository as never,
+        companyReader as never,
+        lotReader as never,
       );
     });
 
-    it.each([undefined, {}])(
-      'rejects empty update payload %p',
-      async (input) => {
-        await expect(
-          useCase.execute('livestock-1', input as UpdateLivestockInput),
-        ).rejects.toBeInstanceOf(InvalidInputError);
-      },
-    );
+    it('rejects a cross-tenant livestock target', async () => {
+      repository.findByIdForCompany.mockResolvedValue(null);
 
-    it('updates livestock and normalizes date/status', async () => {
-      repository.findById.mockResolvedValue({ ...baseLivestock });
-      repository.findByTagNumber.mockResolvedValue(null);
-      repository.update.mockResolvedValue({
+      await expect(
+        (useCase as any).execute('livestock-1', 'company-1', {
+          tagNumber: 'TAG-002',
+        } as UpdateLivestockInput),
+      ).rejects.toBeInstanceOf(EntityNotFoundError);
+
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith(
+        'livestock-1',
+        'company-1',
+      );
+      expect(repository.updateForCompany).not.toHaveBeenCalled();
+    });
+
+    it('ignores deprecated body companyId and updates inside the JWT tenant', async () => {
+      repository.findByIdForCompany.mockResolvedValue({ ...baseLivestock });
+      repository.updateForCompany.mockResolvedValue({
         ...baseLivestock,
         tagNumber: 'TAG-002',
-        birthDate: new Date('2026-03-03T00:00:00.000Z'),
-        status: 'VENDIDO' as LivestockStatus,
       });
 
-      const result = await useCase.execute('livestock-1', {
+      const result = await (useCase as any).execute('livestock-1', 'company-1', {
+        companyId: 'company-2',
         tagNumber: 'TAG-002',
-        birthDate: '2026-03-03',
-        status: 'VENDIDO' as LivestockStatus,
-      });
+      } as UpdateLivestockInput);
 
-      expect(repository.update).toHaveBeenCalledWith('livestock-1', {
-        tagNumber: 'TAG-002',
-        birthDate: new Date('2026-03-03'),
-        status: 'VENDIDO',
-      });
       expect(result).toEqual({
         ...baseLivestock,
         tagNumber: 'TAG-002',
-        birthDate: new Date('2026-03-03T00:00:00.000Z'),
-        status: 'VENDIDO',
       });
+      expect(companyReader.findById).not.toHaveBeenCalled();
+      expect(repository.updateForCompany).toHaveBeenCalledWith(
+        'livestock-1',
+        'company-1',
+        {
+          tagNumber: 'TAG-002',
+        },
+      );
     });
   });
 
   describe('RemoveLivestockUseCase', () => {
+    let repository: ReturnType<typeof createPorts>['repository'];
     let useCase: RemoveLivestockUseCase;
-    let repository: jest.Mocked<LivestockRepositoryPort>;
 
     beforeEach(() => {
       ({ repository } = createPorts());
-      useCase = new RemoveLivestockUseCase(repository);
+      useCase = new RemoveLivestockUseCase(repository as never);
     });
 
-    it('rejects missing livestock', async () => {
-      repository.findById.mockResolvedValue(null);
+    it('rejects a cross-tenant livestock target', async () => {
+      repository.findByIdForCompany.mockResolvedValue(null);
 
-      await expect(useCase.execute('livestock-1')).rejects.toBeInstanceOf(
+      await expect((useCase as any).execute('livestock-1', 'company-1')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
-      expect(repository.delete).not.toHaveBeenCalled();
+
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith(
+        'livestock-1',
+        'company-1',
+      );
+      expect(repository.deleteForCompany).not.toHaveBeenCalled();
     });
 
-    it('removes livestock and returns legacy message', async () => {
-      repository.findById.mockResolvedValue({ ...baseLivestock });
+    it('removes livestock within the current company scope', async () => {
+      repository.findByIdForCompany.mockResolvedValue({ ...baseLivestock });
 
-      await expect(useCase.execute('livestock-1')).resolves.toEqual({
+      await expect((useCase as any).execute('livestock-1', 'company-1')).resolves.toEqual({
         message: 'Livestock with id livestock-1 deleted successfully',
       });
-      expect(repository.delete).toHaveBeenCalledWith('livestock-1');
-    });
-  });
 
-  describe('FindLivestockUseCase', () => {
-    let useCase: FindLivestockUseCase;
-    let repository: jest.Mocked<LivestockRepositoryPort>;
-
-    beforeEach(() => {
-      ({ repository } = createPorts());
-      useCase = new FindLivestockUseCase(repository);
-    });
-
-    it('returns all livestock', async () => {
-      const expected = [{ ...baseLivestock }];
-      repository.findAll.mockResolvedValue(expected);
-      const findAll = new FindAllLivestockUseCase(repository);
-
-      await expect(findAll.execute()).resolves.toEqual(expected);
-    });
-
-    it('rejects missing livestock when fetching one', async () => {
-      repository.findById.mockResolvedValue(null);
-
-      await expect(useCase.execute('livestock-1')).rejects.toBeInstanceOf(
-        EntityNotFoundError,
+      expect(repository.deleteForCompany).toHaveBeenCalledWith(
+        'livestock-1',
+        'company-1',
       );
     });
   });

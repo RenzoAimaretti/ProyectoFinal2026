@@ -15,4 +15,21 @@ export class PrismaTaskReader implements TaskReaderPort {
       },
     });
   }
+
+  findByIdWithOperatorsForCompany(id: string, companyId: string) {
+    return this.prisma.task.findFirst({
+      where: {
+        id,
+        lot: {
+          farm: {
+            companyId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        operators: { select: { id: true } },
+      },
+    });
+  }
 }

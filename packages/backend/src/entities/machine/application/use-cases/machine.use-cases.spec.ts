@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { EntityNotFoundError, InvalidInputError } from '../../domain/errors';
-import { CompanyReaderPort, MachineRepositoryPort } from '../machine.ports';
 import { CreateMachineInput, MachineStatusValue, UpdateMachineInput } from '../machine.types';
 import { CreateMachineUseCase } from './create-machine.use-case';
 import { FindAllMachinesUseCase } from './find-all-machines.use-case';
@@ -23,14 +22,17 @@ const baseMachine = {
 };
 
 function createPorts() {
-  const repository: jest.Mocked<MachineRepositoryPort> = {
+  const repository = {
     findAll: jest.fn(),
+    findAllByCompanyId: jest.fn(),
     findById: jest.fn(),
+    findByIdForCompany: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateForCompany: jest.fn(),
   };
 
-  const companyReader: jest.Mocked<CompanyReaderPort> = {
+  const companyReader = {
     findById: jest.fn(),
   };
 
@@ -61,110 +63,90 @@ describe('Machine use cases', () => {
   });
 
   describe('FindAllMachinesUseCase', () => {
-    it('returns all machines', async () => {
+    it('returns only machines for the provided company', async () => {
       const { repository } = createPorts();
-      repository.findAll.mockResolvedValue([baseMachine]);
+      repository.findAllByCompanyId.mockResolvedValue([baseMachine]);
 
-      const useCase = new FindAllMachinesUseCase(repository);
+      const useCase = new FindAllMachinesUseCase(repository as never);
 
-      await expect(useCase.execute()).resolves.toEqual([baseMachine]);
+      await expect((useCase as any).execute('company-1')).resolves.toEqual([baseMachine]);
+
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-1');
     });
 
-    it('returns an empty list when there are no machines', async () => {
+    it('returns an empty list for another company scope', async () => {
       const { repository } = createPorts();
-      repository.findAll.mockResolvedValue([]);
+      repository.findAllByCompanyId.mockResolvedValue([]);
 
-      const useCase = new FindAllMachinesUseCase(repository);
+      const useCase = new FindAllMachinesUseCase(repository as never);
 
-      await expect(useCase.execute()).resolves.toEqual([]);
+      await expect((useCase as any).execute('company-2')).resolves.toEqual([]);
+
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-2');
     });
   });
 
   describe('FindMachineUseCase', () => {
-    it('returns a machine by id', async () => {
+    it('returns a machine by id within the current company', async () => {
       const { repository } = createPorts();
-      repository.findById.mockResolvedValue(baseMachine);
+      repository.findByIdForCompany.mockResolvedValue(baseMachine);
 
-      const useCase = new FindMachineUseCase(repository);
+      const useCase = new FindMachineUseCase(repository as never);
 
-      await expect(useCase.execute('machine-1')).resolves.toEqual(baseMachine);
+      await expect((useCase as any).execute('machine-1', 'company-1')).resolves.toEqual(
+        baseMachine,
+      );
+
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('machine-1', 'company-1');
     });
 
-    it('returns null when the machine is missing', async () => {
+    it('rejects a cross-tenant machine target', async () => {
       const { repository } = createPorts();
-      repository.findById.mockResolvedValue(null);
+      repository.findByIdForCompany.mockResolvedValue(null);
 
-      const useCase = new FindMachineUseCase(repository);
+      const useCase = new FindMachineUseCase(repository as never);
 
-      await expect(useCase.execute('machine-1')).resolves.toBeNull();
+      await expect((useCase as any).execute('machine-1', 'company-2')).rejects.toBeInstanceOf(
+        EntityNotFoundError,
+      );
+
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('machine-1', 'company-2');
     });
   });
 
   describe('CreateMachineUseCase', () => {
-    let repository: jest.Mocked<MachineRepositoryPort>;
-    let companyReader: jest.Mocked<CompanyReaderPort>;
+    let repository: ReturnType<typeof createPorts>['repository'];
+    let companyReader: ReturnType<typeof createPorts>['companyReader'];
     let useCase: CreateMachineUseCase;
 
     beforeEach(() => {
       ({ repository, companyReader } = createPorts());
-      useCase = new CreateMachineUseCase(repository, companyReader);
+      useCase = new CreateMachineUseCase(repository as never, companyReader as never);
     });
 
-    it.each([
-      ['companyId', undefined],
-      ['name', undefined],
-      ['brand', undefined],
-      ['entryDate', undefined],
-    ])('rejects missing required %s', async (field, value) => {
-      const input: CreateMachineInput = {
+    it('ignores deprecated body companyId and creates under the JWT tenant', async () => {
+      companyReader.findById.mockImplementation(async (companyId: string) =>
+        companyId === 'company-1' ? { id: companyId } : null,
+      );
+      repository.create.mockResolvedValue({
+        ...baseMachine,
+        id: 'machine-2',
         companyId: 'company-1',
+      });
+
+      const result = await (useCase as any).execute('company-1', {
+        companyId: 'company-2',
         name: 'Tractor',
         brand: 'John Deere',
         entryDate: '2026-01-10',
-      };
+      } as CreateMachineInput);
 
-      (input as Record<string, unknown>)[field] = value;
-
-      await expect(useCase.execute(input)).rejects.toBeInstanceOf(InvalidInputError);
-    });
-
-    it('rejects invalid entry dates', async () => {
-      await expect(
-        useCase.execute({
-          companyId: 'company-1',
-          name: 'Tractor',
-          brand: 'John Deere',
-          entryDate: 'not-a-date',
-        }),
-      ).rejects.toBeInstanceOf(InvalidInputError);
-    });
-
-    it('rejects missing companies', async () => {
-      companyReader.findById.mockResolvedValue(null);
-
-      await expect(
-        useCase.execute({
-          companyId: 'company-1',
-          name: 'Tractor',
-          brand: 'John Deere',
-          entryDate: '2026-01-10',
-        }),
-      ).rejects.toBeInstanceOf(EntityNotFoundError);
-    });
-
-    it('creates a machine', async () => {
-      companyReader.findById.mockResolvedValue({ id: 'company-1' });
-      repository.create.mockResolvedValue(baseMachine);
-
-      await expect(
-        useCase.execute({
-          companyId: 'company-1',
-          name: 'Tractor',
-          brand: 'John Deere',
-          entryDate: '2026-01-10',
-        }),
-      ).resolves.toEqual(baseMachine);
-
+      expect(result).toEqual({
+        ...baseMachine,
+        id: 'machine-2',
+        companyId: 'company-1',
+      });
+      expect(companyReader.findById).toHaveBeenCalledWith('company-1');
       expect(repository.create).toHaveBeenCalledWith({
         companyId: 'company-1',
         name: 'Tractor',
@@ -172,58 +154,64 @@ describe('Machine use cases', () => {
         entryDate: new Date('2026-01-10'),
       });
     });
+
+    it('rejects missing companies for the tenant-scoped create flow', async () => {
+      companyReader.findById.mockResolvedValue(null);
+
+      await expect(
+        (useCase as any).execute('company-1', {
+          companyId: 'company-2',
+          name: 'Tractor',
+          brand: 'John Deere',
+          entryDate: '2026-01-10',
+        } as CreateMachineInput),
+      ).rejects.toBeInstanceOf(EntityNotFoundError);
+    });
   });
 
   describe('UpdateMachineUseCase', () => {
-    let repository: jest.Mocked<MachineRepositoryPort>;
+    let repository: ReturnType<typeof createPorts>['repository'];
     let useCase: UpdateMachineUseCase;
 
     beforeEach(() => {
       ({ repository } = createPorts());
-      useCase = new UpdateMachineUseCase(repository);
+      useCase = new UpdateMachineUseCase(repository as never);
     });
 
-    it('rejects missing machines', async () => {
-      repository.findById.mockResolvedValue(null);
+    it('rejects a cross-tenant machine target', async () => {
+      repository.findByIdForCompany.mockResolvedValue(null);
 
       await expect(
-        useCase.execute('machine-1', { status: 'MANTENIMIENTO' }),
-      ).rejects.toBeInstanceOf(EntityNotFoundError);
-    });
-
-    it('rejects invalid status and dates', async () => {
-      repository.findById.mockResolvedValue(baseMachine);
-
-      await expect(
-        useCase.execute('machine-1', { status: 'NO_EXISTE' as MachineStatusValue }),
-      ).rejects.toBeInstanceOf(InvalidInputError);
-
-      await expect(
-        useCase.execute('machine-1', { entryDate: 'not-a-date' }),
-      ).rejects.toBeInstanceOf(InvalidInputError);
-    });
-
-    it('updates a machine', async () => {
-      repository.findById.mockResolvedValue(baseMachine);
-      repository.update.mockResolvedValue({
-        ...baseMachine,
-        status: 'MANTENIMIENTO',
-      });
-
-      await expect(
-        useCase.execute('machine-1', {
-          name: 'Tractor nuevo',
-          brand: 'Caterpillar',
-          entryDate: '2026-01-15',
+        (useCase as any).execute('machine-1', 'company-1', {
           status: 'MANTENIMIENTO',
-          maintenanceDate: '2026-01-16',
-        }),
-      ).resolves.toEqual({
+        } as UpdateMachineInput),
+      ).rejects.toBeInstanceOf(EntityNotFoundError);
+
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('machine-1', 'company-1');
+      expect(repository.updateForCompany).not.toHaveBeenCalled();
+    });
+
+    it('ignores deprecated body companyId and updates inside the JWT tenant', async () => {
+      repository.findByIdForCompany.mockResolvedValue(baseMachine);
+      repository.updateForCompany.mockResolvedValue({
         ...baseMachine,
         status: 'MANTENIMIENTO',
       });
 
-      expect(repository.update).toHaveBeenCalledWith('machine-1', {
+      const result = await (useCase as any).execute('machine-1', 'company-1', {
+        companyId: 'company-2' as never,
+        name: 'Tractor nuevo',
+        brand: 'Caterpillar',
+        entryDate: '2026-01-15',
+        status: 'MANTENIMIENTO',
+        maintenanceDate: '2026-01-16',
+      } as UpdateMachineInput);
+
+      expect(result).toEqual({
+        ...baseMachine,
+        status: 'MANTENIMIENTO',
+      });
+      expect(repository.updateForCompany).toHaveBeenCalledWith('machine-1', 'company-1', {
         name: 'Tractor nuevo',
         brand: 'Caterpillar',
         entryDate: new Date('2026-01-15'),

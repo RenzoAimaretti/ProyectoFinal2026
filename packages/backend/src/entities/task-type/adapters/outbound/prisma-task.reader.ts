@@ -7,9 +7,9 @@ import { TaskReaderPort } from '../../application/task-type.ports';
 export class PrismaTaskReader implements TaskReaderPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findByIds(ids: string[]): Promise<TaskLookupRecord[]> {
+  findByIdsForCompany(ids: string[], companyId: string): Promise<TaskLookupRecord[]> {
     return this.prisma.task.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, taskType: { companyId } },
       select: { id: true },
     });
   }

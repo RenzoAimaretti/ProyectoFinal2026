@@ -12,21 +12,21 @@ import { TaskTypeRepositoryPort } from '../../application/task-type.ports';
 export class PrismaTaskTypeRepository implements TaskTypeRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<TaskTypeRecord[]> {
-    return this.prisma.taskType.findMany();
+  findAllByCompanyId(companyId: string): Promise<TaskTypeRecord[]> {
+    return this.prisma.taskType.findMany({ where: { companyId } });
   }
 
-  findById(id: string): Promise<TaskTypeRecord | null> {
-    return this.prisma.taskType.findUnique({ where: { id } });
+  findByIdForCompany(id: string, companyId: string): Promise<TaskTypeRecord | null> {
+    return this.prisma.taskType.findFirst({ where: { id, companyId } });
   }
 
-  findByName(name: string): Promise<TaskTypeRecord | null> {
-    return this.prisma.taskType.findFirst({ where: { name } });
+  findByNameAndCompanyId(name: string, companyId: string): Promise<TaskTypeRecord | null> {
+    return this.prisma.taskType.findFirst({ where: { name, companyId } });
   }
 
-  findByIds(ids: string[]): Promise<TaskLookupRecord[]> {
+  findByIdsForCompany(ids: string[], companyId: string): Promise<TaskLookupRecord[]> {
     return this.prisma.task.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, taskType: { companyId } },
       select: { id: true },
     });
   }
@@ -35,9 +35,22 @@ export class PrismaTaskTypeRepository implements TaskTypeRepositoryPort {
     return this.prisma.taskType.create({ data });
   }
 
-  update(id: string, data: UpdateTaskTypeData): Promise<TaskTypeRecord> {
+  async updateForCompany(
+    id: string,
+    companyId: string,
+    data: UpdateTaskTypeData,
+  ): Promise<TaskTypeRecord> {
+    const taskType = await this.prisma.taskType.findFirst({
+      where: { id, companyId },
+      select: { id: true },
+    });
+
+    if (!taskType) {
+      throw new Error(`Task type with id ${id} not found for company ${companyId}`);
+    }
+
     return this.prisma.taskType.update({
-      where: { id },
+      where: { id: taskType.id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.description !== undefined ? { description: data.description } : {}),
@@ -48,7 +61,16 @@ export class PrismaTaskTypeRepository implements TaskTypeRepositoryPort {
     });
   }
 
-  delete(id: string): Promise<void> {
-    return this.prisma.taskType.delete({ where: { id } }).then(() => undefined);
+  async deleteForCompany(id: string, companyId: string): Promise<void> {
+    const taskType = await this.prisma.taskType.findFirst({
+      where: { id, companyId },
+      select: { id: true },
+    });
+
+    if (!taskType) {
+      throw new Error(`Task type with id ${id} not found for company ${companyId}`);
+    }
+
+    await this.prisma.taskType.delete({ where: { id: taskType.id } });
   }
 }

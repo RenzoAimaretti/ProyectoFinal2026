@@ -65,8 +65,9 @@ import { TaskService } from './task.service';
     },
     {
       provide: RemoveTaskOperatorUseCase,
-      useFactory: (repository: TaskRepositoryPort) => new RemoveTaskOperatorUseCase(repository),
-      inject: [TASK_REPOSITORY],
+      useFactory: (repository: TaskRepositoryPort, userReader: UserReaderPort) =>
+        new RemoveTaskOperatorUseCase(repository, userReader),
+      inject: [TASK_REPOSITORY, USER_READER],
     },
     {
       provide: DeleteTaskUseCase,

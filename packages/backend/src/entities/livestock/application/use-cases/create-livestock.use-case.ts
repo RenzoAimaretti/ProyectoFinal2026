@@ -21,32 +21,34 @@ export class CreateLivestockUseCase {
     private readonly lotReader: LotReaderPort,
   ) {}
 
-  async execute(data: CreateLivestockInput): Promise<LivestockRecord> {
-    const companyId = assertRequiredString(data.companyId, 'companyId');
+  async execute(companyId: string, data: CreateLivestockInput): Promise<LivestockRecord> {
+    const tenantCompanyId = assertRequiredString(companyId, 'companyId');
     const tagNumber = assertRequiredString(data.tagNumber, 'tagNumber');
     const species = assertRequiredString(data.species, 'species');
     const sex = assertRequiredString(data.sex, 'sex');
 
-    const company = await this.companyReader.findById(companyId);
+    const company = await this.companyReader.findById(tenantCompanyId);
     if (!company) {
-      throw new EntityNotFoundError(`Company with id ${companyId} not found`);
+      throw new EntityNotFoundError(`Company with id ${tenantCompanyId} not found`);
     }
 
     if (data.lotId) {
-      const lot = await this.lotReader.findById(data.lotId);
+      const lot = await this.lotReader.findByIdForCompany(
+        data.lotId,
+        tenantCompanyId,
+      );
 
       if (!lot) {
-        throw new EntityNotFoundError(`Lot with id ${data.lotId} not found`);
-      }
-
-      if (lot.companyId !== companyId) {
         throw new InvalidRelationError(
           'Lot must belong to the same company as the livestock',
         );
       }
     }
 
-    const duplicate = await this.repository.findByTagNumber(tagNumber);
+    const duplicate = await this.repository.findByTagNumberAndCompanyId(
+      tagNumber,
+      tenantCompanyId,
+    );
     if (duplicate) {
       throw new DuplicateEntityError(
         'Livestock with this tagNumber already exists',
@@ -54,7 +56,7 @@ export class CreateLivestockUseCase {
     }
 
     return this.repository.create({
-      companyId,
+      companyId: tenantCompanyId,
       lotId: data.lotId ?? null,
       tagNumber,
       breed: data.breed ?? null,

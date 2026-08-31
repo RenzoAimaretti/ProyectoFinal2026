@@ -12,4 +12,11 @@ export class PrismaLivestockReader implements LivestockReaderPort {
       select: { id: true },
     });
   }
+
+  findByIdForCompany(id: string, companyId: string): Promise<{ id: string } | null> {
+    return this.prisma.livestock.findFirst({
+      where: { id, companyId },
+      select: { id: true },
+    });
+  }
 }

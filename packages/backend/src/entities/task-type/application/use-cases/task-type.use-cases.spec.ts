@@ -11,23 +11,30 @@ import { UpdateTaskTypeUseCase } from './update-task-type.use-case';
 
 const baseTaskType = {
   id: 'task-type-1',
+  companyId: 'company-1',
   name: 'Mantenimiento',
   description: 'Rutina de mantenimiento',
 };
 
+const otherCompanyTaskType = {
+  ...baseTaskType,
+  companyId: 'company-2',
+  id: 'task-type-2',
+};
+
 function createPorts() {
   const repository: jest.Mocked<TaskTypeRepositoryPort> = {
-    findAll: jest.fn(),
-    findById: jest.fn(),
-    findByName: jest.fn(),
-    findByIds: jest.fn(),
+    findAllByCompanyId: jest.fn(),
+    findByIdForCompany: jest.fn(),
+    findByNameAndCompanyId: jest.fn(),
+    findByIdsForCompany: jest.fn(),
     create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
+    updateForCompany: jest.fn(),
+    deleteForCompany: jest.fn(),
   };
 
   const taskReader: jest.Mocked<TaskReaderPort> = {
-    findByIds: jest.fn(),
+    findByIdsForCompany: jest.fn(),
   };
 
   return { repository, taskReader };
@@ -60,40 +67,54 @@ describe('Task type use cases', () => {
   describe('FindAllTaskTypesUseCase', () => {
     it('returns all task types', async () => {
       const { repository } = createPorts();
-      repository.findAll.mockResolvedValue([baseTaskType]);
+      repository.findAllByCompanyId.mockResolvedValue([baseTaskType]);
 
       const useCase = new FindAllTaskTypesUseCase(repository);
 
-      await expect(useCase.execute()).resolves.toEqual([baseTaskType]);
+      await expect(useCase.execute('company-1')).resolves.toEqual([baseTaskType]);
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-1');
     });
 
     it('returns an empty list when there are no task types', async () => {
       const { repository } = createPorts();
-      repository.findAll.mockResolvedValue([]);
+      repository.findAllByCompanyId.mockResolvedValue([]);
 
       const useCase = new FindAllTaskTypesUseCase(repository);
 
-      await expect(useCase.execute()).resolves.toEqual([]);
+      await expect(useCase.execute('company-2')).resolves.toEqual([]);
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-2');
     });
   });
 
   describe('FindTaskTypeUseCase', () => {
     it('returns a task type by id', async () => {
       const { repository } = createPorts();
-      repository.findById.mockResolvedValue(baseTaskType);
+      repository.findByIdForCompany.mockResolvedValue(baseTaskType);
 
       const useCase = new FindTaskTypeUseCase(repository);
 
-      await expect(useCase.execute('task-type-1')).resolves.toEqual(baseTaskType);
+      await expect(useCase.execute('task-type-1', 'company-1')).resolves.toEqual(
+        baseTaskType,
+      );
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith(
+        'task-type-1',
+        'company-1',
+      );
     });
 
-    it('returns null when the task type is missing', async () => {
+    it('rejects missing task type outside the company', async () => {
       const { repository } = createPorts();
-      repository.findById.mockResolvedValue(null);
+      repository.findByIdForCompany.mockResolvedValue(null);
 
       const useCase = new FindTaskTypeUseCase(repository);
 
-      await expect(useCase.execute('task-type-1')).resolves.toBeNull();
+      await expect(useCase.execute('task-type-1', 'company-2')).rejects.toBeInstanceOf(
+        EntityNotFoundError,
+      );
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith(
+        'task-type-1',
+        'company-2',
+      );
     });
   });
 
@@ -113,29 +134,54 @@ describe('Task type use cases', () => {
       const input: CreateTaskTypeInput = { name: 'Mantenimiento' };
       (input as Record<string, unknown>)[field] = value;
 
-      await expect(useCase.execute(input)).rejects.toBeInstanceOf(InvalidInputError);
+      await expect(useCase.execute('company-1', input)).rejects.toBeInstanceOf(InvalidInputError);
     });
 
     it('rejects duplicate task type names', async () => {
-      repository.findByName.mockResolvedValue(baseTaskType);
+      repository.findByNameAndCompanyId.mockResolvedValue(baseTaskType);
 
       await expect(
-        useCase.execute({ name: 'Mantenimiento' }),
+        useCase.execute('company-1', { name: 'Mantenimiento' }),
       ).rejects.toBeInstanceOf(DuplicateEntityError);
+      expect(repository.findByNameAndCompanyId).toHaveBeenCalledWith(
+        'Mantenimiento',
+        'company-1',
+      );
     });
 
     it('creates a task type', async () => {
-      repository.findByName.mockResolvedValue(null);
+      repository.findByNameAndCompanyId.mockResolvedValue(null);
       repository.create.mockResolvedValue(baseTaskType);
 
       await expect(
-        useCase.execute({ name: 'Mantenimiento', description: 'Rutina de mantenimiento' }),
+        useCase.execute('company-1', {
+          name: 'Mantenimiento',
+          description: 'Rutina de mantenimiento',
+        }),
       ).resolves.toEqual(baseTaskType);
 
       expect(repository.create).toHaveBeenCalledWith({
         name: 'Mantenimiento',
         description: 'Rutina de mantenimiento',
+        companyId: 'company-1',
       });
+    });
+
+    it('allows the same task type name in another company', async () => {
+      repository.findByNameAndCompanyId.mockResolvedValue(null);
+      repository.create.mockResolvedValue(otherCompanyTaskType);
+
+      await expect(
+        useCase.execute('company-2', {
+          name: 'Mantenimiento',
+          description: 'Rutina de mantenimiento',
+        }),
+      ).resolves.toEqual(otherCompanyTaskType);
+
+      expect(repository.findByNameAndCompanyId).toHaveBeenCalledWith(
+        'Mantenimiento',
+        'company-2',
+      );
     });
   });
 
@@ -151,39 +197,51 @@ describe('Task type use cases', () => {
 
     it.each([undefined, {}])('rejects empty update payload %p', async (input) => {
       await expect(
-        useCase.execute('task-type-1', input as UpdateTaskTypeInput),
+        useCase.execute('task-type-1', 'company-1', input as UpdateTaskTypeInput),
       ).rejects.toBeInstanceOf(InvalidInputError);
     });
 
     it('rejects missing task type', async () => {
-      repository.findById.mockResolvedValue(null);
+      repository.findByIdForCompany.mockResolvedValue(null);
 
       await expect(
-        useCase.execute('task-type-1', { name: 'Nuevo nombre' }),
+        useCase.execute('task-type-1', 'company-2', { name: 'Nuevo nombre' }),
       ).rejects.toBeInstanceOf(EntityNotFoundError);
     });
 
     it('rejects missing task ids', async () => {
-      repository.findById.mockResolvedValue(baseTaskType);
-      taskReader.findByIds.mockResolvedValue([{ id: 'task-1' }]);
+      repository.findByIdForCompany.mockResolvedValue(baseTaskType);
+      taskReader.findByIdsForCompany.mockResolvedValue([{ id: 'task-1' }]);
 
       await expect(
-        useCase.execute('task-type-1', {
+        useCase.execute('task-type-1', 'company-1', {
           taskIds: ['task-1', 'task-2'],
         }),
       ).rejects.toBeInstanceOf(EntityNotFoundError);
     });
 
+    it('rejects duplicate task type name within the same company on update', async () => {
+      repository.findByIdForCompany.mockResolvedValue(baseTaskType);
+      repository.findByNameAndCompanyId.mockResolvedValue(otherCompanyTaskType);
+
+      await expect(
+        useCase.execute('task-type-1', 'company-1', {
+          name: 'Nuevo nombre',
+        }),
+      ).rejects.toBeInstanceOf(DuplicateEntityError);
+    });
+
     it('updates a task type', async () => {
-      repository.findById.mockResolvedValue(baseTaskType);
-      taskReader.findByIds.mockResolvedValue([{ id: 'task-1' }, { id: 'task-2' }]);
-      repository.update.mockResolvedValue({
+      repository.findByIdForCompany.mockResolvedValue(baseTaskType);
+      repository.findByNameAndCompanyId.mockResolvedValue(null);
+      taskReader.findByIdsForCompany.mockResolvedValue([{ id: 'task-1' }, { id: 'task-2' }]);
+      repository.updateForCompany.mockResolvedValue({
         ...baseTaskType,
         name: 'Nuevo nombre',
       });
 
       await expect(
-        useCase.execute('task-type-1', {
+        useCase.execute('task-type-1', 'company-1', {
           name: 'Nuevo nombre',
           description: 'Actualizada',
           taskIds: ['task-1', 'task-2'],
@@ -193,7 +251,7 @@ describe('Task type use cases', () => {
         name: 'Nuevo nombre',
       });
 
-      expect(repository.update).toHaveBeenCalledWith('task-type-1', {
+      expect(repository.updateForCompany).toHaveBeenCalledWith('task-type-1', 'company-1', {
         name: 'Nuevo nombre',
         description: 'Actualizada',
         taskIds: ['task-1', 'task-2'],
@@ -211,21 +269,21 @@ describe('Task type use cases', () => {
     });
 
     it('rejects a missing task type', async () => {
-      repository.findById.mockResolvedValue(null);
+      repository.findByIdForCompany.mockResolvedValue(null);
 
-      await expect(useCase.execute('task-type-1')).rejects.toBeInstanceOf(
+      await expect(useCase.execute('task-type-1', 'company-2')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
-      expect(repository.delete).not.toHaveBeenCalled();
+      expect(repository.deleteForCompany).not.toHaveBeenCalled();
     });
 
     it('deletes a task type and returns legacy message', async () => {
-      repository.findById.mockResolvedValue(baseTaskType);
+      repository.findByIdForCompany.mockResolvedValue(baseTaskType);
 
-      await expect(useCase.execute('task-type-1')).resolves.toEqual({
+      await expect(useCase.execute('task-type-1', 'company-1')).resolves.toEqual({
         message: 'Task type with id task-type-1 deleted successfully',
       });
-      expect(repository.delete).toHaveBeenCalledWith('task-type-1');
+      expect(repository.deleteForCompany).toHaveBeenCalledWith('task-type-1', 'company-1');
     });
   });
 });
