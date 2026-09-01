@@ -1,13 +1,12 @@
 import 'package:flutter/foundation.dart';
-import '../../data/models/login_response_model.dart';
-import '../../data/repositories/auth_repository.dart';
-import '../../domain/models/auth_user.dart';
+import '../../domain/models/session.dart';
+import '../../domain/usecases/login_usecase.dart';
 
 class LoginViewModel extends ChangeNotifier {
-  LoginViewModel({AuthRepository? authRepository})
-      : _authRepository = authRepository ?? HttpAuthRepository();
+  LoginViewModel({required LoginUseCase loginUseCase})
+      : _loginUseCase = loginUseCase;
 
-  final AuthRepository _authRepository;
+  final LoginUseCase _loginUseCase;
 
   String _email = '';
   String get email => _email;
@@ -36,8 +35,8 @@ class LoginViewModel extends ChangeNotifier {
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
 
-  AuthUser? _loggedUser;
-  AuthUser? get loggedUser => _loggedUser;
+  Session? _session;
+  Session? get session => _session;
 
   void setEmail(String value) {
     _email = value.trim();
@@ -101,13 +100,13 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final LoginResponseModel response = await _authRepository.login(
+      final session = await _loginUseCase.execute(
         email: _email,
         password: _password,
       );
 
+      _session = session;
       _isLoggedIn = true;
-      _loggedUser = response.user;
       _isLoading = false;
       notifyListeners();
       return true;

@@ -6,34 +6,34 @@
 
 - [x] 1.1 En `packages/mobile/pubspec.yaml` agregar `drift`, `drift_flutter` (ya incluye `sqlite3_flutter_libs`), `path`, `uuid`; dev: `drift_dev`, `build_runner`. (`path_provider` se omite: lo aporta `drift_flutter` transitivamente).
 - [x] 1.2 Crear `packages/mobile/build.yaml` habilitando el codegen de `drift_dev` para el package `mobile`.
-- [ ] 1.3 Correr `dart run build_runner build` y verificar que genera los part files `*.g.dart` sin errores. (Diferido a Phase 2: no hay tablas drift todavía.)
+- [x] 1.3 Correr `dart run build_runner build` y verificar que genera los part files `*.g.dart` sin errores. (Diferido a Phase 2: no hay tablas drift todavía.)
 
 ## 2. DB foundation (AppDatabase + 18 tablas, schema v1)
 
-- [ ] 2.1 Crear `lib/data/services/tables/catalog_tables.dart`: `Companies`, `Clients`, `Farms`, `Lots`, `LaborTypes`, `Inputs`, `Machines` — PK uuid `clientDefault`, defaults `version=1`/`deleted=false`/`active=true`, `@TableIndex` según design §3.
-- [ ] 2.2 Crear `lib/data/services/tables/production_tables.dart`: `Recipes`, `RecipeItems`, `DailyReports`, `DailyReportItems` — FKs + `idx_daily_reports_status_date`, `idx_daily_reports_lot_id`.
-- [ ] 2.3 Crear `lib/data/services/tables/stock_tables.dart` (`Receptions`, `ReceptionItems`, `Stocks` con UNIQUE(clientId,inputId)) y `machine_tables.dart` (`MachineActivities`, campos nullable por `type`).
-- [ ] 2.4 Crear `lib/data/services/tables/session_tables.dart` (`Sessions` sin FK — D8) e `infra_tables.dart` (`Photos` polimórfica sin FK, `SyncQueue` con `status=PENDING`/`attempts=0`).
-- [ ] 2.5 Crear `lib/data/services/app_database.dart`: `@DriftDatabase` con las 18 tablas, `schemaVersion = 1` (solo `onCreate`), `beforeOpen` con `PRAGMA foreign_keys = ON`, apertura vía `driftDatabase` + `path_provider`.
-- [ ] 2.6 Crear DAOs en `lib/data/services/daos/` con queries `watch*` (por status/fecha, lote, máquina, cliente), registrarlos en `AppDatabase` y regenerar codegen.
+- [x] 2.1 Crear `lib/data/services/tables/catalog_tables.dart`: `Companies`, `Clients`, `Farms`, `Lots`, `LaborTypes`, `Inputs`, `Machines` — PK uuid `clientDefault`, defaults `version=1`/`deleted=false`/`active=true`, `@TableIndex` según design §3.
+- [x] 2.2 Crear `lib/data/services/tables/production_tables.dart`: `Recipes`, `RecipeItems`, `DailyReports`, `DailyReportItems` — FKs + `idx_daily_reports_status_date`, `idx_daily_reports_lot_id`.
+- [x] 2.3 Crear `lib/data/services/tables/stock_tables.dart` (`Receptions`, `ReceptionItems`, `Stocks` con UNIQUE(clientId,inputId)) y `machine_tables.dart` (`MachineActivities`, campos nullable por `type`).
+- [x] 2.4 Crear `lib/data/services/tables/session_tables.dart` (`Sessions` sin FK — D8) e `infra_tables.dart` (`Photos` polimórfica sin FK, `SyncQueue` con `status=PENDING`/`attempts=0`).
+- [x] 2.5 Crear `lib/data/services/app_database.dart`: `@DriftDatabase` con las 18 tablas, `schemaVersion = 1` (solo `onCreate`), `beforeOpen` con `PRAGMA foreign_keys = ON`, apertura vía `driftDatabase` + `path_provider`.
+- [x] 2.6 Crear DAOs en `lib/data/services/daos/` con queries `watch*` (por status/fecha, lote, máquina, cliente), registrarlos en `AppDatabase` y regenerar codegen.
 
 ## 3. Domain layer
 
-- [ ] 3.1 Crear `lib/domain/models/enums.dart`: `DailyReportStatus`, `ReceptionStatus`, `MachineActivityType`, `MachineStatus`, `PhotoEntityType`, `SyncOperation`, `SyncStatus`, `UserRole` (valores UPPERCASE).
-- [ ] 3.2 Crear modelos puros en `lib/domain/models/`: `session`, `daily_report`, `reception`, `stock`, `machine_activity`, `photo`, `catalogs` (solo imports `dart:*`).
-- [ ] 3.3 Crear los 15 puertos en `lib/domain/repositories/` (design §4): `AuthRepository`, `SessionRepository`, `DailyReportRepository`, `ReceptionRepository`, `StockRepository`, `MachineActivityRepository`, `PhotoRepository` + 8 readers (Client, Company, LaborType, Input, Farm, Lot, Machine, Recipe).
-- [ ] 3.4 Crear los 12 use cases en `lib/domain/usecases/` (1 clase = 1 `execute()`), según design §4.
+- [x] 3.1 Crear `lib/domain/models/enums.dart`: `DailyReportStatus`, `ReceptionStatus`, `MachineActivityType`, `MachineStatus`, `PhotoEntityType`, `SyncOperation`, `SyncStatus`, `UserRole` (valores UPPERCASE).
+- [x] 3.2 Crear modelos puros en `lib/domain/models/`: `session`, `daily_report`, `reception`, `stock`, `machine_activity`, `photo`, `catalogs` (solo imports `dart:*`).
+- [x] 3.3 Crear los 15 puertos en `lib/domain/repositories/` (design §4): `AuthRepository`, `SessionRepository`, `DailyReportRepository`, `ReceptionRepository`, `StockRepository`, `MachineActivityRepository`, `PhotoRepository` + 8 readers (Client, Company, LaborType, Input, Farm, Lot, Machine, Recipe).
+- [x] 3.4 Crear los 12 use cases en `lib/domain/usecases/` (1 clase = 1 `execute()`), según design §4.
 
 ## 4. Data layer (adaptadores drift + refactor auth)
 
-- [ ] 4.1 Crear mappers fila drift ↔ modelo de dominio y converters de enums en `lib/data/models/`.
-- [ ] 4.2 Crear `lib/data/repositories/drift_session_repository.dart` (`save`/`current`/`clear`).
-- [ ] 4.3 Crear `lib/data/repositories/drift_daily_report_repository.dart`: create cabecera+items en una tx, `watchPending`, `watchByFilter`, `updateStatus`.
-- [ ] 4.4 Crear `drift_reception_repository.dart` + `drift_stock_repository.dart`: `validateAndApplyStock` = status→VALIDATED + incremento de `Stock` en la misma tx.
-- [ ] 4.5 Crear `drift_machine_activity_repository.dart`, `drift_photo_repository.dart` y `drift_catalog_readers.dart` (implementan los 8 readers).
-- [ ] 4.6 Refactor auth (D10, orden mobile de `hexagonal-conventions.md`): mover contrato a `lib/domain/repositories/auth_repository.dart`, crear `lib/data/repositories/http_auth_repository.dart` (impl, usa `AuthApiService`), eliminar contrato de `data/repositories/auth_repository.dart`.
-- [ ] 4.7 Crear `LoginUseCase` (login → `SessionRepository.save`) e inyectarlo en `LoginViewModel` por constructor — sin default `HttpAuthRepository()`; UI de login intacta.
-- [ ] 4.8 Convertir `lib/main.dart` en composition root: `AppDatabase` singleton → adapters → use cases → ViewModels (widgets no instancian repos/services).
+- [x] 4.1 Crear mappers fila drift ↔ modelo de dominio y converters de enums en `lib/data/models/`.
+- [x] 4.2 Crear `lib/data/repositories/drift_session_repository.dart` (`save`/`current`/`clear`).
+- [x] 4.3 Crear `lib/data/repositories/drift_daily_report_repository.dart`: create cabecera+items en una tx, `watchPending`, `watchByFilter`, `updateStatus`.
+- [x] 4.4 Crear `drift_reception_repository.dart` + `drift_stock_repository.dart`: `validateAndApplyStock` = status→VALIDATED + incremento de `Stock` en la misma tx.
+- [x] 4.5 Crear `drift_machine_activity_repository.dart`, `drift_photo_repository.dart` y `drift_catalog_readers.dart` (implementan los 8 readers).
+- [x] 4.6 Refactor auth (D10, orden mobile de `hexagonal-conventions.md`): mover contrato a `lib/domain/repositories/auth_repository.dart`, crear `lib/data/repositories/http_auth_repository.dart` (impl, usa `AuthApiService`), eliminar contrato de `data/repositories/auth_repository.dart`.
+- [x] 4.7 Crear `LoginUseCase` (login → `SessionRepository.save`) e inyectarlo en `LoginViewModel` por constructor — sin default `HttpAuthRepository()`; UI de login intacta.
+- [x] 4.8 Convertir `lib/main.dart` en composition root: `AppDatabase` singleton → adapters → use cases → ViewModels (widgets no instancian repos/services).
 
 ## 5. SyncQueue outbox (escritura transaccional)
 
