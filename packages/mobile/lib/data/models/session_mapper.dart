@@ -3,8 +3,8 @@ import 'package:drift/drift.dart' show Value;
 import '../../domain/models/session.dart' as domain;
 import '../services/app_database.dart';
 
-/// Fila drift `Session` → modelo de dominio `Session`.
-extension SessionRowMapper on Session {
+/// Fila drift `SessionRow` → modelo de dominio `Session`.
+extension SessionRowMapper on SessionRow {
   domain.Session toDomain() => domain.Session(
         id: id,
         userId: userId,

@@ -3,32 +3,31 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app/auth/login_view.dart';
 import 'package:mobile/app/auth/login_view_model.dart';
 import 'package:mobile/core/theme/app_theme.dart';
-import 'package:mobile/data/models/login_response_model.dart';
-import 'package:mobile/data/repositories/auth_repository.dart';
-import 'package:mobile/domain/models/auth_user.dart';
+import 'package:mobile/domain/models/session.dart';
+import 'package:mobile/domain/usecases/login_usecase.dart';
 import 'package:mobile/presentation/components/buttons/primary_button.dart';
 import 'package:mobile/presentation/components/inputs/custom_text_field.dart';
 
-class MockAuthRepositoryWidgetTest implements AuthRepository {
+/// Fake del caso de uso de login para los tests de widget.
+class FakeLoginUseCase implements LoginUseCase {
   bool shouldFail = false;
 
   @override
-  Future<LoginResponseModel> login({
+  Future<Session> execute({
     required String email,
     required String password,
   }) async {
     if (shouldFail) {
       throw Exception('Credenciales inválidas');
     }
-    return const LoginResponseModel(
-      accessToken: 'token-123',
-      refreshToken: 'refresh-123',
-      user: AuthUser(
-        id: 'u-1',
-        email: 'test@firma.com',
-        role: 'ADMIN',
-        firmaId: 'eliggi',
-      ),
+    return Session(
+      userId: 'u-1',
+      email: email,
+      fullName: 'test',
+      role: 'ADMIN',
+      token: 'token-123',
+      companyId: 'eliggi',
+      lastAccessedAt: DateTime(2026, 1, 1),
     );
   }
 }
@@ -45,12 +44,12 @@ Widget createTestableLoginView(LoginViewModel viewModel, {VoidCallback? onSucces
 
 void main() {
   group('LoginView Widget Tests', () {
-    late MockAuthRepositoryWidgetTest mockRepo;
+    late FakeLoginUseCase fakeUseCase;
     late LoginViewModel viewModel;
 
     setUp(() {
-      mockRepo = MockAuthRepositoryWidgetTest();
-      viewModel = LoginViewModel(authRepository: mockRepo);
+      fakeUseCase = FakeLoginUseCase();
+      viewModel = LoginViewModel(loginUseCase: fakeUseCase);
     });
 
     testWidgets('debería renderizar la vista de login con todos los componentes requeridos', (tester) async {
@@ -97,7 +96,7 @@ void main() {
     });
 
     testWidgets('debería mostrar banner de error si el servidor retorna excepción', (tester) async {
-      mockRepo.shouldFail = true;
+      fakeUseCase.shouldFail = true;
       await tester.pumpWidget(createTestableLoginView(viewModel));
 
       final textFields = find.byType(TextField);

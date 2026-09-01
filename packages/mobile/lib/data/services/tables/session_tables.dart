@@ -3,7 +3,7 @@ import 'package:uuid/uuid.dart';
 
 /// Sesión local. Sin FK (decisión D8): el login ocurre antes del seed de
 /// catálogos, por lo que una FK rompería el insert.
-@DataClassName('Session')
+@DataClassName('SessionRow')
 class Sessions extends Table {
   TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   TextColumn get userId => text()();

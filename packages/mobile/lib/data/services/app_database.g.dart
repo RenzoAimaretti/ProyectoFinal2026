@@ -3766,7 +3766,8 @@ class MachinesCompanion extends UpdateCompanion<Machine> {
   }
 }
 
-class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
+class $SessionsTable extends Sessions
+    with TableInfo<$SessionsTable, SessionRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -3869,7 +3870,7 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
   static const String $name = 'sessions';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Session> instance, {
+    Insertable<SessionRow> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -3940,9 +3941,9 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Session map(Map<String, dynamic> data, {String? tablePrefix}) {
+  SessionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Session(
+    return SessionRow(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -3984,7 +3985,7 @@ class $SessionsTable extends Sessions with TableInfo<$SessionsTable, Session> {
   }
 }
 
-class Session extends DataClass implements Insertable<Session> {
+class SessionRow extends DataClass implements Insertable<SessionRow> {
   final String id;
   final String userId;
   final String email;
@@ -3993,7 +3994,7 @@ class Session extends DataClass implements Insertable<Session> {
   final String token;
   final String? companyId;
   final DateTime lastAccessedAt;
-  const Session({
+  const SessionRow({
     required this.id,
     required this.userId,
     required this.email,
@@ -4034,12 +4035,12 @@ class Session extends DataClass implements Insertable<Session> {
     );
   }
 
-  factory Session.fromJson(
+  factory SessionRow.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Session(
+    return SessionRow(
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
       email: serializer.fromJson<String>(json['email']),
@@ -4065,7 +4066,7 @@ class Session extends DataClass implements Insertable<Session> {
     };
   }
 
-  Session copyWith({
+  SessionRow copyWith({
     String? id,
     String? userId,
     String? email,
@@ -4074,7 +4075,7 @@ class Session extends DataClass implements Insertable<Session> {
     String? token,
     Value<String?> companyId = const Value.absent(),
     DateTime? lastAccessedAt,
-  }) => Session(
+  }) => SessionRow(
     id: id ?? this.id,
     userId: userId ?? this.userId,
     email: email ?? this.email,
@@ -4084,8 +4085,8 @@ class Session extends DataClass implements Insertable<Session> {
     companyId: companyId.present ? companyId.value : this.companyId,
     lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
   );
-  Session copyWithCompanion(SessionsCompanion data) {
-    return Session(
+  SessionRow copyWithCompanion(SessionsCompanion data) {
+    return SessionRow(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
       email: data.email.present ? data.email.value : this.email,
@@ -4101,7 +4102,7 @@ class Session extends DataClass implements Insertable<Session> {
 
   @override
   String toString() {
-    return (StringBuffer('Session(')
+    return (StringBuffer('SessionRow(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('email: $email, ')
@@ -4128,7 +4129,7 @@ class Session extends DataClass implements Insertable<Session> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Session &&
+      (other is SessionRow &&
           other.id == this.id &&
           other.userId == this.userId &&
           other.email == this.email &&
@@ -4139,7 +4140,7 @@ class Session extends DataClass implements Insertable<Session> {
           other.lastAccessedAt == this.lastAccessedAt);
 }
 
-class SessionsCompanion extends UpdateCompanion<Session> {
+class SessionsCompanion extends UpdateCompanion<SessionRow> {
   final Value<String> id;
   final Value<String> userId;
   final Value<String> email;
@@ -4176,7 +4177,7 @@ class SessionsCompanion extends UpdateCompanion<Session> {
        role = Value(role),
        token = Value(token),
        lastAccessedAt = Value(lastAccessedAt);
-  static Insertable<Session> custom({
+  static Insertable<SessionRow> custom({
     Expression<String>? id,
     Expression<String>? userId,
     Expression<String>? email,
@@ -13401,14 +13402,17 @@ class $$SessionsTableTableManager
         RootTableManager<
           _$AppDatabase,
           $SessionsTable,
-          Session,
+          SessionRow,
           $$SessionsTableFilterComposer,
           $$SessionsTableOrderingComposer,
           $$SessionsTableAnnotationComposer,
           $$SessionsTableCreateCompanionBuilder,
           $$SessionsTableUpdateCompanionBuilder,
-          (Session, BaseReferences<_$AppDatabase, $SessionsTable, Session>),
-          Session,
+          (
+            SessionRow,
+            BaseReferences<_$AppDatabase, $SessionsTable, SessionRow>,
+          ),
+          SessionRow,
           PrefetchHooks Function()
         > {
   $$SessionsTableTableManager(_$AppDatabase db, $SessionsTable table)
@@ -13478,14 +13482,14 @@ typedef $$SessionsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $SessionsTable,
-      Session,
+      SessionRow,
       $$SessionsTableFilterComposer,
       $$SessionsTableOrderingComposer,
       $$SessionsTableAnnotationComposer,
       $$SessionsTableCreateCompanionBuilder,
       $$SessionsTableUpdateCompanionBuilder,
-      (Session, BaseReferences<_$AppDatabase, $SessionsTable, Session>),
-      Session,
+      (SessionRow, BaseReferences<_$AppDatabase, $SessionsTable, SessionRow>),
+      SessionRow,
       PrefetchHooks Function()
     >;
 typedef $$RecipesTableCreateCompanionBuilder =

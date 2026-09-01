@@ -1,16 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app/auth/login_view_model.dart';
-import 'package:mobile/data/models/login_response_model.dart';
-import 'package:mobile/data/repositories/auth_repository.dart';
-import 'package:mobile/domain/models/auth_user.dart';
+import 'package:mobile/domain/models/session.dart';
+import 'package:mobile/domain/usecases/login_usecase.dart';
 
-class MockAuthRepository implements AuthRepository {
+/// Fake del caso de uso de login: aísla el ViewModel de la persistencia y del
+/// HTTP, devolviendo una [Session] de dominio en memoria.
+class FakeLoginUseCase implements LoginUseCase {
   bool shouldThrow = false;
   String? lastEmail;
   String? lastPassword;
 
   @override
-  Future<LoginResponseModel> login({
+  Future<Session> execute({
     required String email,
     required String password,
   }) async {
@@ -19,27 +20,26 @@ class MockAuthRepository implements AuthRepository {
     if (shouldThrow) {
       throw Exception('Usuario o contraseña incorrectos');
     }
-    return const LoginResponseModel(
-      accessToken: 'test-access-token',
-      refreshToken: 'test-refresh-token',
-      user: AuthUser(
-        id: 'u-test',
-        email: 'admin@firma.com',
-        role: 'ADMIN',
-        firmaId: 'eliggi',
-      ),
+    return Session(
+      userId: 'u-test',
+      email: email,
+      fullName: 'admin',
+      role: 'ADMIN',
+      token: 'test-access-token',
+      companyId: 'eliggi',
+      lastAccessedAt: DateTime(2026, 1, 1),
     );
   }
 }
 
 void main() {
   group('LoginViewModel Unit Tests', () {
-    late MockAuthRepository mockRepo;
+    late FakeLoginUseCase fakeUseCase;
     late LoginViewModel viewModel;
 
     setUp(() {
-      mockRepo = MockAuthRepository();
-      viewModel = LoginViewModel(authRepository: mockRepo);
+      fakeUseCase = FakeLoginUseCase();
+      viewModel = LoginViewModel(loginUseCase: fakeUseCase);
     });
 
     test('estado inicial del ViewModel debe ser correcto', () {
@@ -79,7 +79,7 @@ void main() {
       expect(viewModel.passwordError, 'La contraseña es requerida');
     });
 
-    test('login exitoso debe actualizar isLoggedIn y loggedUser', () async {
+    test('login exitoso debe actualizar isLoggedIn y session', () async {
       viewModel.setEmail('admin@firma.com');
       viewModel.setPassword('Password123!');
 
@@ -87,13 +87,13 @@ void main() {
 
       expect(result, isTrue);
       expect(viewModel.isLoggedIn, isTrue);
-      expect(viewModel.loggedUser?.email, 'admin@firma.com');
+      expect(viewModel.session?.email, 'admin@firma.com');
       expect(viewModel.errorMessage, isNull);
-      expect(mockRepo.lastEmail, 'admin@firma.com');
+      expect(fakeUseCase.lastEmail, 'admin@firma.com');
     });
 
     test('login fallido debe setear errorMessage', () async {
-      mockRepo.shouldThrow = true;
+      fakeUseCase.shouldThrow = true;
       viewModel.setEmail('admin@firma.com');
       viewModel.setPassword('Password123!');
 
