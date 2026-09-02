@@ -17,4 +17,14 @@ class PhotosDao extends DatabaseAccessor<AppDatabase> with _$PhotosDaoMixin {
           ..orderBy([(t) => OrderingTerm.asc(t.orderIndex)]))
         .watch();
   }
+
+  /// Cantidad de fotos de `(entityType, entityId)` (R008, máx 5).
+  Future<int> countByEntity(String entityType, String entityId) {
+    final countExp = photos.id.count();
+    final query = selectOnly(photos)
+      ..addColumns([countExp])
+      ..where(photos.entityType.equals(entityType) &
+          photos.entityId.equals(entityId));
+    return query.map((row) => row.read(countExp) ?? 0).getSingle();
+  }
 }

@@ -14,7 +14,9 @@ App Flutter **offline-first** para el SaaS Agro-Trazabilidad: interfaz de usuari
 | 2 | DB foundation (18 tablas + AppDatabase + 14 DAOs) | ✅ |
 | 3 | Domain layer (enums + modelos + 15 puertos + 12 use cases) | ✅ |
 | 4 | Data layer (adaptadores drift + refactor auth) | ✅ |
-| 5-8 | Outbox/badge · Fotos · UI · Tests | ⏳ pendientes |
+| 5 | Outbox / Badge (`SyncPendingBadge`) | ✅ |
+| 6 | Fotos (`PhotoStorageRepository` + `AddPhoto`/`DeletePhotoUseCase` + R008) | ✅ |
+| 7-8 | UI de los 4 CUU · Tests | ⏳ pendientes |
 
 **Codegen drift:** ✅ OK (drift 2.34, build_runner 2.16).
 **`flutter analyze`:** ✅ **0 errores / 0 warnings** (36 infos aceptables) — tras fix batch, ver §Verificación.
@@ -54,6 +56,20 @@ App Flutter **offline-first** para el SaaS Agro-Trazabilidad: interfaz de usuari
 - Refactor auth (D10): contrato movido a `domain/repositories/auth_repository.dart`; `http_auth_repository.dart` (impl); **eliminado** `data/repositories/auth_repository.dart` viejo.
 - `LoginViewModel` → depende de `LoginUseCase` inyectado; `main.dart` → composition root.
 - `data/repositories/` es el único consumidor de `AppDatabase` (verificado por grep).
+
+## Fase 5 — Outbox / Badge
+
+- **5.1/5.2 verificadas** (grep `enqueueSync`): outbox transaccional completo desde Fase 4 (5 entidades encoladas).
+- **5.3** `SyncPendingBadge` (`presentation/components/badges/`): componente reutilizable que consume `Stream<int>` puro (`dart:async`), sin drift ni `AppDatabase`. Stream: `SyncQueueDao.watchPendingCount()`; inyección: `main.dart`; consumo: `HomeView` (AppBar, "N pendientes" solo si count > 0). **Sin tocar dominio** (design §7).
+
+## Fase 6 — Fotos
+
+- `image_picker` + `path_provider` (dependencia directa) en `pubspec.yaml`.
+- Puerto **`PhotoStorageRepository`** (domain) + impl **`PathProviderPhotoStorageRepository`** (data): copia a `<app-docs>/photos/<uuid>.<ext>` y borrado físico.
+- **`AddPhotoUseCase`** reescrito: `(entityType, entityId, sourcePath, orderIndex)` → copia archivo → persiste fila `Photo` vía `PhotoRepository`. **Máx 5 fotos (R008)** con `MaxPhotosExceededException` + `PhotoRepository.countByEntity`.
+- **`DeletePhotoUseCase`**: borra fila (encola `DELETE`) y luego el archivo físico (orden deliberado: fila primero — un archivo huérfano es inocuo; al revés dejaría una fila apuntando a un archivo inexistente).
+- **`PhotoPickerService`** (`data/services/`): helper de `image_picker` (cámara/galería) para los forms de Fase 7.
+- Forward-wiring público de la cadena de fotos en `main.dart` (los forms llegan en Fase 7; públicos para no disparar `unused_field`).
 
 ---
 
@@ -104,6 +120,6 @@ App Flutter **offline-first** para el SaaS Agro-Trazabilidad: interfaz de usuari
 
 ## Siguientes pasos
 
-1. Fases 5-8: badge de sync · fotos (`image_picker` + `AddPhotoUseCase`) · UI de los 4 CUU · tests.
-2. `flutter test` al cierre (Fase 8).
+1. Fase 7: UI de los 4 CUU (dashboard + formularios CUU05/06/08, reuso de `presentation/components`).
+2. Fase 8: tests (`flutter test`).
 3. Elevar a Renzo: `fullName` ausente en el login del backend (desajuste del contrato).

@@ -43,6 +43,12 @@ dependencies:
   path: ^1.9.1
   uuid: ^4.6.0
 
+  # Fotos (CUU05/06): captura cámara/galería y directorio de documentos.
+  # `path_provider` se declara directo porque este sprint usa su API de forma
+  # explícita (Phase 1 lo omitía por venir transitivo de `drift_flutter`).
+  image_picker: ^1.1.2
+  path_provider: ^2.1.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,3 +1,5 @@
+import 'models/enums.dart';
+
 /// Errores de dominio (application errors).
 ///
 /// El dominio no conoce HTTP ni widgets; lanza estas excepciones y la capa de
@@ -21,4 +23,12 @@ class LotWithoutRecipeException extends DomainException {
 /// R018–R021: campos requeridos según el tipo de actividad de maquinaria.
 class InvalidMachineActivityException extends DomainException {
   const InvalidMachineActivityException(super.message);
+}
+
+/// R008: no se pueden adjuntar más de 5 fotos por entidad.
+class MaxPhotosExceededException extends DomainException {
+  MaxPhotosExceededException(PhotoEntityType entityType, String entityId)
+      : super(
+          'Máximo de 5 fotos alcanzado para ${entityType.name} ($entityId)',
+        );
 }

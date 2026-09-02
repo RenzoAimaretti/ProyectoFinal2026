@@ -39,6 +39,11 @@ class DriftPhotoRepository implements PhotoRepository {
   }
 
   @override
+  Future<int> countByEntity(PhotoEntityType entityType, String entityId) {
+    return _db.photosDao.countByEntity(entityType.name, entityId);
+  }
+
+  @override
   Future<void> delete(String id) {
     return _db.transaction(() async {
       await (_db.delete(_db.photos)..where((t) => t.id.equals(id))).go();

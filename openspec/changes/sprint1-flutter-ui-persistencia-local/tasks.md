@@ -37,15 +37,15 @@
 
 ## 5. SyncQueue outbox (escritura transaccional)
 
-- [ ] 5.1 Helper en `lib/data/repositories/` para que cada write drift inserte `(entity, entityId, operation, status=PENDING, attempts=0)` en `SyncQueue` en la MISMA transacción (D9 — el dominio no conoce la cola).
-- [ ] 5.2 Encolar `DAILY_REPORT`, `RECEPTION`, `MACHINE_ACTIVITY`, `PHOTO`, `STOCK`; los items van embebidos en el padre (no se encolan solos).
-- [ ] 5.3 Badge "pendientes de sincronización" en home vía `watch` sobre `SyncQueue` (sin tocar dominio).
+- [x] 5.1 Helper en `lib/data/repositories/` para que cada write drift inserte `(entity, entityId, operation, status=PENDING, attempts=0)` en `SyncQueue` en la MISMA transacción (D9 — el dominio no conoce la cola).
+- [x] 5.2 Encolar `DAILY_REPORT`, `RECEPTION`, `MACHINE_ACTIVITY`, `PHOTO`, `STOCK`; los items van embebidos en el padre (no se encolan solos).
+- [x] 5.3 Badge "pendientes de sincronización" en home vía `watch` sobre `SyncQueue` (sin tocar dominio).
 
 ## 6. Photos (filesystem + Photo)
 
-- [ ] 6.1 Agregar `image_picker` a `pubspec.yaml` y capturar desde cámara/galería en los formularios.
-- [ ] 6.2 `AddPhotoUseCase`: copiar archivo a app-docs (`path_provider` + `path`) y persistir fila `Photo` (`entityType`, `entityId`, `localPath`, `orderIndex`).
-- [ ] 6.3 Máximo 5 fotos por entidad (R008): rechazar la 6.ª con feedback en UI; `delete(id)` también elimina el archivo del filesystem.
+- [x] 6.1 Agregar `image_picker` a `pubspec.yaml` y capturar desde cámara/galería en los formularios.
+- [x] 6.2 `AddPhotoUseCase`: copiar archivo a app-docs (`path_provider` + `path`) y persistir fila `Photo` (`entityType`, `entityId`, `localPath`, `orderIndex`).
+- [x] 6.3 Máximo 5 fotos por entidad (R008): rechazar la 6.ª con feedback en UI; `delete(id)` también elimina el archivo del filesystem.
 
 ## 7. App / UI (ViewModels + views, setState)
 

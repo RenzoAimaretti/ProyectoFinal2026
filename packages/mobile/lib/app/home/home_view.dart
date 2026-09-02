@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../domain/models/auth_user.dart';
 import '../../presentation/components/badges/status_badge.dart';
+import '../../presentation/components/badges/sync_pending_badge.dart';
 import '../../presentation/components/buttons/secondary_button.dart';
 import '../../presentation/components/cards/kpi_card.dart';
 
@@ -11,10 +14,14 @@ class HomeView extends StatelessWidget {
     super.key,
     required this.user,
     required this.onLogout,
+    required this.pendingSyncCount,
   });
 
   final AuthUser user;
   final VoidCallback onLogout;
+
+  /// Cantidad de operaciones pendientes de sincronización (`SyncQueue`).
+  final Stream<int> pendingSyncCount;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +41,8 @@ class HomeView extends StatelessWidget {
         backgroundColor: AppColors.surface,
         elevation: 0,
         actions: [
+          SyncPendingBadge(pendingCount: pendingSyncCount),
+          const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.danger),
             tooltip: 'Cerrar sesión',

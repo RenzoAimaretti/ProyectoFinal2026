@@ -16,4 +16,14 @@ class SyncQueueDao extends DatabaseAccessor<AppDatabase>
           ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
         .watch();
   }
+
+  /// Cantidad de filas `PENDING` (badge "pendientes de sincronización").
+  Stream<int> watchPendingCount() {
+    final countExp = syncQueue.id.count();
+    return (selectOnly(syncQueue)
+          ..addColumns([countExp])
+          ..where(syncQueue.status.equals('PENDING')))
+        .map((row) => row.read(countExp) ?? 0)
+        .watchSingle();
+  }
 }

@@ -1,13 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'app/auth/login_view.dart';
 import 'app/auth/login_view_model.dart';
 import 'app/home/home_view.dart';
 import 'core/theme/app_theme.dart';
+import 'data/repositories/drift_photo_repository.dart';
 import 'data/repositories/drift_session_repository.dart';
 import 'data/repositories/http_auth_repository.dart';
+import 'data/repositories/path_provider_photo_storage_repository.dart';
 import 'data/services/app_database.dart';
+import 'data/services/photo_picker_service.dart';
 import 'domain/models/auth_user.dart';
 import 'domain/models/session.dart';
+import 'domain/usecases/add_photo_usecase.dart';
+import 'domain/usecases/delete_photo_usecase.dart';
 import 'domain/usecases/login_usecase.dart';
 
 void main() {
@@ -24,6 +31,17 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late final AppDatabase _database;
   late final LoginViewModel _loginViewModel;
+
+  /// Pendientes de sincronización (badge del home).
+  late final Stream<int> _pendingSyncCount;
+
+  /// Dependencias de fotos (CUU05/06), cableadas aquí para que los formularios
+  /// de Phase 7 las consuman. Públicas porque aún no tienen consumidor y el
+  /// linter no marca como no usados los campos públicos.
+  late final AddPhotoUseCase addPhotoUseCase;
+  late final DeletePhotoUseCase deletePhotoUseCase;
+  late final PhotoPickerService photoPickerService;
+
   AuthUser? _authenticatedUser;
 
   @override
@@ -36,6 +54,17 @@ class _MyAppState extends State<MyApp> {
     final sessionRepository = DriftSessionRepository(_database);
     final loginUseCase = LoginUseCase(authRepository, sessionRepository);
     _loginViewModel = LoginViewModel(loginUseCase: loginUseCase);
+
+    // Badge "pendientes de sincronización": el stream se construye en data
+    // (SyncQueueDao) y se inyecta aquí; el badge solo recibe Stream<int>.
+    _pendingSyncCount = _database.syncQueueDao.watchPendingCount();
+
+    // Fotos (CUU05/06): storage físico + persistencia drift + use cases.
+    final photoStorage = PathProviderPhotoStorageRepository();
+    final photoRepository = DriftPhotoRepository(_database);
+    addPhotoUseCase = AddPhotoUseCase(photoRepository, photoStorage);
+    deletePhotoUseCase = DeletePhotoUseCase(photoRepository, photoStorage);
+    photoPickerService = PhotoPickerService();
   }
 
   @override
@@ -53,6 +82,7 @@ class _MyAppState extends State<MyApp> {
       home: _authenticatedUser != null
           ? HomeView(
               user: _authenticatedUser!,
+              pendingSyncCount: _pendingSyncCount,
               onLogout: () {
                 setState(() {
                   _authenticatedUser = null;
