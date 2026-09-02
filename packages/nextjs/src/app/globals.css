@@ -1,0 +1,259 @@
+@import "tailwindcss";
+
+/* =========================================================
+   Agro Trazabilidad — Design System v2
+   Estética: ERP agronómico moderno "Bento box".
+   - Verdes maduros y sofisticados (bosque, esmeralda oscuro, oliva).
+   - Tonos tierra para codificar datos (terracota, ocre, mostaza).
+   - Sidebar carbón/pizarra oscuro para peso y contraste.
+   - Tarjetas blancas, radios generosos, sombras paralelas sutiles.
+   ========================================================= */
+
+@theme {
+  /* Brand — verdes maduros, no básicos */
+  --color-agro-green: #3a7d44;        /* esmeralda maduro */
+  --color-agro-green-dark: #2f6b38;   /* esmeralda oscuro */
+  --color-agro-green-deep: #1e3c2a;   /* bosque */
+  --color-agro-olive: #6b8f4e;        /* oliva */
+  --color-agro-forest: #2f5233;       /* verde bosque */
+  --color-agro-green-soft: #e9f0e8;   /* verdoso suave para fondos */
+
+  /* Acento / datos — tonos tierra */
+  --color-agro-earth: #c8754f;        /* terracota */
+  --color-agro-earth-dark: #a85c38;   /* terracota profunda */
+  --color-agro-ochre: #c9a227;        /* ocre */
+  --color-agro-mustard: #c7911c;      /* mostaza */
+  --color-agro-sand: #d9c9a8;         /* marrón claro */
+
+  /* Sidebar oscuro */
+  --color-agro-sidebar: #1d2430;      /* pizarra/carbón */
+  --color-agro-sidebar-deep: #171d27; /* más oscuro para profundidad */
+
+  /* Superficies (dinámicas) */
+  --color-base: var(--bg-base);
+  --color-base-subtle: var(--bg-subtle);
+  --color-card: var(--bg-card);
+  --color-card-hover: var(--bg-card-hover);
+
+  /* Texto */
+  --color-ink: var(--text);
+  --color-ink-soft: var(--text-secondary);
+  --color-ink-faint: var(--text-muted);
+
+  /* Bordes */
+  --color-agro-border: var(--border);
+  --color-agro-border-strong: var(--border-strong);
+
+  /* Sombras */
+  --shadow-card: var(--shadow-card-1);
+  --shadow-card-hover: var(--shadow-card-hover-1);
+  --shadow-nav: var(--shadow-nav-1);
+  --shadow-float: var(--shadow-float-1);
+
+  /* Radios */
+  --radius-sm: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-card-lg: 1rem;
+}
+
+:root {
+  --bg-base: #f3f4f2;
+  --bg-subtle: #edefec;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fafaf8;
+
+  --text: #1c2330;
+  --text-secondary: #5b6472;
+  --text-muted: #9aa3ad;
+
+  --border: #e5e8e4;
+  --border-strong: #d1d6d0;
+
+  --shadow-card-1: 0 1px 2px 0 rgb(23 29 39 / 0.04), 0 2px 8px -2px rgb(23 29 39 / 0.05);
+  --shadow-card-hover-1: 0 10px 28px -8px rgb(23 29 39 / 0.1), 0 4px 10px -4px rgb(23 29 39 / 0.06);
+  --shadow-nav-1: 0 1px 2px rgb(23 29 39 / 0.05);
+  --shadow-float-1: 0 16px 40px -12px rgb(23 29 39 / 0.16), 0 4px 14px -6px rgb(23 29 39 / 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-base: #10141c;
+    --bg-subtle: #161b26;
+    --bg-card: #1e2530;
+    --bg-card-hover: #232b38;
+
+    --text: #e6e9ec;
+    --text-secondary: #9aa3ad;
+    --text-muted: #6b7480;
+
+    --border: #2c3442;
+    --border-strong: #3a4454;
+
+    --shadow-card-1: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-card-hover-1: 0 12px 28px -8px rgb(0 0 0 / 0.5);
+    --shadow-nav-1: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-float-1: 0 16px 40px -10px rgb(0 0 0 / 0.6), 0 6px 16px -6px rgb(0 0 0 / 0.4);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  background: var(--bg-base);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fondo ambiental: gradiente sutil + micro-textura de campo.
+   Le da profundidad al "canvas" para que las cards no floten sobre blanco plano. */
+.app-canvas {
+  background:
+    radial-gradient(60rem 40rem at -10% -10%, color-mix(in srgb, var(--agro-green, #16a34a) 8%, transparent), transparent 55%),
+    radial-gradient(50rem 35rem at 110% 5%, color-mix(in srgb, var(--agro-earth, #d97706) 9%, transparent), transparent 55%),
+    radial-gradient(45rem 30rem at 50% 120%, color-mix(in srgb, var(--agro-sky, #e0f2fe) 22%, transparent), transparent 60%),
+    var(--bg-base);
+}
+
+@media (prefers-color-scheme: dark) {
+  .app-canvas {
+    background:
+      radial-gradient(60rem 40rem at -10% -10%, color-mix(in srgb, var(--agro-green, #16a34a) 10%, transparent), transparent 55%),
+      radial-gradient(50rem 35rem at 110% 5%, color-mix(in srgb, var(--agro-earth, #d97706) 8%, transparent), transparent 55%),
+      radial-gradient(45rem 30rem at 50% 120%, rgb(15 23 42 / 0.6), transparent 60%),
+      var(--bg-base);
+  }
+}
+
+/* Banda de bienvenida: hero del modulo con bloque de color de marca */
+.hero-band {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-card-lg);
+  border: 1px solid color-mix(in srgb, #1e3c2a 60%, transparent);
+  background: linear-gradient(120deg, #2f5233, #3a7d44 52%, #6b8f4e);
+  color: #fff;
+  box-shadow: var(--shadow-float);
+}
+.hero-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 15% 20%, rgb(255 255 255 / 0.18), transparent),
+    radial-gradient(2px 2px at 40% 75%, rgb(255 255 255 / 0.14), transparent),
+    radial-gradient(2px 2px at 70% 25%, rgb(255 255 255 / 0.16), transparent),
+    radial-gradient(2px 2px at 88% 70%, rgb(255 255 255 / 0.12), transparent);
+  background-size: 140px 140px;
+  pointer-events: none;
+}
+.hero-band::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(22rem 14rem at 90% -20%, rgb(255 255 255 / 0.22), transparent 60%),
+    linear-gradient(120deg, transparent 40%, color-mix(in srgb, #fff 9%, transparent) 100%);
+  pointer-events: none;
+}
+.hero-band > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Fondo tipo mapa plot (retícula SIG) para el visor de mi-campo */
+.grid-plot {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--text) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--text) 6%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Esqueleto de carga (skeleton shimmer) */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  border-radius: var(--radius-sm);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 40%, transparent), transparent);
+  animation: shimmer 1.6s infinite;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Focus accesible */
+:focus-visible {
+  outline: 2px solid var(--agro-green);
+  outline-offset: 2px;
+}
+
+/* Animación de entrada */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out both;
+}
+
+/* Entrada escalonada de tarjetas/datos */
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.stagger-item {
+  animation: stagger-in 0.45s ease-out both;
+}
+.stagger-item:nth-child(1) { animation-delay: 0ms; }
+.stagger-item:nth-child(2) { animation-delay: 60ms; }
+.stagger-item:nth-child(3) { animation-delay: 120ms; }
+.stagger-item:nth-child(4) { animation-delay: 180ms; }
+.stagger-item:nth-child(5) { animation-delay: 240ms; }
+
+/* Pulso suave para estados en vivo */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
