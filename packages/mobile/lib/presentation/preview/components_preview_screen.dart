@@ -9,7 +9,14 @@ import '../components/cards/parte_diario_item.dart';
 import '../components/badges/status_badge.dart';
 import '../components/inputs/custom_text_field.dart';
 import '../components/inputs/custom_dropdown.dart';
+import '../components/inputs/input_items_editor.dart';
 import '../components/selectors/multi_firma_selector.dart';
+import '../components/selectors/cascade_selector.dart';
+import '../components/photos/photo_picker_grid.dart';
+import '../components/steppers/wizard_stepper.dart';
+import '../components/empty_state.dart';
+import 'bottom_nav_shell.dart';
+import 'parte_diario_wizard_prototype.dart';
 
 /// Pantalla de catálogo de componentes del Design System Agropecuario.
 ///
@@ -78,6 +85,55 @@ class ComponentsPreviewScreen extends StatelessWidget {
           // ── Multi Firma Selector ─────────────────────────────────────
           _SectionHeader(title: 'Selector de Firmas / Razón Social'),
           _MultiFirmaSection(),
+          SizedBox(height: 16),
+          Divider(),
+          SizedBox(height: 8),
+
+          // ── Wizard Stepper ───────────────────────────────────────────
+          _SectionHeader(title: 'Stepper de Pasos (Wizard)'),
+          _WizardStepperSection(),
+          SizedBox(height: 16),
+          Divider(),
+          SizedBox(height: 8),
+
+          // ── Cascade Selector ─────────────────────────────────────────
+          _SectionHeader(title: 'Selector en Cascada'),
+          _CascadeSelectorSection(),
+          SizedBox(height: 16),
+          Divider(),
+          SizedBox(height: 8),
+
+          // ── Photo Picker Grid ────────────────────────────────────────
+          _SectionHeader(title: 'Galería de Fotos'),
+          _PhotoPickerSection(),
+          SizedBox(height: 16),
+          Divider(),
+          SizedBox(height: 8),
+
+          // ── Input Items Editor ───────────────────────────────────────
+          _SectionHeader(title: 'Editor de Insumos'),
+          _InputItemsEditorSection(),
+          SizedBox(height: 16),
+          Divider(),
+          SizedBox(height: 8),
+
+          // ── Empty State ──────────────────────────────────────────────
+          _SectionHeader(title: 'Estados Vacíos'),
+          _EmptyStateSection(),
+          SizedBox(height: 16),
+          Divider(),
+          SizedBox(height: 8),
+
+          // ── Bottom Nav Shell ─────────────────────────────────────────
+          _SectionHeader(title: 'Shell de Navegación'),
+          _BottomNavShellSection(),
+          SizedBox(height: 16),
+          Divider(),
+          SizedBox(height: 8),
+
+          // ── Prototipos de Pantalla ───────────────────────────────────
+          _SectionHeader(title: 'Prototipos de Pantalla'),
+          _ScreenPrototypesSection(),
           SizedBox(height: 32),
         ],
       ),
@@ -503,6 +559,141 @@ class _Label extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+    );
+  }
+}
+
+// ── Wizard Stepper ─────────────────────────────────────────────────────────
+
+class _WizardStepperSection extends StatelessWidget {
+  const _WizardStepperSection();
+
+  @override
+  Widget build(BuildContext context) {
+    const steps = ['Selección', 'Datos e insumos', 'Fotos y resumen'];
+    return Column(
+      children: [
+        const _Label('Paso 1 de 3'),
+        const SizedBox(height: 8),
+        const WizardStepper(currentStep: 0, steps: steps),
+        const SizedBox(height: 24),
+        const _Label('Paso 2 de 3'),
+        const SizedBox(height: 8),
+        const WizardStepper(currentStep: 1, steps: steps),
+        const SizedBox(height: 24),
+        const _Label('Completado'),
+        const SizedBox(height: 8),
+        const WizardStepper(currentStep: 3, steps: steps),
+      ],
+    );
+  }
+}
+
+// ── Cascade Selector ───────────────────────────────────────────────────────
+
+class _CascadeSelectorSection extends StatelessWidget {
+  const _CascadeSelectorSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return const CascadeSelector();
+  }
+}
+
+// ── Photo Picker Grid ──────────────────────────────────────────────────────
+
+class _PhotoPickerSection extends StatelessWidget {
+  const _PhotoPickerSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return const PhotoPickerGrid();
+  }
+}
+
+// ── Input Items Editor ─────────────────────────────────────────────────────
+
+class _InputItemsEditorSection extends StatelessWidget {
+  const _InputItemsEditorSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return const InputItemsEditor();
+  }
+}
+
+// ── Empty State ────────────────────────────────────────────────────────────
+
+class _EmptyStateSection extends StatelessWidget {
+  const _EmptyStateSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const EmptyState(
+          icon: Icons.inventory_2_outlined,
+          title: 'Sin recepciones',
+          subtitle: 'No hay recepciones pendientes de validación.',
+        ),
+        const SizedBox(height: 16),
+        EmptyState(
+          icon: Icons.assignment_outlined,
+          title: 'Sin partes diarios',
+          subtitle: 'Todavía no cargaste partes en este lote.',
+          actionLabel: 'Nuevo parte',
+          onAction: () {},
+        ),
+      ],
+    );
+  }
+}
+
+// ── Bottom Nav Shell ───────────────────────────────────────────────────────
+
+class _BottomNavShellSection extends StatelessWidget {
+  const _BottomNavShellSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: SizedBox(
+        height: 420,
+        child: const BottomNavShell(),
+      ),
+    );
+  }
+}
+
+// ── Prototipos de Pantalla ─────────────────────────────────────────────────
+
+class _ScreenPrototypesSection extends StatelessWidget {
+  const _ScreenPrototypesSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: AppColors.surfaceContainer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.outlineVariant),
+      ),
+      child: ListTile(
+        leading: const Icon(Icons.assignment_add, color: AppColors.primary),
+        title: const Text('Parte Diario (CUU05)'),
+        subtitle: const Text('Wizard de 3 pasos: selección, datos e insumos, fotos y resumen.'),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.outline),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const ParteDiarioWizardPrototype(),
+            ),
+          );
+        },
+      ),
     );
   }
 }

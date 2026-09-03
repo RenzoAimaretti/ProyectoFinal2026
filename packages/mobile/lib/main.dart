@@ -16,6 +16,11 @@ import 'domain/models/session.dart';
 import 'domain/usecases/add_photo_usecase.dart';
 import 'domain/usecases/delete_photo_usecase.dart';
 import 'domain/usecases/login_usecase.dart';
+import 'presentation/preview/components_preview_screen.dart';
+
+/// Flag temporal para validación de prototipos (Phase 7). En `false` vuelve al
+/// flujo normal de login → home.
+const bool kShowDesignSystem = true;
 
 void main() {
   runApp(const MyApp());
@@ -79,27 +84,29 @@ class _MyAppState extends State<MyApp> {
       title: 'Agrolify',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: _authenticatedUser != null
-          ? HomeView(
-              user: _authenticatedUser!,
-              pendingSyncCount: _pendingSyncCount,
-              onLogout: () {
-                setState(() {
-                  _authenticatedUser = null;
-                });
-              },
-            )
-          : LoginView(
-              viewModel: _loginViewModel,
-              onLoginSuccess: () {
-                final session = _loginViewModel.session;
-                if (session != null) {
-                  setState(() {
-                    _authenticatedUser = _toAuthUser(session);
-                  });
-                }
-              },
-            ),
+      home: kShowDesignSystem
+          ? const ComponentsPreviewScreen()
+          : _authenticatedUser != null
+              ? HomeView(
+                  user: _authenticatedUser!,
+                  pendingSyncCount: _pendingSyncCount,
+                  onLogout: () {
+                    setState(() {
+                      _authenticatedUser = null;
+                    });
+                  },
+                )
+              : LoginView(
+                  viewModel: _loginViewModel,
+                  onLoginSuccess: () {
+                    final session = _loginViewModel.session;
+                    if (session != null) {
+                      setState(() {
+                        _authenticatedUser = _toAuthUser(session);
+                      });
+                    }
+                  },
+                ),
     );
   }
 
