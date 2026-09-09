@@ -41,6 +41,7 @@ class InputItemsEditor extends StatefulWidget {
     super.key,
     this.inputs = _inputsDummy,
     this.onChanged,
+    this.onQuantitiesChanged,
   });
 
   /// Opciones de insumo disponibles.
@@ -48,6 +49,11 @@ class InputItemsEditor extends StatefulWidget {
 
   /// Se dispara con la cantidad de líneas cada vez que cambia.
   final ValueChanged<int>? onChanged;
+
+  /// Se dispara con la lista de cantidades (una por línea) cada vez que se
+  /// agrega, quita o edita una línea. Permite validar `cantidad > 0` en los
+  /// formularios (CUU05/06).
+  final ValueChanged<List<String>>? onQuantitiesChanged;
 
   @override
   State<InputItemsEditor> createState() => _InputItemsEditorState();
@@ -77,14 +83,21 @@ class _InputItemsEditorState extends State<InputItemsEditor> {
         .toList();
   }
 
+  void _notifyChanged() {
+    widget.onChanged?.call(_lines.length);
+    widget.onQuantitiesChanged?.call(
+      _lines.map((l) => l.quantity).toList(),
+    );
+  }
+
   void _addLine() {
     setState(() => _lines.add(_InputLine()));
-    widget.onChanged?.call(_lines.length);
+    _notifyChanged();
   }
 
   void _removeLine(int index) {
     setState(() => _lines.removeAt(index));
-    widget.onChanged?.call(_lines.length);
+    _notifyChanged();
   }
 
   Widget _buildLine(_InputLine line, int index) {
@@ -138,7 +151,10 @@ class _InputItemsEditorState extends State<InputItemsEditor> {
                   hint: '0',
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  onChanged: (v) => line.quantity = v,
+                  onChanged: (v) {
+                    line.quantity = v;
+                    _notifyChanged();
+                  },
                 ),
               ),
               const SizedBox(width: 12),

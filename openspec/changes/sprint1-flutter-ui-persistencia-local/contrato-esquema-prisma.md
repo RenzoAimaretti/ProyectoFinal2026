@@ -219,3 +219,22 @@ model MachineActivity {
 ```
 
 > ⚠️ Los tipos `Float`/`String` y las relaciones son un **borrador orientativo**. Renzo debe validar contra las reglas de negocio (R007, R009, R014, R017, R018–R021) antes de migrar. El móvil es la fuente de verdad del contrato hasta que esto se refleje en Prisma.
+
+---
+
+## 5. Especificación futura — Categoría de insumo (pendiente de decisión del equipo)
+
+> ⚠️ **No implementar aún.** Registrado para charlarlo con el equipo en próximas iteraciones.
+
+**Problema:** hoy el móvil permite cargar cualquier insumo en cualquier parte diario, sin validar compatibilidad con la labor (ej. se podría cargar "semilla" en una fumigación).
+
+**Propuesta elegida (Opción A — categoría):**
+- Agregar `category` a `Input` (enum: `SEED`, `FERTILIZER`, `HERBICIDE`, `INSECTICIDE`, `FUNGICIDE`, `ADJUVANT`, `INOCULANT`, `OTHER`).
+- Cada `LaborType` declara las categorías compatibles (campo `allowedCategories` o tabla `LaborTypeCategory`).
+- Al cargar un parte diario, el selector de insumos filtra por la labor seleccionada.
+
+**Alternativas descartadas por ahora:**
+- B. Tabla many-to-many `LaborTypeInput` (asignación explícita insumo-por-insumo).
+- C. Usar la receta del lote (`RecipeItem`) como fuente de insumos válidos.
+
+**Impacto:** cambio de esquema en Prisma (`Input.category` + relación labor↔categoría). Se decide con Renzo/equipo antes de migrar.

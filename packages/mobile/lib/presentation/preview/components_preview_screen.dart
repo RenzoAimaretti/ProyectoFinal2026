@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../domain/models/enums.dart';
 import '../components/buttons/primary_button.dart';
 import '../components/buttons/secondary_button.dart';
 import '../components/cards/kpi_card.dart';
@@ -9,14 +10,18 @@ import '../components/cards/parte_diario_item.dart';
 import '../components/badges/status_badge.dart';
 import '../components/inputs/custom_text_field.dart';
 import '../components/inputs/custom_dropdown.dart';
+import '../components/inputs/date_field.dart';
 import '../components/inputs/input_items_editor.dart';
 import '../components/selectors/multi_firma_selector.dart';
 import '../components/selectors/cascade_selector.dart';
+import '../components/selectors/activity_type_selector.dart';
 import '../components/photos/photo_picker_grid.dart';
 import '../components/steppers/wizard_stepper.dart';
 import '../components/empty_state.dart';
 import 'bottom_nav_shell.dart';
 import 'parte_diario_wizard_prototype.dart';
+import 'reception_prototype.dart';
+import 'machine_activity_prototype.dart';
 
 /// Pantalla de catálogo de componentes del Design System Agropecuario.
 ///
@@ -99,6 +104,13 @@ class ComponentsPreviewScreen extends StatelessWidget {
           // ── Cascade Selector ─────────────────────────────────────────
           _SectionHeader(title: 'Selector en Cascada'),
           _CascadeSelectorSection(),
+          SizedBox(height: 16),
+          Divider(),
+          SizedBox(height: 8),
+
+          // ── Activity Type Selector ────────────────────────────────────
+          _SectionHeader(title: 'Selector de Tipo de Actividad'),
+          _ActivityTypeSelectorSection(),
           SizedBox(height: 16),
           Divider(),
           SizedBox(height: 8),
@@ -363,6 +375,12 @@ class _InputsSection extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
+        // ── Fecha (auto-máscara) ─────────────────────────────────────────
+        const _Label('Fecha con máscara DD/MM/AAAA'),
+        const SizedBox(height: 8),
+        const DateField(),
+        const SizedBox(height: 20),
+
         // ── Dropdowns ───────────────────────────────────────────────────
         const _Label('Dropdown estándar'),
         const SizedBox(height: 8),
@@ -600,6 +618,45 @@ class _CascadeSelectorSection extends StatelessWidget {
   }
 }
 
+// ── Activity Type Selector ─────────────────────────────────────────────────
+
+class _ActivityTypeSelectorSection extends StatefulWidget {
+  const _ActivityTypeSelectorSection();
+
+  @override
+  State<_ActivityTypeSelectorSection> createState() =>
+      _ActivityTypeSelectorSectionState();
+}
+
+class _ActivityTypeSelectorSectionState
+    extends State<_ActivityTypeSelectorSection> {
+  MachineActivityType? _selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ActivityTypeSelector(
+          selected: _selected,
+          onChanged: (tipo) => setState(() => _selected = tipo),
+        ),
+        const SizedBox(height: 16),
+        const _Label('Sin selección'),
+        const SizedBox(height: 8),
+        const ActivityTypeSelector(),
+        const SizedBox(height: 16),
+        const _Label('Deshabilitado'),
+        const SizedBox(height: 8),
+        ActivityTypeSelector(
+          selected: MachineActivityType.REPAIR,
+          enabled: false,
+        ),
+      ],
+    );
+  }
+}
+
 // ── Photo Picker Grid ──────────────────────────────────────────────────────
 
 class _PhotoPickerSection extends StatelessWidget {
@@ -673,27 +730,92 @@ class _ScreenPrototypesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: AppColors.surfaceContainer,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.outlineVariant),
-      ),
-      child: ListTile(
-        leading: const Icon(Icons.assignment_add, color: AppColors.primary),
-        title: const Text('Parte Diario (CUU05)'),
-        subtitle: const Text('Wizard de 3 pasos: selección, datos e insumos, fotos y resumen.'),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.outline),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const ParteDiarioWizardPrototype(),
+    return Column(
+      children: [
+        Card(
+          elevation: 0,
+          color: AppColors.surfaceContainer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AppColors.outlineVariant),
+          ),
+          child: ListTile(
+            leading: const Icon(
+              Icons.assignment_add,
+              color: AppColors.primary,
             ),
-          );
-        },
-      ),
+            title: const Text('Parte Diario (CUU05)'),
+            subtitle: const Text(
+              'Wizard de 3 pasos: selección, datos e insumos, fotos y resumen.',
+            ),
+            trailing: const Icon(Icons.chevron_right, color: AppColors.outline),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ParteDiarioWizardPrototype(),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          elevation: 0,
+          color: AppColors.surfaceContainer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AppColors.outlineVariant),
+          ),
+          child: ListTile(
+            leading: const Icon(
+              Icons.inventory_2_outlined,
+              color: AppColors.primary,
+            ),
+            title: const Text('Recepción de Insumos (CUU06)'),
+            subtitle: const Text(
+              'Formulario: cliente, ítems de insumo (cantidad + unidad) y fotos.',
+            ),
+            trailing: const Icon(Icons.chevron_right, color: AppColors.outline),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ReceptionPrototype(),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          elevation: 0,
+          color: AppColors.surfaceContainer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AppColors.outlineVariant),
+          ),
+          child: ListTile(
+            leading: const Icon(
+              Icons.agriculture,
+              color: AppColors.primary,
+            ),
+            title: const Text('Actividad de Maquinaria (CUU08)'),
+            subtitle: const Text(
+              'Formulario dinámico: combustible, mantenimiento, reparación o uso en campo.',
+            ),
+            trailing: const Icon(Icons.chevron_right, color: AppColors.outline),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MachineActivityPrototype(),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

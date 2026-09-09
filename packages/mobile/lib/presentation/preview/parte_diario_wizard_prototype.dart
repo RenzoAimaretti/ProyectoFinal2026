@@ -46,7 +46,23 @@ class _ParteDiarioWizardPrototypeState
   // Estado capturado de los pasos para alimentar el resumen (paso 3).
   String? _loteId;
   String _hectareas = '';
+  String _horas = '';
   int _itemsCount = 0;
+  List<String> _cantidades = const [];
+
+  /// Espejo de las reglas de dominio: hectáreas y horas > 0, y cada ítem
+  /// con cantidad > 0 (los ítems son opcionales).
+  bool _validar() {
+    final ha = double.tryParse(_hectareas);
+    if (ha == null || ha <= 0) return false;
+    final hs = double.tryParse(_horas);
+    if (hs == null || hs <= 0) return false;
+    for (final q in _cantidades) {
+      final v = double.tryParse(q);
+      if (v == null || v <= 0) return false;
+    }
+    return true;
+  }
 
   void _next() {
     if (_currentStep < _stepLabels.length - 1) {
@@ -54,6 +70,16 @@ class _ParteDiarioWizardPrototypeState
       return;
     }
     // Último paso → "Guardar" (visual, sin persistencia).
+    if (!_validar()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Revisá los datos: hectáreas, horas y cantidades deben ser mayores a 0.',
+          ),
+        ),
+      );
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Parte diario guardado (prototipo)')),
     );
@@ -89,7 +115,10 @@ class _ParteDiarioWizardPrototypeState
                 ),
                 _DatosInsumosStep(
                   onHectareasChanged: (v) => setState(() => _hectareas = v),
+                  onHorasChanged: (v) => setState(() => _horas = v),
                   onItemsChanged: (n) => setState(() => _itemsCount = n),
+                  onQuantitiesChanged: (list) =>
+                      setState(() => _cantidades = list),
                 ),
                 _ResumenStep(
                   loteId: _loteId,
@@ -171,11 +200,15 @@ class _SeleccionStep extends StatelessWidget {
 class _DatosInsumosStep extends StatelessWidget {
   const _DatosInsumosStep({
     this.onHectareasChanged,
+    this.onHorasChanged,
     this.onItemsChanged,
+    this.onQuantitiesChanged,
   });
 
   final ValueChanged<String>? onHectareasChanged;
+  final ValueChanged<String>? onHorasChanged;
   final ValueChanged<int>? onItemsChanged;
+  final ValueChanged<List<String>>? onQuantitiesChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -214,6 +247,7 @@ class _DatosInsumosStep extends StatelessWidget {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  onChanged: onHorasChanged,
                 ),
               ),
             ],
@@ -228,7 +262,10 @@ class _DatosInsumosStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          InputItemsEditor(onChanged: onItemsChanged),
+          InputItemsEditor(
+            onChanged: onItemsChanged,
+            onQuantitiesChanged: onQuantitiesChanged,
+          ),
         ],
       ),
     );

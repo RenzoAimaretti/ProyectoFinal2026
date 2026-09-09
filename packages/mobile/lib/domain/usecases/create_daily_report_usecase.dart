@@ -31,6 +31,22 @@ class CreateDailyReportUseCase {
       throw LotWithoutRecipeException(lotId);
     }
 
+    // Jornada: hectáreas y horas son obligatorias y mayores a cero.
+    if (hectares <= 0 || hours <= 0) {
+      throw const InvalidWorkDataException(
+        'Las hectáreas y las horas deben ser mayores a 0',
+      );
+    }
+
+    // Cada ítem de consumo debe tener cantidad mayor a cero.
+    for (final item in items) {
+      if (item.quantity <= 0) {
+        throw InvalidItemQuantityException(
+          'La cantidad del insumo ${item.inputId} debe ser mayor a 0',
+        );
+      }
+    }
+
     final report = DailyReport(
       operatorId: operatorId,
       companyId: companyId,

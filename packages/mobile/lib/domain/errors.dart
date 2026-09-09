@@ -32,3 +32,13 @@ class MaxPhotosExceededException extends DomainException {
           'Máximo de 5 fotos alcanzado para ${entityType.name} ($entityId)',
         );
 }
+
+/// Hectáreas y horas deben ser mayores a cero (jornada obligatoria).
+class InvalidWorkDataException extends DomainException {
+  const InvalidWorkDataException(super.message);
+}
+
+/// La cantidad de un ítem de consumo/recepción debe ser mayor a cero.
+class InvalidItemQuantityException extends DomainException {
+  const InvalidItemQuantityException(super.message);
+}
