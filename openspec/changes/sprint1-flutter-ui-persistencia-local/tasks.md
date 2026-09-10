@@ -65,11 +65,12 @@
 
 ## 8. Tests (reglas de `hexagonal-conventions.md`)
 
-- [ ] 8.1 Unit de los 12 use cases: éxito + fallo principal con fakes en memoria (`test/domain/usecases/`).
-- [ ] 8.2 Adaptadores drift con `NativeDatabase.memory()`: inserts, watch, UNIQUE de `Stock`, tx entidad+SyncQueue (`test/data/repositories/`).
-- [ ] 8.3 ViewModels con fake use cases (`test/app/`), incluido Login refactor.
-- [ ] 8.4 Widget tests de formularios CUU05/06/08: happy path, bloqueo R009, máximo 5 fotos.
-- [ ] 8.5 Import-boundary: grep verificando `lib/domain/**` sin imports de `package:drift` ni `package:flutter`.
+- [x] 8.1 Unit de los 12 use cases: éxito + fallo principal con fakes en memoria (`test/domain/usecases/`).
+- [x] 8.2 Adaptadores drift con `NativeDatabase.memory()`: inserts, watch, UNIQUE de `Stock`, tx entidad+SyncQueue (`test/data/repositories/`).
+- [x] 8.3 ViewModels con fake use cases (`test/app/`), incluido Login refactor.
+- [x] 8.4 Widget tests de formularios CUU05/06/08: happy path, bloqueo R009, máximo 5 fotos.
+- [x] 8.5 Import-boundary: grep verificando `lib/domain/**` sin imports de `package:drift` ni `package:flutter`.
+
 
 ## Explicit Non-Goals For This Sprint
 

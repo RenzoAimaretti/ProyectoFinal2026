@@ -3,18 +3,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app/reports/daily_report_form_view.dart';
 import 'package:mobile/app/reports/daily_report_form_view_model.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/domain/models/catalogs.dart';
+import 'package:mobile/domain/models/enums.dart';
 import 'package:mobile/domain/usecases/add_photo_usecase.dart';
 import 'package:mobile/domain/usecases/create_daily_report_usecase.dart';
+import 'package:mobile/presentation/components/buttons/primary_button.dart';
 
 import '../../domain/usecases/fakes.dart';
 
-Widget _buildTestable(DailyReportFormViewModel vm) {
+Widget _buildTestable(DailyReportFormViewModel vm, {String? initialCompanyId}) {
   return MaterialApp(
     theme: AppTheme.lightTheme,
     home: DailyReportFormView(
       viewModel: vm,
       operatorId: 'op-1',
-      initialCompanyId: null,
+      initialCompanyId: initialCompanyId,
     ),
   );
 }
@@ -80,9 +83,105 @@ void main() {
       await tester.pumpWidget(_buildTestable(viewModel));
       await tester.pumpAndSettle();
 
-      // El botón Siguiente existe pero debería no poder avanzar sin datos.
-      final nextButton = find.text('Siguiente');
-      expect(nextButton, findsOneWidget);
+      final nextButtonFinder = find.widgetWithText(PrimaryButton, 'Siguiente');
+      expect(nextButtonFinder, findsOneWidget);
+      final nextButton = tester.widget<PrimaryButton>(nextButtonFinder);
+      expect(nextButton.onPressed, isNull);
+    });
+
+    testWidgets(
+        'bloqueo R009: al seleccionar lote sin receta muestra advertencia y bloquea Siguiente',
+        (tester) async {
+      // Sembrar datos de catálogo sin receta.
+      companyReader.seed(const Company(id: 'comp-1', name: 'AgroEmpresa SA', cuit: '30-11111111-1'));
+      clientReader.seed(const Client(id: 'c-1', name: 'Cliente Los Pinos'));
+      farmReader.seed(const Farm(id: 'f-1', clientId: 'c-1', name: 'Campo Norte'));
+      lotReader.seed(const Lot(id: 'l-1', farmId: 'f-1', name: 'Lote 14'));
+      laborTypeReader.seed(const LaborType(id: 'lab-1', name: 'Fumigación'));
+      // No sembramos receta en recipeReader para l-1.
+
+      await tester.pumpWidget(_buildTestable(viewModel, initialCompanyId: 'comp-1'));
+      await tester.pumpAndSettle();
+
+      // Seleccionar cliente.
+      await tester.tap(find.text('Seleccionar cliente...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cliente Los Pinos').last);
+      await tester.pumpAndSettle();
+
+      // Seleccionar campo.
+      await tester.tap(find.text('Seleccionar campo...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Campo Norte').last);
+      await tester.pumpAndSettle();
+
+      // Seleccionar lote.
+      await tester.tap(find.text('Seleccionar lote...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lote 14').last);
+      await tester.pumpAndSettle();
+
+      // Debe aparecer el banner de advertencia R009.
+      expect(
+        find.text(
+          'Este lote no tiene una receta agronómica asociada. '
+          'No se puede cargar el parte sin receta (R009).',
+        ),
+        findsOneWidget,
+      );
+
+      // El botón Siguiente debe seguir deshabilitado por el bloqueo R009.
+      final nextButton = tester.widget<PrimaryButton>(
+        find.widgetWithText(PrimaryButton, 'Siguiente'),
+      );
+      expect(nextButton.onPressed, isNull);
+    });
+
+    testWidgets(
+        'happy path R009: al seleccionar lote con receta válida no muestra advertencia',
+        (tester) async {
+      companyReader.seed(const Company(id: 'comp-1', name: 'AgroEmpresa SA', cuit: '30-11111111-1'));
+      clientReader.seed(const Client(id: 'c-1', name: 'Cliente Los Pinos'));
+      farmReader.seed(const Farm(id: 'f-1', clientId: 'c-1', name: 'Campo Norte'));
+      lotReader.seed(const Lot(id: 'l-1', farmId: 'f-1', name: 'Lote 14'));
+      laborTypeReader.seed(const LaborType(id: 'lab-1', name: 'Fumigación'));
+      // Sembramos la receta para l-1.
+      recipeReader.seedRecipe(const Recipe(
+        id: 'rec-1',
+        lotId: 'l-1',
+        status: 'ACTIVE',
+        items: [],
+      ));
+
+      await tester.pumpWidget(_buildTestable(viewModel, initialCompanyId: 'comp-1'));
+      await tester.pumpAndSettle();
+
+      // Seleccionar cliente.
+      await tester.tap(find.text('Seleccionar cliente...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cliente Los Pinos').last);
+      await tester.pumpAndSettle();
+
+      // Seleccionar campo.
+      await tester.tap(find.text('Seleccionar campo...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Campo Norte').last);
+      await tester.pumpAndSettle();
+
+      // Seleccionar lote.
+      await tester.tap(find.text('Seleccionar lote...'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lote 14').last);
+      await tester.pumpAndSettle();
+
+      // No debe existir el warning de R009.
+      expect(
+        find.text(
+          'Este lote no tiene una receta agronómica asociada. '
+          'No se puede cargar el parte sin receta (R009).',
+        ),
+        findsNothing,
+      );
     });
   });
 }

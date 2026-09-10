@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app/machinery/machine_activity_form_view.dart';
 import 'package:mobile/app/machinery/machine_activity_form_view_model.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/domain/models/catalogs.dart';
+import 'package:mobile/domain/models/enums.dart';
 import 'package:mobile/domain/usecases/register_machine_activity_usecase.dart';
 import 'package:mobile/presentation/components/buttons/primary_button.dart';
 import 'package:mobile/presentation/components/selectors/activity_type_selector.dart';
@@ -59,6 +61,13 @@ void main() {
 
     testWidgets('muestra campos dinámicos de tipo seleccionado',
         (tester) async {
+      machineReader.seed(const Machine(
+        id: 'm-1',
+        companyId: 'c-1',
+        name: 'Tractor New Holland',
+        status: MachineStatus.ACTIVE,
+      ));
+
       await tester.pumpWidget(_buildTestable(viewModel));
       await tester.pumpAndSettle();
 
@@ -67,6 +76,27 @@ void main() {
         find.text('Seleccioná un tipo de actividad para ver los campos.'),
         findsOneWidget,
       );
+
+      // Tocar el botón de tipo "Combustible".
+      await tester.tap(find.text('Combustible'));
+      await tester.pumpAndSettle();
+
+      // Debe mostrar los campos de combustible (Litros y Firma obligatoria - R019).
+      expect(find.text('Litros cargados'), findsOneWidget);
+      expect(find.text('Firma (imputación del costo)'), findsOneWidget);
+    });
+
+    testWidgets('tipo uso en lote muestra campos de horas y hectáreas (R021)',
+        (tester) async {
+      await tester.pumpWidget(_buildTestable(viewModel));
+      await tester.pumpAndSettle();
+
+      // Tocar el botón de tipo "Uso en lote".
+      await tester.tap(find.text('Uso en lote'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Horas trabajadas'), findsOneWidget);
+      expect(find.text('Hectáreas trabajadas'), findsOneWidget);
     });
   });
 }
