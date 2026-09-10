@@ -17,7 +17,7 @@ class DriftDailyReportRepository implements DailyReportRepository {
   final AppDatabase _db;
 
   @override
-  Future<void> create(
+  Future<String> create(
     domain.DailyReport report,
     List<domain.DailyReportItem> items,
   ) {
@@ -34,6 +34,7 @@ class DriftDailyReportRepository implements DailyReportRepository {
         entity: SyncEntity.dailyReport,
         entityId: id,
       );
+      return id;
     });
   }
 

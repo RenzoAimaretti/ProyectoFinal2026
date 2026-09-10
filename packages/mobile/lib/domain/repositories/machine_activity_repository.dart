@@ -11,4 +11,7 @@ abstract class MachineActivityRepository {
     DateTime? from,
     DateTime? to,
   });
+
+  /// Historial global (todas las máquinas), para el listado del demo.
+  Stream<List<MachineActivity>> watchAll();
 }

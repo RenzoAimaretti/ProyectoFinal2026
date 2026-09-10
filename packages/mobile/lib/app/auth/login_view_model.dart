@@ -1,12 +1,17 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/models/session.dart';
+import '../../domain/usecases/demo_login_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 
 class LoginViewModel extends ChangeNotifier {
-  LoginViewModel({required LoginUseCase loginUseCase})
-      : _loginUseCase = loginUseCase;
+  LoginViewModel({
+    required LoginUseCase loginUseCase,
+    required DemoLoginUseCase demoLoginUseCase,
+  })  : _loginUseCase = loginUseCase,
+        _demoLoginUseCase = demoLoginUseCase;
 
   final LoginUseCase _loginUseCase;
+  final DemoLoginUseCase _demoLoginUseCase;
 
   String _email = '';
   String get email => _email;
@@ -104,6 +109,31 @@ class LoginViewModel extends ChangeNotifier {
         email: _email,
         password: _password,
       );
+
+      _session = session;
+      _isLoggedIn = true;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// CUU00 (modo demo): login offline sin backend, para desarrollo/demos.
+  ///
+  /// Crea la sesión de operario vía [DemoLoginUseCase] y dispara el mismo flujo
+  /// de éxito que el login remoto.
+  Future<bool> demoLogin() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final session = await _demoLoginUseCase.execute();
 
       _session = session;
       _isLoggedIn = true;

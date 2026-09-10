@@ -4,6 +4,7 @@ import 'package:mobile/app/auth/login_view.dart';
 import 'package:mobile/app/auth/login_view_model.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/domain/models/session.dart';
+import 'package:mobile/domain/usecases/demo_login_usecase.dart';
 import 'package:mobile/domain/usecases/login_usecase.dart';
 import 'package:mobile/presentation/components/buttons/primary_button.dart';
 import 'package:mobile/presentation/components/inputs/custom_text_field.dart';
@@ -32,6 +33,22 @@ class FakeLoginUseCase implements LoginUseCase {
   }
 }
 
+/// Fake del caso de uso de demo login (offline).
+class FakeDemoLoginUseCase implements DemoLoginUseCase {
+  @override
+  Future<Session> execute() async {
+    return Session(
+      userId: 'demo-operario',
+      email: 'operario@demo.com',
+      fullName: 'Operario Demo',
+      role: 'OPERARIO',
+      token: '',
+      companyId: null,
+      lastAccessedAt: DateTime(2026, 1, 1),
+    );
+  }
+}
+
 Widget createTestableLoginView(LoginViewModel viewModel, {VoidCallback? onSuccess}) {
   return MaterialApp(
     theme: AppTheme.lightTheme,
@@ -49,7 +66,10 @@ void main() {
 
     setUp(() {
       fakeUseCase = FakeLoginUseCase();
-      viewModel = LoginViewModel(loginUseCase: fakeUseCase);
+      viewModel = LoginViewModel(
+        loginUseCase: fakeUseCase,
+        demoLoginUseCase: FakeDemoLoginUseCase(),
+      );
     });
 
     testWidgets('debería renderizar la vista de login con todos los componentes requeridos', (tester) async {

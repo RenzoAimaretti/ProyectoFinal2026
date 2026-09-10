@@ -15,7 +15,7 @@ class CreateDailyReportUseCase {
   final DailyReportRepository _repository;
   final RecipeReader _recipeReader;
 
-  Future<void> execute({
+  Future<String> execute({
     required String operatorId,
     required String companyId,
     required String lotId,
@@ -58,6 +58,8 @@ class CreateDailyReportUseCase {
       status: DailyReportStatus.PENDING_APPROVAL,
     );
 
-    await _repository.create(report, items);
+    // Devuelve el id del parte para que el formulario pueda asociar las fotos
+    // (R008) a la entidad recién creada.
+    return _repository.create(report, items);
   }
 }

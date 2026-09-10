@@ -4,8 +4,10 @@ import '../models/reception.dart';
 
 /// Persistencia de recepciones de insumos (CUU06).
 abstract class ReceptionRepository {
-  /// Crea cabecera + ítems en una única transacción.
-  Future<void> create(Reception reception, List<ReceptionItem> items);
+  /// Crea cabecera + ítems en una única transacción y devuelve el `id`
+  /// generado, para que el formulario asocie las fotos (R008) a la entidad
+  /// recién creada.
+  Future<String> create(Reception reception, List<ReceptionItem> items);
 
   Stream<List<Reception>> watchPending();
 

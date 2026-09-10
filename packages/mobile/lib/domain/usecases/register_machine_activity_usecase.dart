@@ -18,34 +18,56 @@ class RegisterMachineActivityUseCase {
   }
 
   void _validateFields(MachineActivity activity) {
+    // La fecha es un registro del pasado/día actual, nunca futura.
+    if (activity.date.isAfter(DateTime.now())) {
+      throw const InvalidMachineActivityException(
+        'La fecha no puede ser futura.',
+      );
+    }
+
     switch (activity.type) {
       case MachineActivityType.FUEL:
-        // R018: litros + comprobante. R019: el gasto se discrimina por firma.
-        if (activity.liters == null || activity.receipt == null) {
+        // R018/R019: litros > 0 + firma que asume el costo. El comprobante se
+        // recolecta pero no es obligatorio para el demo (espejo del prototipo).
+        if (activity.liters == null || activity.liters! <= 0) {
           throw const InvalidMachineActivityException(
-            'El registro de combustible requiere litros y comprobante.',
+            'Los litros de combustible deben ser mayores a 0.',
           );
         }
-        if (activity.companyId == null) {
+        if (activity.companyId == null || activity.companyId!.trim().isEmpty) {
           throw const InvalidMachineActivityException(
-            'El registro de combustible requiere una firma (companyId).',
+            'El registro de combustible requiere una firma.',
           );
         }
+        break;
       case MachineActivityType.MAINTENANCE:
       case MachineActivityType.REPAIR:
-        // R020: costos + repuestos.
-        if (activity.cost == null || activity.spareParts == null) {
+        // R020: costo > 0 + descripción del trabajo no vacía.
+        if (activity.cost == null || activity.cost! <= 0) {
           throw const InvalidMachineActivityException(
-            'Mantenimiento/reparación requiere costo y repuestos.',
+            'El costo debe ser mayor a 0.',
           );
         }
+        if (activity.spareParts == null ||
+            activity.spareParts!.trim().isEmpty) {
+          throw const InvalidMachineActivityException(
+            'La descripción del trabajo es obligatoria.',
+          );
+        }
+        break;
       case MachineActivityType.FIELD_USAGE:
-        // R021: horas + hectáreas.
-        if (activity.usageHours == null || activity.hectares == null) {
+        // R021: horas > 0 + hectáreas > 0.
+        if (activity.usageHours == null || activity.usageHours! <= 0) {
           throw const InvalidMachineActivityException(
-            'Uso en campo requiere horas y hectáreas.',
+            'Las horas de uso deben ser mayores a 0.',
           );
         }
+        if (activity.hectares == null || activity.hectares! <= 0) {
+          throw const InvalidMachineActivityException(
+            'Las hectáreas deben ser mayores a 0.',
+          );
+        }
+        break;
     }
   }
 }

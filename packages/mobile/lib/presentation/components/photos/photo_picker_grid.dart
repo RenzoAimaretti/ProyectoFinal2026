@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/services/photo_picker_service.dart';
@@ -8,15 +10,18 @@ enum _PhotoSource { camera, gallery }
 
 /// Grilla de fotos del Design System Agropecuario (máx 5 por entidad, R008).
 ///
-/// Muestra miniaturas placeholder + un tile "agregar" (ícono de cámara)
-/// que abre el bottom sheet de cámara/galería vía [PhotoPickerService],
-/// junto con un contador `n/5`. El tile se deshabilita al llegar al máximo.
-/// En el prototipo las miniaturas son contenedores de color (sin archivos).
+/// Captura fotos reales (cámara/galería) vía [PhotoPickerService], muestra
+/// miniaturas con `Image.file` y notifica la lista de rutas seleccionadas por
+/// [onPathsChanged]. La persistencia en drift (vía `AddPhotoUseCase`) la
+/// coordina el ViewModel del formulario al guardar: esta grilla solo gestiona
+/// la selección de archivos, sin tocar repositorios.
 class PhotoPickerGrid extends StatefulWidget {
   const PhotoPickerGrid({
     super.key,
     this.maxPhotos = 5,
     this.photoPickerService,
+    this.initialPaths = const [],
+    this.onPathsChanged,
   });
 
   /// Máximo de fotos permitidas (R008).
@@ -24,6 +29,13 @@ class PhotoPickerGrid extends StatefulWidget {
 
   /// Servicio opcional; si es null se crea uno interno.
   final PhotoPickerService? photoPickerService;
+
+  /// Rutas ya seleccionadas (modo controlado desde el ViewModel).
+  final List<String> initialPaths;
+
+  /// Se dispara con la lista actual de rutas seleccionadas cada vez que se
+  /// agrega o quita una foto.
+  final ValueChanged<List<String>>? onPathsChanged;
 
   @override
   State<PhotoPickerGrid> createState() => _PhotoPickerGridState();
@@ -33,8 +45,7 @@ class _PhotoPickerGridState extends State<PhotoPickerGrid> {
   late final PhotoPickerService _service =
       widget.photoPickerService ?? PhotoPickerService();
 
-  final List<int> _photos = [];
-  int _nextId = 0;
+  late final List<String> _paths = List.of(widget.initialPaths);
 
   Future<void> _addPhoto() async {
     final source = await showModalBottomSheet<_PhotoSource>(
@@ -77,16 +88,18 @@ class _PhotoPickerGridState extends State<PhotoPickerGrid> {
     // Usuario canceló la captura.
     if (path == null || !mounted) return;
 
-    setState(() => _photos.add(_nextId++));
+    setState(() => _paths.add(path));
+    widget.onPathsChanged?.call(List.unmodifiable(_paths));
   }
 
-  void _removePhoto(int id) {
-    setState(() => _photos.remove(id));
+  void _removePhoto(String path) {
+    setState(() => _paths.remove(path));
+    widget.onPathsChanged?.call(List.unmodifiable(_paths));
   }
 
   @override
   Widget build(BuildContext context) {
-    final isFull = _photos.length >= widget.maxPhotos;
+    final isFull = _paths.length >= widget.maxPhotos;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,7 +118,7 @@ class _PhotoPickerGridState extends State<PhotoPickerGrid> {
               ),
             ),
             Text(
-              '${_photos.length}/${widget.maxPhotos}',
+              '${_paths.length}/${widget.maxPhotos}',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -121,8 +134,8 @@ class _PhotoPickerGridState extends State<PhotoPickerGrid> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final id in _photos)
-              _PhotoTile(onRemove: () => _removePhoto(id)),
+            for (final path in _paths)
+              _PhotoTile(path: path, onRemove: () => _removePhoto(path)),
             _AddTile(enabled: !isFull, onTap: isFull ? null : _addPhoto),
           ],
         ),
@@ -131,10 +144,11 @@ class _PhotoPickerGridState extends State<PhotoPickerGrid> {
   }
 }
 
-/// Miniatura placeholder (contenedor de color) con botón de quitar.
+/// Miniatura real (`Image.file`) con botón de quitar.
 class _PhotoTile extends StatelessWidget {
-  const _PhotoTile({required this.onRemove});
+  const _PhotoTile({required this.path, required this.onRemove});
 
+  final String path;
   final VoidCallback onRemove;
 
   @override
@@ -148,11 +162,20 @@ class _PhotoTile extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Center(
-            child: Icon(
-              Icons.image_outlined,
-              size: 32,
-              color: AppColors.primary,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.file(
+              File(path),
+              width: _tileSize,
+              height: _tileSize,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stack) => const Center(
+                child: Icon(
+                  Icons.image_outlined,
+                  size: 32,
+                  color: AppColors.primary,
+                ),
+              ),
             ),
           ),
           Positioned(

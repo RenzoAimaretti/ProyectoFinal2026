@@ -29,4 +29,10 @@ class MachineActivitiesDao extends DatabaseAccessor<AppDatabase>
           ..orderBy([(t) => OrderingTerm.desc(t.date)]))
         .watch();
   }
+
+  Stream<List<MachineActivity>> watchAll() {
+    return (select(machineActivities)
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .watch();
+  }
 }

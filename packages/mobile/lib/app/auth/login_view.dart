@@ -154,6 +154,20 @@ class LoginView extends StatelessWidget {
                         }
                       },
                     ),
+                    const SizedBox(height: 12),
+
+                    // ── Modo Demo (offline) ─────────────────────────────
+                    TextButton(
+                      onPressed: viewModel.isLoading
+                          ? null
+                          : () async {
+                              final success = await viewModel.demoLogin();
+                              if (success && context.mounted) {
+                                onLoginSuccess?.call();
+                              }
+                            },
+                      child: const Text('Entrar modo demo'),
+                    ),
                   ],
                 );
               },

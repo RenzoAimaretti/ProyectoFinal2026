@@ -39,4 +39,11 @@ class DriftMachineActivityRepository implements MachineActivityRepository {
         .watchByMachine(machineId, from: from, to: to)
         .map((rows) => rows.map((r) => r.toDomain()).toList());
   }
+
+  @override
+  Stream<List<domain.MachineActivity>> watchAll() {
+    return _db.machineActivitiesDao
+        .watchAll()
+        .map((rows) => rows.map((r) => r.toDomain()).toList());
+  }
 }

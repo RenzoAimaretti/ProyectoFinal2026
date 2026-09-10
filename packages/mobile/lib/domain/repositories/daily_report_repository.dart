@@ -5,8 +5,9 @@ import '../models/enums.dart';
 
 /// Persistencia de partes diarios (CUU05).
 abstract class DailyReportRepository {
-  /// Crea cabecera + ítems en una única transacción.
-  Future<void> create(DailyReport report, List<DailyReportItem> items);
+  /// Crea cabecera + ítems en una única transacción y devuelve el `id`
+  /// generado para el parte (necesario para asociar las fotos — R008).
+  Future<String> create(DailyReport report, List<DailyReportItem> items);
 
   Stream<List<DailyReport>> watchPending();
 

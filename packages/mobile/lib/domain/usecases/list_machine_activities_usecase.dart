@@ -16,4 +16,7 @@ class ListMachineActivitiesUseCase {
   }) {
     return _repository.watchByMachine(machineId, from: from, to: to);
   }
+
+  /// Historial global (todas las máquinas) para el listado del demo.
+  Stream<List<MachineActivity>> watchAll() => _repository.watchAll();
 }

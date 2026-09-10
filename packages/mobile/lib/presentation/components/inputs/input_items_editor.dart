@@ -15,6 +15,23 @@ class InputOption {
   final String unit;
 }
 
+/// Valor estructurado de una línea de consumo, listo para mapear a
+/// `DailyReportItem`/`ReceptionItem` en el ViewModel (CUU05/06).
+class InputItemValue {
+  const InputItemValue({
+    required this.inputId,
+    required this.unit,
+    required this.quantity,
+  });
+
+  /// Id del insumo seleccionado (`''` si la línea está vacía).
+  final String inputId;
+  final String unit;
+
+  /// Cantidad ya parseada (`0` si está vacía o no es numérica).
+  final double quantity;
+}
+
 // ── Datos dummy (reemplazables por catálogos reales de drift) ──────────
 const List<InputOption> _inputsDummy = [
   InputOption(id: 'inp-1', label: 'Glifosato', unit: 'L'),
@@ -42,6 +59,7 @@ class InputItemsEditor extends StatefulWidget {
     this.inputs = _inputsDummy,
     this.onChanged,
     this.onQuantitiesChanged,
+    this.onItemsChanged,
   });
 
   /// Opciones de insumo disponibles.
@@ -54,6 +72,11 @@ class InputItemsEditor extends StatefulWidget {
   /// agrega, quita o edita una línea. Permite validar `cantidad > 0` en los
   /// formularios (CUU05/06).
   final ValueChanged<List<String>>? onQuantitiesChanged;
+
+  /// Se dispara con el estado estructurado de cada línea (insumo + unidad +
+  /// cantidad) para que los formularios reales armen `DailyReportItem` /
+  /// `ReceptionItem` sin re-implementar el editor.
+  final ValueChanged<List<InputItemValue>>? onItemsChanged;
 
   @override
   State<InputItemsEditor> createState() => _InputItemsEditorState();
@@ -87,6 +110,17 @@ class _InputItemsEditorState extends State<InputItemsEditor> {
     widget.onChanged?.call(_lines.length);
     widget.onQuantitiesChanged?.call(
       _lines.map((l) => l.quantity).toList(),
+    );
+    widget.onItemsChanged?.call(
+      _lines
+          .map(
+            (l) => InputItemValue(
+              inputId: l.inputId ?? '',
+              unit: l.unit ?? '',
+              quantity: double.tryParse(l.quantity) ?? 0,
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -127,6 +161,7 @@ class _InputItemsEditorState extends State<InputItemsEditor> {
                       final input = _findInput(value);
                       if (input != null) line.unit = input.unit;
                     });
+                    _notifyChanged();
                   },
                 ),
               ),
@@ -164,7 +199,10 @@ class _InputItemsEditorState extends State<InputItemsEditor> {
                   label: 'Unidad',
                   items: _unitItems(),
                   value: line.unit,
-                  onChanged: (value) => setState(() => line.unit = value),
+                  onChanged: (value) {
+                    setState(() => line.unit = value);
+                    _notifyChanged();
+                  },
                 ),
               ),
             ],

@@ -9,6 +9,11 @@ part 'machines_dao.g.dart';
 class MachinesDao extends DatabaseAccessor<AppDatabase> with _$MachinesDaoMixin {
   MachinesDao(AppDatabase db) : super(db);
 
+  Stream<List<Machine>> watchAll() {
+    return (select(machines)..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .watch();
+  }
+
   Stream<List<Machine>> watchByCompany(String companyId) {
     return (select(machines)
           ..where((t) => t.companyId.equals(companyId))

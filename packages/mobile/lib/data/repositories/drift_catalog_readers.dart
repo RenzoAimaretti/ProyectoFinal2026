@@ -113,6 +113,11 @@ class DriftMachineReader implements MachineReader {
   final AppDatabase _db;
 
   @override
+  Stream<List<domain.Machine>> watchAll() => _db.machinesDao
+      .watchAll()
+      .map((rows) => rows.map((r) => r.toDomain()).toList());
+
+  @override
   Stream<List<domain.Machine>> watchByCompany(String companyId) =>
       _db.machinesDao
           .watchByCompany(companyId)

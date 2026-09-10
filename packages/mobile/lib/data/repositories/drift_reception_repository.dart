@@ -20,7 +20,7 @@ class DriftReceptionRepository implements ReceptionRepository {
   final AppDatabase _db;
 
   @override
-  Future<void> create(
+  Future<String> create(
     domain.Reception reception,
     List<domain.ReceptionItem> items,
   ) {
@@ -37,6 +37,7 @@ class DriftReceptionRepository implements ReceptionRepository {
         entity: SyncEntity.reception,
         entityId: id,
       );
+      return id;
     });
   }
 
