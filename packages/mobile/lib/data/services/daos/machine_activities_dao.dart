@@ -30,6 +30,13 @@ class MachineActivitiesDao extends DatabaseAccessor<AppDatabase>
         .watch();
   }
 
+  Stream<List<MachineActivity>> watchByCompany(String companyId) {
+    return (select(machineActivities)
+          ..where((t) => t.companyId.equals(companyId))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .watch();
+  }
+
   Stream<List<MachineActivity>> watchAll() {
     return (select(machineActivities)
           ..orderBy([(t) => OrderingTerm.desc(t.date)]))

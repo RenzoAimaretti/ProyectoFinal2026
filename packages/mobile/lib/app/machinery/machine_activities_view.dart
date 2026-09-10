@@ -21,29 +21,36 @@ class MachineActivitiesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<MachineActivity>>(
-      stream: viewModel.activities,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting &&
-            !snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    // ListenableBuilder resuscribe el StreamBuilder cuando cambia la firma
+    // activa (el ViewModel notifica y `activities` devuelve un stream nuevo).
+    return ListenableBuilder(
+      listenable: viewModel,
+      builder: (context, _) {
+        return StreamBuilder<List<MachineActivity>>(
+          stream: viewModel.activities,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        final activities = snapshot.data ?? const <MachineActivity>[];
-        if (activities.isEmpty) {
-          return const EmptyState(
-            icon: Icons.agriculture_outlined,
-            title: 'Aún no hay actividades de maquinaria',
-            subtitle: 'Tocá el botón + para registrar una actividad.',
-          );
-        }
+            final activities = snapshot.data ?? const <MachineActivity>[];
+            if (activities.isEmpty) {
+              return const EmptyState(
+                icon: Icons.agriculture_outlined,
+                title: 'Aún no hay actividades de maquinaria',
+                subtitle: 'Tocá el botón + para registrar una actividad.',
+              );
+            }
 
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: activities.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            return _ActivityTile(activity: activities[index]);
+            return ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: activities.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                return _ActivityTile(activity: activities[index]);
+              },
+            );
           },
         );
       },

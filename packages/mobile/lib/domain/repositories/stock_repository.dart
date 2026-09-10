@@ -9,4 +9,7 @@ abstract class StockRepository {
   Future<void> upsertIncrement(String clientId, String inputId, double delta);
 
   Stream<List<Stock>> watchByClient(String clientId);
+
+  /// Todo el stock (KPI global del dashboard, independiente de cliente).
+  Stream<List<Stock>> watchAll();
 }

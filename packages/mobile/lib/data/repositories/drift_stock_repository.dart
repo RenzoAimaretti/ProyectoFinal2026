@@ -35,4 +35,11 @@ class DriftStockRepository implements StockRepository {
         .watchByClient(clientId)
         .map((rows) => rows.map((r) => r.toDomain()).toList());
   }
+
+  @override
+  Stream<List<domain.Stock>> watchAll() {
+    return _db.stocksDao
+        .watchAll()
+        .map((rows) => rows.map((r) => r.toDomain()).toList());
+  }
 }

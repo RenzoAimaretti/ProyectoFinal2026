@@ -12,4 +12,8 @@ class StocksDao extends DatabaseAccessor<AppDatabase> with _$StocksDaoMixin {
   Stream<List<Stock>> watchByClient(String clientId) {
     return (select(stocks)..where((t) => t.clientId.equals(clientId))).watch();
   }
+
+  Stream<List<Stock>> watchAll() {
+    return select(stocks).watch();
+  }
 }

@@ -10,6 +10,10 @@ import '../../domain/usecases/validate_reception_usecase.dart';
 /// validación, alimentado por el `watch` de drift: la vista se refresca sola
 /// ante cada insert o validación. La acción de validar delega en
 /// [ValidateReceptionUseCase].
+///
+/// NOTA multi-firma: las recepciones NO se filtran por firma. `Reception` se
+/// asocia al cliente (`clientId`), no tiene `companyId`; la discriminación por
+/// firma aplica solo a partes diarios y actividades de maquinaria.
 class ReceptionsViewModel {
   ReceptionsViewModel(this._listUseCase, this._validateUseCase);
 

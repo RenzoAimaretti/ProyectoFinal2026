@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../presentation/components/buttons/primary_button.dart';
 import '../../presentation/components/inputs/custom_text_field.dart';
-import '../../presentation/components/selectors/multi_firma_selector.dart';
 import 'login_view_model.dart';
 
 /// Vista de inicio de sesión de la aplicación móvil Agropecuario.
@@ -103,16 +102,6 @@ class LoginView extends StatelessWidget {
                       ),
                       const SizedBox(height: 20),
                     ],
-
-                    // ── Selector de Firma / Razón Social ───────────────
-                    MultiFirmaSelector.predefined(
-                      selectedId: viewModel.selectedFirmaId,
-                      onSelected: (firma) {
-                        viewModel.setSelectedFirmaId(firma.id);
-                      },
-                      enabled: !viewModel.isLoading,
-                    ),
-                    const SizedBox(height: 20),
 
                     // ── Campo de Email ──────────────────────────────────
                     CustomTextField(

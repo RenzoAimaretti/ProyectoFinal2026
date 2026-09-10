@@ -17,6 +17,9 @@ abstract class DailyReportRepository {
     DateTime? to,
   });
 
+  /// Partes diarios de una firma/razón social específica (multi-firma).
+  Stream<List<DailyReport>> watchByCompany(String companyId);
+
   /// Aprobación/rechazo. `approvedBy` aplica a APPROVED; `rejectionReason` a
   /// REJECTED. `approvedAt` lo resuelve el adaptador.
   Future<void> updateStatus(

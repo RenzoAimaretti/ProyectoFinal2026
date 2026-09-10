@@ -24,4 +24,19 @@ class Session {
   final String token;
   final String? companyId;
   final DateTime lastAccessedAt;
+
+  /// Copia la sesión cambiando la firma activa (persistida al seleccionar otra
+  /// firma en el selector global post-login). El resto de campos se preserva.
+  Session copyWith({String? companyId}) {
+    return Session(
+      id: id,
+      userId: userId,
+      email: email,
+      fullName: fullName,
+      role: role,
+      token: token,
+      companyId: companyId ?? this.companyId,
+      lastAccessedAt: lastAccessedAt,
+    );
+  }
 }

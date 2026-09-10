@@ -79,7 +79,6 @@ void main() {
       expect(find.text('Plataforma de Gestión Agrícola y Ganadera'), findsOneWidget);
       expect(find.text('Correo electrónico'), findsOneWidget);
       expect(find.text('Contraseña'), findsOneWidget);
-      expect(find.text('Razón social / Firma'), findsOneWidget);
       expect(find.byType(CustomTextField), findsNWidgets(2));
       expect(find.byType(PrimaryButton), findsOneWidget);
       expect(find.text('Iniciar sesión'), findsOneWidget);

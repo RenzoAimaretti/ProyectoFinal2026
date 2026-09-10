@@ -41,6 +41,13 @@ class DriftMachineActivityRepository implements MachineActivityRepository {
   }
 
   @override
+  Stream<List<domain.MachineActivity>> watchByCompany(String companyId) {
+    return _db.machineActivitiesDao
+        .watchByCompany(companyId)
+        .map((rows) => rows.map((r) => r.toDomain()).toList());
+  }
+
+  @override
   Stream<List<domain.MachineActivity>> watchAll() {
     return _db.machineActivitiesDao
         .watchAll()

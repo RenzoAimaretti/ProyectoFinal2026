@@ -57,6 +57,13 @@ class DriftDailyReportRepository implements DailyReportRepository {
   }
 
   @override
+  Stream<List<domain.DailyReport>> watchByCompany(String companyId) {
+    return _db.dailyReportsDao
+        .watchByCompany(companyId)
+        .map((rows) => rows.map((r) => r.toDomain()).toList());
+  }
+
+  @override
   Future<void> updateStatus(
     String id,
     DailyReportStatus status, {

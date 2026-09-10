@@ -11,4 +11,7 @@ class WatchStockUseCase {
 
   Stream<List<Stock>> execute(String clientId) =>
       _stockRepository.watchByClient(clientId);
+
+  /// Stock global (KPI del dashboard), independiente del cliente/firma.
+  Stream<List<Stock>> watchAll() => _stockRepository.watchAll();
 }

@@ -65,7 +65,6 @@ void main() {
     test('estado inicial del ViewModel debe ser correcto', () {
       expect(viewModel.email, isEmpty);
       expect(viewModel.password, isEmpty);
-      expect(viewModel.selectedFirmaId, 'eliggi');
       expect(viewModel.isLoading, isFalse);
       expect(viewModel.obscurePassword, isTrue);
       expect(viewModel.errorMessage, isNull);
@@ -78,11 +77,6 @@ void main() {
 
       expect(viewModel.email, 'test@empresa.com');
       expect(viewModel.password, 'Password123!');
-    });
-
-    test('setSelectedFirmaId debe actualizar la firma seleccionada', () {
-      viewModel.setSelectedFirmaId('eliggi_tufoni');
-      expect(viewModel.selectedFirmaId, 'eliggi_tufoni');
     });
 
     test('toggleObscurePassword debe alternar la visibilidad', () {

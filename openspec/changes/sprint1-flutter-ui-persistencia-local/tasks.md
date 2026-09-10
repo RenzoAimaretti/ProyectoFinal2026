@@ -54,14 +54,14 @@
   - [x] 7.0.2 Demo login offline ("Entrar modo demo") en `login_view.dart` → `DemoLoginUseCase` → `Session` operario persistida vía `DriftSessionRepository`.
   - [x] 7.0.3 `lib/app/home/home_view.dart` → `DashboardView` (NavigationBar 3 tabs + IndexedStack de `EmptyState` + FAB "Próximamente" + logout en AppBar).
   - [x] 7.0.4 `lib/main.dart` composition root: repos + use cases + `LogoutUseCase`; `kShowDesignSystem=false`.
-- [ ] 7.1 CUU00: restauración de sesión offline al arranque (`RestoreSessionUseCase`) — logout ya cableado en 7.0.4.
-- [ ] 7.2 `DashboardView`: KPI de stock (`WatchStockUseCase`) + navegación real a las pantallas CUU05/06/08 (hoy placeholders).
+- [x] 7.1 CUU00: restauración de sesión offline al arranque (`RestoreSessionUseCase`) — logout ya cableado en 7.0.4.
+- [x] 7.2 `DashboardView`: KPI de stock (`WatchStockUseCase`) + navegación real a las pantallas CUU05/06/08 (hoy placeholders).
 - [x] 7.3 CUU05 lista en `lib/app/reports/`: `daily_reports_view_model.dart` + `daily_reports_view.dart` (watch filtro estado/fecha; reusar `parte_diario_item.dart`, `status_badge.dart`).
 - [x] 7.4 CUU05 form: `daily_report_form_view_model.dart` + `daily_report_form_view.dart` (firma/lote/labor/hectáreas/horas + ítems de consumo; bloquear si el lote no tiene `Recipe` — R009).
 - [x] 7.5 CUU06 lista en `lib/app/receptions/`: `receptions_view_model.dart` + `receptions_view.dart` (pendientes `PENDING_VALIDATION` + acción validar vía `ValidateReceptionUseCase`).
 - [x] 7.6 CUU06 form: `reception_form_view_model.dart` + `reception_form_view.dart` (ítems insumo/cantidad/unidad, sin remito, hasta 5 fotos).
-- [ ] 7.7 CUU08 en `lib/app/machinery/`: `machine_activities_view_model.dart` + lista/historial por máquina y form por tipo (`FUEL` exige `companyId` — R019; acumular horas/hectáreas — R021).
-- [ ] 7.8 Reusar `presentation/components` existentes (cards, buttons, inputs, dropdowns, selectors); no duplicar el design system.
+- [x] 7.7 CUU08 en `lib/app/machinery/`: `machine_activities_view_model.dart` + lista/historial por máquina y form por tipo (`FUEL` exige `companyId` — R019; acumular horas/hectáreas — R021).
+- [x] 7.8 Reusar `presentation/components` existentes (cards, buttons, inputs, dropdowns, selectors); no duplicar el design system.
 
 ## 8. Tests (reglas de `hexagonal-conventions.md`)
 

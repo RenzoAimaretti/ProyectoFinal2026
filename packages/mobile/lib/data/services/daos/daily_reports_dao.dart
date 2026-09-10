@@ -39,4 +39,11 @@ class DailyReportsDao extends DatabaseAccessor<AppDatabase>
           ..orderBy([(t) => OrderingTerm.desc(t.date)]))
         .watch();
   }
+
+  Stream<List<DailyReport>> watchByCompany(String companyId) {
+    return (select(dailyReports)
+          ..where((t) => t.companyId.equals(companyId))
+          ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+        .watch();
+  }
 }

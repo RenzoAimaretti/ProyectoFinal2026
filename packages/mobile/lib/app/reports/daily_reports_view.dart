@@ -20,29 +20,36 @@ class DailyReportsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<DailyReport>>(
-      stream: viewModel.reports,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting &&
-            !snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    // ListenableBuilder resuscribe el StreamBuilder cuando cambia la firma
+    // activa (el ViewModel notifica y `reports` devuelve un stream nuevo).
+    return ListenableBuilder(
+      listenable: viewModel,
+      builder: (context, _) {
+        return StreamBuilder<List<DailyReport>>(
+          stream: viewModel.reports,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        final reports = snapshot.data ?? const <DailyReport>[];
-        if (reports.isEmpty) {
-          return const EmptyState(
-            icon: Icons.assignment_outlined,
-            title: 'Aún no hay partes diarios',
-            subtitle: 'Tocá el botón + para cargar tu primer parte.',
-          );
-        }
+            final reports = snapshot.data ?? const <DailyReport>[];
+            if (reports.isEmpty) {
+              return const EmptyState(
+                icon: Icons.assignment_outlined,
+                title: 'Aún no hay partes diarios',
+                subtitle: 'Tocá el botón + para cargar tu primer parte.',
+              );
+            }
 
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: reports.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, index) =>
-              _DailyReportTile(report: reports[index]),
+            return ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: reports.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (context, index) =>
+                  _DailyReportTile(report: reports[index]),
+            );
+          },
         );
       },
     );

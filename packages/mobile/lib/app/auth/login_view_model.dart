@@ -19,9 +19,6 @@ class LoginViewModel extends ChangeNotifier {
   String _password = '';
   String get password => _password;
 
-  String _selectedFirmaId = 'eliggi';
-  String get selectedFirmaId => _selectedFirmaId;
-
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -57,11 +54,6 @@ class LoginViewModel extends ChangeNotifier {
       _passwordError = null;
       notifyListeners();
     }
-  }
-
-  void setSelectedFirmaId(String id) {
-    _selectedFirmaId = id;
-    notifyListeners();
   }
 
   void toggleObscurePassword() {

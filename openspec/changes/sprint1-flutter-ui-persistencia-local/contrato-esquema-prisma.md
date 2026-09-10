@@ -238,3 +238,20 @@ model MachineActivity {
 - C. Usar la receta del lote (`RecipeItem`) como fuente de insumos válidos.
 
 **Impacto:** cambio de esquema en Prisma (`Input.category` + relación labor↔categoría). Se decide con Renzo/equipo antes de migrar.
+
+---
+
+## 6. Relación multi-firma `User ↔ Company` (pendiente de decisión del equipo)
+
+> ⚠️ **Pendiente de dominio.** Registrado para decidir con Renzo/equipo.
+
+**Problema:** hoy un usuario pertenece a UNA sola firma (`User.companyId` en Prisma; `Session.companyId` en móvil). Pero el modelo de negocio es **multi-firma**: un usuario (operario/administrador) puede trabajar para varias razones sociales del grupo operativo (Eliggi, Eliggi Tufoni, Eliggi Néstor).
+
+**Decisión UX (Sprint 1):** la firma **NO se elige en el login**. Se elige **post-login** como contexto global (selector de firma en el dashboard), y las listas (partes diarios, maquinaria) se **filtran por la firma activa**. La carga por firma se mantiene como está (cada parte/actividad se asigna a una firma).
+
+**Modelo de datos a definir (backend):**
+- Opción A: many-to-many `UserCompany` (`userId`, `companyId`) con `role` por firma.
+- Opción B: `User.companyId` nullable + tabla de "firmas adicionales".
+- (a decidir con Renzo)
+
+**Impacto móvil (Sprint 1):** `Session.companyId` guarda la firma **ACTIVA** (contexto de trabajo), no la pertenencia. `CompanyReader.watchAll()` lista las firmas disponibles para el selector global. Las recepciones (ligadas a `Client`, no a `Company`) no se filtran por firma en este sprint — pendiente de resolver la firma de la recepción.

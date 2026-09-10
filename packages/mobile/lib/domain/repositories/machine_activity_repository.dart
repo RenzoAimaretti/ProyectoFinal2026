@@ -12,6 +12,9 @@ abstract class MachineActivityRepository {
     DateTime? to,
   });
 
+  /// Actividades de una firma/razón social específica (multi-firma).
+  Stream<List<MachineActivity>> watchByCompany(String companyId);
+
   /// Historial global (todas las máquinas), para el listado del demo.
   Stream<List<MachineActivity>> watchAll();
 }

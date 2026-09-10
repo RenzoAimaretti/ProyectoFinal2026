@@ -17,4 +17,13 @@ class ListDailyReportsUseCase {
   }) {
     return _repository.watchByFilter(status: status, from: from, to: to);
   }
+
+  /// CUU05 (multi-firma): partes de la firma activa; `null` = todos (sin
+  /// filtro de firma).
+  Stream<List<DailyReport>> watchByCompany(String? companyId) {
+    if (companyId == null) {
+      return _repository.watchByFilter();
+    }
+    return _repository.watchByCompany(companyId);
+  }
 }

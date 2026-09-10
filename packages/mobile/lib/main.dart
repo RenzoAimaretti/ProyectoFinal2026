@@ -11,6 +11,7 @@ import 'app/receptions/reception_form_view_model.dart';
 import 'app/receptions/receptions_view_model.dart';
 import 'app/reports/daily_report_form_view_model.dart';
 import 'app/reports/daily_reports_view_model.dart';
+import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'data/repositories/drift_catalog_readers.dart';
 import 'data/repositories/drift_daily_report_repository.dart';
@@ -18,12 +19,15 @@ import 'data/repositories/drift_machine_activity_repository.dart';
 import 'data/repositories/drift_photo_repository.dart';
 import 'data/repositories/drift_reception_repository.dart';
 import 'data/repositories/drift_session_repository.dart';
+import 'data/repositories/drift_stock_repository.dart';
 import 'data/repositories/http_auth_repository.dart';
 import 'data/repositories/path_provider_photo_storage_repository.dart';
 import 'data/services/app_database.dart';
 import 'data/services/catalog_seeder.dart';
 import 'data/services/photo_picker_service.dart';
+import 'domain/models/catalogs.dart' as domain;
 import 'domain/models/session.dart';
+import 'domain/models/stock.dart' as domain;
 import 'domain/usecases/add_photo_usecase.dart';
 import 'domain/usecases/create_daily_report_usecase.dart';
 import 'domain/usecases/create_reception_usecase.dart';
@@ -35,7 +39,9 @@ import 'domain/usecases/list_pending_receptions_usecase.dart';
 import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
 import 'domain/usecases/register_machine_activity_usecase.dart';
+import 'domain/usecases/restore_session_usecase.dart';
 import 'domain/usecases/validate_reception_usecase.dart';
+import 'domain/usecases/watch_stock_usecase.dart';
 import 'presentation/preview/components_preview_screen.dart';
 
 /// Flag para validación de prototipos (showroom). En `false` (default) muestra
@@ -56,6 +62,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final AppDatabase _database;
+  late final DriftSessionRepository _sessionRepository;
   late final LoginViewModel _loginViewModel;
   late final LogoutUseCase _logoutUseCase;
   late final DailyReportsViewModel _dailyReportsViewModel;
@@ -64,9 +71,16 @@ class _MyAppState extends State<MyApp> {
   late final ReceptionFormViewModel _receptionFormViewModel;
   late final MachineActivitiesViewModel _machineActivitiesViewModel;
   late final MachineActivityFormViewModel _machineActivityFormViewModel;
+  late final RestoreSessionUseCase _restoreSessionUseCase;
 
   /// Pendientes de sincronización (badge del dashboard).
   late final Stream<int> _pendingSyncCount;
+
+  /// Razones sociales reales (catálogo) para el selector global de firma.
+  late final Stream<List<domain.Company>> _companies;
+
+  /// Stock global (KPI del dashboard), independiente del cliente/firma.
+  late final Stream<List<domain.Stock>> _stock;
 
   /// Dependencias de fotos (CUU05/06), cableadas aquí para que los formularios
   /// de Phase 7 las consuman. Públicas porque aún no tienen consumidor y el
@@ -77,6 +91,9 @@ class _MyAppState extends State<MyApp> {
 
   Session? _session;
 
+  /// true mientras se resuelve la restauración de sesión al arranque (CUU00).
+  bool _restoringSession = true;
+
   @override
   void initState() {
     super.initState();
@@ -85,6 +102,7 @@ class _MyAppState extends State<MyApp> {
     _database = AppDatabase();
     final authRepository = HttpAuthRepository();
     final sessionRepository = DriftSessionRepository(_database);
+    _sessionRepository = sessionRepository;
 
     final loginUseCase = LoginUseCase(authRepository, sessionRepository);
     final demoLoginUseCase = DemoLoginUseCase(sessionRepository);
@@ -93,6 +111,11 @@ class _MyAppState extends State<MyApp> {
       loginUseCase: loginUseCase,
       demoLoginUseCase: demoLoginUseCase,
     );
+
+    // Restauración de sesión (CUU00): si hay sesión local arranca directo en el
+    // dashboard; si no, en login. Corre en background para no bloquear el UI.
+    _restoreSessionUseCase = RestoreSessionUseCase(sessionRepository);
+    unawaited(_restoreSession());
 
     // Seed de catálogos de desarrollo (idempotente, best-effort).
     unawaited(_seedCatalogs());
@@ -117,6 +140,9 @@ class _MyAppState extends State<MyApp> {
     final inputReader = DriftInputReader(_database);
     final recipeReader = DriftRecipeReader(_database);
     final machineReader = DriftMachineReader(_database);
+
+    // Selector global de firma (post-login): stream de razones sociales reales.
+    _companies = companyReader.watchAll();
 
     // Parte diario (CUU05): repositorio + use cases + ViewModels.
     final dailyReportRepository = DriftDailyReportRepository(_database);
@@ -159,6 +185,11 @@ class _MyAppState extends State<MyApp> {
       photoPickerService: photoPickerService,
     );
 
+    // Stock (CUU06): KPI global del dashboard vía WatchStockUseCase.watchAll().
+    final stockRepository = DriftStockRepository(_database);
+    final watchStockUseCase = WatchStockUseCase(stockRepository);
+    _stock = watchStockUseCase.watchAll();
+
     // Actividades de maquinaria (CUU08): repositorio + use cases + ViewModels.
     final machineActivityRepository =
         DriftMachineActivityRepository(_database);
@@ -186,13 +217,41 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  /// Restaura la sesión local al arranque (CUU00). Al resolver desactiva
+  /// `_restoringSession` para que `build` pase de la pantalla de carga a
+  /// login (sin sesión) o al dashboard (con sesión).
+  Future<void> _restoreSession() async {
+    final session = await _restoreSessionUseCase.execute();
+    if (mounted) {
+      setState(() {
+        _session = session;
+        _restoringSession = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _loginViewModel.dispose();
+    _dailyReportsViewModel.dispose();
+    _machineActivitiesViewModel.dispose();
     _dailyReportFormViewModel.dispose();
     _receptionFormViewModel.dispose();
     _machineActivityFormViewModel.dispose();
     super.dispose();
+  }
+
+  /// Cambio de firma global (post-login): persiste `Session.companyId` y
+  /// refresca las listas que se filtran por firma (partes + maquinaria).
+  void _handleFirmChanged(String companyId) {
+    final session = _session;
+    if (session == null || session.companyId == companyId) return;
+    final updated = session.copyWith(companyId: companyId);
+    _dailyReportsViewModel.setCompany(companyId);
+    _machineActivitiesViewModel.setCompany(companyId);
+    setState(() => _session = updated);
+    // Persistencia local best-effort: no bloquea la UI.
+    unawaited(_sessionRepository.save(updated));
   }
 
   /// Logout: revocación remota best-effort + limpieza de la sesión local.
@@ -211,27 +270,48 @@ class _MyAppState extends State<MyApp> {
       theme: AppTheme.lightTheme,
       home: kShowDesignSystem
           ? const ComponentsPreviewScreen()
-          : _session != null
-              ? DashboardView(
-                  session: _session!,
-                  pendingSyncCount: _pendingSyncCount,
-                  onLogout: _handleLogout,
-                  dailyReportsViewModel: _dailyReportsViewModel,
-                  dailyReportFormViewModel: _dailyReportFormViewModel,
-                  receptionsViewModel: _receptionsViewModel,
-                  receptionFormViewModel: _receptionFormViewModel,
-                  machineActivitiesViewModel: _machineActivitiesViewModel,
-                  machineActivityFormViewModel: _machineActivityFormViewModel,
-                )
-              : LoginView(
-                  viewModel: _loginViewModel,
-                  onLoginSuccess: () {
-                    final session = _loginViewModel.session;
-                    if (session != null) {
-                      setState(() => _session = session);
-                    }
-                  },
-                ),
+          : _restoringSession
+              ? const _SessionLoadingView()
+              : _session != null
+                  ? DashboardView(
+                      session: _session!,
+                      companies: _companies,
+                      stock: _stock,
+                      onFirmChanged: _handleFirmChanged,
+                      pendingSyncCount: _pendingSyncCount,
+                      onLogout: _handleLogout,
+                      dailyReportsViewModel: _dailyReportsViewModel,
+                      dailyReportFormViewModel: _dailyReportFormViewModel,
+                      receptionsViewModel: _receptionsViewModel,
+                      receptionFormViewModel: _receptionFormViewModel,
+                      machineActivitiesViewModel: _machineActivitiesViewModel,
+                      machineActivityFormViewModel: _machineActivityFormViewModel,
+                    )
+                  : LoginView(
+                      viewModel: _loginViewModel,
+                      onLoginSuccess: () {
+                        final session = _loginViewModel.session;
+                        if (session != null) {
+                          setState(() => _session = session);
+                        }
+                      },
+                    ),
+    );
+  }
+}
+
+/// Pantalla de arranque mientras se restaura la sesión local (CUU00). Evita el
+/// "flash" del login antes de saber si hay sesión persistida.
+class _SessionLoadingView extends StatelessWidget {
+  const _SessionLoadingView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: AppColors.surface,
+      body: Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      ),
     );
   }
 }
