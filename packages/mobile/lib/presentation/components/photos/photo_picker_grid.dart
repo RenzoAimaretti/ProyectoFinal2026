@@ -45,7 +45,21 @@ class _PhotoPickerGridState extends State<PhotoPickerGrid> {
   late final PhotoPickerService _service =
       widget.photoPickerService ?? PhotoPickerService();
 
-  late final List<String> _paths = List.of(widget.initialPaths);
+  late List<String> _paths;
+
+  @override
+  void initState() {
+    super.initState();
+    _paths = List.of(widget.initialPaths);
+  }
+
+  @override
+  void didUpdateWidget(covariant PhotoPickerGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialPaths != widget.initialPaths) {
+      _paths = List.of(widget.initialPaths);
+    }
+  }
 
   Future<void> _addPhoto() async {
     final source = await showModalBottomSheet<_PhotoSource>(

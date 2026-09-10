@@ -85,7 +85,7 @@ void main() {
     // Foto se persistió en repo de fotos.
     final photos = await photoRepo.watchByEntity(
       PhotoEntityType.RECEPTION,
-      pending.first.id,
+      pending.first.id!,
     ).first;
     expect(photos, hasLength(1));
     expect(photos.first.entityType, PhotoEntityType.RECEPTION);

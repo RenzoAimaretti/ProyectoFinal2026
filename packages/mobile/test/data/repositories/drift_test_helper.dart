@@ -1,7 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:mobile/data/services/app_database.dart';
 
-export 'package:drift/drift.dart';
+export 'package:drift/drift.dart' hide isNull, isNotNull;
 export 'package:drift/native.dart';
 
 /// Crea un [AppDatabase] en memoria para tests de adaptadores drift.

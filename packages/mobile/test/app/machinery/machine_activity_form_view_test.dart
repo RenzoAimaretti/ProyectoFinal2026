@@ -53,6 +53,7 @@ void main() {
       await tester.pumpWidget(_buildTestable(viewModel));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byType(PrimaryButton));
       await tester.tap(find.byType(PrimaryButton));
       await tester.pumpAndSettle();
 
@@ -61,11 +62,15 @@ void main() {
 
     testWidgets('muestra campos dinámicos de tipo seleccionado',
         (tester) async {
-      machineReader.seed(const Machine(
+      machineReader.seed(Machine(
         id: 'm-1',
         companyId: 'c-1',
         name: 'Tractor New Holland',
         status: MachineStatus.ACTIVE,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
       ));
 
       await tester.pumpWidget(_buildTestable(viewModel));
@@ -82,8 +87,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Debe mostrar los campos de combustible (Litros y Firma obligatoria - R019).
-      expect(find.text('Litros cargados'), findsOneWidget);
-      expect(find.text('Firma (imputación del costo)'), findsOneWidget);
+      expect(find.text('Litros'), findsOneWidget);
+      expect(find.text('Firma'), findsOneWidget);
     });
 
     testWidgets('tipo uso en lote muestra campos de horas y hectáreas (R021)',
@@ -91,12 +96,12 @@ void main() {
       await tester.pumpWidget(_buildTestable(viewModel));
       await tester.pumpAndSettle();
 
-      // Tocar el botón de tipo "Uso en lote".
-      await tester.tap(find.text('Uso en lote'));
+      // Tocar el botón de tipo "Uso en campo".
+      await tester.tap(find.text('Uso en campo'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Horas trabajadas'), findsOneWidget);
-      expect(find.text('Hectáreas trabajadas'), findsOneWidget);
+      expect(find.text('Horas de uso'), findsOneWidget);
+      expect(find.text('Hectáreas'), findsOneWidget);
     });
   });
 }

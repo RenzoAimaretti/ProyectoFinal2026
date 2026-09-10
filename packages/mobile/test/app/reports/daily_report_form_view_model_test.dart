@@ -61,8 +61,10 @@ void main() {
     recipeReader.seedRecipe(Recipe(
       id: 'rec-1',
       lotId: 'lot-with-recipe',
+      date: DateTime(2026, 1, 1),
       status: 'ACTIVE',
-      items: const [],
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
     ));
 
     final hasRecipe = await sut.lotHasRecipe('lot-with-recipe');
@@ -70,9 +72,36 @@ void main() {
   });
 
   test('catálogos en cascada exponen streams correctos', () async {
-    clientReader.seed(const Client(id: 'c-1', name: 'Cliente 1'));
-    farmReader.seed(const Farm(id: 'f-1', clientId: 'c-1', name: 'Campo 1'));
-    lotReader.seed(const Lot(id: 'l-1', farmId: 'f-1', name: 'Lote 1'));
+    clientReader.seed(Client(
+      id: 'c-1',
+      name: 'Cliente 1',
+      active: true,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+      version: 1,
+      deleted: false,
+    ));
+    farmReader.seed(Farm(
+      id: 'f-1',
+      clientId: 'c-1',
+      name: 'Campo 1',
+      surface: 100.0,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+      version: 1,
+      deleted: false,
+    ));
+    lotReader.seed(Lot(
+      id: 'l-1',
+      farmId: 'f-1',
+      name: 'Lote 1',
+      area: 50.0,
+      active: true,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+      version: 1,
+      deleted: false,
+    ));
 
     final clients = await sut.clients.first;
     expect(clients, hasLength(1));
@@ -97,8 +126,10 @@ void main() {
     recipeReader.seedRecipe(Recipe(
       id: 'rec-1',
       lotId: 'l-1',
+      date: DateTime(2026, 1, 1),
       status: 'ACTIVE',
-      items: const [],
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
     ));
     sut.setPickedPhotos(['/tmp/foto_cosecha.jpg']);
 
@@ -121,7 +152,7 @@ void main() {
 
     final photos = await photoRepo.watchByEntity(
       PhotoEntityType.DAILY_REPORT,
-      pending.first.id,
+      pending.first.id!,
     ).first;
     expect(photos, hasLength(1));
     expect(photos.first.entityType, PhotoEntityType.DAILY_REPORT);

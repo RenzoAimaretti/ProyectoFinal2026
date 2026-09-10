@@ -54,7 +54,9 @@ void main() {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, this.database});
+
+  final AppDatabase? database;
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -99,7 +101,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     // Composition root: AppDatabase singleton → adapters → use cases → VMs.
     // Los widgets NO instancian repositorios ni servicios.
-    _database = AppDatabase();
+    _database = widget.database ?? AppDatabase();
     final authRepository = HttpAuthRepository();
     final sessionRepository = DriftSessionRepository(_database);
     _sessionRepository = sessionRepository;
@@ -238,6 +240,9 @@ class _MyAppState extends State<MyApp> {
     _dailyReportFormViewModel.dispose();
     _receptionFormViewModel.dispose();
     _machineActivityFormViewModel.dispose();
+    if (widget.database == null) {
+      _database.close();
+    }
     super.dispose();
   }
 

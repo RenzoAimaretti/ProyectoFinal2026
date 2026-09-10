@@ -92,30 +92,79 @@ void main() {
     testWidgets(
         'bloqueo R009: al seleccionar lote sin receta muestra advertencia y bloquea Siguiente',
         (tester) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      addTearDown(tester.view.resetPhysicalSize);
+
       // Sembrar datos de catálogo sin receta.
-      companyReader.seed(const Company(id: 'comp-1', name: 'AgroEmpresa SA', cuit: '30-11111111-1'));
-      clientReader.seed(const Client(id: 'c-1', name: 'Cliente Los Pinos'));
-      farmReader.seed(const Farm(id: 'f-1', clientId: 'c-1', name: 'Campo Norte'));
-      lotReader.seed(const Lot(id: 'l-1', farmId: 'f-1', name: 'Lote 14'));
-      laborTypeReader.seed(const LaborType(id: 'lab-1', name: 'Fumigación'));
+      companyReader.seed(Company(
+        id: 'comp-1',
+        name: 'AgroEmpresa SA',
+        cuit: '30-11111111-1',
+        active: true,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
+      clientReader.seed(Client(
+        id: 'c-1',
+        name: 'Cliente Los Pinos',
+        active: true,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
+      farmReader.seed(Farm(
+        id: 'f-1',
+        clientId: 'c-1',
+        name: 'Campo Norte',
+        surface: 100.0,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
+      lotReader.seed(Lot(
+        id: 'l-1',
+        farmId: 'f-1',
+        name: 'Lote 14',
+        area: 50.0,
+        active: true,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
+      laborTypeReader.seed(LaborType(
+        id: 'lab-1',
+        name: 'Fumigación',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
       // No sembramos receta en recipeReader para l-1.
 
       await tester.pumpWidget(_buildTestable(viewModel, initialCompanyId: 'comp-1'));
       await tester.pumpAndSettle();
 
       // Seleccionar cliente.
+      await tester.ensureVisible(find.text('Seleccionar cliente...'));
       await tester.tap(find.text('Seleccionar cliente...'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cliente Los Pinos').last);
       await tester.pumpAndSettle();
 
       // Seleccionar campo.
+      await tester.ensureVisible(find.text('Seleccionar campo...'));
       await tester.tap(find.text('Seleccionar campo...'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Campo Norte').last);
       await tester.pumpAndSettle();
 
       // Seleccionar lote.
+      await tester.ensureVisible(find.text('Seleccionar lote...'));
       await tester.tap(find.text('Seleccionar lote...'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Lote 14').last);
@@ -140,35 +189,86 @@ void main() {
     testWidgets(
         'happy path R009: al seleccionar lote con receta válida no muestra advertencia',
         (tester) async {
-      companyReader.seed(const Company(id: 'comp-1', name: 'AgroEmpresa SA', cuit: '30-11111111-1'));
-      clientReader.seed(const Client(id: 'c-1', name: 'Cliente Los Pinos'));
-      farmReader.seed(const Farm(id: 'f-1', clientId: 'c-1', name: 'Campo Norte'));
-      lotReader.seed(const Lot(id: 'l-1', farmId: 'f-1', name: 'Lote 14'));
-      laborTypeReader.seed(const LaborType(id: 'lab-1', name: 'Fumigación'));
+      tester.view.physicalSize = const Size(800, 1200);
+      addTearDown(tester.view.resetPhysicalSize);
+
+      companyReader.seed(Company(
+        id: 'comp-1',
+        name: 'AgroEmpresa SA',
+        cuit: '30-11111111-1',
+        active: true,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
+      clientReader.seed(Client(
+        id: 'c-1',
+        name: 'Cliente Los Pinos',
+        active: true,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
+      farmReader.seed(Farm(
+        id: 'f-1',
+        clientId: 'c-1',
+        name: 'Campo Norte',
+        surface: 100.0,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
+      lotReader.seed(Lot(
+        id: 'l-1',
+        farmId: 'f-1',
+        name: 'Lote 14',
+        area: 50.0,
+        active: true,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
+      laborTypeReader.seed(LaborType(
+        id: 'lab-1',
+        name: 'Fumigación',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
       // Sembramos la receta para l-1.
-      recipeReader.seedRecipe(const Recipe(
+      recipeReader.seedRecipe(Recipe(
         id: 'rec-1',
         lotId: 'l-1',
+        date: DateTime(2026, 1, 1),
         status: 'ACTIVE',
-        items: [],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
       ));
 
       await tester.pumpWidget(_buildTestable(viewModel, initialCompanyId: 'comp-1'));
       await tester.pumpAndSettle();
 
       // Seleccionar cliente.
+      await tester.ensureVisible(find.text('Seleccionar cliente...'));
       await tester.tap(find.text('Seleccionar cliente...'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cliente Los Pinos').last);
       await tester.pumpAndSettle();
 
       // Seleccionar campo.
+      await tester.ensureVisible(find.text('Seleccionar campo...'));
       await tester.tap(find.text('Seleccionar campo...'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Campo Norte').last);
       await tester.pumpAndSettle();
 
       // Seleccionar lote.
+      await tester.ensureVisible(find.text('Seleccionar lote...'));
       await tester.tap(find.text('Seleccionar lote...'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Lote 14').last);

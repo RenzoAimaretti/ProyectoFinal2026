@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/data/repositories/drift_machine_activity_repository.dart';
-import 'package:mobile/data/services/app_database.dart';
+import 'package:mobile/data/services/app_database.dart' hide MachineActivity;
 import 'package:mobile/domain/models/enums.dart';
 import 'package:mobile/domain/models/machine_activity.dart';
 

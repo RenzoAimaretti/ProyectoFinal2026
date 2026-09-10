@@ -96,7 +96,15 @@ void main() {
     testWidgets(
         'happy path: con cliente seleccionado permite guardar la recepción',
         (tester) async {
-      clientReader.seed(const Client(id: 'client-1', name: 'Agropecuaria Sur'));
+      clientReader.seed(Client(
+        id: 'client-1',
+        name: 'Agropecuaria Sur',
+        active: true,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        version: 1,
+        deleted: false,
+      ));
 
       await tester.pumpWidget(_buildTestable(viewModel));
       await tester.pumpAndSettle();

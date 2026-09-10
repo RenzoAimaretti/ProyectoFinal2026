@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/domain/errors.dart';
 import 'package:mobile/domain/models/catalogs.dart';
 import 'package:mobile/domain/models/daily_report.dart';
+import 'package:mobile/domain/models/enums.dart';
 import 'package:mobile/domain/usecases/create_daily_report_usecase.dart';
 
 import 'fakes.dart';
