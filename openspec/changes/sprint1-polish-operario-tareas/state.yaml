@@ -1,0 +1,19 @@
+change: sprint1-polish-operario-tareas
+status: active
+artifact_store: openspec
+updated_at: 2026-09-14
+mode: auto
+branch: UI-PersistenciaLocal
+scope:
+  mobile:
+    casos_de_uso:
+      - CUU05
+      - CUU06
+      - CUU08
+    stack: drift (SQLite) + hexagonal
+constraints:
+  no_build: true
+  state_management: setState
+verification:
+  command: flutter test
+  result: pending

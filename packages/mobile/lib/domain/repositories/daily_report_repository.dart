@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../models/daily_report.dart';
+import '../models/daily_report_summary.dart';
 import '../models/enums.dart';
 
 /// Persistencia de partes diarios (CUU05).
@@ -19,6 +20,10 @@ abstract class DailyReportRepository {
 
   /// Partes diarios de una firma/razón social específica (multi-firma).
   Stream<List<DailyReport>> watchByCompany(String companyId);
+
+  /// Partes diarios con `lotName`/`laborName` resueltos para listados (D2).
+  /// `companyId == null` devuelve todas las firmas.
+  Stream<List<DailyReportSummary>> watchSummaries({String? companyId});
 
   /// Aprobación/rechazo. `approvedBy` aplica a APPROVED; `rejectionReason` a
   /// REJECTED. `approvedAt` lo resuelve el adaptador.

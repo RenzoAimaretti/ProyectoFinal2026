@@ -5136,6 +5136,579 @@ class RecipeItemsCompanion extends UpdateCompanion<RecipeItem> {
   }
 }
 
+class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TasksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => const Uuid().v4(),
+  );
+  static const VerificationMeta _lotIdMeta = const VerificationMeta('lotId');
+  @override
+  late final GeneratedColumn<String> lotId = GeneratedColumn<String>(
+    'lot_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES lots (id)',
+    ),
+  );
+  static const VerificationMeta _laborTypeIdMeta = const VerificationMeta(
+    'laborTypeId',
+  );
+  @override
+  late final GeneratedColumn<String> laborTypeId = GeneratedColumn<String>(
+    'labor_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES labor_types (id)',
+    ),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _startedAtMeta = const VerificationMeta(
+    'startedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startedAt = GeneratedColumn<DateTime>(
+    'started_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _finishedAtMeta = const VerificationMeta(
+    'finishedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> finishedAt = GeneratedColumn<DateTime>(
+    'finished_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedTaskAtMeta = const VerificationMeta(
+    'updatedTaskAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedTaskAt =
+      GeneratedColumn<DateTime>(
+        'updated_task_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    lotId,
+    laborTypeId,
+    status,
+    startedAt,
+    finishedAt,
+    updatedTaskAt,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tasks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Task> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('lot_id')) {
+      context.handle(
+        _lotIdMeta,
+        lotId.isAcceptableOrUnknown(data['lot_id']!, _lotIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_lotIdMeta);
+    }
+    if (data.containsKey('labor_type_id')) {
+      context.handle(
+        _laborTypeIdMeta,
+        laborTypeId.isAcceptableOrUnknown(
+          data['labor_type_id']!,
+          _laborTypeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_laborTypeIdMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('started_at')) {
+      context.handle(
+        _startedAtMeta,
+        startedAt.isAcceptableOrUnknown(data['started_at']!, _startedAtMeta),
+      );
+    }
+    if (data.containsKey('finished_at')) {
+      context.handle(
+        _finishedAtMeta,
+        finishedAt.isAcceptableOrUnknown(data['finished_at']!, _finishedAtMeta),
+      );
+    }
+    if (data.containsKey('updated_task_at')) {
+      context.handle(
+        _updatedTaskAtMeta,
+        updatedTaskAt.isAcceptableOrUnknown(
+          data['updated_task_at']!,
+          _updatedTaskAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Task map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Task(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      lotId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lot_id'],
+      )!,
+      laborTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}labor_type_id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      startedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}started_at'],
+      ),
+      finishedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}finished_at'],
+      ),
+      updatedTaskAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_task_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TasksTable createAlias(String alias) {
+    return $TasksTable(attachedDatabase, alias);
+  }
+}
+
+class Task extends DataClass implements Insertable<Task> {
+  final String id;
+  final String lotId;
+  final String laborTypeId;
+  final String status;
+  final DateTime? startedAt;
+  final DateTime? finishedAt;
+  final DateTime? updatedTaskAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Task({
+    required this.id,
+    required this.lotId,
+    required this.laborTypeId,
+    required this.status,
+    this.startedAt,
+    this.finishedAt,
+    this.updatedTaskAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['lot_id'] = Variable<String>(lotId);
+    map['labor_type_id'] = Variable<String>(laborTypeId);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || startedAt != null) {
+      map['started_at'] = Variable<DateTime>(startedAt);
+    }
+    if (!nullToAbsent || finishedAt != null) {
+      map['finished_at'] = Variable<DateTime>(finishedAt);
+    }
+    if (!nullToAbsent || updatedTaskAt != null) {
+      map['updated_task_at'] = Variable<DateTime>(updatedTaskAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  TasksCompanion toCompanion(bool nullToAbsent) {
+    return TasksCompanion(
+      id: Value(id),
+      lotId: Value(lotId),
+      laborTypeId: Value(laborTypeId),
+      status: Value(status),
+      startedAt: startedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startedAt),
+      finishedAt: finishedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(finishedAt),
+      updatedTaskAt: updatedTaskAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedTaskAt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Task.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Task(
+      id: serializer.fromJson<String>(json['id']),
+      lotId: serializer.fromJson<String>(json['lotId']),
+      laborTypeId: serializer.fromJson<String>(json['laborTypeId']),
+      status: serializer.fromJson<String>(json['status']),
+      startedAt: serializer.fromJson<DateTime?>(json['startedAt']),
+      finishedAt: serializer.fromJson<DateTime?>(json['finishedAt']),
+      updatedTaskAt: serializer.fromJson<DateTime?>(json['updatedTaskAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'lotId': serializer.toJson<String>(lotId),
+      'laborTypeId': serializer.toJson<String>(laborTypeId),
+      'status': serializer.toJson<String>(status),
+      'startedAt': serializer.toJson<DateTime?>(startedAt),
+      'finishedAt': serializer.toJson<DateTime?>(finishedAt),
+      'updatedTaskAt': serializer.toJson<DateTime?>(updatedTaskAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Task copyWith({
+    String? id,
+    String? lotId,
+    String? laborTypeId,
+    String? status,
+    Value<DateTime?> startedAt = const Value.absent(),
+    Value<DateTime?> finishedAt = const Value.absent(),
+    Value<DateTime?> updatedTaskAt = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Task(
+    id: id ?? this.id,
+    lotId: lotId ?? this.lotId,
+    laborTypeId: laborTypeId ?? this.laborTypeId,
+    status: status ?? this.status,
+    startedAt: startedAt.present ? startedAt.value : this.startedAt,
+    finishedAt: finishedAt.present ? finishedAt.value : this.finishedAt,
+    updatedTaskAt: updatedTaskAt.present
+        ? updatedTaskAt.value
+        : this.updatedTaskAt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Task copyWithCompanion(TasksCompanion data) {
+    return Task(
+      id: data.id.present ? data.id.value : this.id,
+      lotId: data.lotId.present ? data.lotId.value : this.lotId,
+      laborTypeId: data.laborTypeId.present
+          ? data.laborTypeId.value
+          : this.laborTypeId,
+      status: data.status.present ? data.status.value : this.status,
+      startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
+      finishedAt: data.finishedAt.present
+          ? data.finishedAt.value
+          : this.finishedAt,
+      updatedTaskAt: data.updatedTaskAt.present
+          ? data.updatedTaskAt.value
+          : this.updatedTaskAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Task(')
+          ..write('id: $id, ')
+          ..write('lotId: $lotId, ')
+          ..write('laborTypeId: $laborTypeId, ')
+          ..write('status: $status, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('finishedAt: $finishedAt, ')
+          ..write('updatedTaskAt: $updatedTaskAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    lotId,
+    laborTypeId,
+    status,
+    startedAt,
+    finishedAt,
+    updatedTaskAt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Task &&
+          other.id == this.id &&
+          other.lotId == this.lotId &&
+          other.laborTypeId == this.laborTypeId &&
+          other.status == this.status &&
+          other.startedAt == this.startedAt &&
+          other.finishedAt == this.finishedAt &&
+          other.updatedTaskAt == this.updatedTaskAt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class TasksCompanion extends UpdateCompanion<Task> {
+  final Value<String> id;
+  final Value<String> lotId;
+  final Value<String> laborTypeId;
+  final Value<String> status;
+  final Value<DateTime?> startedAt;
+  final Value<DateTime?> finishedAt;
+  final Value<DateTime?> updatedTaskAt;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const TasksCompanion({
+    this.id = const Value.absent(),
+    this.lotId = const Value.absent(),
+    this.laborTypeId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.startedAt = const Value.absent(),
+    this.finishedAt = const Value.absent(),
+    this.updatedTaskAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TasksCompanion.insert({
+    this.id = const Value.absent(),
+    required String lotId,
+    required String laborTypeId,
+    required String status,
+    this.startedAt = const Value.absent(),
+    this.finishedAt = const Value.absent(),
+    this.updatedTaskAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : lotId = Value(lotId),
+       laborTypeId = Value(laborTypeId),
+       status = Value(status);
+  static Insertable<Task> custom({
+    Expression<String>? id,
+    Expression<String>? lotId,
+    Expression<String>? laborTypeId,
+    Expression<String>? status,
+    Expression<DateTime>? startedAt,
+    Expression<DateTime>? finishedAt,
+    Expression<DateTime>? updatedTaskAt,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (lotId != null) 'lot_id': lotId,
+      if (laborTypeId != null) 'labor_type_id': laborTypeId,
+      if (status != null) 'status': status,
+      if (startedAt != null) 'started_at': startedAt,
+      if (finishedAt != null) 'finished_at': finishedAt,
+      if (updatedTaskAt != null) 'updated_task_at': updatedTaskAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TasksCompanion copyWith({
+    Value<String>? id,
+    Value<String>? lotId,
+    Value<String>? laborTypeId,
+    Value<String>? status,
+    Value<DateTime?>? startedAt,
+    Value<DateTime?>? finishedAt,
+    Value<DateTime?>? updatedTaskAt,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return TasksCompanion(
+      id: id ?? this.id,
+      lotId: lotId ?? this.lotId,
+      laborTypeId: laborTypeId ?? this.laborTypeId,
+      status: status ?? this.status,
+      startedAt: startedAt ?? this.startedAt,
+      finishedAt: finishedAt ?? this.finishedAt,
+      updatedTaskAt: updatedTaskAt ?? this.updatedTaskAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (lotId.present) {
+      map['lot_id'] = Variable<String>(lotId.value);
+    }
+    if (laborTypeId.present) {
+      map['labor_type_id'] = Variable<String>(laborTypeId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (startedAt.present) {
+      map['started_at'] = Variable<DateTime>(startedAt.value);
+    }
+    if (finishedAt.present) {
+      map['finished_at'] = Variable<DateTime>(finishedAt.value);
+    }
+    if (updatedTaskAt.present) {
+      map['updated_task_at'] = Variable<DateTime>(updatedTaskAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TasksCompanion(')
+          ..write('id: $id, ')
+          ..write('lotId: $lotId, ')
+          ..write('laborTypeId: $laborTypeId, ')
+          ..write('status: $status, ')
+          ..write('startedAt: $startedAt, ')
+          ..write('finishedAt: $finishedAt, ')
+          ..write('updatedTaskAt: $updatedTaskAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $DailyReportsTable extends DailyReports
     with TableInfo<$DailyReportsTable, DailyReport> {
   @override
@@ -5175,6 +5748,18 @@ class $DailyReportsTable extends DailyReports
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'REFERENCES companies (id)',
+    ),
+  );
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<String> taskId = GeneratedColumn<String>(
+    'task_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tasks (id)',
     ),
   );
   static const VerificationMeta _lotIdMeta = const VerificationMeta('lotId');
@@ -5303,6 +5888,7 @@ class $DailyReportsTable extends DailyReports
     id,
     operatorId,
     companyId,
+    taskId,
     lotId,
     laborTypeId,
     date,
@@ -5345,6 +5931,14 @@ class $DailyReportsTable extends DailyReports
       );
     } else if (isInserting) {
       context.missing(_companyIdMeta);
+    }
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskIdMeta);
     }
     if (data.containsKey('lot_id')) {
       context.handle(
@@ -5451,6 +6045,10 @@ class $DailyReportsTable extends DailyReports
         DriftSqlType.string,
         data['${effectivePrefix}company_id'],
       )!,
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      )!,
       lotId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}lot_id'],
@@ -5508,6 +6106,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
   final String id;
   final String operatorId;
   final String companyId;
+  final String taskId;
   final String lotId;
   final String laborTypeId;
   final DateTime date;
@@ -5523,6 +6122,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
     required this.id,
     required this.operatorId,
     required this.companyId,
+    required this.taskId,
     required this.lotId,
     required this.laborTypeId,
     required this.date,
@@ -5541,6 +6141,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
     map['id'] = Variable<String>(id);
     map['operator_id'] = Variable<String>(operatorId);
     map['company_id'] = Variable<String>(companyId);
+    map['task_id'] = Variable<String>(taskId);
     map['lot_id'] = Variable<String>(lotId);
     map['labor_type_id'] = Variable<String>(laborTypeId);
     map['date'] = Variable<DateTime>(date);
@@ -5566,6 +6167,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
       id: Value(id),
       operatorId: Value(operatorId),
       companyId: Value(companyId),
+      taskId: Value(taskId),
       lotId: Value(lotId),
       laborTypeId: Value(laborTypeId),
       date: Value(date),
@@ -5595,6 +6197,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
       id: serializer.fromJson<String>(json['id']),
       operatorId: serializer.fromJson<String>(json['operatorId']),
       companyId: serializer.fromJson<String>(json['companyId']),
+      taskId: serializer.fromJson<String>(json['taskId']),
       lotId: serializer.fromJson<String>(json['lotId']),
       laborTypeId: serializer.fromJson<String>(json['laborTypeId']),
       date: serializer.fromJson<DateTime>(json['date']),
@@ -5615,6 +6218,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
       'id': serializer.toJson<String>(id),
       'operatorId': serializer.toJson<String>(operatorId),
       'companyId': serializer.toJson<String>(companyId),
+      'taskId': serializer.toJson<String>(taskId),
       'lotId': serializer.toJson<String>(lotId),
       'laborTypeId': serializer.toJson<String>(laborTypeId),
       'date': serializer.toJson<DateTime>(date),
@@ -5633,6 +6237,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
     String? id,
     String? operatorId,
     String? companyId,
+    String? taskId,
     String? lotId,
     String? laborTypeId,
     DateTime? date,
@@ -5648,6 +6253,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
     id: id ?? this.id,
     operatorId: operatorId ?? this.operatorId,
     companyId: companyId ?? this.companyId,
+    taskId: taskId ?? this.taskId,
     lotId: lotId ?? this.lotId,
     laborTypeId: laborTypeId ?? this.laborTypeId,
     date: date ?? this.date,
@@ -5669,6 +6275,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
           ? data.operatorId.value
           : this.operatorId,
       companyId: data.companyId.present ? data.companyId.value : this.companyId,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
       lotId: data.lotId.present ? data.lotId.value : this.lotId,
       laborTypeId: data.laborTypeId.present
           ? data.laborTypeId.value
@@ -5697,6 +6304,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
           ..write('id: $id, ')
           ..write('operatorId: $operatorId, ')
           ..write('companyId: $companyId, ')
+          ..write('taskId: $taskId, ')
           ..write('lotId: $lotId, ')
           ..write('laborTypeId: $laborTypeId, ')
           ..write('date: $date, ')
@@ -5717,6 +6325,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
     id,
     operatorId,
     companyId,
+    taskId,
     lotId,
     laborTypeId,
     date,
@@ -5736,6 +6345,7 @@ class DailyReport extends DataClass implements Insertable<DailyReport> {
           other.id == this.id &&
           other.operatorId == this.operatorId &&
           other.companyId == this.companyId &&
+          other.taskId == this.taskId &&
           other.lotId == this.lotId &&
           other.laborTypeId == this.laborTypeId &&
           other.date == this.date &&
@@ -5753,6 +6363,7 @@ class DailyReportsCompanion extends UpdateCompanion<DailyReport> {
   final Value<String> id;
   final Value<String> operatorId;
   final Value<String> companyId;
+  final Value<String> taskId;
   final Value<String> lotId;
   final Value<String> laborTypeId;
   final Value<DateTime> date;
@@ -5769,6 +6380,7 @@ class DailyReportsCompanion extends UpdateCompanion<DailyReport> {
     this.id = const Value.absent(),
     this.operatorId = const Value.absent(),
     this.companyId = const Value.absent(),
+    this.taskId = const Value.absent(),
     this.lotId = const Value.absent(),
     this.laborTypeId = const Value.absent(),
     this.date = const Value.absent(),
@@ -5786,6 +6398,7 @@ class DailyReportsCompanion extends UpdateCompanion<DailyReport> {
     this.id = const Value.absent(),
     required String operatorId,
     required String companyId,
+    required String taskId,
     required String lotId,
     required String laborTypeId,
     required DateTime date,
@@ -5800,6 +6413,7 @@ class DailyReportsCompanion extends UpdateCompanion<DailyReport> {
     this.rowid = const Value.absent(),
   }) : operatorId = Value(operatorId),
        companyId = Value(companyId),
+       taskId = Value(taskId),
        lotId = Value(lotId),
        laborTypeId = Value(laborTypeId),
        date = Value(date),
@@ -5810,6 +6424,7 @@ class DailyReportsCompanion extends UpdateCompanion<DailyReport> {
     Expression<String>? id,
     Expression<String>? operatorId,
     Expression<String>? companyId,
+    Expression<String>? taskId,
     Expression<String>? lotId,
     Expression<String>? laborTypeId,
     Expression<DateTime>? date,
@@ -5827,6 +6442,7 @@ class DailyReportsCompanion extends UpdateCompanion<DailyReport> {
       if (id != null) 'id': id,
       if (operatorId != null) 'operator_id': operatorId,
       if (companyId != null) 'company_id': companyId,
+      if (taskId != null) 'task_id': taskId,
       if (lotId != null) 'lot_id': lotId,
       if (laborTypeId != null) 'labor_type_id': laborTypeId,
       if (date != null) 'date': date,
@@ -5846,6 +6462,7 @@ class DailyReportsCompanion extends UpdateCompanion<DailyReport> {
     Value<String>? id,
     Value<String>? operatorId,
     Value<String>? companyId,
+    Value<String>? taskId,
     Value<String>? lotId,
     Value<String>? laborTypeId,
     Value<DateTime>? date,
@@ -5863,6 +6480,7 @@ class DailyReportsCompanion extends UpdateCompanion<DailyReport> {
       id: id ?? this.id,
       operatorId: operatorId ?? this.operatorId,
       companyId: companyId ?? this.companyId,
+      taskId: taskId ?? this.taskId,
       lotId: lotId ?? this.lotId,
       laborTypeId: laborTypeId ?? this.laborTypeId,
       date: date ?? this.date,
@@ -5889,6 +6507,9 @@ class DailyReportsCompanion extends UpdateCompanion<DailyReport> {
     }
     if (companyId.present) {
       map['company_id'] = Variable<String>(companyId.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
     }
     if (lotId.present) {
       map['lot_id'] = Variable<String>(lotId.value);
@@ -5935,6 +6556,7 @@ class DailyReportsCompanion extends UpdateCompanion<DailyReport> {
           ..write('id: $id, ')
           ..write('operatorId: $operatorId, ')
           ..write('companyId: $companyId, ')
+          ..write('taskId: $taskId, ')
           ..write('lotId: $lotId, ')
           ..write('laborTypeId: $laborTypeId, ')
           ..write('date: $date, ')
@@ -9387,6 +10009,268 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueEntry> {
   }
 }
 
+class $TaskOperatorsTable extends TaskOperators
+    with TableInfo<$TaskOperatorsTable, TaskOperator> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TaskOperatorsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => const Uuid().v4(),
+  );
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<String> taskId = GeneratedColumn<String>(
+    'task_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tasks (id)',
+    ),
+  );
+  static const VerificationMeta _operatorIdMeta = const VerificationMeta(
+    'operatorId',
+  );
+  @override
+  late final GeneratedColumn<String> operatorId = GeneratedColumn<String>(
+    'operator_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, taskId, operatorId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'task_operators';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TaskOperator> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskIdMeta);
+    }
+    if (data.containsKey('operator_id')) {
+      context.handle(
+        _operatorIdMeta,
+        operatorId.isAcceptableOrUnknown(data['operator_id']!, _operatorIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_operatorIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TaskOperator map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TaskOperator(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      )!,
+      operatorId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operator_id'],
+      )!,
+    );
+  }
+
+  @override
+  $TaskOperatorsTable createAlias(String alias) {
+    return $TaskOperatorsTable(attachedDatabase, alias);
+  }
+}
+
+class TaskOperator extends DataClass implements Insertable<TaskOperator> {
+  final String id;
+  final String taskId;
+  final String operatorId;
+  const TaskOperator({
+    required this.id,
+    required this.taskId,
+    required this.operatorId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['task_id'] = Variable<String>(taskId);
+    map['operator_id'] = Variable<String>(operatorId);
+    return map;
+  }
+
+  TaskOperatorsCompanion toCompanion(bool nullToAbsent) {
+    return TaskOperatorsCompanion(
+      id: Value(id),
+      taskId: Value(taskId),
+      operatorId: Value(operatorId),
+    );
+  }
+
+  factory TaskOperator.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TaskOperator(
+      id: serializer.fromJson<String>(json['id']),
+      taskId: serializer.fromJson<String>(json['taskId']),
+      operatorId: serializer.fromJson<String>(json['operatorId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'taskId': serializer.toJson<String>(taskId),
+      'operatorId': serializer.toJson<String>(operatorId),
+    };
+  }
+
+  TaskOperator copyWith({String? id, String? taskId, String? operatorId}) =>
+      TaskOperator(
+        id: id ?? this.id,
+        taskId: taskId ?? this.taskId,
+        operatorId: operatorId ?? this.operatorId,
+      );
+  TaskOperator copyWithCompanion(TaskOperatorsCompanion data) {
+    return TaskOperator(
+      id: data.id.present ? data.id.value : this.id,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      operatorId: data.operatorId.present
+          ? data.operatorId.value
+          : this.operatorId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TaskOperator(')
+          ..write('id: $id, ')
+          ..write('taskId: $taskId, ')
+          ..write('operatorId: $operatorId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, taskId, operatorId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TaskOperator &&
+          other.id == this.id &&
+          other.taskId == this.taskId &&
+          other.operatorId == this.operatorId);
+}
+
+class TaskOperatorsCompanion extends UpdateCompanion<TaskOperator> {
+  final Value<String> id;
+  final Value<String> taskId;
+  final Value<String> operatorId;
+  final Value<int> rowid;
+  const TaskOperatorsCompanion({
+    this.id = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.operatorId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TaskOperatorsCompanion.insert({
+    this.id = const Value.absent(),
+    required String taskId,
+    required String operatorId,
+    this.rowid = const Value.absent(),
+  }) : taskId = Value(taskId),
+       operatorId = Value(operatorId);
+  static Insertable<TaskOperator> custom({
+    Expression<String>? id,
+    Expression<String>? taskId,
+    Expression<String>? operatorId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (taskId != null) 'task_id': taskId,
+      if (operatorId != null) 'operator_id': operatorId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TaskOperatorsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? taskId,
+    Value<String>? operatorId,
+    Value<int>? rowid,
+  }) {
+    return TaskOperatorsCompanion(
+      id: id ?? this.id,
+      taskId: taskId ?? this.taskId,
+      operatorId: operatorId ?? this.operatorId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (operatorId.present) {
+      map['operator_id'] = Variable<String>(operatorId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TaskOperatorsCompanion(')
+          ..write('id: $id, ')
+          ..write('taskId: $taskId, ')
+          ..write('operatorId: $operatorId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -9400,6 +10284,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SessionsTable sessions = $SessionsTable(this);
   late final $RecipesTable recipes = $RecipesTable(this);
   late final $RecipeItemsTable recipeItems = $RecipeItemsTable(this);
+  late final $TasksTable tasks = $TasksTable(this);
   late final $DailyReportsTable dailyReports = $DailyReportsTable(this);
   late final $DailyReportItemsTable dailyReportItems = $DailyReportItemsTable(
     this,
@@ -9411,6 +10296,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $MachineActivitiesTable(this);
   late final $PhotosTable photos = $PhotosTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
+  late final $TaskOperatorsTable taskOperators = $TaskOperatorsTable(this);
   late final Index idxFarmsClientId = Index(
     'idx_farms_client_id',
     'CREATE INDEX idx_farms_client_id ON farms (client_id)',
@@ -9471,6 +10357,18 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_sync_queue_status_created',
     'CREATE INDEX idx_sync_queue_status_created ON sync_queue (status, created_at)',
   );
+  late final Index idxTasksLotId = Index(
+    'idx_tasks_lot_id',
+    'CREATE INDEX idx_tasks_lot_id ON tasks (lot_id)',
+  );
+  late final Index idxTasksStatus = Index(
+    'idx_tasks_status',
+    'CREATE INDEX idx_tasks_status ON tasks (status)',
+  );
+  late final Index idxTaskOperatorsTaskId = Index(
+    'idx_task_operators_task_id',
+    'CREATE INDEX idx_task_operators_task_id ON task_operators (task_id)',
+  );
   late final CompaniesDao companiesDao = CompaniesDao(this as AppDatabase);
   late final ClientsDao clientsDao = ClientsDao(this as AppDatabase);
   late final FarmsDao farmsDao = FarmsDao(this as AppDatabase);
@@ -9489,6 +10387,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final PhotosDao photosDao = PhotosDao(this as AppDatabase);
   late final SyncQueueDao syncQueueDao = SyncQueueDao(this as AppDatabase);
+  late final TasksDao tasksDao = TasksDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -9504,6 +10403,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     sessions,
     recipes,
     recipeItems,
+    tasks,
     dailyReports,
     dailyReportItems,
     receptions,
@@ -9512,6 +10412,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     machineActivities,
     photos,
     syncQueue,
+    taskOperators,
     idxFarmsClientId,
     idxLotsFarmId,
     idxMachinesCompanyId,
@@ -9527,6 +10428,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxMachineActivitiesMachineDate,
     idxPhotosEntity,
     idxSyncQueueStatusCreated,
+    idxTasksLotId,
+    idxTasksStatus,
+    idxTaskOperatorsTaskId,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -11200,6 +12104,25 @@ final class $$LotsTableReferences
     );
   }
 
+  static MultiTypedResultKey<$TasksTable, List<Task>> _tasksRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.tasks,
+    aliasName: 'lots__id__tasks__lot_id',
+  );
+
+  $$TasksTableProcessedTableManager get tasksRefs {
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.lotId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_tasksRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$DailyReportsTable, List<DailyReport>>
   _dailyReportsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.dailyReports,
@@ -11311,6 +12234,31 @@ class $$LotsTableFilterComposer extends Composer<_$AppDatabase, $LotsTable> {
           }) => $$RecipesTableFilterComposer(
             $db: $db,
             $table: $db.recipes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> tasksRefs(
+    Expression<bool> Function($$TasksTableFilterComposer f) f,
+  ) {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.lotId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -11507,6 +12455,31 @@ class $$LotsTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> tasksRefs<T extends Object>(
+    Expression<T> Function($$TasksTableAnnotationComposer a) f,
+  ) {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.lotId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> dailyReportsRefs<T extends Object>(
     Expression<T> Function($$DailyReportsTableAnnotationComposer a) f,
   ) {
@@ -11549,6 +12522,7 @@ class $$LotsTableTableManager
           PrefetchHooks Function({
             bool farmId,
             bool recipesRefs,
+            bool tasksRefs,
             bool dailyReportsRefs,
           })
         > {
@@ -11625,12 +12599,14 @@ class $$LotsTableTableManager
               ({
                 farmId = false,
                 recipesRefs = false,
+                tasksRefs = false,
                 dailyReportsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (recipesRefs) db.recipes,
+                    if (tasksRefs) db.tasks,
                     if (dailyReportsRefs) db.dailyReports,
                   ],
                   addJoins:
@@ -11680,6 +12656,19 @@ class $$LotsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (tasksRefs)
+                        await $_getPrefetchedData<Lot, $LotsTable, Task>(
+                          currentTable: table,
+                          referencedTable: $$LotsTableReferences
+                              ._tasksRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LotsTableReferences(db, table, p0).tasksRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.lotId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (dailyReportsRefs)
                         await $_getPrefetchedData<Lot, $LotsTable, DailyReport>(
                           currentTable: table,
@@ -11719,6 +12708,7 @@ typedef $$LotsTableProcessedTableManager =
       PrefetchHooks Function({
         bool farmId,
         bool recipesRefs,
+        bool tasksRefs,
         bool dailyReportsRefs,
       })
     >;
@@ -11748,6 +12738,25 @@ typedef $$LaborTypesTableUpdateCompanionBuilder =
 final class $$LaborTypesTableReferences
     extends BaseReferences<_$AppDatabase, $LaborTypesTable, LaborType> {
   $$LaborTypesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$TasksTable, List<Task>> _tasksRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.tasks,
+    aliasName: 'labor_types__id__tasks__labor_type_id',
+  );
+
+  $$TasksTableProcessedTableManager get tasksRefs {
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.laborTypeId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_tasksRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 
   static MultiTypedResultKey<$DailyReportsTable, List<DailyReport>>
   _dailyReportsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -11811,6 +12820,31 @@ class $$LaborTypesTableFilterComposer
     column: $table.deleted,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> tasksRefs(
+    Expression<bool> Function($$TasksTableFilterComposer f) f,
+  ) {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.laborTypeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 
   Expression<bool> dailyReportsRefs(
     Expression<bool> Function($$DailyReportsTableFilterComposer f) f,
@@ -11915,6 +12949,31 @@ class $$LaborTypesTableAnnotationComposer
   GeneratedColumn<bool> get deleted =>
       $composableBuilder(column: $table.deleted, builder: (column) => column);
 
+  Expression<T> tasksRefs<T extends Object>(
+    Expression<T> Function($$TasksTableAnnotationComposer a) f,
+  ) {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.laborTypeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> dailyReportsRefs<T extends Object>(
     Expression<T> Function($$DailyReportsTableAnnotationComposer a) f,
   ) {
@@ -11954,7 +13013,7 @@ class $$LaborTypesTableTableManager
           $$LaborTypesTableUpdateCompanionBuilder,
           (LaborType, $$LaborTypesTableReferences),
           LaborType,
-          PrefetchHooks Function({bool dailyReportsRefs})
+          PrefetchHooks Function({bool tasksRefs, bool dailyReportsRefs})
         > {
   $$LaborTypesTableTableManager(_$AppDatabase db, $LaborTypesTable table)
     : super(
@@ -12015,38 +13074,63 @@ class $$LaborTypesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({dailyReportsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (dailyReportsRefs) db.dailyReports],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (dailyReportsRefs)
-                    await $_getPrefetchedData<
-                      LaborType,
-                      $LaborTypesTable,
-                      DailyReport
-                    >(
-                      currentTable: table,
-                      referencedTable: $$LaborTypesTableReferences
-                          ._dailyReportsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$LaborTypesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).dailyReportsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.laborTypeId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({tasksRefs = false, dailyReportsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (tasksRefs) db.tasks,
+                    if (dailyReportsRefs) db.dailyReports,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (tasksRefs)
+                        await $_getPrefetchedData<
+                          LaborType,
+                          $LaborTypesTable,
+                          Task
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LaborTypesTableReferences
+                              ._tasksRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LaborTypesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).tasksRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.laborTypeId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (dailyReportsRefs)
+                        await $_getPrefetchedData<
+                          LaborType,
+                          $LaborTypesTable,
+                          DailyReport
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LaborTypesTableReferences
+                              ._dailyReportsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LaborTypesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).dailyReportsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.laborTypeId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -12063,7 +13147,7 @@ typedef $$LaborTypesTableProcessedTableManager =
       $$LaborTypesTableUpdateCompanionBuilder,
       (LaborType, $$LaborTypesTableReferences),
       LaborType,
-      PrefetchHooks Function({bool dailyReportsRefs})
+      PrefetchHooks Function({bool tasksRefs, bool dailyReportsRefs})
     >;
 typedef $$InputsTableCreateCompanionBuilder =
     InputsCompanion Function({
@@ -14358,11 +15442,690 @@ typedef $$RecipeItemsTableProcessedTableManager =
       RecipeItem,
       PrefetchHooks Function({bool recipeId, bool inputId})
     >;
+typedef $$TasksTableCreateCompanionBuilder =
+    TasksCompanion Function({
+      Value<String> id,
+      required String lotId,
+      required String laborTypeId,
+      required String status,
+      Value<DateTime?> startedAt,
+      Value<DateTime?> finishedAt,
+      Value<DateTime?> updatedTaskAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$TasksTableUpdateCompanionBuilder =
+    TasksCompanion Function({
+      Value<String> id,
+      Value<String> lotId,
+      Value<String> laborTypeId,
+      Value<String> status,
+      Value<DateTime?> startedAt,
+      Value<DateTime?> finishedAt,
+      Value<DateTime?> updatedTaskAt,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$TasksTableReferences
+    extends BaseReferences<_$AppDatabase, $TasksTable, Task> {
+  $$TasksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $LotsTable _lotIdTable(_$AppDatabase db) =>
+      db.lots.createAlias('tasks__lot_id__lots__id');
+
+  $$LotsTableProcessedTableManager get lotId {
+    final $_column = $_itemColumn<String>('lot_id')!;
+
+    final manager = $$LotsTableTableManager(
+      $_db,
+      $_db.lots,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_lotIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $LaborTypesTable _laborTypeIdTable(_$AppDatabase db) =>
+      db.laborTypes.createAlias('tasks__labor_type_id__labor_types__id');
+
+  $$LaborTypesTableProcessedTableManager get laborTypeId {
+    final $_column = $_itemColumn<String>('labor_type_id')!;
+
+    final manager = $$LaborTypesTableTableManager(
+      $_db,
+      $_db.laborTypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_laborTypeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$DailyReportsTable, List<DailyReport>>
+  _dailyReportsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.dailyReports,
+    aliasName: 'tasks__id__daily_reports__task_id',
+  );
+
+  $$DailyReportsTableProcessedTableManager get dailyReportsRefs {
+    final manager = $$DailyReportsTableTableManager(
+      $_db,
+      $_db.dailyReports,
+    ).filter((f) => f.taskId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_dailyReportsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$TaskOperatorsTable, List<TaskOperator>>
+  _taskOperatorsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.taskOperators,
+    aliasName: 'tasks__id__task_operators__task_id',
+  );
+
+  $$TaskOperatorsTableProcessedTableManager get taskOperatorsRefs {
+    final manager = $$TaskOperatorsTableTableManager(
+      $_db,
+      $_db.taskOperators,
+    ).filter((f) => f.taskId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_taskOperatorsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
+  $$TasksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get finishedAt => $composableBuilder(
+    column: $table.finishedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedTaskAt => $composableBuilder(
+    column: $table.updatedTaskAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LotsTableFilterComposer get lotId {
+    final $$LotsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.lotId,
+      referencedTable: $db.lots,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LotsTableFilterComposer(
+            $db: $db,
+            $table: $db.lots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LaborTypesTableFilterComposer get laborTypeId {
+    final $$LaborTypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.laborTypeId,
+      referencedTable: $db.laborTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LaborTypesTableFilterComposer(
+            $db: $db,
+            $table: $db.laborTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> dailyReportsRefs(
+    Expression<bool> Function($$DailyReportsTableFilterComposer f) f,
+  ) {
+    final $$DailyReportsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dailyReports,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyReportsTableFilterComposer(
+            $db: $db,
+            $table: $db.dailyReports,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> taskOperatorsRefs(
+    Expression<bool> Function($$TaskOperatorsTableFilterComposer f) f,
+  ) {
+    final $$TaskOperatorsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.taskOperators,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TaskOperatorsTableFilterComposer(
+            $db: $db,
+            $table: $db.taskOperators,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TasksTableOrderingComposer
+    extends Composer<_$AppDatabase, $TasksTable> {
+  $$TasksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startedAt => $composableBuilder(
+    column: $table.startedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get finishedAt => $composableBuilder(
+    column: $table.finishedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedTaskAt => $composableBuilder(
+    column: $table.updatedTaskAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LotsTableOrderingComposer get lotId {
+    final $$LotsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.lotId,
+      referencedTable: $db.lots,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LotsTableOrderingComposer(
+            $db: $db,
+            $table: $db.lots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LaborTypesTableOrderingComposer get laborTypeId {
+    final $$LaborTypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.laborTypeId,
+      referencedTable: $db.laborTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LaborTypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.laborTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TasksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TasksTable> {
+  $$TasksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startedAt =>
+      $composableBuilder(column: $table.startedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get finishedAt => $composableBuilder(
+    column: $table.finishedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedTaskAt => $composableBuilder(
+    column: $table.updatedTaskAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$LotsTableAnnotationComposer get lotId {
+    final $$LotsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.lotId,
+      referencedTable: $db.lots,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LotsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.lots,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$LaborTypesTableAnnotationComposer get laborTypeId {
+    final $$LaborTypesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.laborTypeId,
+      referencedTable: $db.laborTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LaborTypesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.laborTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> dailyReportsRefs<T extends Object>(
+    Expression<T> Function($$DailyReportsTableAnnotationComposer a) f,
+  ) {
+    final $$DailyReportsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.dailyReports,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DailyReportsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.dailyReports,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> taskOperatorsRefs<T extends Object>(
+    Expression<T> Function($$TaskOperatorsTableAnnotationComposer a) f,
+  ) {
+    final $$TaskOperatorsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.taskOperators,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TaskOperatorsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.taskOperators,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TasksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TasksTable,
+          Task,
+          $$TasksTableFilterComposer,
+          $$TasksTableOrderingComposer,
+          $$TasksTableAnnotationComposer,
+          $$TasksTableCreateCompanionBuilder,
+          $$TasksTableUpdateCompanionBuilder,
+          (Task, $$TasksTableReferences),
+          Task,
+          PrefetchHooks Function({
+            bool lotId,
+            bool laborTypeId,
+            bool dailyReportsRefs,
+            bool taskOperatorsRefs,
+          })
+        > {
+  $$TasksTableTableManager(_$AppDatabase db, $TasksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TasksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TasksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TasksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> lotId = const Value.absent(),
+                Value<String> laborTypeId = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> startedAt = const Value.absent(),
+                Value<DateTime?> finishedAt = const Value.absent(),
+                Value<DateTime?> updatedTaskAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TasksCompanion(
+                id: id,
+                lotId: lotId,
+                laborTypeId: laborTypeId,
+                status: status,
+                startedAt: startedAt,
+                finishedAt: finishedAt,
+                updatedTaskAt: updatedTaskAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String lotId,
+                required String laborTypeId,
+                required String status,
+                Value<DateTime?> startedAt = const Value.absent(),
+                Value<DateTime?> finishedAt = const Value.absent(),
+                Value<DateTime?> updatedTaskAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TasksCompanion.insert(
+                id: id,
+                lotId: lotId,
+                laborTypeId: laborTypeId,
+                status: status,
+                startedAt: startedAt,
+                finishedAt: finishedAt,
+                updatedTaskAt: updatedTaskAt,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$TasksTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                lotId = false,
+                laborTypeId = false,
+                dailyReportsRefs = false,
+                taskOperatorsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (dailyReportsRefs) db.dailyReports,
+                    if (taskOperatorsRefs) db.taskOperators,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (lotId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.lotId,
+                                    referencedTable: $$TasksTableReferences
+                                        ._lotIdTable(db),
+                                    referencedColumn: $$TasksTableReferences
+                                        ._lotIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (laborTypeId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.laborTypeId,
+                                    referencedTable: $$TasksTableReferences
+                                        ._laborTypeIdTable(db),
+                                    referencedColumn: $$TasksTableReferences
+                                        ._laborTypeIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (dailyReportsRefs)
+                        await $_getPrefetchedData<
+                          Task,
+                          $TasksTable,
+                          DailyReport
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TasksTableReferences
+                              ._dailyReportsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TasksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).dailyReportsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.taskId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (taskOperatorsRefs)
+                        await $_getPrefetchedData<
+                          Task,
+                          $TasksTable,
+                          TaskOperator
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TasksTableReferences
+                              ._taskOperatorsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TasksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).taskOperatorsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.taskId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$TasksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TasksTable,
+      Task,
+      $$TasksTableFilterComposer,
+      $$TasksTableOrderingComposer,
+      $$TasksTableAnnotationComposer,
+      $$TasksTableCreateCompanionBuilder,
+      $$TasksTableUpdateCompanionBuilder,
+      (Task, $$TasksTableReferences),
+      Task,
+      PrefetchHooks Function({
+        bool lotId,
+        bool laborTypeId,
+        bool dailyReportsRefs,
+        bool taskOperatorsRefs,
+      })
+    >;
 typedef $$DailyReportsTableCreateCompanionBuilder =
     DailyReportsCompanion Function({
       Value<String> id,
       required String operatorId,
       required String companyId,
+      required String taskId,
       required String lotId,
       required String laborTypeId,
       required DateTime date,
@@ -14381,6 +16144,7 @@ typedef $$DailyReportsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> operatorId,
       Value<String> companyId,
+      Value<String> taskId,
       Value<String> lotId,
       Value<String> laborTypeId,
       Value<DateTime> date,
@@ -14410,6 +16174,23 @@ final class $$DailyReportsTableReferences
       $_db.companies,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_companyIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $TasksTable _taskIdTable(_$AppDatabase db) =>
+      db.tasks.createAlias('daily_reports__task_id__tasks__id');
+
+  $$TasksTableProcessedTableManager get taskId {
+    final $_column = $_itemColumn<String>('task_id')!;
+
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -14549,6 +16330,29 @@ class $$DailyReportsTableFilterComposer
           }) => $$CompaniesTableFilterComposer(
             $db: $db,
             $table: $db.companies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TasksTableFilterComposer get taskId {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -14717,6 +16521,29 @@ class $$DailyReportsTableOrderingComposer
     return composer;
   }
 
+  $$TasksTableOrderingComposer get taskId {
+    final $$TasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   $$LotsTableOrderingComposer get lotId {
     final $$LotsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -14837,6 +16664,29 @@ class $$DailyReportsTableAnnotationComposer
     return composer;
   }
 
+  $$TasksTableAnnotationComposer get taskId {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   $$LotsTableAnnotationComposer get lotId {
     final $$LotsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -14924,6 +16774,7 @@ class $$DailyReportsTableTableManager
           DailyReport,
           PrefetchHooks Function({
             bool companyId,
+            bool taskId,
             bool lotId,
             bool laborTypeId,
             bool dailyReportItemsRefs,
@@ -14945,6 +16796,7 @@ class $$DailyReportsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> operatorId = const Value.absent(),
                 Value<String> companyId = const Value.absent(),
+                Value<String> taskId = const Value.absent(),
                 Value<String> lotId = const Value.absent(),
                 Value<String> laborTypeId = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
@@ -14961,6 +16813,7 @@ class $$DailyReportsTableTableManager
                 id: id,
                 operatorId: operatorId,
                 companyId: companyId,
+                taskId: taskId,
                 lotId: lotId,
                 laborTypeId: laborTypeId,
                 date: date,
@@ -14979,6 +16832,7 @@ class $$DailyReportsTableTableManager
                 Value<String> id = const Value.absent(),
                 required String operatorId,
                 required String companyId,
+                required String taskId,
                 required String lotId,
                 required String laborTypeId,
                 required DateTime date,
@@ -14995,6 +16849,7 @@ class $$DailyReportsTableTableManager
                 id: id,
                 operatorId: operatorId,
                 companyId: companyId,
+                taskId: taskId,
                 lotId: lotId,
                 laborTypeId: laborTypeId,
                 date: date,
@@ -15019,6 +16874,7 @@ class $$DailyReportsTableTableManager
           prefetchHooksCallback:
               ({
                 companyId = false,
+                taskId = false,
                 lotId = false,
                 laborTypeId = false,
                 dailyReportItemsRefs = false,
@@ -15055,6 +16911,21 @@ class $$DailyReportsTableTableManager
                                     referencedColumn:
                                         $$DailyReportsTableReferences
                                             ._companyIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (taskId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.taskId,
+                                    referencedTable:
+                                        $$DailyReportsTableReferences
+                                            ._taskIdTable(db),
+                                    referencedColumn:
+                                        $$DailyReportsTableReferences
+                                            ._taskIdTable(db)
                                             .id,
                                   )
                                   as T;
@@ -15137,6 +17008,7 @@ typedef $$DailyReportsTableProcessedTableManager =
       DailyReport,
       PrefetchHooks Function({
         bool companyId,
+        bool taskId,
         bool lotId,
         bool laborTypeId,
         bool dailyReportItemsRefs,
@@ -17953,6 +19825,291 @@ typedef $$SyncQueueTableProcessedTableManager =
       SyncQueueEntry,
       PrefetchHooks Function()
     >;
+typedef $$TaskOperatorsTableCreateCompanionBuilder =
+    TaskOperatorsCompanion Function({
+      Value<String> id,
+      required String taskId,
+      required String operatorId,
+      Value<int> rowid,
+    });
+typedef $$TaskOperatorsTableUpdateCompanionBuilder =
+    TaskOperatorsCompanion Function({
+      Value<String> id,
+      Value<String> taskId,
+      Value<String> operatorId,
+      Value<int> rowid,
+    });
+
+final class $$TaskOperatorsTableReferences
+    extends BaseReferences<_$AppDatabase, $TaskOperatorsTable, TaskOperator> {
+  $$TaskOperatorsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $TasksTable _taskIdTable(_$AppDatabase db) =>
+      db.tasks.createAlias('task_operators__task_id__tasks__id');
+
+  $$TasksTableProcessedTableManager get taskId {
+    final $_column = $_itemColumn<String>('task_id')!;
+
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$TaskOperatorsTableFilterComposer
+    extends Composer<_$AppDatabase, $TaskOperatorsTable> {
+  $$TaskOperatorsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get operatorId => $composableBuilder(
+    column: $table.operatorId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$TasksTableFilterComposer get taskId {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TaskOperatorsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TaskOperatorsTable> {
+  $$TaskOperatorsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get operatorId => $composableBuilder(
+    column: $table.operatorId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TasksTableOrderingComposer get taskId {
+    final $$TasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TaskOperatorsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TaskOperatorsTable> {
+  $$TaskOperatorsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get operatorId => $composableBuilder(
+    column: $table.operatorId,
+    builder: (column) => column,
+  );
+
+  $$TasksTableAnnotationComposer get taskId {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TaskOperatorsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TaskOperatorsTable,
+          TaskOperator,
+          $$TaskOperatorsTableFilterComposer,
+          $$TaskOperatorsTableOrderingComposer,
+          $$TaskOperatorsTableAnnotationComposer,
+          $$TaskOperatorsTableCreateCompanionBuilder,
+          $$TaskOperatorsTableUpdateCompanionBuilder,
+          (TaskOperator, $$TaskOperatorsTableReferences),
+          TaskOperator,
+          PrefetchHooks Function({bool taskId})
+        > {
+  $$TaskOperatorsTableTableManager(_$AppDatabase db, $TaskOperatorsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TaskOperatorsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TaskOperatorsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TaskOperatorsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> taskId = const Value.absent(),
+                Value<String> operatorId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TaskOperatorsCompanion(
+                id: id,
+                taskId: taskId,
+                operatorId: operatorId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String taskId,
+                required String operatorId,
+                Value<int> rowid = const Value.absent(),
+              }) => TaskOperatorsCompanion.insert(
+                id: id,
+                taskId: taskId,
+                operatorId: operatorId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TaskOperatorsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({taskId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (taskId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.taskId,
+                                referencedTable: $$TaskOperatorsTableReferences
+                                    ._taskIdTable(db),
+                                referencedColumn: $$TaskOperatorsTableReferences
+                                    ._taskIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TaskOperatorsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TaskOperatorsTable,
+      TaskOperator,
+      $$TaskOperatorsTableFilterComposer,
+      $$TaskOperatorsTableOrderingComposer,
+      $$TaskOperatorsTableAnnotationComposer,
+      $$TaskOperatorsTableCreateCompanionBuilder,
+      $$TaskOperatorsTableUpdateCompanionBuilder,
+      (TaskOperator, $$TaskOperatorsTableReferences),
+      TaskOperator,
+      PrefetchHooks Function({bool taskId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -17976,6 +20133,8 @@ class $AppDatabaseManager {
       $$RecipesTableTableManager(_db, _db.recipes);
   $$RecipeItemsTableTableManager get recipeItems =>
       $$RecipeItemsTableTableManager(_db, _db.recipeItems);
+  $$TasksTableTableManager get tasks =>
+      $$TasksTableTableManager(_db, _db.tasks);
   $$DailyReportsTableTableManager get dailyReports =>
       $$DailyReportsTableTableManager(_db, _db.dailyReports);
   $$DailyReportItemsTableTableManager get dailyReportItems =>
@@ -17992,4 +20151,6 @@ class $AppDatabaseManager {
       $$PhotosTableTableManager(_db, _db.photos);
   $$SyncQueueTableTableManager get syncQueue =>
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
+  $$TaskOperatorsTableTableManager get taskOperators =>
+      $$TaskOperatorsTableTableManager(_db, _db.taskOperators);
 }

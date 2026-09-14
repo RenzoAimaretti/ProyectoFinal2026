@@ -11,6 +11,9 @@ DailyReportStatus dailyReportStatusFromText(String value) =>
     DailyReportStatus.values.byName(value);
 String dailyReportStatusToText(DailyReportStatus value) => value.name;
 
+TaskStatus taskStatusFromText(String value) => TaskStatus.values.byName(value);
+String taskStatusToText(TaskStatus value) => value.name;
+
 ReceptionStatus receptionStatusFromText(String value) =>
     ReceptionStatus.values.byName(value);
 String receptionStatusToText(ReceptionStatus value) => value.name;

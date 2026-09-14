@@ -1,19 +1,17 @@
 import 'dart:async';
 
-import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../domain/errors.dart';
-import '../../domain/models/enums.dart';
 import '../../domain/models/reception.dart' as domain;
+import '../../domain/models/reception_summary.dart';
 import '../../domain/repositories/reception_repository.dart';
-import '../models/enum_converters.dart';
 import '../models/reception_mapper.dart';
+import '../models/reception_summary_mapper.dart';
 import '../services/app_database.dart';
-import 'stock_upsert.dart';
 import 'sync_queue_writer.dart';
 
-/// Persistencia de recepciones de insumos (CUU06) en drift.
+/// Persistencia de recepciones de insumos (CUU06) en drift. Solo lectura en el
+/// móvil: la validación y el incremento de stock viven en el backend.
 class DriftReceptionRepository implements ReceptionRepository {
   DriftReceptionRepository(this._db);
 
@@ -42,54 +40,16 @@ class DriftReceptionRepository implements ReceptionRepository {
   }
 
   @override
-  Stream<List<domain.Reception>> watchPending() {
+  Stream<List<domain.Reception>> watchAll() {
     return _db.receptionsDao
-        .watchPending()
+        .watchAll()
         .map((rows) => rows.map((r) => r.toDomain()).toList());
   }
 
   @override
-  Future<void> validateAndApplyStock(String id, String validatedBy) {
-    return _db.transaction(() async {
-      final reception = await (_db.select(_db.receptions)
-            ..where((t) => t.id.equals(id)))
-          .getSingleOrNull();
-      if (reception == null) {
-        throw const DomainException('Recepción no encontrada');
-      }
-
-      final items = await (_db.select(_db.receptionItems)
-            ..where((t) => t.receptionId.equals(id)))
-          .get();
-
-      final now = DateTime.now();
-      await (_db.update(_db.receptions)..where((t) => t.id.equals(id))).write(
-            ReceptionsCompanion(
-              status: Value(receptionStatusToText(ReceptionStatus.VALIDATED)),
-              validatedBy: Value(validatedBy),
-              validatedAt: Value(now),
-              updatedAt: Value(now),
-            ),
-          );
-
-      // R017: el stock se materializa en la MISMA transacción de la validación.
-      for (final item in items) {
-        await upsertStockIncrement(
-          _db,
-          reception.clientId,
-          item.inputId,
-          item.quantity,
-        );
-      }
-
-      // La validación es una actualización de la recepción; el backend
-      // reconstruye el payload con los ítems embebidos y deriva el stock.
-      await enqueueSync(
-        db: _db,
-        entity: SyncEntity.reception,
-        entityId: id,
-        operation: SyncOperation.UPDATE,
-      );
-    });
+  Stream<List<ReceptionSummary>> watchSummaries() {
+    return _db.receptionsDao
+        .watchSummaries()
+        .map((rows) => rows.map((r) => r.toDomain()).toList());
   }
 }

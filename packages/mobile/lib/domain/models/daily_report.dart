@@ -9,6 +9,7 @@ class DailyReport {
     this.id,
     required this.operatorId,
     required this.companyId,
+    required this.taskId,
     required this.lotId,
     required this.laborTypeId,
     required this.date,
@@ -25,6 +26,7 @@ class DailyReport {
   final String? id;
   final String operatorId;
   final String companyId;
+  final String taskId;
   final String lotId;
   final String laborTypeId;
   final DateTime date;

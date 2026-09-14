@@ -4,9 +4,11 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/models/daily_report.dart' as domain;
+import '../../domain/models/daily_report_summary.dart';
 import '../../domain/models/enums.dart';
 import '../../domain/repositories/daily_report_repository.dart';
 import '../models/daily_report_mapper.dart';
+import '../models/daily_report_summary_mapper.dart';
 import '../services/app_database.dart';
 import 'sync_queue_writer.dart';
 
@@ -60,6 +62,13 @@ class DriftDailyReportRepository implements DailyReportRepository {
   Stream<List<domain.DailyReport>> watchByCompany(String companyId) {
     return _db.dailyReportsDao
         .watchByCompany(companyId)
+        .map((rows) => rows.map((r) => r.toDomain()).toList());
+  }
+
+  @override
+  Stream<List<DailyReportSummary>> watchSummaries({String? companyId}) {
+    return _db.dailyReportsDao
+        .watchSummaries(companyId: companyId)
         .map((rows) => rows.map((r) => r.toDomain()).toList());
   }
 

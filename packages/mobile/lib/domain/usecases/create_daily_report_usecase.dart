@@ -5,26 +5,40 @@ import '../models/daily_report.dart';
 import '../models/enums.dart';
 import '../repositories/daily_report_repository.dart';
 import '../repositories/recipe_reader.dart';
+import '../repositories/task_reader.dart';
 
 /// CUU05: crea un parte diario (cabecera + ítems) con estado inicial
-/// [DailyReportStatus.PENDING_APPROVAL]. Bloquea la carga si el lote no tiene
+/// [DailyReportStatus.PENDING_APPROVAL]. El parte nace de una [Task] (R007):
+/// hereda `lotId`/`laborTypeId` de ella y bloquea la carga si el lote no tiene
 /// receta agronómica (R009).
 class CreateDailyReportUseCase {
-  CreateDailyReportUseCase(this._repository, this._recipeReader);
+  CreateDailyReportUseCase(
+    this._repository,
+    this._recipeReader,
+    this._taskReader,
+  );
 
   final DailyReportRepository _repository;
   final RecipeReader _recipeReader;
+  final TaskReader _taskReader;
 
   Future<String> execute({
     required String operatorId,
     required String companyId,
-    required String lotId,
-    required String laborTypeId,
+    required String taskId,
     required DateTime date,
     required double hectares,
     required double hours,
     required List<DailyReportItem> items,
   }) async {
+    // R007: el parte hereda lote y labor de la tarea referenciada.
+    final task = await _taskReader.getById(taskId);
+    if (task == null) {
+      throw TaskNotFoundException(taskId);
+    }
+    final lotId = task.lotId;
+    final laborTypeId = task.laborTypeId;
+
     // R009: sin receta agronómica no se habilita la carga del parte.
     final recipes = await _recipeReader.watchByLot(lotId).first;
     if (recipes.isEmpty) {
@@ -50,6 +64,7 @@ class CreateDailyReportUseCase {
     final report = DailyReport(
       operatorId: operatorId,
       companyId: companyId,
+      taskId: taskId,
       lotId: lotId,
       laborTypeId: laborTypeId,
       date: date,

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'catalog_tables.dart';
+import 'task_tables.dart';
 
 /// Producción (CUU05). Sin `version`/`deleted`: se sincroniza por SyncQueue.
 @TableIndex(name: 'idx_recipes_lot_id', columns: {#lotId})
@@ -41,6 +42,7 @@ class DailyReports extends Table {
   TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   TextColumn get operatorId => text()();
   TextColumn get companyId => text().references(Companies, #id)();
+  TextColumn get taskId => text().references(Tasks, #id)();
   TextColumn get lotId => text().references(Lots, #id)();
   TextColumn get laborTypeId => text().references(LaborTypes, #id)();
   DateTimeColumn get date => dateTime()();

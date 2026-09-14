@@ -16,6 +16,7 @@ import 'daos/receptions_dao.dart';
 import 'daos/recipes_dao.dart';
 import 'daos/stocks_dao.dart';
 import 'daos/sync_queue_dao.dart';
+import 'daos/tasks_dao.dart';
 
 import 'tables/catalog_tables.dart';
 import 'tables/infra_tables.dart';
@@ -23,6 +24,7 @@ import 'tables/machine_tables.dart';
 import 'tables/production_tables.dart';
 import 'tables/session_tables.dart';
 import 'tables/stock_tables.dart';
+import 'tables/task_tables.dart';
 
 part 'app_database.g.dart';
 
@@ -46,6 +48,8 @@ part 'app_database.g.dart';
     MachineActivities,
     Photos,
     SyncQueue,
+    Tasks,
+    TaskOperators,
   ],
   daos: [
     CompaniesDao,
@@ -62,6 +66,7 @@ part 'app_database.g.dart';
     MachineActivitiesDao,
     PhotosDao,
     SyncQueueDao,
+    TasksDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -71,11 +76,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(tasks);
+            await m.createTable(taskOperators);
+            await m.addColumn(dailyReports, dailyReports.taskId);
+          }
+        },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },

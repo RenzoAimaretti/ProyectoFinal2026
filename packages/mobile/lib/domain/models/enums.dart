@@ -11,6 +11,13 @@ enum DailyReportStatus {
   REJECTED,
 }
 
+enum TaskStatus {
+  PENDING,
+  IN_PROGRESS,
+  COMPLETED,
+  CANCELLED,
+}
+
 enum ReceptionStatus {
   PENDING_VALIDATION,
   VALIDATED,

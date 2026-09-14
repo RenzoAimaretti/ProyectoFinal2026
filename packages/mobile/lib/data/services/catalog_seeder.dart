@@ -23,6 +23,7 @@ class CatalogSeeder {
     await _seedInputs(db);
     await _seedMachines(db);
     await _seedRecipes(db);
+    await _seedTasks(db);
   }
 
   static Future<void> _seedCompanies(AppDatabase db) async {
@@ -230,6 +231,59 @@ class CatalogSeeder {
         inputId: 'input-semilla-soja',
         dose: 55.0,
         loadOrder: 1,
+      ),
+    ]);
+  }
+
+  /// Siembra tareas de labor coherentes con los lotes/labores ya existentes.
+  /// La mayoría quedan asignadas a `demo-operario`; al menos una queda SIN
+  /// asignar (cubre el flujo A4 "Cargar sobre otra tarea").
+  static Future<void> _seedTasks(AppDatabase db) async {
+    if ((await db.select(db.tasks).get()).isNotEmpty) return;
+    await db.tasks.insertAll([
+      TasksCompanion.insert(
+        id: const Value('task-el-sauce-1'),
+        lotId: 'lot-el-sauce-1',
+        laborTypeId: 'labor-pulverizacion',
+        status: TaskStatus.PENDING.name,
+      ),
+      TasksCompanion.insert(
+        id: const Value('task-el-sauce-2'),
+        lotId: 'lot-el-sauce-2',
+        laborTypeId: 'labor-siembra',
+        status: TaskStatus.IN_PROGRESS.name,
+      ),
+      TasksCompanion.insert(
+        id: const Value('task-agro-norte-1'),
+        lotId: 'lot-agro-norte-1',
+        laborTypeId: 'labor-cosecha',
+        status: TaskStatus.PENDING.name,
+      ),
+      // Sin asignar (A4): el operario puede cargar sobre una tarea no propia.
+      TasksCompanion.insert(
+        id: const Value('task-agro-norte-2'),
+        lotId: 'lot-agro-norte-2',
+        laborTypeId: 'labor-siembra',
+        status: TaskStatus.PENDING.name,
+      ),
+    ]);
+
+    if ((await db.select(db.taskOperators).get()).isNotEmpty) return;
+    await db.taskOperators.insertAll([
+      TaskOperatorsCompanion.insert(
+        id: const Value('task-op-el-sauce-1'),
+        taskId: 'task-el-sauce-1',
+        operatorId: 'demo-operario',
+      ),
+      TaskOperatorsCompanion.insert(
+        id: const Value('task-op-el-sauce-2'),
+        taskId: 'task-el-sauce-2',
+        operatorId: 'demo-operario',
+      ),
+      TaskOperatorsCompanion.insert(
+        id: const Value('task-op-agro-norte-1'),
+        taskId: 'task-agro-norte-1',
+        operatorId: 'demo-operario',
       ),
     ]);
   }

@@ -20,6 +20,12 @@ class LotWithoutRecipeException extends DomainException {
       : super('El lote $lotId no tiene una receta agronómica asociada');
 }
 
+/// La tarea referenciada al cargar un parte diario no existe.
+class TaskNotFoundException extends DomainException {
+  TaskNotFoundException(String taskId)
+      : super('La tarea $taskId no existe');
+}
+
 /// R018–R021: campos requeridos según el tipo de actividad de maquinaria.
 class InvalidMachineActivityException extends DomainException {
   const InvalidMachineActivityException(super.message);

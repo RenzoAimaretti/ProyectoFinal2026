@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/models/machine_activity.dart' as domain;
+import '../../domain/models/machine_activity_summary.dart';
 import '../../domain/repositories/machine_activity_repository.dart';
 import '../models/machine_activity_mapper.dart';
+import '../models/machine_activity_summary_mapper.dart';
 import '../services/app_database.dart';
 import 'sync_queue_writer.dart';
 
@@ -51,6 +53,13 @@ class DriftMachineActivityRepository implements MachineActivityRepository {
   Stream<List<domain.MachineActivity>> watchAll() {
     return _db.machineActivitiesDao
         .watchAll()
+        .map((rows) => rows.map((r) => r.toDomain()).toList());
+  }
+
+  @override
+  Stream<List<MachineActivitySummary>> watchSummaries({String? companyId}) {
+    return _db.machineActivitiesDao
+        .watchSummaries(companyId: companyId)
         .map((rows) => rows.map((r) => r.toDomain()).toList());
   }
 }

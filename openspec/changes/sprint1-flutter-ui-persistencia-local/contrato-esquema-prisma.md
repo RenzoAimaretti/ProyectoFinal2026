@@ -255,3 +255,58 @@ model MachineActivity {
 - (a decidir con Renzo)
 
 **Impacto móvil (Sprint 1):** `Session.companyId` guarda la firma **ACTIVA** (contexto de trabajo), no la pertenencia. `CompanyReader.watchAll()` lista las firmas disponibles para el selector global. Las recepciones (ligadas a `Client`, no a `Company`) no se filtran por firma en este sprint — pendiente de resolver la firma de la recepción.
+
+---
+
+## 7. Pulido Operario + Tareas (pre-Sprint 2) — deltas a aplicar en el backend
+
+> **Origen:** change `sprint1-polish-operario-tareas`. El móvil introduce el concepto de **Tarea** como entrada del parte diario (CUU05). Estos deltas deben reflejarse en `schema.prisma` **antes del Sprint 2** (sync).
+
+### 7.1 — `DailyReport` se liga a `Task` (1:N)
+
+El parte diario del móvil ya **no** es un registro suelto: nace de una tarea asignada (o no) al operario. Una tarea puede tener varios partes (varias jornadas).
+
+```prisma
+model DailyReport {
+  // ... campos existentes (operatorId, companyId, lotId, laborTypeId, ...)
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id])
+  // ...
+}
+
+model Task {
+  // ... campos existentes
+  dailyReports DailyReport[]
+}
+```
+
+**Nota de denormalización:** `DailyReport` **mantiene** `lotId`, `laborTypeId` y `companyId` (snapshot al crearse el parte), y `taskId` es el vínculo de trazabilidad. Si la tarea cambia de lote después, el parte histórico no cambia de significado.
+
+### 7.2 — `Task` gana `version` + `deleted` (consistencia soft-delete)
+
+Hoy `Task` es el único modelo operativo sin soft-delete. Para coherencia con `Company`/`User`/`Farm`/`Lot`/`Machine`:
+
+```prisma
+model Task {
+  // ...
+  version Int      @default(1)
+  deleted Boolean  @default(false)
+}
+```
+
+### 7.3 — Mapeo de nombres backend ↔ móvil (reafirmado)
+
+- `Task.taskTypeId` (backend) ↔ `LaborType` (móvil). El móvil persiste `Tasks.laborTypeId → LaborTypes.id`.
+- `Task.operators` (many-to-many con `User`, backend) ↔ `TaskOperators` (móvil, `taskId` + `operatorId` sin FK local).
+
+### 7.4 — `Task` NO necesita `companyId`
+
+La firma del parte se resuelve por **selector global** en el móvil (`DailyReport.companyId`), no por la tarea. La tarea sigue perteneciendo al lote (`lotId`), y la firma se deduce transitivamente (Task → Lot → Farm → Company) si hiciera falta; no se duplica en `Task`.
+
+### 7.5 — Recepción: validación fuera del móvil
+
+La validación de recepción (`Reception` → `VALIDATED` + ingreso de `Stock`) es **solo web** (administrador/contratista). El móvil solo **crea** recepciones (`PENDING_VALIDATION`) y las **lista** en solo-lectura. El método `validateAndApplyStock` del móvil se elimina; el backend debe exponer la validación como endpoint web (Sprint 2).
+
+### 7.6 — `Stock` local queda sin escritor hasta el sync
+
+El móvil ya no incrementa `Stock` localmente (no valida). La tabla `Stocks` queda lista pero se poblará por sync en Sprint 2. No requiere cambio de esquema; es una nota de comportamiento.

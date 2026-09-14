@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../models/machine_activity.dart';
+import '../models/machine_activity_summary.dart';
 
 /// Persistencia de actividades de maquinaria (CUU08).
 abstract class MachineActivityRepository {
@@ -17,4 +18,8 @@ abstract class MachineActivityRepository {
 
   /// Historial global (todas las máquinas), para el listado del demo.
   Stream<List<MachineActivity>> watchAll();
+
+  /// Actividades con `machineName` resuelto para listados (D2).
+  /// `companyId == null` devuelve todas las firmas.
+  Stream<List<MachineActivitySummary>> watchSummaries({String? companyId});
 }
