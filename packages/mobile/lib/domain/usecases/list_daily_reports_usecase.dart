@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../models/daily_report.dart';
+import '../models/daily_report_summary.dart';
 import '../models/enums.dart';
 import '../repositories/daily_report_repository.dart';
 
@@ -25,5 +26,11 @@ class ListDailyReportsUseCase {
       return _repository.watchByFilter();
     }
     return _repository.watchByCompany(companyId);
+  }
+
+  /// Partes con `lotName`/`laborName` resueltos para listados (D2). `null` =
+  /// todas las firmas.
+  Stream<List<DailyReportSummary>> watchSummaries(String? companyId) {
+    return _repository.watchSummaries(companyId: companyId);
   }
 }

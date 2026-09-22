@@ -1,58 +1,33 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../domain/models/reception.dart';
+import '../../domain/models/enums.dart';
+import '../../domain/models/reception_summary.dart';
+import '../../presentation/components/badges/status_badge.dart';
 import '../../presentation/components/empty_state.dart';
 import 'receptions_view_model.dart';
 
-/// Bandeja de recepciones de insumos (CUU06).
+/// Bandeja de recepciones de insumos (CUU06), solo lectura.
 ///
-/// Lista las [Reception] pendientes de validación vía `StreamBuilder` sobre el
-/// ViewModel y expone una acción "Validar" por fila que delega en
-/// `ValidateReceptionUseCase`. Al validar, la recepción deja de ser pendiente
-/// y el `watch` la retira de la lista automáticamente.
-///
-/// El listado no resuelve el nombre del cliente: `ListPendingReceptionsUseCase`
-/// no expone un join y el modelo solo trae `clientId` (mismo criterio que el
-/// listado de partes, que muestra el `lotId` crudo).
+/// Lista TODAS las recepciones (cualquier estado) vía `StreamBuilder` sobre el
+/// ViewModel, mostrando el nombre del cliente y su estado (`StatusBadge`). Ya
+/// no hay botón "Validar": la validación es responsabilidad del web.
 class ReceptionsView extends StatelessWidget {
-  const ReceptionsView({
-    super.key,
-    required this.viewModel,
-    required this.operatorId,
-  });
+  const ReceptionsView({super.key, required this.viewModel});
 
   final ReceptionsViewModel viewModel;
 
-  /// `userId` de la sesión activa, registrado como `validatedBy` (R017).
-  final String operatorId;
-
-  Future<void> _validate(BuildContext context, Reception reception) async {
-    final id = reception.id;
-    if (id == null) return;
-
-    try {
-      await viewModel.validate(id, validatedBy: operatorId);
-    } catch (e) {
-      if (!context.mounted) return;
-      final message = e.toString().replaceAll('Exception: ', '');
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(message)));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<Reception>>(
-      stream: viewModel.pendingReceptions,
+    return StreamBuilder<List<ReceptionSummary>>(
+      stream: viewModel.receptions,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final receptions = snapshot.data ?? const <Reception>[];
+        final receptions = snapshot.data ?? const <ReceptionSummary>[];
         if (receptions.isEmpty) {
           return const EmptyState(
             icon: Icons.inventory_2_outlined,
@@ -65,25 +40,19 @@ class ReceptionsView extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           itemCount: receptions.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            final reception = receptions[index];
-            return _ReceptionTile(
-              reception: reception,
-              onValidate: () => _validate(context, reception),
-            );
-          },
+          itemBuilder: (context, index) =>
+              _ReceptionTile(reception: receptions[index]),
         );
       },
     );
   }
 }
 
-/// Fila de una recepción pendiente: cliente, fecha y acción "Validar".
+/// Fila de una recepción: nombre de cliente, fecha y estado.
 class _ReceptionTile extends StatelessWidget {
-  const _ReceptionTile({required this.reception, required this.onValidate});
+  const _ReceptionTile({required this.reception});
 
-  final Reception reception;
-  final VoidCallback onValidate;
+  final ReceptionSummary reception;
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +76,7 @@ class _ReceptionTile extends StatelessWidget {
         ),
       ),
       title: Text(
-        reception.clientId,
+        reception.clientName,
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -121,12 +90,29 @@ class _ReceptionTile extends StatelessWidget {
           color: AppColors.onSurfaceVariant,
         ),
       ),
-      trailing: TextButton.icon(
-        onPressed: onValidate,
-        icon: const Icon(Icons.check_circle_outline, size: 18),
-        label: const Text('Validar'),
-      ),
+      trailing: _statusBadge(reception.status),
     );
+  }
+
+  StatusBadge _statusBadge(ReceptionStatus status) {
+    switch (status) {
+      case ReceptionStatus.VALIDATED:
+        return const StatusBadge(
+          label: 'Validada',
+          color: AppColors.approved,
+          backgroundColor: AppColors.approvedBg,
+          icon: Icons.check_circle,
+        );
+      case ReceptionStatus.REJECTED:
+        return const StatusBadge(
+          label: 'Rechazada',
+          color: AppColors.offline,
+          backgroundColor: AppColors.offlineBg,
+          icon: Icons.cancel,
+        );
+      case ReceptionStatus.PENDING_VALIDATION:
+        return StatusBadge.fromType(StatusType.pending);
+    }
   }
 
   static String _formatDate(DateTime d) {

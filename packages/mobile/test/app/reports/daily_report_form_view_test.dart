@@ -3,21 +3,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/app/reports/daily_report_form_view.dart';
 import 'package:mobile/app/reports/daily_report_form_view_model.dart';
 import 'package:mobile/core/theme/app_theme.dart';
-import 'package:mobile/domain/models/catalogs.dart';
 import 'package:mobile/domain/models/enums.dart';
+import 'package:mobile/domain/models/task.dart';
 import 'package:mobile/domain/usecases/add_photo_usecase.dart';
 import 'package:mobile/domain/usecases/create_daily_report_usecase.dart';
 import 'package:mobile/presentation/components/buttons/primary_button.dart';
 
 import '../../domain/usecases/fakes.dart';
 
-Widget _buildTestable(DailyReportFormViewModel vm, {String? initialCompanyId}) {
+Widget _buildTestable(DailyReportFormViewModel vm, Task task) {
   return MaterialApp(
     theme: AppTheme.lightTheme,
     home: DailyReportFormView(
       viewModel: vm,
+      task: task,
+      companyId: 'comp-1',
       operatorId: 'op-1',
-      initialCompanyId: initialCompanyId,
     ),
   );
 }
@@ -25,263 +26,86 @@ Widget _buildTestable(DailyReportFormViewModel vm, {String? initialCompanyId}) {
 void main() {
   late FakeDailyReportRepository reportRepo;
   late FakeRecipeReader recipeReader;
-  late FakeClientReader clientReader;
-  late FakeFarmReader farmReader;
+  late FakeTaskReader taskReader;
+  late FakeInputReader inputReader;
   late FakeLotReader lotReader;
   late FakeLaborTypeReader laborTypeReader;
-  late FakeInputReader inputReader;
-  late FakeCompanyReader companyReader;
   late FakePhotoRepository photoRepo;
   late FakePhotoStorageRepository photoStorage;
   late DailyReportFormViewModel viewModel;
 
+  final task = Task(
+    id: 'task-1',
+    lotId: 'l-1',
+    laborTypeId: 'labor-1',
+    status: TaskStatus.PENDING,
+  );
+
   setUp(() {
     reportRepo = FakeDailyReportRepository();
     recipeReader = FakeRecipeReader();
-    clientReader = FakeClientReader();
-    farmReader = FakeFarmReader();
+    taskReader = FakeTaskReader();
+    inputReader = FakeInputReader();
     lotReader = FakeLotReader();
     laborTypeReader = FakeLaborTypeReader();
-    inputReader = FakeInputReader();
-    companyReader = FakeCompanyReader();
     photoRepo = FakePhotoRepository();
     photoStorage = FakePhotoStorageRepository();
-    final createUseCase = CreateDailyReportUseCase(reportRepo, recipeReader);
+    final createUseCase =
+        CreateDailyReportUseCase(reportRepo, recipeReader, taskReader);
     final addPhotoUseCase = AddPhotoUseCase(photoRepo, photoStorage);
     final photoPicker = FakePhotoPickerService();
 
     viewModel = DailyReportFormViewModel(
       createUseCase: createUseCase,
-      clientReader: clientReader,
-      farmReader: farmReader,
+      inputReader: inputReader,
       lotReader: lotReader,
       laborTypeReader: laborTypeReader,
-      inputReader: inputReader,
-      companyReader: companyReader,
-      recipeReader: recipeReader,
       addPhotoUseCase: addPhotoUseCase,
       photoPickerService: photoPicker,
     );
   });
 
   group('CUU05 — DailyReportFormView', () {
-    testWidgets('renderiza el wizard con el paso 1 (selección)',
+    testWidgets('renderiza el wizard con el encabezado de tarea',
         (tester) async {
-      await tester.pumpWidget(_buildTestable(viewModel));
+      await tester.pumpWidget(_buildTestable(viewModel, task));
       await tester.pumpAndSettle();
 
-      // Título de la pantalla.
       expect(find.text('Parte Diario'), findsOneWidget);
-      // Step labels del wizard.
-      expect(find.text('Selección'), findsOneWidget);
-      expect(find.text('Datos e insumos'), findsOneWidget);
+      // "Jornada" aparece como label del stepper y como título de la sección 1.
+      expect(find.text('Jornada'), findsNWidgets(2));
+      expect(find.text('Insumos'), findsOneWidget);
       expect(find.text('Fotos y resumen'), findsOneWidget);
+      // Encabezado resumen de la tarea (solo lectura).
+      expect(find.text('Tarea'), findsOneWidget);
+      expect(find.text('Lote'), findsOneWidget);
+      expect(find.text('Labor'), findsOneWidget);
     });
 
-    testWidgets('botón Siguiente está deshabilitado sin completar paso 1',
+    testWidgets('Siguiente habilitado por defecto (fecha hoy válida)',
         (tester) async {
-      await tester.pumpWidget(_buildTestable(viewModel));
+      await tester.pumpWidget(_buildTestable(viewModel, task));
       await tester.pumpAndSettle();
 
-      final nextButtonFinder = find.widgetWithText(PrimaryButton, 'Siguiente');
-      expect(nextButtonFinder, findsOneWidget);
-      final nextButton = tester.widget<PrimaryButton>(nextButtonFinder);
-      expect(nextButton.onPressed, isNull);
-    });
-
-    testWidgets(
-        'bloqueo R009: al seleccionar lote sin receta muestra advertencia y bloquea Siguiente',
-        (tester) async {
-      tester.view.physicalSize = const Size(800, 1200);
-      addTearDown(tester.view.resetPhysicalSize);
-
-      // Sembrar datos de catálogo sin receta.
-      companyReader.seed(Company(
-        id: 'comp-1',
-        name: 'AgroEmpresa SA',
-        cuit: '30-11111111-1',
-        active: true,
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        version: 1,
-        deleted: false,
-      ));
-      clientReader.seed(Client(
-        id: 'c-1',
-        name: 'Cliente Los Pinos',
-        active: true,
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        version: 1,
-        deleted: false,
-      ));
-      farmReader.seed(Farm(
-        id: 'f-1',
-        clientId: 'c-1',
-        name: 'Campo Norte',
-        surface: 100.0,
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        version: 1,
-        deleted: false,
-      ));
-      lotReader.seed(Lot(
-        id: 'l-1',
-        farmId: 'f-1',
-        name: 'Lote 14',
-        area: 50.0,
-        active: true,
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        version: 1,
-        deleted: false,
-      ));
-      laborTypeReader.seed(LaborType(
-        id: 'lab-1',
-        name: 'Fumigación',
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        version: 1,
-        deleted: false,
-      ));
-      // No sembramos receta en recipeReader para l-1.
-
-      await tester.pumpWidget(_buildTestable(viewModel, initialCompanyId: 'comp-1'));
-      await tester.pumpAndSettle();
-
-      // Seleccionar cliente.
-      await tester.ensureVisible(find.text('Seleccionar cliente...'));
-      await tester.tap(find.text('Seleccionar cliente...'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Cliente Los Pinos').last);
-      await tester.pumpAndSettle();
-
-      // Seleccionar campo.
-      await tester.ensureVisible(find.text('Seleccionar campo...'));
-      await tester.tap(find.text('Seleccionar campo...'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Campo Norte').last);
-      await tester.pumpAndSettle();
-
-      // Seleccionar lote.
-      await tester.ensureVisible(find.text('Seleccionar lote...'));
-      await tester.tap(find.text('Seleccionar lote...'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Lote 14').last);
-      await tester.pumpAndSettle();
-
-      // Debe aparecer el banner de advertencia R009.
-      expect(
-        find.text(
-          'Este lote no tiene una receta agronómica asociada. '
-          'No se puede cargar el parte sin receta (R009).',
-        ),
-        findsOneWidget,
-      );
-
-      // El botón Siguiente debe seguir deshabilitado por el bloqueo R009.
       final nextButton = tester.widget<PrimaryButton>(
         find.widgetWithText(PrimaryButton, 'Siguiente'),
       );
-      expect(nextButton.onPressed, isNull);
+      expect(nextButton.onPressed, isNotNull);
     });
 
-    testWidgets(
-        'happy path R009: al seleccionar lote con receta válida no muestra advertencia',
-        (tester) async {
-      tester.view.physicalSize = const Size(800, 1200);
-      addTearDown(tester.view.resetPhysicalSize);
-
-      companyReader.seed(Company(
-        id: 'comp-1',
-        name: 'AgroEmpresa SA',
-        cuit: '30-11111111-1',
-        active: true,
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        version: 1,
-        deleted: false,
-      ));
-      clientReader.seed(Client(
-        id: 'c-1',
-        name: 'Cliente Los Pinos',
-        active: true,
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        version: 1,
-        deleted: false,
-      ));
-      farmReader.seed(Farm(
-        id: 'f-1',
-        clientId: 'c-1',
-        name: 'Campo Norte',
-        surface: 100.0,
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        version: 1,
-        deleted: false,
-      ));
-      lotReader.seed(Lot(
-        id: 'l-1',
-        farmId: 'f-1',
-        name: 'Lote 14',
-        area: 50.0,
-        active: true,
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        version: 1,
-        deleted: false,
-      ));
-      laborTypeReader.seed(LaborType(
-        id: 'lab-1',
-        name: 'Fumigación',
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-        version: 1,
-        deleted: false,
-      ));
-      // Sembramos la receta para l-1.
-      recipeReader.seedRecipe(Recipe(
-        id: 'rec-1',
-        lotId: 'l-1',
-        date: DateTime(2026, 1, 1),
-        status: 'ACTIVE',
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-      ));
-
-      await tester.pumpWidget(_buildTestable(viewModel, initialCompanyId: 'comp-1'));
+    testWidgets('bloquea fechas futuras (C1)', (tester) async {
+      await tester.pumpWidget(_buildTestable(viewModel, task));
       await tester.pumpAndSettle();
 
-      // Seleccionar cliente.
-      await tester.ensureVisible(find.text('Seleccionar cliente...'));
-      await tester.tap(find.text('Seleccionar cliente...'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Cliente Los Pinos').last);
+      final tomorrow = DateTime.now().add(const Duration(days: 1));
+      final dd = tomorrow.day.toString().padLeft(2, '0');
+      final mm = tomorrow.month.toString().padLeft(2, '0');
+      final futureDate = '$dd/$mm/${tomorrow.year}';
+
+      await tester.enterText(find.byType(TextField).first, futureDate);
       await tester.pumpAndSettle();
 
-      // Seleccionar campo.
-      await tester.ensureVisible(find.text('Seleccionar campo...'));
-      await tester.tap(find.text('Seleccionar campo...'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Campo Norte').last);
-      await tester.pumpAndSettle();
-
-      // Seleccionar lote.
-      await tester.ensureVisible(find.text('Seleccionar lote...'));
-      await tester.tap(find.text('Seleccionar lote...'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Lote 14').last);
-      await tester.pumpAndSettle();
-
-      // No debe existir el warning de R009.
-      expect(
-        find.text(
-          'Este lote no tiene una receta agronómica asociada. '
-          'No se puede cargar el parte sin receta (R009).',
-        ),
-        findsNothing,
-      );
+      expect(find.text('No se permiten fechas futuras'), findsOneWidget);
     });
   });
 }

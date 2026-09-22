@@ -3,47 +3,44 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../domain/models/catalogs.dart';
 import '../../domain/models/daily_report.dart';
+import '../../domain/models/task.dart';
 import '../../presentation/components/buttons/primary_button.dart';
 import '../../presentation/components/buttons/secondary_button.dart';
-import '../../presentation/components/inputs/custom_dropdown.dart';
 import '../../presentation/components/inputs/custom_text_field.dart';
+import '../../presentation/components/inputs/date_field.dart';
 import '../../presentation/components/inputs/input_items_editor.dart';
 import '../../presentation/components/photos/photo_picker_grid.dart';
 import '../../presentation/components/steppers/wizard_stepper.dart';
 import 'daily_report_form_view_model.dart';
 
-/// Busca un elemento de catálogo por `id` (todos los modelos de catálogo
-/// exponen `id`/`name`). Helper local, sin dependencia extra.
-T? _findById<T>(Iterable<T> items, String? id) {
-  if (id == null) return null;
-  for (final item in items) {
-    if ((item as dynamic).id == id) return item;
-  }
-  return null;
-}
-
 /// Formulario de alta de parte diario (CUU05) como wizard de 3 pasos.
 ///
-/// Paso 1: firma + cascada Cliente → Campo → Lote → Labor (catálogos reales de
-/// drift). Al elegir lote se comprueba R009 (receta previa) y se bloquea el
-/// avance si no la tiene.
-/// Paso 2: hectáreas + horas + ítems de consumo (insumos reales).
-/// Paso 3: fotos (captura real, persistencia al guardar) + resumen.
+/// El parte nace de una [Task] (R007): la firma (`companyId`) y el operario
+/// llegan por parámetro (selector global + sesión), y el lote/labor se heredan
+/// de la tarea (solo lectura en el encabezado). Ya no hay dropdown de firma ni
+/// cascada Cliente → Campo → Lote → Labor.
+///
+/// Pasos: (1) Jornada (fecha + hectáreas + horas), (2) Insumos, (3) Fotos +
+/// resumen. La fecha bloquea valores futuros (C1).
 class DailyReportFormView extends StatefulWidget {
   const DailyReportFormView({
     super.key,
     required this.viewModel,
+    required this.task,
+    required this.companyId,
     required this.operatorId,
-    this.initialCompanyId,
   });
 
   final DailyReportFormViewModel viewModel;
 
+  /// Tarea sobre la que se carga el parte (hereda lote/labor).
+  final Task task;
+
+  /// Firma heredada del selector global (post-login).
+  final String companyId;
+
   /// `userId` del operario de la sesión activa.
   final String operatorId;
-
-  /// Firma preseleccionada desde la sesión (puede ser null).
-  final String? initialCompanyId;
 
   @override
   State<DailyReportFormView> createState() => _DailyReportFormViewState();
@@ -51,48 +48,66 @@ class DailyReportFormView extends StatefulWidget {
 
 class _DailyReportFormViewState extends State<DailyReportFormView> {
   static const List<String> _stepLabels = [
-    'Selección',
-    'Datos e insumos',
+    'Jornada',
+    'Insumos',
     'Fotos y resumen',
   ];
 
   int _currentStep = 0;
 
-  // ── Paso 1: selecciones en cascada ──────────────────────────────────────
-  String? _companyId;
-  String? _companyLabel;
-  String? _clientId;
-  String? _farmId;
-  String? _lotId;
-  String? _lotLabel;
-  String? _laborId;
-  String? _laborLabel;
-
-  /// R009: true si el lote elegido tiene receta; null = sin comprobar aún.
-  bool? _hasRecipe;
-
-  // ── Paso 2 ──────────────────────────────────────────────────────────────
+  // ── Paso 1: jornada ────────────────────────────────────────────────────
+  late final TextEditingController _dateController;
+  String _dateText = '';
+  String? _dateError;
   String _hectareas = '';
   String _horas = '';
+
+  // ── Paso 2 ──────────────────────────────────────────────────────────────
   List<InputItemValue> _items = const [];
+
+  // ── Encabezado (nombres resueltos de la tarea) ──────────────────────────
+  String? _lotLabel;
+  String? _laborLabel;
 
   @override
   void initState() {
     super.initState();
-    _companyId = widget.initialCompanyId;
+    // Fecha por defecto = hoy (C1: no se permiten fechas futuras).
+    final today = _formatDate(DateTime.now());
+    _dateController = TextEditingController(text: today);
+    _dateText = today;
     // Arranca limpio: descarta fotos/flag de un intento previo cancelado.
     widget.viewModel.reset();
+    _loadTaskLabels();
+  }
+
+  @override
+  void dispose() {
+    _dateController.dispose();
+    super.dispose();
+  }
+
+  /// Resuelve los nombres de lote/labor de la tarea para el encabezado.
+  Future<void> _loadTaskLabels() async {
+    final lot = await widget.viewModel.lotName(widget.task.lotId);
+    final labor = await widget.viewModel.laborName(widget.task.laborTypeId);
+    if (mounted) {
+      setState(() {
+        _lotLabel = lot;
+        _laborLabel = labor;
+      });
+    }
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────
 
   bool get _isLastStep => _currentStep == _stepLabels.length - 1;
 
-  bool get _step1Complete =>
-      _companyId != null &&
-      _lotId != null &&
-      _laborId != null &&
-      _hasRecipe == true;
+  /// Paso 1 completo: fecha válida y no futura.
+  bool get _step1Complete {
+    final date = _parseDate(_dateText);
+    return date != null && !_isFutureDate(date);
+  }
 
   void _next() {
     if (!_isLastStep) {
@@ -112,34 +127,27 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _selectLote(String? lotId, List<Lot> lots) async {
-    setState(() {
-      _lotId = lotId;
-      _lotLabel = lotId == null ? null : _findById<Lot>(lots, lotId)?.name;
-      _laborId = null;
-      _laborLabel = null;
-      _hasRecipe = null;
-    });
-
-    if (lotId != null) {
-      final has = await widget.viewModel.lotHasRecipe(lotId);
-      if (mounted) {
-        setState(() => _hasRecipe = has);
-      }
-    }
-  }
-
   Future<void> _save() async {
-    final hectares =
-        double.tryParse(_hectareas.replaceAll(',', '.').trim());
-    final hours = double.tryParse(_horas.replaceAll(',', '.').trim());
+    final date = _parseDate(_dateText);
+    if (date == null) {
+      _showMessage(fechaInvalidaMensaje);
+      return;
+    }
+    if (_isFutureDate(date)) {
+      _showMessage('No se permiten fechas futuras');
+      return;
+    }
 
+    final hectares = double.tryParse(_hectareas.replaceAll(',', '.').trim());
+    final hours = double.tryParse(_horas.replaceAll(',', '.').trim());
     if (hectares == null || hectares <= 0 || hours == null || hours <= 0) {
       _showMessage('Hectáreas y horas deben ser mayores a 0');
       return;
     }
-    if (_companyId == null || _lotId == null || _laborId == null) {
-      _showMessage('Completá la selección del paso 1');
+
+    final taskId = widget.task.id;
+    if (taskId == null) {
+      _showMessage('La tarea no tiene identificador');
       return;
     }
 
@@ -147,9 +155,7 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
     for (final item in _items) {
       if (item.inputId.isEmpty) continue;
       if (item.quantity <= 0) {
-        _showMessage(
-          'Las cantidades de los insumos deben ser mayores a 0',
-        );
+        _showMessage('Las cantidades de los insumos deben ser mayores a 0');
         return;
       }
       items.add(
@@ -164,10 +170,9 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
     try {
       await widget.viewModel.create(
         operatorId: widget.operatorId,
-        companyId: _companyId!,
-        lotId: _lotId!,
-        laborTypeId: _laborId!,
-        date: DateTime.now(),
+        companyId: widget.companyId,
+        taskId: taskId,
+        date: date,
         hectares: hectares,
         hours: hours,
         items: items,
@@ -192,6 +197,7 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
           appBar: AppBar(title: const Text('Parte Diario')),
           body: Column(
             children: [
+              _buildTaskHeader(),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: WizardStepper(
@@ -244,7 +250,46 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
     );
   }
 
-  // ── Paso 1 ──────────────────────────────────────────────────────────────
+  /// Encabezado resumen de la tarea (lote + labor heredados, solo lectura).
+  Widget _buildTaskHeader() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Tarea',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _HeaderField(label: 'Lote', value: _lotLabel ?? '…'),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _HeaderField(label: 'Labor', value: _laborLabel ?? '…'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Paso 1: jornada ─────────────────────────────────────────────────────
 
   Widget _sectionTitle(String title, String subtitle) {
     return Column(
@@ -277,237 +322,20 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionTitle(
-            'Ubicación y labor',
-            'Seleccioná firma, cliente, campo, lote y labor para el parte.',
+            'Jornada',
+            'Completá la fecha, las hectáreas y las horas trabajadas.',
           ),
           const SizedBox(height: 20),
-          _companyDropdown(),
-          const SizedBox(height: 16),
-          _clientDropdown(),
-          const SizedBox(height: 16),
-          _farmDropdown(),
-          const SizedBox(height: 16),
-          _lotDropdown(),
-          const SizedBox(height: 16),
-          _laborDropdown(),
-          if (_hasRecipe == false) ...[
-            const SizedBox(height: 16),
-            _recipeWarning(),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _companyDropdown() {
-    return StreamBuilder<List<Company>>(
-      stream: widget.viewModel.companies,
-      builder: (context, snapshot) {
-        final companies = snapshot.data ?? const <Company>[];
-        // Si la firma de sesión no está en el catálogo, cae a "sin seleccionar".
-        final value = companies.any((c) => c.id == _companyId)
-            ? _companyId
-            : null;
-        return CustomDropdown<String>(
-          label: 'Firma / Razón social',
-          hint: 'Seleccionar firma...',
-          items: companies
-              .map(
-                (c) => DropdownMenuItem<String>(
-                  value: c.id,
-                  child: Text(c.name),
-                ),
-              )
-              .toList(),
-          value: value,
-          onChanged: (v) {
-            setState(() {
-              _companyId = v;
-              _companyLabel = _findById<Company>(companies, v)?.name;
-            });
-          },
-        );
-      },
-    );
-  }
-
-  Widget _clientDropdown() {
-    return StreamBuilder<List<Client>>(
-      stream: widget.viewModel.clients,
-      builder: (context, snapshot) {
-        final clients = snapshot.data ?? const <Client>[];
-        return CustomDropdown<String>(
-          label: 'Cliente',
-          hint: 'Seleccionar cliente...',
-          items: clients
-              .map(
-                (c) => DropdownMenuItem<String>(
-                  value: c.id,
-                  child: Text(c.name),
-                ),
-              )
-              .toList(),
-          value: _clientId,
-          onChanged: (v) {
-            setState(() {
-              _clientId = v;
-              _farmId = null;
-              _lotId = null;
-              _lotLabel = null;
-              _laborId = null;
-              _laborLabel = null;
-              _hasRecipe = null;
-            });
-          },
-        );
-      },
-    );
-  }
-
-  Widget _farmDropdown() {
-    if (_clientId == null) {
-      return const CustomDropdown<String>(
-        label: 'Campo',
-        hint: 'Seleccionar campo...',
-        items: [],
-        enabled: false,
-      );
-    }
-    return StreamBuilder<List<Farm>>(
-      stream: widget.viewModel.farmsByClient(_clientId!),
-      builder: (context, snapshot) {
-        final farms = snapshot.data ?? const <Farm>[];
-        return CustomDropdown<String>(
-          label: 'Campo',
-          hint: 'Seleccionar campo...',
-          items: farms
-              .map(
-                (f) => DropdownMenuItem<String>(
-                  value: f.id,
-                  child: Text(f.name),
-                ),
-              )
-              .toList(),
-          value: _farmId,
-          onChanged: (v) {
-            setState(() {
-              _farmId = v;
-              _lotId = null;
-              _lotLabel = null;
-              _laborId = null;
-              _laborLabel = null;
-              _hasRecipe = null;
-            });
-          },
-        );
-      },
-    );
-  }
-
-  Widget _lotDropdown() {
-    if (_farmId == null) {
-      return const CustomDropdown<String>(
-        label: 'Lote',
-        hint: 'Seleccionar lote...',
-        items: [],
-        enabled: false,
-      );
-    }
-    return StreamBuilder<List<Lot>>(
-      stream: widget.viewModel.lotsByFarm(_farmId!),
-      builder: (context, snapshot) {
-        final lots = snapshot.data ?? const <Lot>[];
-        return CustomDropdown<String>(
-          label: 'Lote',
-          hint: 'Seleccionar lote...',
-          items: lots
-              .map(
-                (l) => DropdownMenuItem<String>(
-                  value: l.id,
-                  child: Text(l.name),
-                ),
-              )
-              .toList(),
-          value: _lotId,
-          onChanged: (v) => _selectLote(v, lots),
-        );
-      },
-    );
-  }
-
-  Widget _laborDropdown() {
-    final enabled = _lotId != null;
-    return StreamBuilder<List<LaborType>>(
-      stream: widget.viewModel.laborTypes,
-      builder: (context, snapshot) {
-        final labores = snapshot.data ?? const <LaborType>[];
-        return CustomDropdown<String>(
-          label: 'Labor',
-          hint: 'Seleccionar labor...',
-          items: labores
-              .map(
-                (l) => DropdownMenuItem<String>(
-                  value: l.id,
-                  child: Text(l.name),
-                ),
-              )
-              .toList(),
-          value: _laborId,
-          enabled: enabled,
-          onChanged: (v) {
-            setState(() {
-              _laborId = v;
-              _laborLabel = _findById<LaborType>(labores, v)?.name;
-            });
-          },
-        );
-      },
-    );
-  }
-
-  Widget _recipeWarning() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.warningBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.warning_amber_rounded, color: AppColors.warning),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Este lote no tiene una receta agronómica asociada. '
-              'No se puede cargar el parte sin receta (R009).',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Paso 2 ──────────────────────────────────────────────────────────────
-
-  Widget _buildStep2() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Jornada',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.onSurface,
-            ),
+          DateField(
+            label: 'Fecha',
+            controller: _dateController,
+            errorText: _dateError,
+            onChanged: (v) {
+              setState(() {
+                _dateText = v;
+                _dateError = _validateDate(v);
+              });
+            },
           ),
           const SizedBox(height: 16),
           Row(
@@ -536,16 +364,24 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          const Text(
+        ],
+      ),
+    );
+  }
+
+  // ── Paso 2: insumos ─────────────────────────────────────────────────────
+
+  Widget _buildStep2() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle(
             'Insumos consumidos',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.onSurface,
-            ),
+            'Agregá los insumos y cantidades aplicadas en la jornada.',
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _inputsEditor(),
         ],
       ),
@@ -570,7 +406,7 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
     );
   }
 
-  // ── Paso 3 ──────────────────────────────────────────────────────────────
+  // ── Paso 3: fotos + resumen ─────────────────────────────────────────────
 
   Widget _buildStep3() {
     final itemCount = _items.where((i) => i.inputId.isNotEmpty).length;
@@ -605,11 +441,11 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
             ),
             child: Column(
               children: [
-                _SummaryRow(label: 'Firma', value: _companyLabel ?? '—'),
-                const Divider(height: 20),
                 _SummaryRow(label: 'Lote', value: _lotLabel ?? '—'),
                 const Divider(height: 20),
                 _SummaryRow(label: 'Labor', value: _laborLabel ?? '—'),
+                const Divider(height: 20),
+                _SummaryRow(label: 'Fecha', value: _dateText),
                 const Divider(height: 20),
                 _SummaryRow(
                   label: 'Hectáreas',
@@ -635,6 +471,73 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Formatea una fecha como `DD/MM/AAAA`.
+String _formatDate(DateTime d) {
+  final dd = d.day.toString().padLeft(2, '0');
+  final mm = d.month.toString().padLeft(2, '0');
+  return '$dd/$mm/${d.year}';
+}
+
+/// Parsea `DD/MM/AAAA` a [DateTime] (null si el formato es inválido).
+DateTime? _parseDate(String text) {
+  final match = RegExp(r'^(\d{2})/(\d{2})/(\d{4})$').firstMatch(text.trim());
+  if (match == null) return null;
+  final day = int.parse(match.group(1)!);
+  final month = int.parse(match.group(2)!);
+  final year = int.parse(match.group(3)!);
+  return DateTime(year, month, day);
+}
+
+/// true si [date] es posterior al día de hoy (C1: bloquea fechas futuras).
+bool _isFutureDate(DateTime date) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  return date.isAfter(today);
+}
+
+/// Valida el texto de fecha: formato válido + no futura.
+String? _validateDate(String text) {
+  if (!isValidDate(text)) return fechaInvalidaMensaje;
+  final date = _parseDate(text);
+  if (date != null && _isFutureDate(date)) {
+    return 'No se permiten fechas futuras';
+  }
+  return null;
+}
+
+/// Campo label/valor del encabezado de tarea (solo lectura).
+class _HeaderField extends StatelessWidget {
+  const _HeaderField({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.onSurface,
+          ),
+        ),
+      ],
     );
   }
 }

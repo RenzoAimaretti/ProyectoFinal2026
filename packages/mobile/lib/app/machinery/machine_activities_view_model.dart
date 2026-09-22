@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../domain/models/machine_activity.dart';
+import '../../domain/models/machine_activity_summary.dart';
 import '../../domain/usecases/list_machine_activities_usecase.dart';
 
 /// ViewModel del historial de actividades de maquinaria (CUU08, lista).
@@ -25,6 +26,10 @@ class MachineActivitiesViewModel extends ChangeNotifier {
   /// descendente.
   Stream<List<MachineActivity>> get activities =>
       _listUseCase.watchByCompany(_companyId);
+
+  /// Actividades con `machineName` resuelto para el listado (D2).
+  Stream<List<MachineActivitySummary>> get summaries =>
+      _listUseCase.watchSummaries(_companyId);
 
   /// Cambia la firma activa y notifica para que la vista resuscriba el stream.
   void setCompany(String? companyId) {

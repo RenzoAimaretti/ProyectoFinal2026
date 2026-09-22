@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../domain/models/daily_report.dart';
+import '../../domain/models/daily_report_summary.dart';
 import '../../domain/models/enums.dart';
 import '../../presentation/components/badges/status_badge.dart';
 import '../../presentation/components/empty_state.dart';
@@ -9,10 +9,8 @@ import 'daily_reports_view_model.dart';
 
 /// Bandeja de partes diarios (CUU05).
 ///
-/// Lista los [DailyReport] vía `StreamBuilder` sobre el ViewModel. El lote se
-/// muestra por su `id` (el listado no resuelve nombres de lote — eso requiere
-/// un join que no expone `ListDailyReportsUseCase`); fecha, hectáreas y estado
-/// salen directo del modelo.
+/// Lista los [DailyReportSummary] vía `StreamBuilder` sobre el ViewModel. El
+/// lote y la labor se muestran por su NOMBRE resuelto (join D2), no por id.
 class DailyReportsView extends StatelessWidget {
   const DailyReportsView({super.key, required this.viewModel});
 
@@ -21,19 +19,19 @@ class DailyReportsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // ListenableBuilder resuscribe el StreamBuilder cuando cambia la firma
-    // activa (el ViewModel notifica y `reports` devuelve un stream nuevo).
+    // activa (el ViewModel notifica y `summaries` devuelve un stream nuevo).
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, _) {
-        return StreamBuilder<List<DailyReport>>(
-          stream: viewModel.reports,
+        return StreamBuilder<List<DailyReportSummary>>(
+          stream: viewModel.summaries,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting &&
                 !snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final reports = snapshot.data ?? const <DailyReport>[];
+            final reports = snapshot.data ?? const <DailyReportSummary>[];
             if (reports.isEmpty) {
               return const EmptyState(
                 icon: Icons.assignment_outlined,
@@ -56,11 +54,11 @@ class DailyReportsView extends StatelessWidget {
   }
 }
 
-/// Fila de un parte: lote, fecha, hectáreas y estado.
+/// Fila de un parte: lote + labor (nombres), fecha, hectáreas y estado.
 class _DailyReportTile extends StatelessWidget {
   const _DailyReportTile({required this.report});
 
-  final DailyReport report;
+  final DailyReportSummary report;
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +82,7 @@ class _DailyReportTile extends StatelessWidget {
         ),
       ),
       title: Text(
-        report.lotId,
+        '${report.lotName} · ${report.laborName}',
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,

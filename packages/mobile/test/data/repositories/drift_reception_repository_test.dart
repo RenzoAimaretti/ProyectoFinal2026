@@ -28,7 +28,7 @@ void main() {
 
   tearDown(() => db.close());
 
-  test('create + watchPending refleja la recepción', () async {
+  test('create + watchAll refleja la recepción (solo lectura)', () async {
     final reception = Reception(
       clientId: 'client-1',
       date: DateTime(2026, 6, 15),
@@ -41,32 +41,25 @@ void main() {
     final id = await sut.create(reception, items);
     expect(id, isNotEmpty);
 
-    final pending = await sut.watchPending().first;
-    expect(pending, hasLength(1));
-    expect(pending.first.status, ReceptionStatus.PENDING_VALIDATION);
+    final all = await sut.watchAll().first;
+    expect(all, hasLength(1));
+    expect(all.first.status, ReceptionStatus.PENDING_VALIDATION);
   });
 
-  test('validateAndApplyStock cambia status y encola sync', () async {
-    final id = await sut.create(
+  test('watchSummaries resuelve clientName por join', () async {
+    await sut.create(
       Reception(
         clientId: 'client-1',
         date: DateTime(2026, 6, 15),
-        status: ReceptionStatus.PENDING_VALIDATION,
+        status: ReceptionStatus.VALIDATED,
       ),
       [
         const ReceptionItem(inputId: 'input-1', quantity: 100, unit: 'L'),
       ],
     );
 
-    await sut.validateAndApplyStock(id, 'admin-1');
-
-    // Tras validar la recepción ya no debería estar pendiente.
-    final pending = await sut.watchPending().first;
-    expect(pending, isEmpty);
-
-    // El stock debería haberse incrementado.
-    final stocks = await db.stocksDao.watchAll().first;
-    expect(stocks, hasLength(1));
-    expect(stocks.first.quantity, 100.0);
+    final result = await sut.watchSummaries().first;
+    expect(result, hasLength(1));
+    expect(result.first.clientName, 'Cliente Test');
   });
 }

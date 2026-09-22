@@ -6,79 +6,54 @@ import '../../data/services/photo_picker_service.dart';
 import '../../domain/models/catalogs.dart';
 import '../../domain/models/daily_report.dart';
 import '../../domain/models/enums.dart';
-import '../../domain/repositories/client_reader.dart';
-import '../../domain/repositories/company_reader.dart';
-import '../../domain/repositories/farm_reader.dart';
 import '../../domain/repositories/input_reader.dart';
 import '../../domain/repositories/labor_type_reader.dart';
 import '../../domain/repositories/lot_reader.dart';
-import '../../domain/repositories/recipe_reader.dart';
 import '../../domain/usecases/add_photo_usecase.dart';
 import '../../domain/usecases/create_daily_report_usecase.dart';
 
 /// ViewModel del formulario de alta de parte diario (CUU05).
 ///
-/// Recibe use cases + readers por constructor (composition root) y expone los
-/// streams de catálogo que alimentan el selector en cascada, los insumos y la
-/// firma. La selección de lote habilita la comprobación R009 (receta previa).
+/// El parte nace de una [Task] (R007): recibe `taskId` y el use case hereda
+/// `lotId`/`laborTypeId` de la tarea y valida R009 (receta previa) internamente.
+/// La firma (`companyId`) llega por parámetro desde el selector global, por lo
+/// que el formulario ya NO expone dropdown de firma ni cascada de selección.
 ///
-/// Las fotos se capturan en la grilla (`PhotoPickerGrid`) y se guardan recién
-/// al confirmar, una vez conocido el `id` del parte recién creado.
+/// Solo conserva los insumos (editor), la resolución de nombres de lote/labor
+/// para el encabezado de resumen, y el flujo de fotos.
 class DailyReportFormViewModel extends ChangeNotifier {
   DailyReportFormViewModel({
     required CreateDailyReportUseCase createUseCase,
-    required ClientReader clientReader,
-    required FarmReader farmReader,
+    required InputReader inputReader,
     required LotReader lotReader,
     required LaborTypeReader laborTypeReader,
-    required InputReader inputReader,
-    required CompanyReader companyReader,
-    required RecipeReader recipeReader,
     required AddPhotoUseCase addPhotoUseCase,
     required PhotoPickerService photoPickerService,
   })  : _createUseCase = createUseCase,
-        _clientReader = clientReader,
-        _farmReader = farmReader,
+        _inputReader = inputReader,
         _lotReader = lotReader,
         _laborTypeReader = laborTypeReader,
-        _inputReader = inputReader,
-        _companyReader = companyReader,
-        _recipeReader = recipeReader,
         _addPhotoUseCase = addPhotoUseCase,
         _photoPickerService = photoPickerService;
 
   final CreateDailyReportUseCase _createUseCase;
-  final ClientReader _clientReader;
-  final FarmReader _farmReader;
+  final InputReader _inputReader;
   final LotReader _lotReader;
   final LaborTypeReader _laborTypeReader;
-  final InputReader _inputReader;
-  final CompanyReader _companyReader;
-  final RecipeReader _recipeReader;
   final AddPhotoUseCase _addPhotoUseCase;
   final PhotoPickerService _photoPickerService;
 
   // ── Catálogos (streams de drift) ────────────────────────────────────────
 
-  Stream<List<Client>> get clients => _clientReader.watchAll();
-
-  Stream<List<Company>> get companies => _companyReader.watchAll();
-
-  Stream<List<LaborType>> get laborTypes => _laborTypeReader.watchAll();
-
   Stream<List<Input>> get inputs => _inputReader.watchAll();
 
-  Stream<List<Farm>> farmsByClient(String clientId) =>
-      _farmReader.watchByClient(clientId);
+  /// Nombre del lote para el encabezado de resumen (cae al id si no resuelve).
+  Future<String> lotName(String lotId) async =>
+      (await _lotReader.getById(lotId))?.name ?? lotId;
 
-  Stream<List<Lot>> lotsByFarm(String farmId) => _lotReader.watchByFarm(farmId);
-
-  /// R009: el lote debe tener al menos una receta agronómica para habilitar
-  /// la carga del parte.
-  Future<bool> lotHasRecipe(String lotId) async {
-    final recipes = await _recipeReader.watchByLot(lotId).first;
-    return recipes.isNotEmpty;
-  }
+  /// Nombre de la labor para el encabezado de resumen (cae al id si no resuelve).
+  Future<String> laborName(String laborTypeId) async =>
+      (await _laborTypeReader.getById(laborTypeId))?.name ?? laborTypeId;
 
   // ── Fotos (se persisten al confirmar) ───────────────────────────────────
 
@@ -112,13 +87,13 @@ class DailyReportFormViewModel extends ChangeNotifier {
   bool _isSaving = false;
   bool get isSaving => _isSaving;
 
-  /// Crea el parte (delega validaciones a [CreateDailyReportUseCase]) y, si
-  /// hay fotos capturadas, las asocia al parte recién creado (R008).
+  /// Crea el parte (delega validaciones a [CreateDailyReportUseCase], que
+  /// hereda lote/labor de la tarea y valida R009) y, si hay fotos capturadas,
+  /// las asocia al parte recién creado (R008).
   Future<void> create({
     required String operatorId,
     required String companyId,
-    required String lotId,
-    required String laborTypeId,
+    required String taskId,
     required DateTime date,
     required double hectares,
     required double hours,
@@ -131,8 +106,7 @@ class DailyReportFormViewModel extends ChangeNotifier {
       final reportId = await _createUseCase.execute(
         operatorId: operatorId,
         companyId: companyId,
-        lotId: lotId,
-        laborTypeId: laborTypeId,
+        taskId: taskId,
         date: date,
         hectares: hectares,
         hours: hours,

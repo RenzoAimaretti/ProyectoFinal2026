@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../models/machine_activity.dart';
+import '../models/machine_activity_summary.dart';
 import '../repositories/machine_activity_repository.dart';
 
 /// CUU08: historial de actividades por máquina (stream).
@@ -26,5 +27,11 @@ class ListMachineActivitiesUseCase {
       return _repository.watchAll();
     }
     return _repository.watchByCompany(companyId);
+  }
+
+  /// Actividades con `machineName` resuelto para listados (D2). `null` =
+  /// todas las firmas.
+  Stream<List<MachineActivitySummary>> watchSummaries(String? companyId) {
+    return _repository.watchSummaries(companyId: companyId);
   }
 }
