@@ -80,13 +80,15 @@ push, sin PR, sin merge.
       `Stock`, `Photo`, `MachineActivity`.
       Enums nuevos en español: `DailyReportStatus`, `ReceptionStatus`,
       `MachineActivityType`, `PhotoEntityType`, `RecipeStatus`. `UserRole` amplía `SUPERVISOR`.
-- [ ] **T02** Reset del volumen docker + generar la migración limpia.
+- [x] **T02** Squash: 5 migraciones históricas → 1 baseline (`20260922214007_multifirma_baseline`),
+      aplicada sobre la base reseteada.
 - [x] **T03** Rework de clave de tenancy (decisión A): dejar `pnpm --filter backend test` verde.
       Ver `## Modelo de scoping`.
 - [ ] **T04** Móvil: renombrar enums a español, migración de strings drift
       (`schemaVersion` + `onUpgrade`), y actualizar converters/mappers/seeders/tests.
-- [ ] **T05** Bootstrap/seed: crear `Tenant` + `Company` + `User` + `UserCompany` iniciales.
-      Sin esto la base reseteada queda inusable (ver `## Gaps`).
+- [x] **T05** Bootstrap/seed: `Tenant` + `Company` + `User` + `UserCompany` iniciales.
+      Script `packages/backend/prisma/seed.ts` + `pnpm --filter backend db:seed`.
+      Ejecutado **2 veces**: idempotente (`1|1|1|1`).
 - [ ] **T06** Limpiar naming engañoso de ports: métodos `...ByCompanyId` / `...ForCompany` que
       hoy reciben un `tenantId`.
 
@@ -119,6 +121,25 @@ si supera el presupuesto, se explica el motivo en vez de partir artificialmente.
 - 2026-09-22 — **Decisión A**: rework de tenancy dentro de este feature. Rama `feat/multifirma-schema`.
 - 2026-09-22 — **T03 COMPLETADA.** Backend verde: `tsc` 0 errores, 266/266 tests.
 - 2026-09-22 — **Gaps detectados** (bootstrap y naming). Ver `## Gaps`.
+- 2026-09-22 — **Scope aclarado por el usuario**: "clases nuevas de dominio" = los modelos Prisma
+  (cubierto por T01). La capa de dominio/módulos hexagonales va **después**. **T04 (móvil) y
+  T06 (naming de ports) quedan FUERA de esta tarea** (van a sus propios carriles).
+- 2026-09-22 — **Work-unit commits**: `570667e` (backend, 100 archivos) + `3152daa` (doc ODD).
+  Rama `feat/multifirma-schema`.
+- 2026-09-22 — **T05 seed escrito**: `prisma/seed.ts` + script `db:seed` + `prisma.config.ts`.
+  Typecheck OK. **NO ejecutado** (DB caída).
+- 2026-09-22 — **T02 estuvo bloqueado** (sin Postgres). Docker levantado por el usuario.
+- 2026-09-22 — **T02 COMPLETADA.** Squash: 5 migraciones → 1 baseline
+  (`20260922214007_multifirma_baseline`), aplicada sobre schema dropeado (30 tablas).
+- 2026-09-22 — **T05 COMPLETADA.** Seed ejecutado 2 veces → `1|1|1|1` (idempotente).
+- 2026-09-22 — **e2e**: `auth.e2e-spec` **PASA 5/5** (login verificado end-to-end contra la base
+  real con el JWT nuevo). `app.e2e-spec` FALLA con 404 en `GET /` → **pre-existente**: no existe
+  `AppController` y `app.module.ts` tiene `controllers: []`. No es nuestro.
+- 2026-09-22 — **Hallazgo**: los e2e no cargaban `dotenv`, así que `process.env.JWT_SECRET` era
+  `undefined` y firmar el token daba 500. **Defecto pre-existente** de `test/jest-e2e.json`.
+  Se agregó `setupFiles: ["dotenv/config"]` porque era precondición para verificar nuestro cambio.
+- 2026-09-22 — **Hallazgo**: `test/auth.e2e-spec.ts` mockeaba `PrismaService` con la forma vieja
+  (`companyId`, sin `companyMemberships`) → 500 por `TypeError`. Alineado al contrato nuevo.
 
 ## Verification evidence
 
@@ -130,6 +151,13 @@ si supera el presupuesto, se explica el motivo en vez de partir artificialmente.
 | Typecheck (tras T03) | `pnpm exec tsc --noEmit -p tsconfig.json` | ✅ **0 errores** (re-verificado por el orquestador) |
 | Tests (tras T03) | `pnpm --filter backend test` | ✅ **35/35 suites, 266/266 tests** (re-verificado por el orquestador) |
 | e2e | `test/app.e2e-spec.ts` | ⏸️ Compila, NO ejecutado (requiere Postgres vivo) |
+| Config de seed | `pnpm exec prisma validate` | ✅ Acepta `migrations.seed` sin error |
+| Typecheck con seed | `pnpm exec tsc --noEmit -p tsconfig.json` | ✅ 0 errores (incluye `prisma/seed.ts`) |
+| Postgres (antes) | `pnpm exec prisma migrate status` | ❌ `P1001` — no alcanzable en `127.0.0.1:5432` |
+| Migración | `pnpm exec prisma migrate dev --name multifirma_baseline` | ✅ 1 baseline creada y aplicada |
+| Seed | `pnpm --filter backend db:seed` (x2) | ✅ `1|1|1|1` en Tenant/Company/User/UserCompany |
+| e2e auth | `pnpm --filter backend test:e2e` | ✅ `auth.e2e-spec` 5/5 (login OK end-to-end) |
+| e2e app | ídem | ❌ `app.e2e-spec` 404 en `GET /` — **pre-existente** |
 
 ### Detalle del typecheck (evidencia)
 
@@ -200,5 +228,9 @@ selector, `firmaId` pasará a venir por request en vez de por claim. No cambia e
 
 ## Next step
 
-**T05** (bootstrap/seed) → **T02** (reset + migración limpia) → **T04** (móvil).
-El seed va antes del reset: el reset deja la base vacía e inusable sin él.
+**T01 + T02 + T05 hechos y verificados.** Queda commitear los work-units de T02/T05.
+
+Fuera de esta tarea (carriles propios): **T04** (móvil, enums ES) y **T06** (naming de ports).
+
+Deuda detectada y NO tocada (pre-existente): `test/app.e2e-spec.ts` espera `GET /` → 200
+"Hello World!" pero no existe `AppController`.
