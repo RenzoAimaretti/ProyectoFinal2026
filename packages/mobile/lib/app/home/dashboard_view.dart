@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../domain/models/catalogs.dart';
 import '../../domain/models/session.dart';
-import '../../domain/models/stock.dart';
+import '../../domain/models/task.dart';
 import '../../presentation/components/badges/sync_pending_badge.dart';
-import '../../presentation/components/cards/kpi_card.dart';
 import '../../presentation/components/selectors/multi_firma_selector.dart';
 import '../machinery/machine_activities_view.dart';
 import '../machinery/machine_activities_view_model.dart';
@@ -21,23 +20,29 @@ import '../reports/daily_report_form_view.dart';
 import '../reports/daily_report_form_view_model.dart';
 import '../reports/daily_reports_view.dart';
 import '../reports/daily_reports_view_model.dart';
+import '../tasks/tasks_view.dart';
+import '../tasks/tasks_view_model.dart';
 
-/// Dashboard principal post-login: navegación inferior a los 3 módulos
-/// (Partes, Recepciones, Maquinaria). Los tres módulos están cableados a su
-/// lista y formulario reales (CUU05/06/08).
+/// Dashboard principal post-login: navegación inferior a los 4 módulos
+/// (Tareas, Partes, Recepciones, Maquinaria). Los cuatro módulos están
+/// cableados a sus listas y formularios reales (CUU05/06/08).
 ///
 /// Incluye un selector global de firma (post-login) que lista las razones
 /// sociales REALES del catálogo (`CompanyReader.watchAll()`). La firma activa
 /// es `Session.companyId`; al cambiarla se persiste y se refrescan las listas.
+///
+/// El parte diario nace de una Tarea (R007): la pestaña "Tareas" (y su FAB)
+/// abre el selector de tarea y, al elegir una, el formulario del parte hereda
+/// la firma del selector global.
 class DashboardView extends StatefulWidget {
   const DashboardView({
     super.key,
     required this.session,
     required this.companies,
-    required this.stock,
     required this.onFirmChanged,
     required this.pendingSyncCount,
     required this.onLogout,
+    required this.tasksViewModel,
     required this.dailyReportsViewModel,
     required this.dailyReportFormViewModel,
     required this.receptionsViewModel,
@@ -51,9 +56,6 @@ class DashboardView extends StatefulWidget {
   /// Razones sociales reales (catálogo de firmas) para el selector global.
   final Stream<List<Company>> companies;
 
-  /// Stock global (KPI del dashboard), independiente del cliente/firma.
-  final Stream<List<Stock>> stock;
-
   /// Callback al seleccionar otra firma (persiste `Session.companyId` y
   /// refresca las listas).
   final ValueChanged<String> onFirmChanged;
@@ -63,6 +65,7 @@ class DashboardView extends StatefulWidget {
 
   final VoidCallback onLogout;
 
+  final TasksViewModel tasksViewModel;
   final DailyReportsViewModel dailyReportsViewModel;
   final DailyReportFormViewModel dailyReportFormViewModel;
   final ReceptionsViewModel receptionsViewModel;
@@ -85,20 +88,53 @@ class _DashboardViewState extends State<DashboardView> {
       );
   }
 
+  /// Flujo de carga del parte (R007): el parte nace de una tarea. Abre el
+  /// selector de TODAS las tareas y, al elegir una, el formulario del parte.
+  void _openPartFlow() {
+    showTaskPickerSheet(
+      context: context,
+      viewModel: widget.tasksViewModel,
+      onSelected: _openPartForm,
+    );
+  }
+
+  /// Abre el formulario del parte sobre [task], heredando la firma global.
+  void _openPartForm(Task task) {
+    final companyId = widget.session.companyId;
+    if (companyId == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Seleccioná una firma para cargar el parte'),
+          ),
+        );
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => DailyReportFormView(
+          viewModel: widget.dailyReportFormViewModel,
+          task: task,
+          companyId: companyId,
+          operatorId: widget.session.userId,
+        ),
+      ),
+    );
+  }
+
   void _onFabPressed() {
     if (_selectedIndex == 0) {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => DailyReportFormView(
-            viewModel: widget.dailyReportFormViewModel,
-            operatorId: widget.session.userId,
-            initialCompanyId: widget.session.companyId,
-          ),
-        ),
-      );
+      // Tareas: flujo de carga del parte (selección de tarea).
+      _openPartFlow();
       return;
     }
     if (_selectedIndex == 1) {
+      // Partes: el parte también nace de una tarea.
+      _openPartFlow();
+      return;
+    }
+    if (_selectedIndex == 2) {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => ReceptionFormView(
@@ -108,7 +144,7 @@ class _DashboardViewState extends State<DashboardView> {
       );
       return;
     }
-    if (_selectedIndex == 2) {
+    if (_selectedIndex == 3) {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => MachineActivityFormView(
@@ -147,29 +183,6 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  /// KPI de stock global (CUU06): cantidad de insumos distintos con stock,
-  /// derivada de `WatchStockUseCase.watchAll()` inyectado desde el composition
-  /// root. Reutiliza [KpiCard] del design system.
-  Widget _buildStockKpi() {
-    return StreamBuilder<List<Stock>>(
-      stream: widget.stock,
-      builder: (context, snapshot) {
-        final stocks = snapshot.data ?? const <Stock>[];
-        final distinctInputs = stocks.map((s) => s.inputId).toSet().length;
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-          child: KpiCard(
-            title: 'Insumos con stock',
-            value: '$distinctInputs',
-            unit: 'insumos',
-            icon: Icons.inventory_2_outlined,
-            iconColor: AppColors.secondary,
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -197,16 +210,17 @@ class _DashboardViewState extends State<DashboardView> {
       body: Column(
         children: [
           _buildFirmSelector(),
-          _buildStockKpi(),
           Expanded(
             child: IndexedStack(
               index: _selectedIndex,
               children: [
-                DailyReportsView(viewModel: widget.dailyReportsViewModel),
-                ReceptionsView(
-                  viewModel: widget.receptionsViewModel,
+                TasksView(
+                  viewModel: widget.tasksViewModel,
                   operatorId: widget.session.userId,
+                  onLoadTask: _openPartForm,
                 ),
+                DailyReportsView(viewModel: widget.dailyReportsViewModel),
+                ReceptionsView(viewModel: widget.receptionsViewModel),
                 MachineActivitiesView(
                   viewModel: widget.machineActivitiesViewModel,
                 ),
@@ -228,6 +242,11 @@ class _DashboardViewState extends State<DashboardView> {
           NavigationDestination(
             icon: Icon(Icons.assignment_outlined),
             selectedIcon: Icon(Icons.assignment),
+            label: 'Tareas',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.receipt_long_outlined),
+            selectedIcon: Icon(Icons.receipt_long),
             label: 'Partes',
           ),
           NavigationDestination(

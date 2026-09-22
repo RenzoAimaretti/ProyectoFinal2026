@@ -77,4 +77,18 @@ void main() {
     final pendingCount = await db.syncQueueDao.watchPendingCount().first;
     expect(pendingCount, greaterThan(0));
   });
+
+  test('watchSummaries resuelve machineName por join', () async {
+    await sut.create(MachineActivity(
+      machineId: 'm-1',
+      type: MachineActivityType.FUEL,
+      date: DateTime(2026, 6, 15),
+      liters: 50.0,
+      companyId: 'company-1',
+    ));
+
+    final result = await sut.watchSummaries().first;
+    expect(result, hasLength(1));
+    expect(result.first.machineName, 'Tractor JD 7815');
+  });
 }

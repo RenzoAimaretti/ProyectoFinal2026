@@ -14,7 +14,7 @@ void main() {
     db = createTestDatabase();
     sut = DriftDailyReportRepository(db);
 
-    // Insertar FKs requeridas por DailyReports.
+    // Insertar FKs requeridas por DailyReports (incluida la tarea R007).
     await db.into(db.companies).insert(CompaniesCompanion.insert(
           id: Value('company-1'),
           name: 'Firma Test',
@@ -45,64 +45,65 @@ void main() {
           name: 'Glifosato',
           unit: 'L',
         ));
+    await db.into(db.tasks).insert(TasksCompanion.insert(
+          id: Value('task-1'),
+          lotId: 'lot-1',
+          laborTypeId: 'labor-1',
+          status: 'PENDING',
+        ));
   });
 
   tearDown(() => db.close());
 
-  test('create cabecera + items en transacción devuelve id', () async {
-    final report = DailyReport(
-      operatorId: 'op-1',
-      companyId: 'company-1',
-      lotId: 'lot-1',
-      laborTypeId: 'labor-1',
-      date: DateTime(2026, 6, 15),
-      hectares: 10.0,
-      hours: 8.0,
-      status: DailyReportStatus.PENDING_APPROVAL,
-    );
-    final items = [
-      const DailyReportItem(inputId: 'input-1', quantity: 5, unit: 'L'),
-    ];
-
-    final id = await sut.create(report, items);
-
-    expect(id, isNotEmpty);
-  });
-
-  test('watchByFilter refleja los partes creados', () async {
-    await sut.create(
-      DailyReport(
+  DailyReport newReport() => DailyReport(
         operatorId: 'op-1',
         companyId: 'company-1',
+        taskId: 'task-1',
         lotId: 'lot-1',
         laborTypeId: 'labor-1',
         date: DateTime(2026, 6, 15),
         hectares: 10.0,
         hours: 8.0,
         status: DailyReportStatus.PENDING_APPROVAL,
-      ),
-      [],
-    );
+      );
+
+  test('create cabecera + items en transacción devuelve id', () async {
+    final items = [
+      const DailyReportItem(inputId: 'input-1', quantity: 5, unit: 'L'),
+    ];
+
+    final id = await sut.create(newReport(), items);
+
+    expect(id, isNotEmpty);
+  });
+
+  test('create persiste taskId en la fila (R007)', () async {
+    await sut.create(newReport(), []);
+
+    final result = await sut.watchByFilter().first;
+    expect(result, hasLength(1));
+    expect(result.first.taskId, 'task-1');
+  });
+
+  test('watchByFilter refleja los partes creados', () async {
+    await sut.create(newReport(), []);
 
     final result = await sut.watchByFilter().first;
     expect(result, hasLength(1));
     expect(result.first.status, DailyReportStatus.PENDING_APPROVAL);
   });
 
+  test('watchSummaries resuelve lotName/laborName por join', () async {
+    await sut.create(newReport(), []);
+
+    final result = await sut.watchSummaries().first;
+    expect(result, hasLength(1));
+    expect(result.first.lotName, 'Lote 1');
+    expect(result.first.laborName, 'Siembra');
+  });
+
   test('create encola en SyncQueue', () async {
-    await sut.create(
-      DailyReport(
-        operatorId: 'op-1',
-        companyId: 'company-1',
-        lotId: 'lot-1',
-        laborTypeId: 'labor-1',
-        date: DateTime(2026, 6, 15),
-        hectares: 10.0,
-        hours: 8.0,
-        status: DailyReportStatus.PENDING_APPROVAL,
-      ),
-      [],
-    );
+    await sut.create(newReport(), []);
 
     final pendingCount = await db.syncQueueDao.watchPendingCount().first;
     expect(pendingCount, greaterThan(0));

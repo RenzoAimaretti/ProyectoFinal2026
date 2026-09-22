@@ -2,18 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../domain/models/enums.dart';
-import '../../domain/models/machine_activity.dart';
+import '../../domain/models/machine_activity_summary.dart';
 import '../../presentation/components/empty_state.dart';
 import 'machine_activities_view_model.dart';
 
 /// Historial de actividades de maquinaria (CUU08).
 ///
-/// Lista las [MachineActivity] vía `StreamBuilder` sobre el ViewModel. Cada
-/// fila muestra máquina (id), tipo y fecha. Al registrar una nueva actividad el
-/// `watchAll` la incorpora automáticamente.
-///
-/// No resuelve el nombre de la máquina: el listado usa `machineId` crudo (mismo
-/// criterio que recepciones/partes, que muestran ids sin join).
+/// Lista las [MachineActivitySummary] vía `StreamBuilder` sobre el ViewModel.
+/// Cada fila muestra el NOMBRE de la máquina (join D2), tipo y fecha.
 class MachineActivitiesView extends StatelessWidget {
   const MachineActivitiesView({super.key, required this.viewModel});
 
@@ -22,19 +18,19 @@ class MachineActivitiesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // ListenableBuilder resuscribe el StreamBuilder cuando cambia la firma
-    // activa (el ViewModel notifica y `activities` devuelve un stream nuevo).
+    // activa (el ViewModel notifica y `summaries` devuelve un stream nuevo).
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, _) {
-        return StreamBuilder<List<MachineActivity>>(
-          stream: viewModel.activities,
+        return StreamBuilder<List<MachineActivitySummary>>(
+          stream: viewModel.summaries,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting &&
                 !snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final activities = snapshot.data ?? const <MachineActivity>[];
+            final activities = snapshot.data ?? const <MachineActivitySummary>[];
             if (activities.isEmpty) {
               return const EmptyState(
                 icon: Icons.agriculture_outlined,
@@ -58,11 +54,11 @@ class MachineActivitiesView extends StatelessWidget {
   }
 }
 
-/// Fila de una actividad: máquina (id), tipo y fecha.
+/// Fila de una actividad: máquina (nombre), tipo y fecha.
 class _ActivityTile extends StatelessWidget {
   const _ActivityTile({required this.activity});
 
-  final MachineActivity activity;
+  final MachineActivitySummary activity;
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +82,7 @@ class _ActivityTile extends StatelessWidget {
         ),
       ),
       title: Text(
-        activity.machineId,
+        activity.machineName,
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,

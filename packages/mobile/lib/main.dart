@@ -11,6 +11,7 @@ import 'app/receptions/reception_form_view_model.dart';
 import 'app/receptions/receptions_view_model.dart';
 import 'app/reports/daily_report_form_view_model.dart';
 import 'app/reports/daily_reports_view_model.dart';
+import 'app/tasks/tasks_view_model.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'data/repositories/drift_catalog_readers.dart';
@@ -19,7 +20,7 @@ import 'data/repositories/drift_machine_activity_repository.dart';
 import 'data/repositories/drift_photo_repository.dart';
 import 'data/repositories/drift_reception_repository.dart';
 import 'data/repositories/drift_session_repository.dart';
-import 'data/repositories/drift_stock_repository.dart';
+import 'data/repositories/drift_task_reader.dart';
 import 'data/repositories/http_auth_repository.dart';
 import 'data/repositories/path_provider_photo_storage_repository.dart';
 import 'data/services/app_database.dart';
@@ -27,21 +28,19 @@ import 'data/services/catalog_seeder.dart';
 import 'data/services/photo_picker_service.dart';
 import 'domain/models/catalogs.dart' as domain;
 import 'domain/models/session.dart';
-import 'domain/models/stock.dart' as domain;
 import 'domain/usecases/add_photo_usecase.dart';
 import 'domain/usecases/create_daily_report_usecase.dart';
 import 'domain/usecases/create_reception_usecase.dart';
 import 'domain/usecases/delete_photo_usecase.dart';
 import 'domain/usecases/demo_login_usecase.dart';
+import 'domain/usecases/list_assigned_tasks_usecase.dart';
 import 'domain/usecases/list_daily_reports_usecase.dart';
 import 'domain/usecases/list_machine_activities_usecase.dart';
-import 'domain/usecases/list_pending_receptions_usecase.dart';
+import 'domain/usecases/list_receptions_usecase.dart';
 import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
 import 'domain/usecases/register_machine_activity_usecase.dart';
 import 'domain/usecases/restore_session_usecase.dart';
-import 'domain/usecases/validate_reception_usecase.dart';
-import 'domain/usecases/watch_stock_usecase.dart';
 import 'presentation/preview/components_preview_screen.dart';
 
 /// Flag para validación de prototipos (showroom). En `false` (default) muestra
@@ -67,6 +66,7 @@ class _MyAppState extends State<MyApp> {
   late final DriftSessionRepository _sessionRepository;
   late final LoginViewModel _loginViewModel;
   late final LogoutUseCase _logoutUseCase;
+  late final TasksViewModel _tasksViewModel;
   late final DailyReportsViewModel _dailyReportsViewModel;
   late final DailyReportFormViewModel _dailyReportFormViewModel;
   late final ReceptionsViewModel _receptionsViewModel;
@@ -80,9 +80,6 @@ class _MyAppState extends State<MyApp> {
 
   /// Razones sociales reales (catálogo) para el selector global de firma.
   late final Stream<List<domain.Company>> _companies;
-
-  /// Stock global (KPI del dashboard), independiente del cliente/firma.
-  late final Stream<List<domain.Stock>> _stock;
 
   /// Dependencias de fotos (CUU05/06), cableadas aquí para que los formularios
   /// de Phase 7 las consuman. Públicas porque aún no tienen consumidor y el
@@ -136,49 +133,47 @@ class _MyAppState extends State<MyApp> {
     // Catálogos (readers drift) para los selectores de CUU05/06/08.
     final companyReader = DriftCompanyReader(_database);
     final clientReader = DriftClientReader(_database);
-    final farmReader = DriftFarmReader(_database);
     final lotReader = DriftLotReader(_database);
     final laborTypeReader = DriftLaborTypeReader(_database);
     final inputReader = DriftInputReader(_database);
     final recipeReader = DriftRecipeReader(_database);
     final machineReader = DriftMachineReader(_database);
 
+    // Tareas (CUU08): lector drift + use case + ViewModel.
+    final taskReader = DriftTaskReader(_database);
+    final listAssignedTasksUseCase = ListAssignedTasksUseCase(taskReader);
+    _tasksViewModel = TasksViewModel(listAssignedTasksUseCase, taskReader);
+
     // Selector global de firma (post-login): stream de razones sociales reales.
     _companies = companyReader.watchAll();
 
-    // Parte diario (CUU05): repositorio + use cases + ViewModels.
+    // Parte diario (CUU05): repositorio + use cases + ViewModels. El parte
+    // hereda lote/labor de la tarea (R007) y la firma del selector global.
     final dailyReportRepository = DriftDailyReportRepository(_database);
     final listDailyReportsUseCase = ListDailyReportsUseCase(dailyReportRepository);
-    final createDailyReportUseCase =
-        CreateDailyReportUseCase(dailyReportRepository, recipeReader);
+    final createDailyReportUseCase = CreateDailyReportUseCase(
+      dailyReportRepository,
+      recipeReader,
+      taskReader,
+    );
 
     _dailyReportsViewModel = DailyReportsViewModel(listDailyReportsUseCase);
     _dailyReportFormViewModel = DailyReportFormViewModel(
       createUseCase: createDailyReportUseCase,
-      clientReader: clientReader,
-      farmReader: farmReader,
+      inputReader: inputReader,
       lotReader: lotReader,
       laborTypeReader: laborTypeReader,
-      inputReader: inputReader,
-      companyReader: companyReader,
-      recipeReader: recipeReader,
       addPhotoUseCase: addPhotoUseCase,
       photoPickerService: photoPickerService,
     );
 
-    // Recepción de insumos (CUU06): repositorio + use cases + ViewModels.
+    // Recepción de insumos (CUU06): solo lectura en el móvil. El alta sigue
+    // disponible; la validación es responsabilidad del web.
     final receptionRepository = DriftReceptionRepository(_database);
-    final listPendingReceptionsUseCase =
-        ListPendingReceptionsUseCase(receptionRepository);
-    final validateReceptionUseCase =
-        ValidateReceptionUseCase(receptionRepository);
-    final createReceptionUseCase =
-        CreateReceptionUseCase(receptionRepository);
+    final listReceptionsUseCase = ListReceptionsUseCase(receptionRepository);
+    final createReceptionUseCase = CreateReceptionUseCase(receptionRepository);
 
-    _receptionsViewModel = ReceptionsViewModel(
-      listPendingReceptionsUseCase,
-      validateReceptionUseCase,
-    );
+    _receptionsViewModel = ReceptionsViewModel(listReceptionsUseCase);
     _receptionFormViewModel = ReceptionFormViewModel(
       createUseCase: createReceptionUseCase,
       clientReader: clientReader,
@@ -186,11 +181,6 @@ class _MyAppState extends State<MyApp> {
       addPhotoUseCase: addPhotoUseCase,
       photoPickerService: photoPickerService,
     );
-
-    // Stock (CUU06): KPI global del dashboard vía WatchStockUseCase.watchAll().
-    final stockRepository = DriftStockRepository(_database);
-    final watchStockUseCase = WatchStockUseCase(stockRepository);
-    _stock = watchStockUseCase.watchAll();
 
     // Actividades de maquinaria (CUU08): repositorio + use cases + ViewModels.
     final machineActivityRepository =
@@ -281,10 +271,10 @@ class _MyAppState extends State<MyApp> {
                   ? DashboardView(
                       session: _session!,
                       companies: _companies,
-                      stock: _stock,
                       onFirmChanged: _handleFirmChanged,
                       pendingSyncCount: _pendingSyncCount,
                       onLogout: _handleLogout,
+                      tasksViewModel: _tasksViewModel,
                       dailyReportsViewModel: _dailyReportsViewModel,
                       dailyReportFormViewModel: _dailyReportFormViewModel,
                       receptionsViewModel: _receptionsViewModel,

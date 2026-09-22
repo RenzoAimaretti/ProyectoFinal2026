@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../domain/models/daily_report.dart';
+import '../../domain/models/daily_report_summary.dart';
 import '../../domain/usecases/list_daily_reports_usecase.dart';
 
 /// ViewModel de la bandeja de partes diarios (CUU05, lista).
@@ -26,6 +27,10 @@ class DailyReportsViewModel extends ChangeNotifier {
   /// fecha descendente.
   Stream<List<DailyReport>> get reports =>
       _listUseCase.watchByCompany(_companyId);
+
+  /// Partes con `lotName`/`laborName` resueltos para el listado (D2).
+  Stream<List<DailyReportSummary>> get summaries =>
+      _listUseCase.watchSummaries(_companyId);
 
   /// Cambia la firma activa y notifica para que la vista resuscriba el stream.
   void setCompany(String? companyId) {

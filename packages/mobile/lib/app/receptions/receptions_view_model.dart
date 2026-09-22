@@ -1,30 +1,20 @@
 import 'dart:async';
 
-import '../../domain/models/reception.dart';
-import '../../domain/usecases/list_pending_receptions_usecase.dart';
-import '../../domain/usecases/validate_reception_usecase.dart';
+import '../../domain/models/reception_summary.dart';
+import '../../domain/usecases/list_receptions_usecase.dart';
 
 /// ViewModel de la bandeja de recepciones de insumos (CUU06, lista).
 ///
-/// Expone un `Stream<List<Reception>>` de las recepciones pendientes de
-/// validación, alimentado por el `watch` de drift: la vista se refresca sola
-/// ante cada insert o validación. La acción de validar delega en
-/// [ValidateReceptionUseCase].
-///
-/// NOTA multi-firma: las recepciones NO se filtran por firma. `Reception` se
-/// asocia al cliente (`clientId`), no tiene `companyId`; la discriminación por
-/// firma aplica solo a partes diarios y actividades de maquinaria.
+/// Solo lectura: expone TODAS las recepciones (cualquier estado) con el nombre
+/// de cliente resuelto, vía `ListReceptionsUseCase`. La validación ya no vive
+/// en el móvil (responsabilidad del administrador en el web), por lo que no
+/// hay acción `validate`.
 class ReceptionsViewModel {
-  ReceptionsViewModel(this._listUseCase, this._validateUseCase);
+  ReceptionsViewModel(this._listUseCase);
 
-  final ListPendingReceptionsUseCase _listUseCase;
-  final ValidateReceptionUseCase _validateUseCase;
+  final ListReceptionsUseCase _listUseCase;
 
-  /// Recepciones en estado `PENDING_VALIDATION`.
-  Stream<List<Reception>> get pendingReceptions => _listUseCase.execute();
-
-  /// Valida una recepción (status → VALIDATED + Stock en la misma tx — R017).
-  Future<void> validate(String id, {required String validatedBy}) {
-    return _validateUseCase.execute(id, validatedBy);
-  }
+  /// Todas las recepciones con `clientName` resuelto, ordenadas por fecha desc.
+  Stream<List<ReceptionSummary>> get receptions =>
+      _listUseCase.watchSummaries();
 }

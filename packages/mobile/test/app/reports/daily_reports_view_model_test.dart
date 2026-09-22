@@ -22,6 +22,7 @@ void main() {
       DailyReport(
         operatorId: 'op-1',
         companyId: 'company-1',
+        taskId: 'task-1',
         lotId: 'lot-1',
         laborTypeId: 'labor-1',
         date: DateTime(2026, 1, 1),

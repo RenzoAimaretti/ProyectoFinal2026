@@ -1,14 +1,17 @@
 import 'dart:async';
 
-import 'package:mobile/domain/errors.dart';
 import 'package:mobile/domain/models/catalogs.dart';
 import 'package:mobile/domain/models/daily_report.dart';
+import 'package:mobile/domain/models/daily_report_summary.dart';
 import 'package:mobile/domain/models/enums.dart';
 import 'package:mobile/domain/models/machine_activity.dart';
+import 'package:mobile/domain/models/machine_activity_summary.dart';
 import 'package:mobile/domain/models/photo.dart';
 import 'package:mobile/domain/models/reception.dart';
+import 'package:mobile/domain/models/reception_summary.dart';
 import 'package:mobile/domain/models/session.dart';
 import 'package:mobile/domain/models/stock.dart';
+import 'package:mobile/domain/models/task.dart';
 import 'package:mobile/domain/repositories/auth_repository.dart';
 import 'package:mobile/domain/repositories/daily_report_repository.dart';
 import 'package:mobile/domain/repositories/machine_activity_repository.dart';
@@ -26,6 +29,7 @@ import 'package:mobile/domain/repositories/recipe_reader.dart';
 import 'package:mobile/data/services/photo_picker_service.dart';
 import 'package:mobile/domain/repositories/session_repository.dart';
 import 'package:mobile/domain/repositories/stock_repository.dart';
+import 'package:mobile/domain/repositories/task_reader.dart';
 
 /// Fakes en memoria para tests unitarios de use cases.
 ///
@@ -90,6 +94,7 @@ class FakeDailyReportRepository implements DailyReportRepository {
       id: id,
       operatorId: report.operatorId,
       companyId: report.companyId,
+      taskId: report.taskId,
       lotId: report.lotId,
       laborTypeId: report.laborTypeId,
       date: report.date,
@@ -132,6 +137,26 @@ class FakeDailyReportRepository implements DailyReportRepository {
   }
 
   @override
+  Stream<List<DailyReportSummary>> watchSummaries({String? companyId}) {
+    return Stream.value(
+      _reports
+          .where((r) => companyId == null || r.companyId == companyId)
+          .map(
+            (r) => DailyReportSummary(
+              id: r.id!,
+              lotId: r.lotId,
+              lotName: r.lotId,
+              laborName: r.laborTypeId,
+              date: r.date,
+              hectares: r.hectares,
+              status: r.status,
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  @override
   Future<void> updateStatus(
     String id,
     DailyReportStatus status, {
@@ -149,8 +174,6 @@ class FakeDailyReportRepository implements DailyReportRepository {
 class FakeReceptionRepository implements ReceptionRepository {
   final List<Reception> _receptions = [];
   int _idCounter = 0;
-  bool validateCalled = false;
-  String? lastValidatedId;
 
   @override
   Future<String> create(Reception reception, List<ReceptionItem> items) async {
@@ -165,18 +188,35 @@ class FakeReceptionRepository implements ReceptionRepository {
   }
 
   @override
+  Stream<List<Reception>> watchAll() {
+    return Stream.value(List.unmodifiable(_receptions));
+  }
+
+  @override
+  Stream<List<ReceptionSummary>> watchSummaries() {
+    return Stream.value(
+      _receptions
+          .map(
+            (r) => ReceptionSummary(
+              id: r.id!,
+              clientId: r.clientId,
+              clientName: 'Cliente ${r.clientId}',
+              date: r.date,
+              status: r.status,
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  /// Helper para tests del flujo de alta (no forma parte del puerto): devuelve
+  /// solo las recepciones en `PENDING_VALIDATION`.
   Stream<List<Reception>> watchPending() {
     return Stream.value(
       _receptions
           .where((r) => r.status == ReceptionStatus.PENDING_VALIDATION)
           .toList(),
     );
-  }
-
-  @override
-  Future<void> validateAndApplyStock(String id, String validatedBy) async {
-    validateCalled = true;
-    lastValidatedId = id;
   }
 }
 
@@ -251,6 +291,24 @@ class FakeMachineActivityRepository implements MachineActivityRepository {
   @override
   Stream<List<MachineActivity>> watchAll() =>
       Stream.value(List.unmodifiable(_activities));
+
+  @override
+  Stream<List<MachineActivitySummary>> watchSummaries({String? companyId}) {
+    return Stream.value(
+      _activities
+          .where((a) => companyId == null || a.companyId == companyId)
+          .map(
+            (a) => MachineActivitySummary(
+              id: a.id ?? '',
+              machineId: a.machineId,
+              machineName: a.machineId,
+              type: a.type,
+              date: a.date,
+            ),
+          )
+          .toList(),
+    );
+  }
 }
 
 // ─── Photo ───────────────────────────────────────────────────────────────────
@@ -472,4 +530,30 @@ class FakePhotoPickerService extends PhotoPickerService {
 
   @override
   Future<String?> pickFromGallery() async => galleryResult;
+}
+
+// ─── TaskReader ──────────────────────────────────────────────────────────────
+
+class FakeTaskReader implements TaskReader {
+  final List<Task> _tasks = [];
+
+  void seed(Task task) => _tasks.add(task);
+
+  @override
+  Stream<List<Task>> watchAssignedTo(String operatorId) {
+    // A falta de una tabla de asignación en el fake, se devuelven todas; los
+    // tests de este alcance solo dependen de `getById` (herencia lote/labor).
+    return Stream.value(List.unmodifiable(_tasks));
+  }
+
+  @override
+  Stream<List<Task>> watchAll() => Stream.value(List.unmodifiable(_tasks));
+
+  @override
+  Future<Task?> getById(String id) async {
+    for (final task in _tasks) {
+      if (task.id == id) return task;
+    }
+    return null;
+  }
 }

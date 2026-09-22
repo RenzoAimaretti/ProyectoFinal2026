@@ -45,35 +45,35 @@
 
 ## 7. UI — Tareas + wizard + fecha
 
-- [ ] 7.1 Crear `app/tasks/tasks_view_model.dart` + `tasks_view.dart` (lista de asignadas + acceso a todas — A4).
-- [ ] 7.2 Dashboard: agregar pestaña "Tareas" (índice 0), FAB de tareas abre carga del parte, quitar KPI de stock y stream `stock`.
-- [ ] 7.3 `daily_report_form_view.dart`: recibir `Task` + `companyId` + `operatorId`; quitar firma/cascada; encabezado resumen de tarea; pasos Jornada → Insumos → Fotos+resumen.
-- [ ] 7.4 `DateField` en el parte, default hoy, **bloquea fechas futuras** (C1).
-- [ ] 7.5 `main.dart`: cablear `TaskReader`, `ListAssignedTasksUseCase`, `TasksViewModel`, y pasar `companyId` del selector global al form del parte.
+- [x] 7.1 Crear `app/tasks/tasks_view_model.dart` + `tasks_view.dart` (lista de asignadas + acceso a todas — A4).
+- [x] 7.2 Dashboard: agregar pestaña "Tareas" (índice 0), FAB de tareas abre carga del parte, quitar KPI de stock y stream `stock`.
+- [x] 7.3 `daily_report_form_view.dart`: recibir `Task` + `companyId` + `operatorId`; quitar firma/cascada; encabezado resumen de tarea; pasos Jornada → Insumos → Fotos+resumen.
+- [x] 7.4 `DateField` en el parte, default hoy, **bloquea fechas futuras** (C1).
+- [x] 7.5 `main.dart`: cablear `TaskReader`, `ListAssignedTasksUseCase`, `TasksViewModel`, y pasar `companyId` del selector global al form del parte.
 
 ## 8. UI — listados con nombres
 
-- [ ] 8.1 `daily_reports_view.dart`: consumir `DailyReportSummary`, mostrar `lotName`/`laborName`.
-- [ ] 8.2 `receptions_view.dart`: consumir `ReceptionSummary`, mostrar `clientName` + estado, sin botón "Validar".
-- [ ] 8.3 `machine_activities_view.dart`: consumir `MachineActivitySummary`, mostrar `machineName`.
+- [x] 8.1 `daily_reports_view.dart`: consumir `DailyReportSummary`, mostrar `lotName`/`laborName`.
+- [x] 8.2 `receptions_view.dart`: consumir `ReceptionSummary`, mostrar `clientName` + estado, sin botón "Validar".
+- [x] 8.3 `machine_activities_view.dart`: consumir `MachineActivitySummary`, mostrar `machineName`.
 
 ## 9. Tests
 
-- [ ] 9.1 Unit: `ListAssignedTasksUseCase`, `CreateDailyReportUseCase` (taskId + hereda + R009 + tarea inexistente), `ListReceptionsUseCase`.
-- [ ] 9.2 Adaptador: `TasksDao` (join asignadas), `DailyReports.taskId` persistencia, joins de resumen (`NativeDatabase.memory()`).
-- [ ] 9.3 ViewModel: `TasksViewModel`, `DailyReportFormViewModel` (nueva firma), `ReceptionsViewModel` (solo lectura).
-- [ ] 9.4 Widget: pantalla tareas, wizard simplificado (fecha no futura), recepciones solo-lectura.
-- [ ] 9.5 Actualizar tests rotos (form del parte sin cascada, `ReceptionsViewModel` sin `validate`, KPI removido).
-- [ ] 9.6 Import-boundary: `domain/**` sin imports de `drift`/`flutter`.
+- [x] 9.1 Unit: `ListAssignedTasksUseCase`, `CreateDailyReportUseCase` (taskId + hereda + R009 + tarea inexistente), `ListReceptionsUseCase`.
+- [x] 9.2 Adaptador: `TasksDao` (join asignadas), `DailyReports.taskId` persistencia, joins de resumen (`NativeDatabase.memory()`).
+- [x] 9.3 ViewModel: `TasksViewModel`, `DailyReportFormViewModel` (nueva firma), `ReceptionsViewModel` (solo lectura).
+- [x] 9.4 Widget: pantalla tareas, wizard simplificado (fecha no futura), recepciones solo-lectura.
+- [x] 9.5 Actualizar tests rotos (form del parte sin cascada, `ReceptionsViewModel` sin `validate`, KPI removido).
+- [x] 9.6 Import-boundary: `domain/**` sin imports de `drift`/`flutter`.
 
 ## 10. Contrato y verificación
 
-- [ ] 10.1 Actualizar `openspec/changes/sprint1-flutter-ui-persistencia-local/contrato-esquema-prisma.md` con los deltas Prisma (design §5).
-- [ ] 10.2 `flutter analyze` → 0 errores / 0 warnings.
-- [ ] 10.3 `flutter test` → verde.
+- [x] 10.1 Actualizar `openspec/changes/sprint1-flutter-ui-persistencia-local/contrato-esquema-prisma.md` con los deltas Prisma (design §5).
+- [x] 10.2 `flutter analyze` → 0 errores / 0 warnings.
+- [x] 10.3 `flutter test` → verde.
 
 ## Explicit Non-Goals
 
-- [ ] No ejecutar `flutter build` (regla del workspace).
-- [ ] No implementar el motor de sync (Sprint 2).
-- [ ] No cambiar el `schema.prisma` del backend (solo documentar en el contrato).
+- [x] No ejecutar `flutter build` (regla del workspace).
+- [x] No implementar el motor de sync (Sprint 2).
+- [x] No cambiar el `schema.prisma` del backend (solo documentar en el contrato).
