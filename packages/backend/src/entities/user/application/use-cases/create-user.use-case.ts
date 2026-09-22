@@ -1,16 +1,18 @@
 import * as argon2 from 'argon2';
 import { EntityNotFoundError, InvalidInputError, DuplicateEntityError } from '../../domain/errors';
 import { assertRequiredString, assertValidRole } from '../user.validation';
-import { CreateUserInput, TenantReaderPort, UserRepositoryPort } from '../user.ports';
+import { CompanyReaderPort, CreateUserInput, TenantReaderPort, UserRepositoryPort } from '../user.ports';
 
 export class CreateUserUseCase {
   constructor(
     private readonly repository: UserRepositoryPort,
     private readonly tenantReader: TenantReaderPort,
+    private readonly companyReader: CompanyReaderPort,
   ) {}
 
   async execute(input: CreateUserInput) {
     assertRequiredString(input.tenantId, 'tenantId');
+    assertRequiredString(input.companyId, 'companyId');
     assertRequiredString(input.password, 'password');
     assertValidRole(input.role);
 
@@ -22,6 +24,11 @@ export class CreateUserUseCase {
     const tenant = await this.tenantReader.findById(input.tenantId);
     if (!tenant) {
       throw new EntityNotFoundError(`Tenant with id ${input.tenantId} not found`);
+    }
+
+    const company = await this.companyReader.findByIdForTenant(input.companyId, input.tenantId);
+    if (!company) {
+      throw new EntityNotFoundError(`Company with id ${input.companyId} not found for tenant ${input.tenantId}`);
     }
 
     const existingByEmail = await this.repository.findByEmail(userEmail);
@@ -40,6 +47,7 @@ export class CreateUserUseCase {
 
     return this.repository.create({
       tenantId: input.tenantId,
+      companyId: input.companyId,
       email: userEmail,
       ...(input.username ? { username: input.username } : {}),
       passwordHash,

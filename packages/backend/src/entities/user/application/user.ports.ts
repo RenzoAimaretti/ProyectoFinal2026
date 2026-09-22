@@ -9,6 +9,7 @@ import {
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 export const TENANT_READER = Symbol('USER_TENANT_READER');
+export const COMPANY_READER = Symbol('USER_COMPANY_READER');
 
 export interface UserRepositoryPort {
   findAll(): Promise<UserRecord[]>;
@@ -24,6 +25,10 @@ export interface UserRepositoryPort {
 
 export interface TenantReaderPort {
   findById(id: string): Promise<{ id: string } | null>;
+}
+
+export interface CompanyReaderPort {
+  findByIdForTenant(id: string, tenantId: string): Promise<{ id: string } | null>;
 }
 
 export type { CreateUserInput, UpdateUserInput, UserRecord, UserRoleValue };

@@ -59,6 +59,7 @@ describe('UserController', () => {
     await expect(
       (controller as any).create(req, {
         tenantId: 'tenant-1',
+        companyId: 'company-1',
         email: 'user@firma.com',
         password: 'Password123!',
         role: 'ADMIN',
@@ -73,6 +74,7 @@ describe('UserController', () => {
     expect(service.findOne).toHaveBeenCalledWith('user-1', 'tenant-1');
     expect(service.create).toHaveBeenCalledWith('tenant-1', {
       email: 'user@firma.com',
+      companyId: 'company-1',
       password: 'Password123!',
       role: 'ADMIN',
     });

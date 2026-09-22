@@ -20,6 +20,7 @@ export type UserRecord = {
 
 export type CreateUserInput = {
   tenantId: string;
+  companyId: string;
   username?: string;
   email?: string;
   password: string;
@@ -37,6 +38,7 @@ export type UpdateUserInput = {
 
 export type CreateUserData = {
   tenantId: string;
+  companyId: string;
   username?: string;
   email: string;
   passwordHash: string;

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { RefreshTokenRepositoryPort } from '../../application/auth.ports';
-import { AuthUserCredentials, CreateRefreshTokenInput, RefreshTokenRecord } from '../../application/auth.types';
+import { AuthUserCredentials, AuthUserRole, CreateRefreshTokenInput, RefreshTokenRecord } from '../../application/auth.types';
 
 type RefreshTokenWithUser = {
   id: string;
@@ -12,13 +12,12 @@ type RefreshTokenWithUser = {
     id: string;
     email: string;
     passwordHash: string;
-    role: AuthUserCredentials['role'];
     tenantId: string;
     active: boolean;
     deleted: boolean;
     failedLoginAttempts: number;
     lockedUntil: Date | null;
-    companyMemberships: { companyId: string }[];
+    companyMemberships: { companyId: string; role: AuthUserRole }[];
   };
 };
 
@@ -27,7 +26,7 @@ function toAuthUserCredentials(user: RefreshTokenWithUser['user']): AuthUserCred
     id: user.id,
     email: user.email,
     passwordHash: user.passwordHash,
-    role: user.role,
+    role: user.companyMemberships[0]?.role as AuthUserRole,
     tenantId: user.tenantId,
     firmaId: user.companyMemberships[0]?.companyId ?? null,
     active: user.active,
@@ -54,7 +53,7 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepositoryPort 
               where: { active: true },
               orderBy: { createdAt: 'asc' },
               take: 1,
-              select: { companyId: true },
+              select: { companyId: true, role: true },
             },
           },
         },
@@ -84,7 +83,7 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepositoryPort 
               where: { active: true },
               orderBy: { createdAt: 'asc' },
               take: 1,
-              select: { companyId: true },
+              select: { companyId: true, role: true },
             },
           },
         },

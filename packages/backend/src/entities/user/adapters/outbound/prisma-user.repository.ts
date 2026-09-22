@@ -42,6 +42,12 @@ export class PrismaUserRepository implements UserRepositoryPort {
       return (await this.prisma.user.create({
         data: {
           tenantId: data.tenantId,
+          companyMemberships: {
+            create: {
+              companyId: data.companyId,
+              role: data.role,
+            },
+          },
           email: data.email,
           ...(data.username ? { username: data.username } : {}),
           passwordHash: data.passwordHash,

@@ -1,19 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { UserCredentialsRepositoryPort } from '../../application/auth.ports';
-import { AuthUserCredentials, UpdateSecurityStateInput } from '../../application/auth.types';
+import { AuthUserCredentials, AuthUserRole, UpdateSecurityStateInput } from '../../application/auth.types';
 
 type UserWithMemberships = {
   id: string;
   email: string;
   passwordHash: string;
-  role: AuthUserCredentials['role'];
   tenantId: string;
   active: boolean;
   deleted: boolean;
   failedLoginAttempts: number;
   lockedUntil: Date | null;
-  companyMemberships: { companyId: string }[];
+  companyMemberships: { companyId: string; role: AuthUserRole }[];
 };
 
 export function toAuthUserCredentials(user: UserWithMemberships): AuthUserCredentials {
@@ -21,7 +20,7 @@ export function toAuthUserCredentials(user: UserWithMemberships): AuthUserCreden
     id: user.id,
     email: user.email,
     passwordHash: user.passwordHash,
-    role: user.role,
+    role: user.companyMemberships[0]?.role as AuthUserRole,
     tenantId: user.tenantId,
     firmaId: user.companyMemberships[0]?.companyId ?? null,
     active: user.active,
@@ -43,7 +42,7 @@ export class PrismaUserCredentialsRepository implements UserCredentialsRepositor
           where: { active: true },
           orderBy: { createdAt: 'asc' },
           take: 1,
-          select: { companyId: true },
+          select: { companyId: true, role: true },
         },
       },
     });

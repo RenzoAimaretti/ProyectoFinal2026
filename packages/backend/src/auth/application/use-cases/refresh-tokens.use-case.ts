@@ -40,7 +40,7 @@ export class RefreshTokensUseCase {
       throw new AccountInactiveError('Usuario inactivo');
     }
 
-    if (!user.firmaId) {
+    if (!user.firmaId || !user.role) {
       throw new AccountInactiveError('El usuario no tiene una firma activa asignada');
     }
 

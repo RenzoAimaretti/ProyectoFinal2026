@@ -42,7 +42,7 @@ describe('AuthController (e2e)', () => {
     deleted: boolean;
     failedLoginAttempts: number;
     lockedUntil: Date | null;
-    companyMemberships: { companyId: string }[];
+    companyMemberships: { companyId: string; role: UserRole }[];
   };
 
   // Shape returned by the auth outbound adapters (user + active membership).
@@ -63,7 +63,7 @@ describe('AuthController (e2e)', () => {
       deleted: false,
       failedLoginAttempts: 0,
       lockedUntil: null,
-      companyMemberships: [{ companyId: testCompany.id }],
+      companyMemberships: [{ companyId: testCompany.id, role: testUser.role }],
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
