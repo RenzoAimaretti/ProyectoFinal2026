@@ -9,9 +9,9 @@ export class UpdateTaskTypeUseCase {
     private readonly taskReader: TaskReaderPort,
   ) {}
 
-  async execute(id: string, companyId: string, input: UpdateTaskTypeInput): Promise<TaskTypeRecord> {
+  async execute(id: string, tenantId: string, input: UpdateTaskTypeInput): Promise<TaskTypeRecord> {
     const payload = assertNonEmptyObject(input);
-    const existing = await this.repository.findByIdForCompany(id, companyId);
+    const existing = await this.repository.findByIdForTenant(id, tenantId);
 
     if (!existing) {
       throw new EntityNotFoundError(`Task type with id ${id} not found`);
@@ -29,7 +29,7 @@ export class UpdateTaskTypeUseCase {
 
     if ('taskIds' in payload) {
       const taskIds = Array.isArray(payload.taskIds) ? payload.taskIds : [];
-      const tasks = await this.taskReader.findByIdsForCompany(taskIds, companyId);
+      const tasks = await this.taskReader.findByIdsForTenant(taskIds, tenantId);
       const foundIds = tasks.map((task) => task.id);
       const missingIds = taskIds.filter((taskId) => !foundIds.includes(taskId));
 
@@ -41,18 +41,18 @@ export class UpdateTaskTypeUseCase {
     }
 
     if (data.name !== undefined && data.name !== existing.name) {
-      const duplicate = await this.repository.findByNameAndCompanyId(
+      const duplicate = await this.repository.findByNameAndTenantId(
         data.name,
-        companyId,
+        tenantId,
       );
 
       if (duplicate && duplicate.id !== id) {
         throw new DuplicateEntityError(
-          `Task type with name ${data.name} already exists for company ${companyId}`,
+          `Task type with name ${data.name} already exists for company ${tenantId}`,
         );
       }
     }
 
-    return this.repository.updateForCompany(id, companyId, data);
+    return this.repository.updateForTenant(id, tenantId, data);
   }
 }

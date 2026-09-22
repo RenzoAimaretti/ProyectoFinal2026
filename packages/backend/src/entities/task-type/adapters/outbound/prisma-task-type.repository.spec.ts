@@ -24,14 +24,14 @@ describe('PrismaTaskTypeRepository', () => {
     prisma.taskType.findMany.mockResolvedValue([{ id: 'task-type-1' }]);
     prisma.taskType.findFirst.mockResolvedValue({ id: 'task-type-1' });
 
-    await expect(repository.findAllByCompanyId('tenant-1')).resolves.toEqual([
+    await expect(repository.findAllByTenantId('tenant-1')).resolves.toEqual([
       { id: 'task-type-1' },
     ]);
-    await expect(repository.findByIdForCompany('task-type-1', 'tenant-1')).resolves.toEqual({
+    await expect(repository.findByIdForTenant('task-type-1', 'tenant-1')).resolves.toEqual({
       id: 'task-type-1',
     });
     await expect(
-      repository.findByNameAndCompanyId('Mantenimiento', 'tenant-1'),
+      repository.findByNameAndTenantId('Mantenimiento', 'tenant-1'),
     ).resolves.toEqual({ id: 'task-type-1' });
 
     expect(prisma.taskType.findMany).toHaveBeenCalledWith({ where: { tenantId: 'tenant-1' } });
@@ -50,15 +50,15 @@ describe('PrismaTaskTypeRepository', () => {
     prisma.taskType.delete.mockResolvedValue({});
 
     await expect(
-      repository.findByIdsForCompany(['task-1'], 'tenant-1'),
+      repository.findByIdsForTenant(['task-1'], 'tenant-1'),
     ).resolves.toEqual([{ id: 'task-1' }]);
     await expect(
       repository.create({ tenantId: 'tenant-1', name: 'Mantenimiento' }),
     ).resolves.toEqual({ id: 'task-type-2' });
     await expect(
-      repository.updateForCompany('task-type-2', 'tenant-1', { name: 'Nuevo nombre' }),
+      repository.updateForTenant('task-type-2', 'tenant-1', { name: 'Nuevo nombre' }),
     ).resolves.toEqual({ id: 'task-type-2' });
-    await expect(repository.deleteForCompany('task-type-2', 'tenant-1')).resolves.toBeUndefined();
+    await expect(repository.deleteForTenant('task-type-2', 'tenant-1')).resolves.toBeUndefined();
 
     expect(prisma.task.findMany).toHaveBeenCalledWith({
       where: { id: { in: ['task-1'] }, taskType: { tenantId: 'tenant-1' } },

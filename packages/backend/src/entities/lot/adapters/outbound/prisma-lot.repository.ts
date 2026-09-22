@@ -11,13 +11,13 @@ import {
 export class PrismaLotRepository implements LotRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAllByCompanyId(tenantId: string): Promise<LotRecord[]> {
+  findAllByTenantId(tenantId: string): Promise<LotRecord[]> {
     return this.prisma.lot.findMany({
       where: { farm: { client: { tenantId } } },
     });
   }
 
-  findByIdForCompany(id: string, tenantId: string): Promise<LotRecord | null> {
+  findByIdForTenant(id: string, tenantId: string): Promise<LotRecord | null> {
     return this.prisma.lot.findFirst({
       where: { id, farm: { client: { tenantId } } },
     });
@@ -40,7 +40,7 @@ export class PrismaLotRepository implements LotRepositoryPort {
     });
   }
 
-  async updateForCompany(
+  async updateForTenant(
     id: string,
     tenantId: string,
     data: UpdateLotInput,

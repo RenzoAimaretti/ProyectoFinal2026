@@ -4,19 +4,19 @@ export const FARM_REPOSITORY = Symbol('FARM_REPOSITORY');
 export const CLIENT_READER = Symbol('CLIENT_READER');
 
 export interface FarmRepositoryPort {
-  findAllByCompanyId(companyId: string): Promise<FarmRecord[]>;
-  findByIdForCompany(
+  findAllByTenantId(tenantId: string): Promise<FarmRecord[]>;
+  findByIdForTenant(
     id: string,
-    companyId: string,
+    tenantId: string,
   ): Promise<FarmRecord | null>;
   findByNameAndClientId(
     name: string,
     clientId: string,
   ): Promise<FarmRecord | null>;
   create(data: CreateFarmInput & { clientId: string }): Promise<FarmRecord>;
-  updateForCompany(
+  updateForTenant(
     id: string,
-    companyId: string,
+    tenantId: string,
     data: UpdateFarmInput,
   ): Promise<FarmRecord>;
 }

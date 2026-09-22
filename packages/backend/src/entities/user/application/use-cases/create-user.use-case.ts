@@ -1,13 +1,19 @@
-import * as argon2 from 'argon2';
 import { EntityNotFoundError, InvalidInputError, DuplicateEntityError } from '../../domain/errors';
 import { assertRequiredString, assertValidRole } from '../user.validation';
-import { CompanyReaderPort, CreateUserInput, TenantReaderPort, UserRepositoryPort } from '../user.ports';
+import {
+  CompanyReaderPort,
+  CreateUserInput,
+  PasswordHasherPort,
+  TenantReaderPort,
+  UserRepositoryPort,
+} from '../user.ports';
 
 export class CreateUserUseCase {
   constructor(
     private readonly repository: UserRepositoryPort,
     private readonly tenantReader: TenantReaderPort,
     private readonly companyReader: CompanyReaderPort,
+    private readonly passwordHasher: PasswordHasherPort,
   ) {}
 
   async execute(input: CreateUserInput) {
@@ -43,7 +49,7 @@ export class CreateUserUseCase {
       }
     }
 
-    const passwordHash = await argon2.hash(input.password);
+    const passwordHash = await this.passwordHasher.hash(input.password);
 
     return this.repository.create({
       tenantId: input.tenantId,

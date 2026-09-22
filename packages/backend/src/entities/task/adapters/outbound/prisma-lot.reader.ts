@@ -6,7 +6,7 @@ import { LotReaderPort } from '../../application/task.ports';
 export class PrismaLotReader implements LotReaderPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findByIdForCompany(id: string, tenantId: string) {
+  findByIdForTenant(id: string, tenantId: string) {
     return this.prisma.lot.findFirst({
       where: { id, farm: { client: { tenantId } } },
       select: { id: true },

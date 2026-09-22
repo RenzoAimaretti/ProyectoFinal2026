@@ -11,13 +11,13 @@ import {
 export class PrismaFarmRepository implements FarmRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAllByCompanyId(tenantId: string): Promise<FarmRecord[]> {
+  findAllByTenantId(tenantId: string): Promise<FarmRecord[]> {
     return this.prisma.farm.findMany({
       where: { client: { tenantId } },
     });
   }
 
-  findByIdForCompany(id: string, tenantId: string): Promise<FarmRecord | null> {
+  findByIdForTenant(id: string, tenantId: string): Promise<FarmRecord | null> {
     return this.prisma.farm.findFirst({
       where: { id, client: { tenantId } },
     });
@@ -40,7 +40,7 @@ export class PrismaFarmRepository implements FarmRepositoryPort {
     });
   }
 
-  async updateForCompany(
+  async updateForTenant(
     id: string,
     tenantId: string,
     data: UpdateFarmInput,

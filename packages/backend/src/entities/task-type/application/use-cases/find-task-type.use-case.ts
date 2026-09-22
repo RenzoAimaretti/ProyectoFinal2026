@@ -4,8 +4,8 @@ import { TaskTypeRepositoryPort } from '../task-type.ports';
 export class FindTaskTypeUseCase {
   constructor(private readonly repository: TaskTypeRepositoryPort) {}
 
-  async execute(id: string, companyId: string) {
-    const taskType = await this.repository.findByIdForCompany(id, companyId);
+  async execute(id: string, tenantId: string) {
+    const taskType = await this.repository.findByIdForTenant(id, tenantId);
 
     if (!taskType) {
       throw new EntityNotFoundError(`Task type with id ${id} not found`);

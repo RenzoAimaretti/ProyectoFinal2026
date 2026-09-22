@@ -8,16 +8,16 @@ export class AddTaskOperatorUseCase {
     private readonly userReader: UserReaderPort,
   ) {}
 
-  async execute(taskId: string, operatorId: string, companyId: string): Promise<AddTaskOperatorOutput> {
-    const task = await this.repository.findByIdWithOperatorsForCompany(taskId, companyId);
+  async execute(taskId: string, operatorId: string, tenantId: string): Promise<AddTaskOperatorOutput> {
+    const task = await this.repository.findByIdWithOperatorsForTenant(taskId, tenantId);
 
     if (!task) {
       throw new EntityNotFoundError(`Task with id ${taskId} not found`);
     }
 
-    const user = await this.userReader.findByIdForCompany(operatorId, companyId);
+    const user = await this.userReader.findByIdForTenant(operatorId, tenantId);
     if (!user || user.role !== 'OPERARIO') {
-      throw new InvalidRelationError(`Operator with id ${operatorId} does not belong to company ${companyId}`);
+      throw new InvalidRelationError(`Operator with id ${operatorId} does not belong to company ${tenantId}`);
     }
 
     if (task.operators.some((operator) => operator.id === operatorId)) {
@@ -26,7 +26,7 @@ export class AddTaskOperatorUseCase {
       );
     }
 
-    await this.repository.addOperatorForCompany(taskId, companyId, operatorId);
+    await this.repository.addOperatorForTenant(taskId, tenantId, operatorId);
 
     return {
       message: `Operator with id ${operatorId} added to task with id ${taskId} successfully`,

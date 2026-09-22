@@ -7,13 +7,13 @@ import { TaskModule } from './task.module';
 describe('TaskModule', () => {
   it('wires RemoveTaskOperatorUseCase with repository and user reader', async () => {
     const repository = {
-      findByIdWithOperatorsForCompany: jest.fn().mockResolvedValue({
+      findByIdWithOperatorsForTenant: jest.fn().mockResolvedValue({
         operators: [{ id: 'user-1' }],
       }),
-      removeOperatorForCompany: jest.fn().mockResolvedValue(undefined),
+      removeOperatorForTenant: jest.fn().mockResolvedValue(undefined),
     };
     const userReader = {
-      findByIdForCompany: jest.fn().mockResolvedValue({ id: 'user-1', role: 'OPERARIO' }),
+      findByIdForTenant: jest.fn().mockResolvedValue({ id: 'user-1', role: 'OPERARIO' }),
     };
 
     const moduleRef = await Test.createTestingModule({
@@ -33,7 +33,7 @@ describe('TaskModule', () => {
       message: 'Operator with id user-1 removed from task with id task-1 successfully',
     });
 
-    expect(repository.removeOperatorForCompany).toHaveBeenCalledWith(
+    expect(repository.removeOperatorForTenant).toHaveBeenCalledWith(
       'task-1',
       'company-1',
       'user-1',

@@ -28,15 +28,15 @@ const baseLot = {
 
 function createPorts() {
   const repository: jest.Mocked<LotRepositoryPort> = {
-    findAllByCompanyId: jest.fn(),
-    findByIdForCompany: jest.fn(),
+    findAllByTenantId: jest.fn(),
+    findByIdForTenant: jest.fn(),
     findByNameAndFarmId: jest.fn(),
     create: jest.fn(),
-    updateForCompany: jest.fn(),
+    updateForTenant: jest.fn(),
   };
 
   const farmReader: jest.Mocked<FarmReaderPort> = {
-    findByIdForCompany: jest.fn(),
+    findByIdForTenant: jest.fn(),
   };
 
   return { repository, farmReader };
@@ -68,31 +68,31 @@ describe('Lot use cases', () => {
   describe('FindAllLotsUseCase', () => {
     it('returns only lots for the provided company', async () => {
       const { repository } = createPorts();
-      repository.findAllByCompanyId.mockResolvedValue([baseLot]);
+      repository.findAllByTenantId.mockResolvedValue([baseLot]);
 
       const useCase = new FindAllLotsUseCase(repository);
 
       await expect(useCase.execute('company-1')).resolves.toEqual([baseLot]);
 
-      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-1');
+      expect(repository.findAllByTenantId).toHaveBeenCalledWith('company-1');
     });
 
     it('returns an empty list when there are no lots', async () => {
       const { repository } = createPorts();
-      repository.findAllByCompanyId.mockResolvedValue([]);
+      repository.findAllByTenantId.mockResolvedValue([]);
 
       const useCase = new FindAllLotsUseCase(repository);
 
       await expect(useCase.execute('company-2')).resolves.toEqual([]);
 
-      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-2');
+      expect(repository.findAllByTenantId).toHaveBeenCalledWith('company-2');
     });
   });
 
   describe('FindLotUseCase', () => {
     it('returns a lot by id within the current company', async () => {
       const { repository } = createPorts();
-      repository.findByIdForCompany.mockResolvedValue(baseLot);
+      repository.findByIdForTenant.mockResolvedValue(baseLot);
 
       const useCase = new FindLotUseCase(repository);
 
@@ -100,7 +100,7 @@ describe('Lot use cases', () => {
         baseLot,
       );
 
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith(
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
         'lot-1',
         'company-1',
       );
@@ -108,7 +108,7 @@ describe('Lot use cases', () => {
 
     it('rejects missing lot outside the current company', async () => {
       const { repository } = createPorts();
-      repository.findByIdForCompany.mockResolvedValue(null);
+      repository.findByIdForTenant.mockResolvedValue(null);
 
       const useCase = new FindLotUseCase(repository);
 
@@ -116,7 +116,7 @@ describe('Lot use cases', () => {
         EntityNotFoundError,
       );
 
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith(
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
         'lot-1',
         'company-2',
       );
@@ -154,7 +154,7 @@ describe('Lot use cases', () => {
     });
 
     it('rejects missing farm', async () => {
-      farmReader.findByIdForCompany.mockResolvedValue(null);
+      farmReader.findByIdForTenant.mockResolvedValue(null);
 
       await expect(
         useCase.execute('company-1', {
@@ -167,7 +167,7 @@ describe('Lot use cases', () => {
     });
 
     it('rejects duplicate lot name within the same farm', async () => {
-      farmReader.findByIdForCompany.mockResolvedValue({ id: 'farm-1' });
+      farmReader.findByIdForTenant.mockResolvedValue({ id: 'farm-1' });
       repository.findByNameAndFarmId.mockResolvedValue(baseLot);
 
       await expect(
@@ -181,7 +181,7 @@ describe('Lot use cases', () => {
     });
 
     it('creates lot', async () => {
-      farmReader.findByIdForCompany.mockResolvedValue({ id: 'farm-1' });
+      farmReader.findByIdForTenant.mockResolvedValue({ id: 'farm-1' });
       repository.findByNameAndFarmId.mockResolvedValue(null);
       repository.create.mockResolvedValue(baseLot);
 
@@ -200,14 +200,14 @@ describe('Lot use cases', () => {
         coords: '0,0',
         area: 12.5,
       });
-      expect(farmReader.findByIdForCompany).toHaveBeenCalledWith(
+      expect(farmReader.findByIdForTenant).toHaveBeenCalledWith(
         'farm-1',
         'company-1',
       );
     });
 
     it('rejects farm from another company', async () => {
-      farmReader.findByIdForCompany.mockResolvedValue(null);
+      farmReader.findByIdForTenant.mockResolvedValue(null);
 
       await expect(
         useCase.execute('company-1', {
@@ -234,7 +234,7 @@ describe('Lot use cases', () => {
       'rejects invalid update payload %p',
       async (input) => {
         if (input && typeof input === 'object' && !Array.isArray(input)) {
-          repository.findByIdForCompany.mockResolvedValue(baseLot);
+          repository.findByIdForTenant.mockResolvedValue(baseLot);
         }
 
         await expect(
@@ -244,7 +244,7 @@ describe('Lot use cases', () => {
     );
 
     it('rejects missing lot', async () => {
-      repository.findByIdForCompany.mockResolvedValue(null);
+      repository.findByIdForTenant.mockResolvedValue(null);
 
       await expect(
         useCase.execute('lot-1', 'company-1', {
@@ -254,8 +254,8 @@ describe('Lot use cases', () => {
     });
 
     it('rejects farm from another company when farmId changes', async () => {
-      repository.findByIdForCompany.mockResolvedValue(baseLot);
-      farmReader.findByIdForCompany.mockResolvedValue(null);
+      repository.findByIdForTenant.mockResolvedValue(baseLot);
+      farmReader.findByIdForTenant.mockResolvedValue(null);
 
       await expect(
         useCase.execute('lot-1', 'company-1', {
@@ -265,9 +265,9 @@ describe('Lot use cases', () => {
     });
 
     it('updates lot', async () => {
-      repository.findByIdForCompany.mockResolvedValue(baseLot);
-      farmReader.findByIdForCompany.mockResolvedValue({ id: 'farm-1' });
-      repository.updateForCompany.mockResolvedValue({
+      repository.findByIdForTenant.mockResolvedValue(baseLot);
+      farmReader.findByIdForTenant.mockResolvedValue({ id: 'farm-1' });
+      repository.updateForTenant.mockResolvedValue({
         ...baseLot,
         name: 'South pasture',
       });
@@ -279,19 +279,19 @@ describe('Lot use cases', () => {
         }),
       ).resolves.toEqual({ ...baseLot, name: 'South pasture' });
 
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith(
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
         'lot-1',
         'company-1',
       );
-      expect(repository.updateForCompany).toHaveBeenCalledWith('lot-1', 'company-1', {
+      expect(repository.updateForTenant).toHaveBeenCalledWith('lot-1', 'company-1', {
         name: 'South pasture',
         farmId: 'farm-1',
       });
     });
 
     it('rejects farm from another company when updating the farm relation', async () => {
-      repository.findByIdForCompany.mockResolvedValue(baseLot);
-      farmReader.findByIdForCompany.mockResolvedValue(null);
+      repository.findByIdForTenant.mockResolvedValue(baseLot);
+      farmReader.findByIdForTenant.mockResolvedValue(null);
 
       await expect(
         useCase.execute('lot-1', 'company-1', {

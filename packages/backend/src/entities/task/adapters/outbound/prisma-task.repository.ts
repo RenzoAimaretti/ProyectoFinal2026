@@ -12,19 +12,19 @@ import { TaskRepositoryPort } from '../../application/task.ports';
 export class PrismaTaskRepository implements TaskRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAllByCompanyId(tenantId: string): Promise<TaskOutput[]> {
+  findAllByTenantId(tenantId: string): Promise<TaskOutput[]> {
     return this.prisma.task.findMany({
       where: { lot: { farm: { client: { tenantId } } } },
     });
   }
 
-  findByIdForCompany(id: string, tenantId: string): Promise<TaskOutput | null> {
+  findByIdForTenant(id: string, tenantId: string): Promise<TaskOutput | null> {
     return this.prisma.task.findFirst({
       where: { id, lot: { farm: { client: { tenantId } } } },
     });
   }
 
-  findByIdWithOperatorsForCompany(
+  findByIdWithOperatorsForTenant(
     id: string,
     tenantId: string,
   ): Promise<TaskWithOperatorsRecord | null> {
@@ -44,7 +44,7 @@ export class PrismaTaskRepository implements TaskRepositoryPort {
     });
   }
 
-  async updateForCompany(id: string, tenantId: string, data: UpdateTaskData): Promise<TaskOutput> {
+  async updateForTenant(id: string, tenantId: string, data: UpdateTaskData): Promise<TaskOutput> {
     const task = await this.prisma.task.findFirst({
       where: { id, lot: { farm: { client: { tenantId } } } },
       select: { id: true },
@@ -64,7 +64,7 @@ export class PrismaTaskRepository implements TaskRepositoryPort {
     });
   }
 
-  async addOperatorForCompany(taskId: string, tenantId: string, operatorId: string): Promise<void> {
+  async addOperatorForTenant(taskId: string, tenantId: string, operatorId: string): Promise<void> {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, lot: { farm: { client: { tenantId } } } },
       select: { id: true },
@@ -80,7 +80,7 @@ export class PrismaTaskRepository implements TaskRepositoryPort {
     });
   }
 
-  async removeOperatorForCompany(
+  async removeOperatorForTenant(
     taskId: string,
     tenantId: string,
     operatorId: string,
@@ -100,7 +100,7 @@ export class PrismaTaskRepository implements TaskRepositoryPort {
     });
   }
 
-  async deleteForCompany(id: string, tenantId: string): Promise<void> {
+  async deleteForTenant(id: string, tenantId: string): Promise<void> {
     const task = await this.prisma.task.findFirst({
       where: { id, lot: { farm: { client: { tenantId } } } },
       select: { id: true },

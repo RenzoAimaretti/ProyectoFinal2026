@@ -12,19 +12,19 @@ import { TaskTypeRepositoryPort } from '../../application/task-type.ports';
 export class PrismaTaskTypeRepository implements TaskTypeRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAllByCompanyId(tenantId: string): Promise<TaskTypeRecord[]> {
+  findAllByTenantId(tenantId: string): Promise<TaskTypeRecord[]> {
     return this.prisma.taskType.findMany({ where: { tenantId } });
   }
 
-  findByIdForCompany(id: string, tenantId: string): Promise<TaskTypeRecord | null> {
+  findByIdForTenant(id: string, tenantId: string): Promise<TaskTypeRecord | null> {
     return this.prisma.taskType.findFirst({ where: { id, tenantId } });
   }
 
-  findByNameAndCompanyId(name: string, tenantId: string): Promise<TaskTypeRecord | null> {
+  findByNameAndTenantId(name: string, tenantId: string): Promise<TaskTypeRecord | null> {
     return this.prisma.taskType.findFirst({ where: { name, tenantId } });
   }
 
-  findByIdsForCompany(ids: string[], tenantId: string): Promise<TaskLookupRecord[]> {
+  findByIdsForTenant(ids: string[], tenantId: string): Promise<TaskLookupRecord[]> {
     return this.prisma.task.findMany({
       where: { id: { in: ids }, taskType: { tenantId } },
       select: { id: true },
@@ -35,7 +35,7 @@ export class PrismaTaskTypeRepository implements TaskTypeRepositoryPort {
     return this.prisma.taskType.create({ data });
   }
 
-  async updateForCompany(
+  async updateForTenant(
     id: string,
     tenantId: string,
     data: UpdateTaskTypeData,
@@ -61,7 +61,7 @@ export class PrismaTaskTypeRepository implements TaskTypeRepositoryPort {
     });
   }
 
-  async deleteForCompany(id: string, tenantId: string): Promise<void> {
+  async deleteForTenant(id: string, tenantId: string): Promise<void> {
     const taskType = await this.prisma.taskType.findFirst({
       where: { id, tenantId },
       select: { id: true },

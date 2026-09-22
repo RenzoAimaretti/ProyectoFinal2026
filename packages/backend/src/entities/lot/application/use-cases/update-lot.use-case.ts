@@ -15,7 +15,7 @@ export class UpdateLotUseCase {
 
   async execute(
     id: string,
-    companyId: string,
+    tenantId: string,
     data?: UpdateLotInput,
   ): Promise<LotRecord> {
     if (!data) {
@@ -34,7 +34,7 @@ export class UpdateLotUseCase {
       throw new InvalidInputError('No data provided for update');
     }
 
-    const lot = await this.repository.findByIdForCompany(id, companyId);
+    const lot = await this.repository.findByIdForTenant(id, tenantId);
     if (!lot) {
       throw new EntityNotFoundError(`Lot with id ${id} not found`);
     }
@@ -51,7 +51,7 @@ export class UpdateLotUseCase {
 
     if (sanitizedData.farmId !== undefined) {
       const farmId = assertRequiredString(sanitizedData.farmId, 'farmId');
-      const farm = await this.farmReader.findByIdForCompany(farmId, companyId);
+      const farm = await this.farmReader.findByIdForTenant(farmId, tenantId);
       if (!farm) {
         throw new InvalidRelationError(
           'Farm does not belong to the current company',
@@ -69,6 +69,6 @@ export class UpdateLotUseCase {
       updateData.active = sanitizedData.active;
     }
 
-    return this.repository.updateForCompany(id, companyId, updateData);
+    return this.repository.updateForTenant(id, tenantId, updateData);
   }
 }

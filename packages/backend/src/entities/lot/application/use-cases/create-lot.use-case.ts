@@ -12,13 +12,13 @@ export class CreateLotUseCase {
     private readonly farmReader: FarmReaderPort,
   ) {}
 
-  async execute(companyId: string, data: CreateLotInput): Promise<LotRecord> {
+  async execute(tenantId: string, data: CreateLotInput): Promise<LotRecord> {
     const name = assertRequiredString(data.name, 'name');
     const farmId = assertRequiredString(data.farmId, 'farmId');
     const coords = assertRequiredString(data.coords, 'coords');
     const area = assertPositiveNumber(data.area, 'area');
 
-    const farm = await this.farmReader.findByIdForCompany(farmId, companyId);
+    const farm = await this.farmReader.findByIdForTenant(farmId, tenantId);
     if (!farm) {
       throw new InvalidRelationError('Farm does not belong to the current company');
     }

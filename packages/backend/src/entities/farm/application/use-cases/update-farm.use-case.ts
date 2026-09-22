@@ -33,7 +33,7 @@ export class UpdateFarmUseCase {
       throw new InvalidInputError('clientId is required');
     }
 
-    const farm = await this.repository.findByIdForCompany(id, tenantId);
+    const farm = await this.repository.findByIdForTenant(id, tenantId);
     if (!farm) {
       throw new EntityNotFoundError(`Farm with id ${id} not found`);
     }
@@ -65,6 +65,6 @@ export class UpdateFarmUseCase {
 
     updateData.clientId = clientId;
 
-    return this.repository.updateForCompany(id, tenantId, updateData);
+    return this.repository.updateForTenant(id, tenantId, updateData);
   }
 }

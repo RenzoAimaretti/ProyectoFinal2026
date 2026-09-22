@@ -13,7 +13,7 @@ export class PrismaUserRepository implements UserRepositoryPort {
     return this.prisma.user.findMany() as unknown as Promise<UserRecord[]>;
   }
 
-  findAllByCompanyId(tenantId: string): Promise<UserRecord[]> {
+  findAllByTenantId(tenantId: string): Promise<UserRecord[]> {
     return this.prisma.user.findMany({ where: { tenantId } }) as unknown as Promise<UserRecord[]>;
   }
 
@@ -21,7 +21,7 @@ export class PrismaUserRepository implements UserRepositoryPort {
     return this.prisma.user.findUnique({ where: { id } }) as unknown as Promise<UserRecord | null>;
   }
 
-  findByIdForCompany(id: string, tenantId: string): Promise<UserRecord | null> {
+  findByIdForTenant(id: string, tenantId: string): Promise<UserRecord | null> {
     return this.prisma.user.findFirst({ where: { id, tenantId } }) as unknown as Promise<
       UserRecord | null
     >;
@@ -84,7 +84,7 @@ export class PrismaUserRepository implements UserRepositoryPort {
     }
   }
 
-  async updateForCompany(id: string, tenantId: string, data: UpdateUserData): Promise<UserRecord> {
+  async updateForTenant(id: string, tenantId: string, data: UpdateUserData): Promise<UserRecord> {
     try {
       const user = await this.prisma.user.findFirst({
         where: { id, tenantId },

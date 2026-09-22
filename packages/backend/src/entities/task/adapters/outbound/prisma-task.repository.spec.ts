@@ -21,13 +21,13 @@ describe('PrismaTaskRepository', () => {
     prisma.task.findMany.mockResolvedValue([{ id: 'task-1' }]);
     prisma.task.findFirst.mockResolvedValue({ id: 'task-1' });
 
-    await expect(repository.findAllByCompanyId('company-1')).resolves.toEqual([
+    await expect(repository.findAllByTenantId('company-1')).resolves.toEqual([
       { id: 'task-1' },
     ]);
-    await expect(repository.findByIdForCompany('task-1', 'company-1')).resolves.toEqual({
+    await expect(repository.findByIdForTenant('task-1', 'company-1')).resolves.toEqual({
       id: 'task-1',
     });
-    await expect(repository.findByIdWithOperatorsForCompany('task-1', 'company-1')).resolves.toEqual({
+    await expect(repository.findByIdWithOperatorsForTenant('task-1', 'company-1')).resolves.toEqual({
       id: 'task-1',
     });
 
@@ -57,15 +57,15 @@ describe('PrismaTaskRepository', () => {
       }),
     ).resolves.toEqual({ id: 'task-2' });
     await expect(
-      repository.updateForCompany('task-1', 'company-1', { status: 'EN_PROGRESO' }),
+      repository.updateForTenant('task-1', 'company-1', { status: 'EN_PROGRESO' }),
     ).resolves.toEqual({ id: 'task-1' });
     await expect(
-      repository.addOperatorForCompany('task-1', 'company-1', 'user-1'),
+      repository.addOperatorForTenant('task-1', 'company-1', 'user-1'),
     ).resolves.toBeUndefined();
     await expect(
-      repository.removeOperatorForCompany('task-1', 'company-1', 'user-1'),
+      repository.removeOperatorForTenant('task-1', 'company-1', 'user-1'),
     ).resolves.toBeUndefined();
-    await expect(repository.deleteForCompany('task-1', 'company-1')).resolves.toBeUndefined();
+    await expect(repository.deleteForTenant('task-1', 'company-1')).resolves.toBeUndefined();
 
     expect(prisma.task.create).toHaveBeenCalledWith({
       data: {
