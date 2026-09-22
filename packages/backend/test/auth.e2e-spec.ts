@@ -10,14 +10,21 @@ describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
+  const testTenant = {
+    id: 'e2e-tenant-1',
+    name: 'Grupo E2E Test',
+  };
+
   const testCompany = {
     id: 'e2e-company-1',
+    tenantId: testTenant.id,
     name: 'Firma E2E Test',
     cuit: '30-99999999-9',
   };
 
   const testUser = {
     id: 'e2e-user-1',
+    tenantId: testTenant.id,
     companyId: testCompany.id,
     email: 'e2e-user@firma.com',
     password: 'SecurePassword123!',
@@ -25,10 +32,39 @@ describe('AuthController (e2e)', () => {
     role: UserRole.ADMIN,
   };
 
+  type TestUserRow = {
+    id: string;
+    email: string;
+    passwordHash: string;
+    role: UserRole;
+    tenantId: string;
+    active: boolean;
+    deleted: boolean;
+    failedLoginAttempts: number;
+    lockedUntil: Date | null;
+    companyMemberships: { companyId: string }[];
+  };
+
+  // Shape returned by the auth outbound adapters (user + active membership).
+  let testUserRow: TestUserRow;
+
   let refreshToken: string;
 
   beforeAll(async () => {
     testUser.passwordHash = await argon2.hash(testUser.password);
+
+    testUserRow = {
+      id: testUser.id,
+      email: testUser.email,
+      passwordHash: testUser.passwordHash,
+      role: testUser.role,
+      tenantId: testUser.tenantId,
+      active: true,
+      deleted: false,
+      failedLoginAttempts: 0,
+      lockedUntil: null,
+      companyMemberships: [{ companyId: testCompany.id }],
+    };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -41,13 +77,7 @@ describe('AuthController (e2e)', () => {
         user: {
           findUnique: jest.fn().mockImplementation(({ where }) => {
             if (where.email === testUser.email) {
-              return Promise.resolve({
-                ...testUser,
-                active: true,
-                deleted: false,
-                failedLoginAttempts: 0,
-                lockedUntil: null,
-              });
+              return Promise.resolve(testUserRow);
             }
             return Promise.resolve(null);
           }),
@@ -62,7 +92,7 @@ describe('AuthController (e2e)', () => {
                 tokenHash: testUser.passwordHash, // dummy hash matching
                 expiresAt: new Date(Date.now() + 1000000),
                 revokedAt: null,
-                user: testUser,
+                user: testUserRow,
               },
             ]);
           }),
@@ -116,6 +146,7 @@ describe('AuthController (e2e)', () => {
         id: testUser.id,
         email: testUser.email,
         role: testUser.role,
+        tenantId: testUser.tenantId,
         firmaId: testUser.companyId,
       });
 
