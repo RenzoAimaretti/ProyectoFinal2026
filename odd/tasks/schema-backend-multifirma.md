@@ -140,6 +140,10 @@ si supera el presupuesto, se explica el motivo en vez de partir artificialmente.
   Se agregó `setupFiles: ["dotenv/config"]` porque era precondición para verificar nuestro cambio.
 - 2026-09-22 — **Hallazgo**: `test/auth.e2e-spec.ts` mockeaba `PrismaService` con la forma vieja
   (`companyId`, sin `companyMemberships`) → 500 por `TypeError`. Alineado al contrato nuevo.
+- 2026-09-22 — **Hallazgo (hueco real)**: `prisma migrate reset` **NO ejecuta el seed** en Prisma 7.8,
+  aunque `migrations.seed` esté configurado (`migrate reset --help` solo expone `--config/--schema/--force`).
+  Verificado: tras `migrate reset`, las filas quedaban `0|0|0|0` → base inusable.
+  **Cerrado** con el script `db:reset` (`migrate reset --force && db seed`), verificado end-to-end.
 
 ## Verification evidence
 
@@ -156,6 +160,8 @@ si supera el presupuesto, se explica el motivo en vez de partir artificialmente.
 | Postgres (antes) | `pnpm exec prisma migrate status` | ❌ `P1001` — no alcanzable en `127.0.0.1:5432` |
 | Migración | `pnpm exec prisma migrate dev --name multifirma_baseline` | ✅ 1 baseline creada y aplicada |
 | Seed | `pnpm --filter backend db:seed` (x2) | ✅ `1|1|1|1` en Tenant/Company/User/UserCompany |
+| Bootstrap desde cero | `pnpm --filter backend db:reset` | ✅ migra + siembra → `1|1|1|1` |
+| `migrate reset` solo | `pnpm exec prisma migrate reset --force` | ⚠️ NO siembra → `0|0|0|0` (por eso existe `db:reset`) |
 | e2e auth | `pnpm --filter backend test:e2e` | ✅ `auth.e2e-spec` 5/5 (login OK end-to-end) |
 | e2e app | ídem | ❌ `app.e2e-spec` 404 en `GET /` — **pre-existente** |
 
@@ -225,6 +231,9 @@ selector, `firmaId` pasará a venir por request en vez de por claim. No cambia e
    de scoping, pero es el punto a revisar si el negocio lo quería por firma.
 6. **Deuda registrada**: `firmaId` del JWT es una firma por defecto resuelta en el login
    (`UserCompany` activa más antigua). El contrato §6 pide selector post-login. Sin cambios de datos.
+7. **Resuelto**: el bootstrap desde cero es `pnpm --filter backend db:reset`
+   (`migrate reset --force && db seed`), porque `migrate reset` ya no siembra en Prisma 7.
+   Un `migrate reset` a secas deja la base **vacía e inusable**.
 
 ## Next step
 
