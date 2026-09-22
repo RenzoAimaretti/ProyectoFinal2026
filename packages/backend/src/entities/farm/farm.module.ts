@@ -2,16 +2,16 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import {
-  COMPANY_READER,
+  CLIENT_READER,
   FARM_REPOSITORY,
-  CompanyReaderPort,
+  ClientReaderPort,
   FarmRepositoryPort,
 } from './application/farm.ports';
 import { CreateFarmUseCase } from './application/use-cases/create-farm.use-case';
 import { FindAllFarmsUseCase } from './application/use-cases/find-all-farms.use-case';
 import { FindFarmUseCase } from './application/use-cases/find-farm.use-case';
 import { UpdateFarmUseCase } from './application/use-cases/update-farm.use-case';
-import { PrismaCompanyReader } from './adapters/outbound/prisma-company.reader';
+import { PrismaClientReader } from './adapters/outbound/prisma-client.reader';
 import { PrismaFarmRepository } from './adapters/outbound/prisma-farm.repository';
 import { FarmController } from './farm.controller';
 import { FarmService } from './farm.service';
@@ -23,9 +23,9 @@ import { FarmService } from './farm.service';
     FarmService,
     JwtAuthGuard,
     PrismaFarmRepository,
-    PrismaCompanyReader,
+    PrismaClientReader,
     { provide: FARM_REPOSITORY, useExisting: PrismaFarmRepository },
-    { provide: COMPANY_READER, useExisting: PrismaCompanyReader },
+    { provide: CLIENT_READER, useExisting: PrismaClientReader },
     {
       provide: FindAllFarmsUseCase,
       useFactory: (repository: FarmRepositoryPort) =>
@@ -42,17 +42,17 @@ import { FarmService } from './farm.service';
       provide: CreateFarmUseCase,
       useFactory: (
         repository: FarmRepositoryPort,
-        companyReader: CompanyReaderPort,
-      ) => new CreateFarmUseCase(repository, companyReader),
-      inject: [FARM_REPOSITORY, COMPANY_READER],
+        clientReader: ClientReaderPort,
+      ) => new CreateFarmUseCase(repository, clientReader),
+      inject: [FARM_REPOSITORY, CLIENT_READER],
     },
     {
       provide: UpdateFarmUseCase,
       useFactory: (
         repository: FarmRepositoryPort,
-        companyReader: CompanyReaderPort,
-      ) => new UpdateFarmUseCase(repository, companyReader),
-      inject: [FARM_REPOSITORY, COMPANY_READER],
+        clientReader: ClientReaderPort,
+      ) => new UpdateFarmUseCase(repository, clientReader),
+      inject: [FARM_REPOSITORY, CLIENT_READER],
     },
   ],
   exports: [FarmService],

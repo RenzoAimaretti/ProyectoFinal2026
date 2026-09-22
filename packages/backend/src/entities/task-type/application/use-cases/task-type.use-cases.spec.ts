@@ -11,14 +11,14 @@ import { UpdateTaskTypeUseCase } from './update-task-type.use-case';
 
 const baseTaskType = {
   id: 'task-type-1',
-  companyId: 'company-1',
+  tenantId: 'company-1',
   name: 'Mantenimiento',
   description: 'Rutina de mantenimiento',
 };
 
 const otherCompanyTaskType = {
   ...baseTaskType,
-  companyId: 'company-2',
+  tenantId: 'company-2',
   id: 'task-type-2',
 };
 
@@ -163,7 +163,7 @@ describe('Task type use cases', () => {
       expect(repository.create).toHaveBeenCalledWith({
         name: 'Mantenimiento',
         description: 'Rutina de mantenimiento',
-        companyId: 'company-1',
+        tenantId: 'company-1',
       });
     });
 

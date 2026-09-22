@@ -8,7 +8,7 @@ import {
 } from './user.types';
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
-export const COMPANY_READER = Symbol('USER_COMPANY_READER');
+export const TENANT_READER = Symbol('USER_TENANT_READER');
 
 export interface UserRepositoryPort {
   findAll(): Promise<UserRecord[]>;
@@ -22,7 +22,7 @@ export interface UserRepositoryPort {
   updateForCompany(id: string, companyId: string, data: UpdateUserData): Promise<UserRecord>;
 }
 
-export interface CompanyReaderPort {
+export interface TenantReaderPort {
   findById(id: string): Promise<{ id: string } | null>;
 }
 

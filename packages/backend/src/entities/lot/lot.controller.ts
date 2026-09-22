@@ -14,7 +14,7 @@ import { LotService } from './lot.service';
 
 type RequestWithUser = {
   user: {
-    firmaId: string;
+    tenantId: string;
   };
 };
 
@@ -25,19 +25,19 @@ export class LotController {
   @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Req() req: RequestWithUser) {
-    return this.service.findAll(req.user.firmaId);
+    return this.service.findAll(req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
-    return this.service.findOne(id, req.user.firmaId);
+    return this.service.findOne(id, req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Req() req: RequestWithUser, @Body() data: CreateLotInput) {
-    return this.service.create(req.user.firmaId, {
+    return this.service.create(req.user.tenantId, {
       name: data.name,
       farmId: data.farmId,
       coords: data.coords,
@@ -52,7 +52,7 @@ export class LotController {
     @Req() req: RequestWithUser,
     @Body() data: UpdateLotInput,
   ) {
-    return this.service.update(id, req.user.firmaId, {
+    return this.service.update(id, req.user.tenantId, {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.farmId !== undefined ? { farmId: data.farmId } : {}),
       ...(data.coords !== undefined ? { coords: data.coords } : {}),

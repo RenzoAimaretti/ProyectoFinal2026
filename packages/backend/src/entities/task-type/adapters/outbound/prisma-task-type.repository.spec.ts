@@ -20,26 +20,26 @@ describe('PrismaTaskTypeRepository', () => {
     jest.clearAllMocks();
   });
 
-  it('scopes list/read/duplicate checks by companyId', async () => {
+  it('scopes list/read/duplicate checks by tenantId', async () => {
     prisma.taskType.findMany.mockResolvedValue([{ id: 'task-type-1' }]);
     prisma.taskType.findFirst.mockResolvedValue({ id: 'task-type-1' });
 
-    await expect(repository.findAllByCompanyId('company-1')).resolves.toEqual([
+    await expect(repository.findAllByCompanyId('tenant-1')).resolves.toEqual([
       { id: 'task-type-1' },
     ]);
-    await expect(repository.findByIdForCompany('task-type-1', 'company-1')).resolves.toEqual({
+    await expect(repository.findByIdForCompany('task-type-1', 'tenant-1')).resolves.toEqual({
       id: 'task-type-1',
     });
     await expect(
-      repository.findByNameAndCompanyId('Mantenimiento', 'company-1'),
+      repository.findByNameAndCompanyId('Mantenimiento', 'tenant-1'),
     ).resolves.toEqual({ id: 'task-type-1' });
 
-    expect(prisma.taskType.findMany).toHaveBeenCalledWith({ where: { companyId: 'company-1' } });
+    expect(prisma.taskType.findMany).toHaveBeenCalledWith({ where: { tenantId: 'tenant-1' } });
     expect(prisma.taskType.findFirst).toHaveBeenCalledWith({
-      where: { id: 'task-type-1', companyId: 'company-1' },
+      where: { id: 'task-type-1', tenantId: 'tenant-1' },
     });
     expect(prisma.taskType.findFirst).toHaveBeenCalledWith({
-      where: { name: 'Mantenimiento', companyId: 'company-1' },
+      where: { name: 'Mantenimiento', tenantId: 'tenant-1' },
     });
   });
 
@@ -50,22 +50,22 @@ describe('PrismaTaskTypeRepository', () => {
     prisma.taskType.delete.mockResolvedValue({});
 
     await expect(
-      repository.findByIdsForCompany(['task-1'], 'company-1'),
+      repository.findByIdsForCompany(['task-1'], 'tenant-1'),
     ).resolves.toEqual([{ id: 'task-1' }]);
     await expect(
-      repository.create({ companyId: 'company-1', name: 'Mantenimiento' }),
+      repository.create({ tenantId: 'tenant-1', name: 'Mantenimiento' }),
     ).resolves.toEqual({ id: 'task-type-2' });
     await expect(
-      repository.updateForCompany('task-type-2', 'company-1', { name: 'Nuevo nombre' }),
+      repository.updateForCompany('task-type-2', 'tenant-1', { name: 'Nuevo nombre' }),
     ).resolves.toEqual({ id: 'task-type-2' });
-    await expect(repository.deleteForCompany('task-type-2', 'company-1')).resolves.toBeUndefined();
+    await expect(repository.deleteForCompany('task-type-2', 'tenant-1')).resolves.toBeUndefined();
 
     expect(prisma.task.findMany).toHaveBeenCalledWith({
-      where: { id: { in: ['task-1'] }, taskType: { companyId: 'company-1' } },
+      where: { id: { in: ['task-1'] }, taskType: { tenantId: 'tenant-1' } },
       select: { id: true },
     });
     expect(prisma.taskType.create).toHaveBeenCalledWith({
-      data: { companyId: 'company-1', name: 'Mantenimiento' },
+      data: { tenantId: 'tenant-1', name: 'Mantenimiento' },
     });
     expect(prisma.taskType.update).toHaveBeenCalledWith({
       where: { id: 'task-type-1' },

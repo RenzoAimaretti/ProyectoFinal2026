@@ -40,13 +40,18 @@ export class RefreshTokensUseCase {
       throw new AccountInactiveError('Usuario inactivo');
     }
 
+    if (!user.firmaId) {
+      throw new AccountInactiveError('El usuario no tiene una firma activa asignada');
+    }
+
     const now = this.clock.now();
     await this.refreshTokenRepository.revoke(matchedTokenRecord.id, now);
 
     const payload: AuthJwtPayload = {
       sub: user.id,
       role: user.role,
-      firmaId: user.companyId,
+      tenantId: user.tenantId,
+      firmaId: user.firmaId,
       email: user.email,
     };
 

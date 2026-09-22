@@ -10,6 +10,7 @@ export type TaskStatusValue = (typeof TASK_STATUS_VALUES)[number];
 export const USER_ROLE_VALUES = [
   'ADMIN',
   'OPERARIO',
+  'SUPERVISOR',
   'PRODUCTOR',
   'CONTRATISTA',
   'VETERINARIO',

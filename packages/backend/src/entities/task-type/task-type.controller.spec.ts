@@ -45,14 +45,14 @@ describe('TaskTypeController', () => {
     }
   });
 
-  it('delegates tenant-scoped requests using req.user.firmaId', async () => {
+  it('delegates tenant-scoped requests using req.user.tenantId', async () => {
     service.findAll.mockResolvedValue([{ id: 'task-type-1' }]);
     service.findOne.mockResolvedValue({ id: 'task-type-1' });
     service.create.mockResolvedValue({ id: 'task-type-2' });
     service.update.mockResolvedValue({ id: 'task-type-1', name: 'Nuevo nombre' });
     service.delete.mockResolvedValue({ message: 'deleted' });
 
-    const req = { user: { firmaId: 'company-1' } };
+    const req = { user: { tenantId: 'tenant-1' } };
 
     await expect(controller.findAll(req)).resolves.toEqual([{ id: 'task-type-1' }]);
     await expect(controller.findOne('task-type-1', req)).resolves.toEqual({
@@ -74,12 +74,12 @@ describe('TaskTypeController', () => {
       message: 'deleted',
     });
 
-    expect(service.findAll).toHaveBeenCalledWith('company-1');
-    expect(service.findOne).toHaveBeenCalledWith('task-type-1', 'company-1');
-    expect(service.create).toHaveBeenCalledWith('company-1', { name: 'Nuevo tipo' });
-    expect(service.update).toHaveBeenCalledWith('task-type-1', 'company-1', {
+    expect(service.findAll).toHaveBeenCalledWith('tenant-1');
+    expect(service.findOne).toHaveBeenCalledWith('task-type-1', 'tenant-1');
+    expect(service.create).toHaveBeenCalledWith('tenant-1', { name: 'Nuevo tipo' });
+    expect(service.update).toHaveBeenCalledWith('task-type-1', 'tenant-1', {
       name: 'Nuevo nombre',
     });
-    expect(service.delete).toHaveBeenCalledWith('task-type-1', 'company-1');
+    expect(service.delete).toHaveBeenCalledWith('task-type-1', 'tenant-1');
   });
 });

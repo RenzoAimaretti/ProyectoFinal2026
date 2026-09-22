@@ -1,6 +1,6 @@
 export type TaskTypeRecord = {
   id: string;
-  companyId: string;
+  tenantId: string;
   name: string;
   description: string | null;
 };
@@ -17,7 +17,7 @@ export type UpdateTaskTypeInput = {
 };
 
 export type CreateTaskTypeData = {
-  companyId: string;
+  tenantId: string;
   name: string;
   description?: string;
 };

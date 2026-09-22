@@ -7,26 +7,81 @@ datasource db {
   provider = "postgresql"
 }
 
-model Company {
-  id        String      @id @default(uuid())
+// ============================================================================
+// Tenancy
+//
+// Tenant = cliente suscripto (la empresa que contrata el SaaS).
+// Company = firma / razon social, subdividida dentro de un tenant.
+//   Vision: "Aislamiento estricto de datos por cliente suscripto (tenant) con
+//   capacidad de subdividir operaciones en multiples razones sociales."
+//
+// Regla de scope:
+//   - Tenant-owned roots llevan `tenantId` explicito: Company, User, Client,
+//     Input, TaskType.
+//   - El resto deriva su tenant por la cadena de padres (Farm -> Client,
+//     Lot -> Farm -> Client, Task -> Lot -> ..., Machine -> Company, etc.).
+//   - La firma operativa vive en Company y se referencia donde el negocio la
+//     necesita (Machine, DailyReport, MachineActivity), nunca en Farm.
+// ============================================================================
+
+model Tenant {
+  id        String   @id @default(uuid())
   name      String
-  cuit      String      @unique
-  active    Boolean     @default(true)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  version   Int         @default(1)
-  deleted   Boolean     @default(false)
-  farms     Farm[]
-  livestock Livestock[]
-  machines  Machine[]
-  modules   Module[]
-  taskTypes TaskType[]
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  version   Int      @default(1)
+  deleted   Boolean  @default(false)
+
+  companies Company[]
   users     User[]
+  clients   Client[]
+  inputs    Input[]
+  taskTypes TaskType[]
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  cuit      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  version   Int      @default(1)
+  deleted   Boolean  @default(false)
+
+  tenant            Tenant            @relation(fields: [tenantId], references: [id])
+  userCompanies     UserCompany[]
+  machines          Machine[]
+  machineActivities MachineActivity[]
+  dailyReports      DailyReport[]
+  livestock         Livestock[]
+  modules           Module[]
+
+  @@index([tenantId])
+}
+
+model UserCompany {
+  id        String   @id @default(uuid())
+  userId    String
+  companyId String
+  role      UserRole
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([userId, companyId])
+  @@index([userId])
+  @@index([companyId])
 }
 
 model User {
   id                  String           @id @default(uuid())
-  companyId           String
+  tenantId            String
   username            String?          @unique
   email               String           @unique
   passwordHash        String
@@ -38,11 +93,18 @@ model User {
   updatedAt           DateTime         @updatedAt
   version             Int              @default(1)
   deleted             Boolean          @default(false)
-  livestockEvents     LivestockEvent[]
-  tasks               Task[]           @relation("TaskOperators")
-  company             Company          @relation(fields: [companyId], references: [id])
-  weightRecords       WeightRecord[]
-  refreshTokens       RefreshToken[]
+
+  tenant            Tenant           @relation(fields: [tenantId], references: [id])
+  companyMemberships UserCompany[]
+  refreshTokens     RefreshToken[]
+  livestockEvents   LivestockEvent[]
+  tasks             Task[]           @relation("TaskOperators")
+  weightRecords     WeightRecord[]
+  dailyReports      DailyReport[]    @relation("DailyReportOperator")
+  approvedReports   DailyReport[]    @relation("DailyReportApprover")
+  validatedReceptions Reception[]    @relation("ReceptionValidator")
+
+  @@index([tenantId])
 }
 
 model RefreshToken {
@@ -57,10 +119,83 @@ model RefreshToken {
   @@index([userId])
 }
 
+model Module {
+  id        String   @id @default(uuid())
+  name      String
+  price     Float
+  version   String
+  createdAt DateTime @default(now())
+  companies Company[] @relation()
+}
+
+// ============================================================================
+// Catalogos (tenant-owned, con version + deleted para pull versionado)
+// ============================================================================
+
+model Client {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  cuit      String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  version   Int      @default(1)
+  deleted   Boolean  @default(false)
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id])
+  farms      Farm[]
+  receptions Reception[]
+  stocks     Stock[]
+
+  @@index([tenantId])
+}
+
+model Input {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  unit      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  version   Int      @default(1)
+  deleted   Boolean  @default(false)
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  recipeItems      RecipeItem[]
+  dailyReportItems DailyReportItem[]
+  receptionItems   ReceptionItem[]
+  stocks           Stock[]
+
+  @@index([tenantId])
+}
+
+model TaskType {
+  id          String   @id @default(uuid())
+  tenantId    String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  version     Int      @default(1)
+  deleted     Boolean  @default(false)
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
+  tasks        Task[]
+  dailyReports DailyReport[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+// ============================================================================
+// Campo / Lote
+// ============================================================================
 
 model Farm {
   id        String   @id @default(uuid())
-  companyId String
+  clientId  String
   name      String
   location  String?
   surface   Float
@@ -68,8 +203,11 @@ model Farm {
   updatedAt DateTime @updatedAt
   version   Int      @default(1)
   deleted   Boolean  @default(false)
-  company   Company  @relation(fields: [companyId], references: [id])
-  lots      Lot[]
+
+  client Client @relation(fields: [clientId], references: [id])
+  lots   Lot[]
+
+  @@index([clientId])
 }
 
 model Lot {
@@ -83,25 +221,20 @@ model Lot {
   updatedAt DateTime            @updatedAt
   version   Int                 @default(1)
   deleted   Boolean             @default(false)
-  movements LivestockMovement[]
-  farm      Farm                @relation(fields: [farmId], references: [id])
-  tasks     Task[]
-  // Relacion nueva a lotes y ganado para permitir que un lote tenga control de que animales tiene en un momento dado
-  livestock Livestock[]         @relation("LotLivestock")
+
+  farm         Farm                @relation(fields: [farmId], references: [id])
+  movements    LivestockMovement[]
+  tasks        Task[]
+  livestock    Livestock[]         @relation("LotLivestock")
+  recipes      Recipe[]
+  dailyReports DailyReport[]
+
+  @@index([farmId])
 }
 
-model TaskType {
-  id          String  @id @default(uuid())
-  companyId   String
-  name        String
-  description String?
-  tasks       Task[]
-  company     Company @relation(fields: [companyId], references: [id])
-
-  @@unique([companyId, name])
-  @@index([companyId])
-  @@index([companyId, name])
-}
+// ============================================================================
+// Tareas (pre-Sprint 2) — la firma NO vive aca: se resuelve en DailyReport
+// ============================================================================
 
 model Task {
   id            String         @id @default(uuid())
@@ -115,12 +248,156 @@ model Task {
   updatedAt     DateTime       @updatedAt
   version       Int            @default(1)
   deleted       Boolean        @default(false)
-  machineLogs   MachineUsage[]
-  lot           Lot            @relation(fields: [lotId], references: [id])
-  //Se cambio de relacion de un solo usuario a varios operadores para permitir que varias personas puedan trabajar en la misma tarea
-  operators     User[]         @relation("TaskOperators")
-  taskType      TaskType       @relation(fields: [taskTypeId], references: [id])
+
+  lot          Lot            @relation(fields: [lotId], references: [id])
+  taskType     TaskType       @relation(fields: [taskTypeId], references: [id])
+  operators    User[]         @relation("TaskOperators")
+  machineLogs  MachineUsage[]
+  dailyReports DailyReport[]
+
+  @@index([lotId])
+  @@index([taskTypeId])
+  @@index([status])
 }
+
+// ============================================================================
+// Produccion (CUU05) — R007, R008, R009
+// ============================================================================
+
+model Recipe {
+  id           String       @id @default(uuid())
+  lotId        String
+  date         DateTime
+  status       RecipeStatus @default(ACTIVA)
+  observations String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  lot   Lot          @relation(fields: [lotId], references: [id])
+  items RecipeItem[]
+
+  @@index([lotId])
+  @@index([lotId, date])
+}
+
+model RecipeItem {
+  id        String  @id @default(uuid())
+  recipeId  String
+  inputId   String
+  dose      Float
+  unit      String?
+  loadOrder Int
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  input  Input  @relation(fields: [inputId], references: [id])
+
+  @@index([recipeId])
+  @@index([inputId])
+}
+
+model DailyReport {
+  id              String            @id @default(uuid())
+  operatorId      String
+  companyId       String
+  taskId          String
+  lotId           String
+  taskTypeId      String
+  date            DateTime
+  hectares        Float
+  hours           Float
+  status          DailyReportStatus @default(PENDIENTE_APROBACION)
+  rejectionReason String?
+  approvedAt      DateTime?
+  approvedBy      String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  operator User     @relation("DailyReportOperator", fields: [operatorId], references: [id])
+  approver User?    @relation("DailyReportApprover", fields: [approvedBy], references: [id])
+  company  Company  @relation(fields: [companyId], references: [id])
+  task     Task     @relation(fields: [taskId], references: [id])
+  lot      Lot      @relation(fields: [lotId], references: [id])
+  taskType TaskType @relation(fields: [taskTypeId], references: [id])
+  items    DailyReportItem[]
+
+  @@index([companyId, date])
+  @@index([status, date])
+  @@index([taskId])
+  @@index([lotId])
+  @@index([operatorId])
+}
+
+model DailyReportItem {
+  id            String @id @default(uuid())
+  dailyReportId String
+  inputId       String
+  quantity      Float
+  unit          String
+
+  dailyReport DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  input       Input       @relation(fields: [inputId], references: [id])
+
+  @@index([dailyReportId])
+  @@index([inputId])
+}
+
+// ============================================================================
+// Insumos / Stock (CUU06, CUU07) — R014, R015, R017
+// ============================================================================
+
+model Reception {
+  id              String          @id @default(uuid())
+  clientId        String
+  date            DateTime
+  status          ReceptionStatus @default(PENDIENTE_VALIDACION)
+  rejectionReason String?
+  validatedBy     String?
+  validatedAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  client    Client          @relation(fields: [clientId], references: [id])
+  validator User?           @relation("ReceptionValidator", fields: [validatedBy], references: [id])
+  items     ReceptionItem[]
+
+  @@index([clientId])
+  @@index([status])
+}
+
+model ReceptionItem {
+  id          String @id @default(uuid())
+  receptionId String
+  inputId     String
+  quantity    Float
+  unit        String
+
+  reception Reception @relation(fields: [receptionId], references: [id], onDelete: Cascade)
+  input     Input     @relation(fields: [inputId], references: [id])
+
+  @@index([receptionId])
+  @@index([inputId])
+}
+
+// Stock atribuido al cliente a nivel global (suma para todos sus lotes),
+// no por lote individual (CUU06) y sin particion por firma (CUU07 es filtro
+// de reporte, no de saldo).
+model Stock {
+  id        String   @id @default(uuid())
+  clientId  String
+  inputId   String
+  quantity  Float
+  updatedAt DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id])
+  input  Input  @relation(fields: [inputId], references: [id])
+
+  @@unique([clientId, inputId])
+  @@index([inputId])
+}
+
+// ============================================================================
+// Maquinaria (CUU08) — R018, R019, R020, R021
+// ============================================================================
 
 model Machine {
   id              String         @id @default(uuid())
@@ -134,8 +411,12 @@ model Machine {
   updatedAt       DateTime       @updatedAt
   version         Int            @default(1)
   deleted         Boolean        @default(false)
-  company         Company        @relation(fields: [companyId], references: [id])
-  usages          MachineUsage[]
+
+  company           Company           @relation(fields: [companyId], references: [id])
+  usages            MachineUsage[]
+  machineActivities MachineActivity[]
+
+  @@index([companyId])
 }
 
 model MachineUsage {
@@ -147,24 +428,65 @@ model MachineUsage {
   usageHours   Float?
   observations String?
   createdAt    DateTime @default(now())
-  machine      Machine  @relation(fields: [machineId], references: [id])
-  task         Task     @relation(fields: [taskId], references: [id])
+
+  machine Machine @relation(fields: [machineId], references: [id])
+  task    Task    @relation(fields: [taskId], references: [id])
+
+  @@index([machineId])
+  @@index([taskId])
 }
 
-model Module {
-  id        String   @id @default(uuid())
-  name      String
-  price     Float
-  version   String
-  createdAt DateTime @default(now())
-  companies   Company[]  @relation()
+// Actividad de maquinaria NO atada a una tarea (compra de combustible,
+// mantenimiento, reparacion). `companyId` es obligatorio porque R019 exige
+// discriminar el gasto por firma.
+model MachineActivity {
+  id           String              @id @default(uuid())
+  machineId    String
+  companyId    String
+  type         MachineActivityType
+  date         DateTime
+  liters       Float?
+  receipt      String?
+  cost         Float?
+  spareParts   String?
+  usageHours   Float?
+  hectares     Float?
+  observations String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  machine Machine @relation(fields: [machineId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([machineId, date])
+  @@index([companyId])
+  @@index([type, date])
 }
+
+// ============================================================================
+// Infraestructura
+// ============================================================================
+
+// Foto polimorfica: no lleva FK porque apunta a distintas entidades.
+model Photo {
+  id         String          @id @default(uuid())
+  entityType PhotoEntityType
+  entityId   String
+  localPath  String
+  orderIndex Int             @default(0)
+  createdAt  DateTime        @default(now())
+
+  @@index([entityType, entityId])
+}
+
+// ============================================================================
+// Ganadero (fuera del contrato actual; se mantiene operativo)
+// ============================================================================
 
 model Livestock {
-  // No es tonto tener el id de la compania? ya por transitividad se saca del lote
   id        String              @id @default(uuid())
   companyId String
-  lotId     String? // Relacion nueva a lotes para permitir que un animal pueda estar asignado a un lote
+  lotId     String?
   tagNumber String              @unique
   species   String
   breed     String?
@@ -176,12 +498,15 @@ model Livestock {
   updatedAt DateTime            @updatedAt
   version   Int                 @default(1)
   deleted   Boolean             @default(false)
+
   company   Company             @relation(fields: [companyId], references: [id])
   events    LivestockEvent[]
   movements LivestockMovement[]
   weights   WeightRecord[]
-  // Yo creo que esta no es necesaria por reglas de transitividad, pero la dejo por si acaso para facilitar consultas
   lot       Lot?                @relation("LotLivestock", fields: [lotId], references: [id])
+
+  @@index([companyId])
+  @@index([lotId])
 }
 
 model LivestockEvent {
@@ -194,8 +519,11 @@ model LivestockEvent {
   dose         Float?
   eventDate    DateTime
   createdAt    DateTime  @default(now())
-  livestock    Livestock @relation(fields: [livestockId], references: [id])
-  operator     User?     @relation(fields: [operatorId], references: [id])
+
+  livestock Livestock @relation(fields: [livestockId], references: [id])
+  operator  User?     @relation(fields: [operatorId], references: [id])
+
+  @@index([livestockId])
 }
 
 model WeightRecord {
@@ -205,8 +533,11 @@ model WeightRecord {
   weight      Float
   measuredAt  DateTime
   createdAt   DateTime  @default(now())
-  livestock   Livestock @relation(fields: [livestockId], references: [id])
-  operator    User?     @relation(fields: [operatorId], references: [id])
+
+  livestock Livestock @relation(fields: [livestockId], references: [id])
+  operator  User?     @relation(fields: [operatorId], references: [id])
+
+  @@index([livestockId])
 }
 
 model LivestockMovement {
@@ -216,13 +547,22 @@ model LivestockMovement {
   movementDate DateTime
   observations String?
   createdAt    DateTime  @default(now())
-  livestock    Livestock @relation(fields: [livestockId], references: [id])
-  lot          Lot       @relation(fields: [lotId], references: [id])
+
+  livestock Livestock @relation(fields: [livestockId], references: [id])
+  lot       Lot       @relation(fields: [lotId], references: [id])
+
+  @@index([livestockId])
+  @@index([lotId])
 }
+
+// ============================================================================
+// Enums (valores en espanol)
+// ============================================================================
 
 enum UserRole {
   ADMIN
   OPERARIO
+  SUPERVISOR
   PRODUCTOR
   CONTRATISTA
   VETERINARIO
@@ -255,4 +595,34 @@ enum EventType {
   INSEMINACION
   PARTO
   ENFERMEDAD
+}
+
+enum DailyReportStatus {
+  PENDIENTE_APROBACION
+  APROBADO
+  RECHAZADO
+}
+
+enum ReceptionStatus {
+  PENDIENTE_VALIDACION
+  VALIDADA
+  RECHAZADA
+}
+
+enum MachineActivityType {
+  COMBUSTIBLE
+  MANTENIMIENTO
+  REPARACION
+  USO_CAMPO
+}
+
+enum PhotoEntityType {
+  PARTE_DIARIO
+  RECEPCION
+  ACTIVIDAD_MAQUINARIA
+}
+
+enum RecipeStatus {
+  ACTIVA
+  ARCHIVADA
 }

@@ -12,7 +12,7 @@ export class PrismaUserReader implements UserReaderPort {
 
   findByIdForCompany(id: string, companyId: string) {
     return this.prisma.user.findFirst({
-      where: { id, companyId },
+      where: { id, companyMemberships: { some: { companyId } } },
       select: { id: true },
     });
   }

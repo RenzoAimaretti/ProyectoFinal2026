@@ -9,6 +9,7 @@ import {
   DuplicateEntityError,
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
 } from './domain/errors';
 import { CreateFarmUseCase } from './application/use-cases/create-farm.use-case';
 import { FindAllFarmsUseCase } from './application/use-cases/find-all-farms.use-case';
@@ -25,30 +26,30 @@ export class FarmService {
     private readonly updateUseCase: UpdateFarmUseCase,
   ) {}
 
-  findAll(companyId: string) {
+  findAll(tenantId: string) {
     return this.handle(
-      () => this.findAllUseCase.execute(companyId),
+      () => this.findAllUseCase.execute(tenantId),
       'fetching farms',
     );
   }
 
-  findOne(id: string, companyId: string) {
+  findOne(id: string, tenantId: string) {
     return this.handle(
-      () => this.findOneUseCase.execute(id, companyId),
+      () => this.findOneUseCase.execute(id, tenantId),
       'fetching farm',
     );
   }
 
-  create(companyId: string, data: CreateFarmInput) {
+  create(tenantId: string, data: CreateFarmInput) {
     return this.handle(
-      () => this.createUseCase.execute(companyId, data),
+      () => this.createUseCase.execute(tenantId, data),
       'creating farm',
     );
   }
 
-  update(id: string, companyId: string, data: UpdateFarmInput) {
+  update(id: string, tenantId: string, data: UpdateFarmInput) {
     return this.handle(
-      () => this.updateUseCase.execute(id, companyId, data),
+      () => this.updateUseCase.execute(id, tenantId, data),
       'updating farm',
     );
   }
@@ -73,7 +74,7 @@ export class FarmService {
       return new ConflictException(error.message);
     }
 
-    if (error instanceof InvalidInputError) {
+    if (error instanceof InvalidInputError || error instanceof InvalidRelationError) {
       return new BadRequestException(error.message);
     }
 

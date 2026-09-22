@@ -15,7 +15,10 @@ export class PrismaLotReader implements LotReaderPort {
 
   findByIdForCompany(id: string, companyId: string): Promise<{ id: string } | null> {
     return this.prisma.lot.findFirst({
-      where: { id, farm: { companyId } },
+      where: {
+        id,
+        farm: { client: { tenant: { companies: { some: { id: companyId } } } } },
+      },
       select: { id: true },
     });
   }

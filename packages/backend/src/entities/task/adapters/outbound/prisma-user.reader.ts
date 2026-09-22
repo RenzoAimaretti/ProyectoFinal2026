@@ -6,9 +6,9 @@ import { UserReaderPort } from '../../application/task.ports';
 export class PrismaUserReader implements UserReaderPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findByIdForCompany(id: string, companyId: string) {
+  findByIdForCompany(id: string, tenantId: string) {
     return this.prisma.user.findUnique({
-      where: { id, companyId },
+      where: { id, tenantId },
       select: { id: true, role: true },
     });
   }

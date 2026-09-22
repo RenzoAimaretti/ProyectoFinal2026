@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as argon2 from 'argon2';
 import { DuplicateEntityError, EntityNotFoundError, InvalidInputError } from '../../domain/errors';
-import { CompanyReaderPort, UserRepositoryPort } from '../user.ports';
+import { TenantReaderPort, UserRepositoryPort } from '../user.ports';
 import { CreateUserInput, UpdateUserInput, UserRecord } from '../user.types';
 import { CreateUserUseCase } from './create-user.use-case';
 import { FindAllUsersUseCase } from './find-all-users.use-case';
@@ -15,7 +15,7 @@ jest.mock('argon2', () => ({
 
 const baseUser: UserRecord = {
   id: 'user-1',
-  companyId: 'company-1',
+  tenantId: 'tenant-1',
   username: 'juan',
   email: 'juan@firma.com',
   passwordHash: 'hashed-password',
@@ -42,11 +42,11 @@ function createPorts() {
     updateForCompany: jest.fn(),
   };
 
-  const companyReader: jest.Mocked<CompanyReaderPort> = {
+  const tenantReader: jest.Mocked<TenantReaderPort> = {
     findById: jest.fn(),
   };
 
-  return { repository, companyReader };
+  return { repository, tenantReader };
 }
 
 describe('User use cases', () => {
@@ -75,67 +75,67 @@ describe('User use cases', () => {
   });
 
   describe('FindAllUsersUseCase', () => {
-    it('returns only users for the provided company', async () => {
+    it('returns only users for the provided tenant', async () => {
       const { repository } = createPorts();
       repository.findAllByCompanyId.mockResolvedValue([baseUser]);
 
       const useCase = new FindAllUsersUseCase(repository);
 
-      await expect((useCase as any).execute('company-1')).resolves.toEqual([baseUser]);
+      await expect((useCase as any).execute('tenant-1')).resolves.toEqual([baseUser]);
 
-      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-1');
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('tenant-1');
     });
 
-    it('returns an empty list for another company scope', async () => {
+    it('returns an empty list for another tenant scope', async () => {
       const { repository } = createPorts();
       repository.findAllByCompanyId.mockResolvedValue([]);
 
       const useCase = new FindAllUsersUseCase(repository);
 
-      await expect((useCase as any).execute('company-2')).resolves.toEqual([]);
+      await expect((useCase as any).execute('tenant-2')).resolves.toEqual([]);
 
-      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-2');
+      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('tenant-2');
     });
   });
 
   describe('FindUserUseCase', () => {
-    it('returns a user by id within the current company', async () => {
+    it('returns a user by id within the current tenant', async () => {
       const { repository } = createPorts();
       repository.findByIdForCompany.mockResolvedValue(baseUser);
 
       const useCase = new FindUserUseCase(repository);
 
-      await expect((useCase as any).execute('user-1', 'company-1')).resolves.toEqual(baseUser);
+      await expect((useCase as any).execute('user-1', 'tenant-1')).resolves.toEqual(baseUser);
 
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-1');
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('user-1', 'tenant-1');
     });
 
-    it('rejects missing users outside the current company', async () => {
+    it('rejects missing users outside the current tenant', async () => {
       const { repository } = createPorts();
       repository.findByIdForCompany.mockResolvedValue(null);
 
       const useCase = new FindUserUseCase(repository);
 
-      await expect((useCase as any).execute('user-1', 'company-2')).rejects.toBeInstanceOf(
+      await expect((useCase as any).execute('user-1', 'tenant-2')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
 
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-2');
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('user-1', 'tenant-2');
     });
   });
 
   describe('CreateUserUseCase', () => {
     let repository: jest.Mocked<UserRepositoryPort>;
-    let companyReader: jest.Mocked<CompanyReaderPort>;
+    let tenantReader: jest.Mocked<TenantReaderPort>;
     let useCase: CreateUserUseCase;
 
     beforeEach(() => {
-      ({ repository, companyReader } = createPorts());
-      useCase = new CreateUserUseCase(repository, companyReader);
+      ({ repository, tenantReader } = createPorts());
+      useCase = new CreateUserUseCase(repository, tenantReader);
     });
 
     it('creates a user and hashes the password', async () => {
-      companyReader.findById.mockResolvedValue({ id: 'company-1' });
+      tenantReader.findById.mockResolvedValue({ id: 'tenant-1' });
       repository.findByEmail.mockResolvedValue(null);
       repository.findByUsername.mockResolvedValue(null);
       repository.create.mockResolvedValue(baseUser);
@@ -143,7 +143,7 @@ describe('User use cases', () => {
 
       await expect(
         useCase.execute({
-          companyId: 'company-1',
+          tenantId: 'tenant-1',
           email: 'juan@firma.com',
           password: 'Password123!',
           role: 'ADMIN',
@@ -152,7 +152,7 @@ describe('User use cases', () => {
 
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          companyId: 'company-1',
+          tenantId: 'tenant-1',
           email: 'juan@firma.com',
           passwordHash: 'hashed-123',
           role: 'ADMIN',
@@ -161,29 +161,8 @@ describe('User use cases', () => {
       );
     });
 
-    it('ignores deprecated body companyId and creates under the JWT tenant', async () => {
-      companyReader.findById.mockResolvedValue({ id: 'company-1' });
-      repository.findByEmail.mockResolvedValue(null);
-      repository.findByUsername.mockResolvedValue(null);
-      repository.create.mockResolvedValue({ ...baseUser, companyId: 'company-1' });
-      (argon2.hash as jest.Mock).mockResolvedValue('hashed-123');
-
-      await expect(
-        useCase.execute({
-          companyId: 'company-1',
-          email: 'juan@firma.com',
-          password: 'Password123!',
-          role: 'ADMIN',
-        }),
-      ).resolves.toEqual({ ...baseUser, companyId: 'company-1' });
-
-      expect(repository.create).toHaveBeenCalledWith(
-        expect.objectContaining({ companyId: 'company-1' }),
-      );
-    });
-
     it('falls back to username as email when email is omitted', async () => {
-      companyReader.findById.mockResolvedValue({ id: 'company-1' });
+      tenantReader.findById.mockResolvedValue({ id: 'tenant-1' });
       repository.findByEmail.mockResolvedValue(null);
       repository.findByUsername.mockResolvedValue(null);
       repository.create.mockResolvedValue({ ...baseUser, email: 'juan' });
@@ -191,7 +170,7 @@ describe('User use cases', () => {
 
       await expect(
         useCase.execute({
-          companyId: 'company-1',
+          tenantId: 'tenant-1',
           username: 'juan',
           password: 'Password123!',
           role: 'OPERARIO',
@@ -199,7 +178,7 @@ describe('User use cases', () => {
       ).resolves.toEqual({ ...baseUser, email: 'juan' });
 
       expect(repository.create).toHaveBeenCalledWith({
-        companyId: 'company-1',
+        tenantId: 'tenant-1',
         username: 'juan',
         email: 'juan',
         passwordHash: 'hashed-123',
@@ -209,23 +188,23 @@ describe('User use cases', () => {
     });
 
     it.each([
-      ['companyId', { companyId: ' ', email: 'juan@firma.com', password: 'Password123!', role: 'ADMIN' }],
-      ['password', { companyId: 'company-1', email: 'juan@firma.com', password: ' ', role: 'ADMIN' }],
-      ['role', { companyId: 'company-1', email: 'juan@firma.com', password: 'Password123!', role: 'NO_EXISTE' }],
+      ['tenantId', { tenantId: ' ', email: 'juan@firma.com', password: 'Password123!', role: 'ADMIN' }],
+      ['password', { tenantId: 'tenant-1', email: 'juan@firma.com', password: ' ', role: 'ADMIN' }],
+      ['role', { tenantId: 'tenant-1', email: 'juan@firma.com', password: 'Password123!', role: 'NO_EXISTE' }],
     ])('rejects invalid %s', async (_field, input) => {
       const normalizedInput = input as CreateUserInput;
-      companyReader.findById.mockResolvedValue({ id: 'company-1' });
+      tenantReader.findById.mockResolvedValue({ id: 'tenant-1' });
 
       await expect(useCase.execute(normalizedInput)).rejects.toBeInstanceOf(InvalidInputError);
     });
 
-    it('rejects a missing company', async () => {
-      companyReader.findById.mockResolvedValue(null);
+    it('rejects a missing tenant', async () => {
+      tenantReader.findById.mockResolvedValue(null);
       repository.findByEmail.mockResolvedValue(null);
 
       await expect(
         useCase.execute({
-          companyId: 'company-1',
+          tenantId: 'tenant-1',
           email: 'juan@firma.com',
           password: 'Password123!',
           role: 'ADMIN',
@@ -234,13 +213,13 @@ describe('User use cases', () => {
     });
 
     it('rejects duplicate usernames', async () => {
-      companyReader.findById.mockResolvedValue({ id: 'company-1' });
+      tenantReader.findById.mockResolvedValue({ id: 'tenant-1' });
       repository.findByEmail.mockResolvedValue(null);
       repository.findByUsername.mockResolvedValue(baseUser);
 
       await expect(
         useCase.execute({
-          companyId: 'company-1',
+          tenantId: 'tenant-1',
           username: 'juan',
           password: 'Password123!',
           role: 'ADMIN',
@@ -259,29 +238,29 @@ describe('User use cases', () => {
     });
 
     it.each([undefined, {}])('rejects empty payload %p', async (input) => {
-      await expect((useCase as any).execute('user-1', 'company-1', input as UpdateUserInput)).rejects.toBeInstanceOf(
+      await expect((useCase as any).execute('user-1', 'tenant-1', input as UpdateUserInput)).rejects.toBeInstanceOf(
         InvalidInputError,
       );
     });
 
-    it('rejects missing users outside the current company', async () => {
+    it('rejects missing users outside the current tenant', async () => {
       repository.findByIdForCompany.mockResolvedValue(null);
 
       await expect(
-        (useCase as any).execute('user-1', 'company-2', { username: 'nuevo' }),
+        (useCase as any).execute('user-1', 'tenant-2', { username: 'nuevo' }),
       ).rejects.toBeInstanceOf(EntityNotFoundError);
 
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-2');
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('user-1', 'tenant-2');
     });
 
-    it('updates a user and hashes a new password inside the current company', async () => {
+    it('updates a user and hashes a new password inside the current tenant', async () => {
       repository.findByIdForCompany.mockResolvedValue(baseUser);
       repository.findByUsername.mockResolvedValue(null);
       repository.updateForCompany.mockResolvedValue({ ...baseUser, username: 'nuevo' });
       (argon2.hash as jest.Mock).mockResolvedValue('hashed-new');
 
       await expect(
-        (useCase as any).execute('user-1', 'company-1', {
+        (useCase as any).execute('user-1', 'tenant-1', {
           username: 'nuevo',
           password: 'NewPassword123!',
           role: 'PRODUCTOR',
@@ -289,8 +268,8 @@ describe('User use cases', () => {
         }),
       ).resolves.toEqual({ ...baseUser, username: 'nuevo' });
 
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-1');
-      expect(repository.updateForCompany).toHaveBeenCalledWith('user-1', 'company-1', {
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('user-1', 'tenant-1');
+      expect(repository.updateForCompany).toHaveBeenCalledWith('user-1', 'tenant-1', {
         username: 'nuevo',
         passwordHash: 'hashed-new',
         role: 'PRODUCTOR',
@@ -303,23 +282,23 @@ describe('User use cases', () => {
       repository.findByUsername.mockResolvedValue({ ...baseUser, id: 'other-user' });
 
       await expect(
-        (useCase as any).execute('user-1', 'company-1', {
+        (useCase as any).execute('user-1', 'tenant-1', {
           username: 'nuevo',
         }),
       ).rejects.toBeInstanceOf(DuplicateEntityError);
 
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-1');
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith('user-1', 'tenant-1');
     });
 
     it('rejects invalid usernames and roles', async () => {
       repository.findByIdForCompany.mockResolvedValue(baseUser);
 
       await expect(
-        (useCase as any).execute('user-1', 'company-1', { username: ' ' }),
+        (useCase as any).execute('user-1', 'tenant-1', { username: ' ' }),
       ).rejects.toBeInstanceOf(InvalidInputError);
 
       await expect(
-        (useCase as any).execute('user-1', 'company-1', { role: 'NO_EXISTE' as UserRecord['role'] }),
+        (useCase as any).execute('user-1', 'tenant-1', { role: 'NO_EXISTE' as UserRecord['role'] }),
       ).rejects.toBeInstanceOf(InvalidInputError);
     });
   });

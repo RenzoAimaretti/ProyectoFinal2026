@@ -1,17 +1,17 @@
-import { EntityNotFoundError, InvalidInputError } from '../../domain/errors';
-import { CompanyReaderPort, FarmRepositoryPort } from '../farm.ports';
+import { EntityNotFoundError, InvalidInputError, InvalidRelationError } from '../../domain/errors';
+import { ClientReaderPort, FarmRepositoryPort } from '../farm.ports';
 import { FarmRecord, UpdateFarmInput } from '../farm.types';
 import { assertPositiveNumber, assertRequiredString } from '../farm.validation';
 
 export class UpdateFarmUseCase {
   constructor(
     private readonly repository: FarmRepositoryPort,
-    private readonly companyReader: CompanyReaderPort,
+    private readonly clientReader: ClientReaderPort,
   ) {}
 
   async execute(
     id: string,
-    companyId: string,
+    tenantId: string,
     data?: UpdateFarmInput,
   ): Promise<FarmRecord> {
     if (!data) {
@@ -22,13 +22,18 @@ export class UpdateFarmUseCase {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.location !== undefined ? { location: data.location } : {}),
       ...(data.surface !== undefined ? { surface: data.surface } : {}),
+      ...(data.clientId !== undefined ? { clientId: data.clientId } : {}),
     };
 
     if (Object.keys(sanitizedData).length === 0) {
       throw new InvalidInputError('No data provided for update');
     }
 
-    const farm = await this.repository.findByIdForCompany(id, companyId);
+    if (sanitizedData.clientId === undefined) {
+      throw new InvalidInputError('clientId is required');
+    }
+
+    const farm = await this.repository.findByIdForCompany(id, tenantId);
     if (!farm) {
       throw new EntityNotFoundError(`Farm with id ${id} not found`);
     }
@@ -50,6 +55,16 @@ export class UpdateFarmUseCase {
       updateData.surface = assertPositiveNumber(sanitizedData.surface, 'surface');
     }
 
-    return this.repository.updateForCompany(id, companyId, updateData);
+    const clientId = assertRequiredString(sanitizedData.clientId, 'clientId');
+    const client = await this.clientReader.findByIdForTenant(clientId, tenantId);
+    if (!client) {
+      throw new InvalidRelationError(
+        'Client does not belong to the authenticated tenant',
+      );
+    }
+
+    updateData.clientId = clientId;
+
+    return this.repository.updateForCompany(id, tenantId, updateData);
   }
 }

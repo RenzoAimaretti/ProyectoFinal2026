@@ -9,7 +9,7 @@ export class PrismaTaskReader implements TaskReaderPort {
 
   findByIdsForCompany(ids: string[], companyId: string): Promise<TaskLookupRecord[]> {
     return this.prisma.task.findMany({
-      where: { id: { in: ids }, taskType: { companyId } },
+      where: { id: { in: ids }, taskType: { tenantId: companyId } },
       select: { id: true },
     });
   }

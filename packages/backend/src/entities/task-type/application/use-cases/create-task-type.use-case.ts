@@ -18,6 +18,6 @@ export class CreateTaskTypeUseCase {
       );
     }
 
-    return this.repository.create({ companyId: tenantCompanyId, name, description });
+    return this.repository.create({ tenantId: tenantCompanyId, name, description });
   }
 }

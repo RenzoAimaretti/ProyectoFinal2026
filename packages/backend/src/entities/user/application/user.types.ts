@@ -1,10 +1,10 @@
-export const USER_ROLE_VALUES = ['ADMIN', 'OPERARIO', 'PRODUCTOR', 'CONTRATISTA', 'VETERINARIO'] as const;
+export const USER_ROLE_VALUES = ['ADMIN', 'OPERARIO', 'SUPERVISOR', 'PRODUCTOR', 'CONTRATISTA', 'VETERINARIO'] as const;
 
 export type UserRoleValue = (typeof USER_ROLE_VALUES)[number];
 
 export type UserRecord = {
   id: string;
-  companyId: string;
+  tenantId: string;
   username: string | null;
   email: string;
   passwordHash: string;
@@ -19,7 +19,7 @@ export type UserRecord = {
 };
 
 export type CreateUserInput = {
-  companyId: string;
+  tenantId: string;
   username?: string;
   email?: string;
   password: string;
@@ -36,7 +36,7 @@ export type UpdateUserInput = {
 };
 
 export type CreateUserData = {
-  companyId: string;
+  tenantId: string;
   username?: string;
   email: string;
   passwordHash: string;

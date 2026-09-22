@@ -43,49 +43,44 @@ describe('FarmController', () => {
     }
   });
 
-  it('delegates tenant-scoped requests using req.user.firmaId', async () => {
+  it('delegates tenant-scoped requests using req.user.tenantId', async () => {
     service.findAll.mockResolvedValue([{ id: 'farm-1' }]);
     service.findOne.mockResolvedValue({ id: 'farm-1' });
     service.create.mockResolvedValue({ id: 'farm-2' });
     service.update.mockResolvedValue({ id: 'farm-1', name: 'Updated' });
 
-    const req = { user: { firmaId: 'company-1' } };
+    const req = { user: { tenantId: 'tenant-1' } };
 
     await expect(controller.findAll(req)).resolves.toEqual([{ id: 'farm-1' }]);
     await expect(controller.findOne('farm-1', req)).resolves.toEqual({
       id: 'farm-1',
     });
     await expect(
-      controller.create(
-        req,
-        {
-          name: 'North Field',
-          location: 'North road',
-          companyId: 'company-2',
-          surface: 120.5,
-        },
-      ),
+      controller.create(req, {
+        name: 'North Field',
+        location: 'North road',
+        clientId: 'client-2',
+        surface: 120.5,
+      }),
     ).resolves.toEqual({ id: 'farm-2' });
     await expect(
-      controller.update(
-        'farm-1',
-        req,
-        {
-          name: 'Updated',
-          companyId: 'company-2',
-        },
-      ),
+      controller.update('farm-1', req, {
+        name: 'Updated',
+        clientId: 'client-2',
+      }),
     ).resolves.toEqual({ id: 'farm-1', name: 'Updated' });
 
-    expect(service.findAll).toHaveBeenCalledWith('company-1');
-    expect(service.findOne).toHaveBeenCalledWith('farm-1', 'company-1');
-    expect(service.create).toHaveBeenCalledWith('company-1', {
+    expect(service.findAll).toHaveBeenCalledWith('tenant-1');
+    expect(service.findOne).toHaveBeenCalledWith('farm-1', 'tenant-1');
+    expect(service.create).toHaveBeenCalledWith('tenant-1', {
       name: 'North Field',
       location: 'North road',
       surface: 120.5,
+      clientId: 'client-2',
     });
-    expect(service.update).toHaveBeenCalledWith('farm-1', 'company-1', {
+    expect(service.update).toHaveBeenCalledWith('farm-1', 'tenant-1', {
       name: 'Updated',
+      clientId: 'client-2',
     });
   });
 });

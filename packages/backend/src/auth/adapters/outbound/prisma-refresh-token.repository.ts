@@ -3,6 +3,40 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { RefreshTokenRepositoryPort } from '../../application/auth.ports';
 import { AuthUserCredentials, CreateRefreshTokenInput, RefreshTokenRecord } from '../../application/auth.types';
 
+type RefreshTokenWithUser = {
+  id: string;
+  tokenHash: string;
+  expiresAt: Date;
+  revokedAt: Date | null;
+  user: {
+    id: string;
+    email: string;
+    passwordHash: string;
+    role: AuthUserCredentials['role'];
+    tenantId: string;
+    active: boolean;
+    deleted: boolean;
+    failedLoginAttempts: number;
+    lockedUntil: Date | null;
+    companyMemberships: { companyId: string }[];
+  };
+};
+
+function toAuthUserCredentials(user: RefreshTokenWithUser['user']): AuthUserCredentials {
+  return {
+    id: user.id,
+    email: user.email,
+    passwordHash: user.passwordHash,
+    role: user.role,
+    tenantId: user.tenantId,
+    firmaId: user.companyMemberships[0]?.companyId ?? null,
+    active: user.active,
+    deleted: user.deleted,
+    failedLoginAttempts: user.failedLoginAttempts,
+    lockedUntil: user.lockedUntil,
+  };
+}
+
 @Injectable()
 export class PrismaRefreshTokenRepository implements RefreshTokenRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
@@ -13,7 +47,18 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepositoryPort 
         revokedAt: null,
         expiresAt: { gt: new Date() },
       },
-      include: { user: true },
+      include: {
+        user: {
+          include: {
+            companyMemberships: {
+              where: { active: true },
+              orderBy: { createdAt: 'asc' },
+              take: 1,
+              select: { companyId: true },
+            },
+          },
+        },
+      },
     });
 
     return records
@@ -23,7 +68,7 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepositoryPort 
         tokenHash: record.tokenHash,
         expiresAt: record.expiresAt,
         revokedAt: record.revokedAt,
-        user: record.user as AuthUserCredentials,
+        user: toAuthUserCredentials(record.user),
       }));
   }
 
@@ -32,7 +77,18 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepositoryPort 
       where: {
         revokedAt: null,
       },
-      include: { user: true },
+      include: {
+        user: {
+          include: {
+            companyMemberships: {
+              where: { active: true },
+              orderBy: { createdAt: 'asc' },
+              take: 1,
+              select: { companyId: true },
+            },
+          },
+        },
+      },
     });
 
     return records
@@ -42,7 +98,7 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepositoryPort 
         tokenHash: record.tokenHash,
         expiresAt: record.expiresAt,
         revokedAt: record.revokedAt,
-        user: record.user as AuthUserCredentials,
+        user: toAuthUserCredentials(record.user),
       }));
   }
 

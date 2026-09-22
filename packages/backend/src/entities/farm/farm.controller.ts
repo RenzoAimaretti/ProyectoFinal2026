@@ -14,7 +14,7 @@ import { FarmService } from './farm.service';
 
 type RequestWithUser = {
   user: {
-    firmaId: string;
+    tenantId: string;
   };
 };
 
@@ -25,22 +25,23 @@ export class FarmController {
   @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Req() req: RequestWithUser) {
-    return this.service.findAll(req.user.firmaId);
+    return this.service.findAll(req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
-    return this.service.findOne(id, req.user.firmaId);
+    return this.service.findOne(id, req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Req() req: RequestWithUser, @Body() data: CreateFarmInput) {
-    return this.service.create(req.user.firmaId, {
+    return this.service.create(req.user.tenantId, {
       name: data.name,
       location: data.location,
       surface: data.surface,
+      clientId: data.clientId,
     });
   }
 
@@ -51,10 +52,11 @@ export class FarmController {
     @Req() req: RequestWithUser,
     @Body() data: UpdateFarmInput,
   ) {
-    return this.service.update(id, req.user.firmaId, {
+    return this.service.update(id, req.user.tenantId, {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.location !== undefined ? { location: data.location } : {}),
       ...(data.surface !== undefined ? { surface: data.surface } : {}),
+      ...(data.clientId !== undefined ? { clientId: data.clientId } : {}),
     });
   }
 }

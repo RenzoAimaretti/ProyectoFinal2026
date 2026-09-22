@@ -85,10 +85,12 @@ describe('Company use cases', () => {
     });
 
     it.each([
+      ['tenantId', ''],
       ['name', undefined],
       ['cuit', ''],
     ])('rejects missing required %s', async (field, value) => {
       const input: CreateCompanyInput = {
+        tenantId: 'tenant-1',
         name: 'Agrolify SA',
         cuit: '30-12345678-9',
       };
@@ -105,6 +107,7 @@ describe('Company use cases', () => {
 
       await expect(
         useCase.execute({
+          tenantId: 'tenant-1',
           name: 'Agrolify SA',
           cuit: '30-12345678-9',
         }),
@@ -117,12 +120,14 @@ describe('Company use cases', () => {
 
       await expect(
         useCase.execute({
+          tenantId: 'tenant-1',
           name: 'Agrolify SA',
           cuit: '30-12345678-9',
         }),
       ).resolves.toEqual(baseCompany);
 
       expect(repository.create).toHaveBeenCalledWith({
+        tenantId: 'tenant-1',
         name: 'Agrolify SA',
         cuit: '30-12345678-9',
       });

@@ -32,7 +32,13 @@ export class PrismaCompanyRepository implements CompanyRepositoryPort {
   }
 
   create(data: CreateCompanyInput): Promise<CompanyRecord> {
-    return this.prisma.company.create({ data });
+    return this.prisma.company.create({
+      data: {
+        tenantId: data.tenantId,
+        name: data.name,
+        cuit: data.cuit,
+      },
+    });
   }
 
   update(id: string, data: UpdateCompanyInput): Promise<CompanyRecord> {

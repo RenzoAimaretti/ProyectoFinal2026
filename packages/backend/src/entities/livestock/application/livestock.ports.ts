@@ -35,5 +35,5 @@ export interface LotReaderPort {
   findByIdForCompany(
     id: string,
     companyId: string,
-  ): Promise<{ id: string; companyId: string } | null>;
+  ): Promise<{ id: string } | null>;
 }

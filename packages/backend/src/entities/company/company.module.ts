@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AddCompanyModuleUseCase } from './application/use-cases/add-company-module.use-case';
 import { CreateCompanyUseCase } from './application/use-cases/create-company.use-case';
 import { FindAllCompaniesUseCase } from './application/use-cases/find-all-companies.use-case';
@@ -22,6 +23,7 @@ import { CompanyService } from './company.service';
   controllers: [CompanyController],
   providers: [
     CompanyService,
+    JwtAuthGuard,
     { provide: COMPANY_REPOSITORY, useClass: PrismaCompanyRepository },
     { provide: MODULE_READER, useClass: PrismaModuleReader },
     {

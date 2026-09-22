@@ -8,10 +8,10 @@ export class PrismaFarmReader implements FarmReaderPort {
 
   findByIdForCompany(
     id: string,
-    companyId: string,
+    tenantId: string,
   ): Promise<{ id: string } | null> {
     return this.prisma.farm.findFirst({
-      where: { id, companyId },
+      where: { id, client: { tenantId } },
       select: { id: true },
     });
   }

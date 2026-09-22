@@ -22,6 +22,7 @@ export type CompanyWithModules = CompanyRecord & {
 };
 
 export type CreateCompanyInput = {
+  tenantId: string;
   name: string;
   cuit: string;
 };
