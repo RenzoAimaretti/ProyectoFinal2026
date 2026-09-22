@@ -23,9 +23,7 @@ The multi-firma migration left several boundary inconsistencies: user applicatio
 
 ### Pending explicit product/team decisions
 
-- New-user membership provisioning contract and authoritative role source.
-- Legacy `GET /` e2e contract: restore a root/health endpoint or remove/replace the stale test.
-- Authentication and tenant scope for company read/update/module endpoints.
+None outstanding. D01 (provisioning contract and authoritative role source), D02 (root endpoint/e2e contract), and D03 (company administration authentication and tenant scope) are all decided and implemented; see Progress.
 
 ## Constraints
 
@@ -48,7 +46,8 @@ The multi-firma migration left several boundary inconsistencies: user applicatio
 | T03 | delegated | Generated client policy needs Git evidence plus coordinated ignore or tracking changes. |
 | T04 | delegated | Specification reconciliation requires backend context and OpenSpec update. |
 | T05 | delegated | Explicit-firma user provisioning spans API contract, use case, persistence, composition, and tests. |
-| D02–D03 | blocked | Product/team decisions must be explicit before public behavior changes. |
+| D02 | inline | User decision finalized the root-endpoint contract; single stale e2e removal. |
+| D03 | delegated | Company tenant scoping spans ports, adapter, use cases, service, controller, and focused tests. |
 
 ## Checklist
 
@@ -59,7 +58,7 @@ The multi-firma migration left several boundary inconsistencies: user applicatio
 - [x] **T05** Add explicit-firma user provisioning: require `companyId`, validate tenant ownership, create `UserCompany`, and make `UserCompany.role` authoritative for firma-scoped authorization.
 - [x] **D01** New-user provisioning: `POST /users` receives an explicit `companyId`; it creates a membership only after confirming that company belongs to the caller's tenant. `UserCompany.role` is authoritative.
 - [x] **D02** Root endpoint/e2e contract: `GET /` is not a public backend contract; remove or replace the stale e2e with a current contract.
-- [ ] **D03** Decide company administration authentication and tenant scope.
+- [x] **D03** Company administration contract: require JWT and tenant-scope `companies` list/read/update/add-module to `req.user.tenantId`.
 
 ## Acceptance criteria
 
@@ -142,6 +141,25 @@ The multi-firma migration left several boundary inconsistencies: user applicatio
   - Readback: `grep -n "companyId\` is the tenant key"` → no match; `grep -n "effective tenant MUST be"` → no match; the spec contains both `tenantId` and `firmaId`, the default first-active-membership limitation, and the explicit `companyId` provisioning contract.
   - Commit identity: `this commit: refactor(backend): resolve multifirma technical debt`.
 
+- 2026-09-22 — D03 decided by the user: company administration endpoints (`GET /companies`, `GET /companies/:id`, `PUT /companies/:id`, `POST /companies/add-module`) MUST require JWT and scope reads/writes to `req.user.tenantId`.
+- 2026-09-22 — D03 completed (delegated worker). Company administration is now JWT-protected and tenant-scoped to `req.user.tenantId`.
+  - Changed files: `packages/backend/src/entities/company/application/company.ports.ts`; `.../application/company.types.ts`; `.../application/use-cases/{find-all-companies,find-company,update-company,add-company-module}.use-case.ts`; `.../application/use-cases/company.use-cases.spec.ts`; `.../adapters/outbound/prisma-company.repository.ts`; `.../adapters/outbound/prisma-company.repository.spec.ts` (new); `packages/backend/src/entities/company/company.service.ts`; `packages/backend/src/entities/company/company.controller.ts`; `packages/backend/src/entities/company/company.controller.spec.ts` (new); `openspec/specs/multi-tenant-enforcement/spec.md`.
+  - Contract: `GET /companies` returns only the caller tenant's companies; `GET /companies/:id` and `PUT /companies/:id` return 404 for a company outside the caller tenant; `POST /companies/add-module` links the module only when the target company belongs to the caller tenant, otherwise 404. `POST /companies` keeps deriving the tenant from the JWT. Public add-module body field names (`companyId`, `moduleId`) are preserved. No platform-admin/global role behavior was introduced.
+  - Port rename: `findAll` → `findAllByTenantId`, `findById` → `findByIdForTenant`, `update` → `updateForTenant`, `addModule` → `addModuleForTenant` (`companyId`, `tenantId`, `moduleId`); the now-unused `AddCompanyModuleInput` was removed. Prisma tenant filtering lives in the adapter; the application layer throws domain errors only, translated by `CompanyService` as before.
+  - RED: `pnpm --filter backend test -- --runInBand src/entities/company` failed (2 suites, 0 tests run) because `findAllByTenantId`, `findByIdForTenant`, `updateForTenant`, and `addModuleForTenant` did not exist and the use-case signatures rejected the tenant argument.
+  - GREEN: the same command passed after implementation (3 suites, 28 tests).
+  - TRIANGULATE: added adapter spec coverage asserting the Prisma `where` filters include `tenantId`, and that `updateForTenant`/`addModuleForTenant` refuse cross-tenant ids without mutating; the focused command passed again (3 suites, 28 tests).
+  - Verification: `pnpm --filter backend exec tsc --noEmit -p tsconfig.json` passed.
+  - Commit identity: pending — the writer was instructed not to commit.
+- 2026-09-22 — D03 verification follow-up (delegated worker). Independent verification found that `GET /companies/:id` did not return 404 for a missing or cross-tenant company: `FindCompanyUseCase.execute` returned the repository `null` and `CompanyService` passed that `null` through instead of translating it, so the intended tenant-scoping contract was not enforced at the read boundary.
+  - Fix: `FindCompanyUseCase.execute(id, tenantId)` now awaits `findByIdForTenant` and throws `EntityNotFoundError('Company with id <id> not found')` when the repository returns `null`, matching the not-found style already used by `UpdateCompanyUseCase` and `AddCompanyModuleUseCase`. `CompanyService.translateError` maps that domain error to `NotFoundException` (404).
+  - Changed files: `packages/backend/src/entities/company/application/use-cases/find-company.use-case.ts`; `.../application/use-cases/company.use-cases.spec.ts`.
+  - RED: `pnpm --filter backend test -- --runInBand src/entities/company` failed (1 suite, 2 failed, 27 passed) — the cross-tenant and missing-company read specs received a resolved `null` instead of a rejection.
+  - GREEN: the same command passed (3 suites, 29 tests).
+  - TRIANGULATE: the former single "hides a company" case was split into explicit cross-tenant and non-existent-id cases; both assert `EntityNotFoundError` and that the tenant-scoped `findByIdForTenant(id, tenantId)` call happened. No controller/service-level assertion was added because the existing `company.controller.spec.ts` mocks `CompanyService` and no service spec is in scope; the `EntityNotFoundError` → 404 mapping lives in the already-present `CompanyService.translateError`.
+  - Verification: `pnpm --filter backend exec tsc --noEmit -p tsconfig.json` passed.
+  - Commit identity: pending — the writer was instructed not to commit.
+
 ## Next step
 
-T04 is reconciled. Remaining open items are D03 (company administration authentication and tenant scope) and the pending product/team decisions.
+D03 verification finding is fixed and committed. Remaining follow-up is ordinary review/PR decision for the feature branch.

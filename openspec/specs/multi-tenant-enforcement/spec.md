@@ -6,7 +6,7 @@ Protect Sprint 1 tenant- and firma-owned APIs in the shared PostgreSQL schema.
 
 The platform has two nested scopes, and the authenticated JWT (`AuthJwtPayload`) carries both:
 
-- `tenantId` is the tenant key: the subscribed customer. Tenant-owned resources — farm, lot, task, task-type, and tenant-local user — MUST be scoped by `req.user.tenantId`.
+- `tenantId` is the tenant key: the subscribed customer. Tenant-owned resources — farm, lot, task, task-type, tenant-local user, and company administration — MUST be scoped by `req.user.tenantId`.
 - `firmaId` is the firma key: a `Company` (razón social) inside a tenant. Firma-owned resources — livestock, machine, machine-usage, livestock-event, weight-record, and livestock-movement — MUST be scoped by `req.user.firmaId`, which equals the owning `companyId`.
 
 The backend MUST derive scope from the token and MUST NOT treat client-supplied `companyId` or tenant/firma identity as authoritative.
@@ -15,7 +15,7 @@ The backend MUST derive scope from the token and MUST NOT treat client-supplied 
 
 ### Requirement: Protected Tenant/Firma Context
 
-All in-scope operational endpoints for farms, lots, tasks, task-types, tenant-local users, livestocks, livestock-events, livestock-movements, weight-records, machines, and machine-usages MUST require a bearer JWT. The backend MUST derive scope from the token: tenant-owned resources MUST be scoped by `req.user.tenantId`, and firma-owned resources MUST be scoped by `req.user.firmaId`. The backend MUST NOT treat client-supplied `companyId` or tenant/firma identity as authoritative. Flutter clients SHOULD send `Authorization: Bearer <accessToken>` and SHOULD NOT send authoritative tenant or firma identity for protected writes. Client-supplied `companyId` on tenant-scoped writes is deprecated; during Sprint 1 compatibility it MUST be ignored in favor of `req.user.tenantId`, not rejected.
+All in-scope operational endpoints for farms, lots, tasks, task-types, tenant-local users, company administration (`/companies` and `/companies/add-module`), livestocks, livestock-events, livestock-movements, weight-records, machines, and machine-usages MUST require a bearer JWT. The backend MUST derive scope from the token: tenant-owned resources MUST be scoped by `req.user.tenantId`, and firma-owned resources MUST be scoped by `req.user.firmaId`. The backend MUST NOT treat client-supplied `companyId` or tenant/firma identity as authoritative. Flutter clients SHOULD send `Authorization: Bearer <accessToken>` and SHOULD NOT send authoritative tenant or firma identity for protected writes. Client-supplied `companyId` on tenant-scoped writes is deprecated; during Sprint 1 compatibility it MUST be ignored in favor of `req.user.tenantId`, not rejected.
 
 #### Scenario: Farms block unauthenticated access
 - GIVEN no valid bearer token is provided
@@ -175,6 +175,38 @@ Tenant-local user list/read/update surfaces MUST be scoped to `req.user.tenantId
 - WHEN tenant A calls in-scope protected user endpoints
 - THEN only tenant A users MUST be visible
 
+### Requirement: Company Administration Tenant Scoping
+
+Company administration endpoints — `GET /companies`, `GET /companies/:id`, `PUT /companies/:id`, and `POST /companies/add-module` — MUST require a bearer JWT and MUST derive scope from `req.user.tenantId`. A `Company` belongs directly to a tenant (`Company.tenantId`), so list and read MUST return only companies whose `tenantId` matches the caller, and cross-tenant targets MUST return 404 without revealing existence. `PUT /companies/:id` MUST update only a company that belongs to the caller's tenant, otherwise 404. `POST /companies/add-module` MUST confirm the target company belongs to the caller's tenant before linking the module, otherwise 404; its request body fields `companyId` and `moduleId` are preserved. `POST /companies` MUST continue to derive the tenant from the JWT and MUST ignore client-supplied tenant/firma identity. This change MUST NOT introduce platform-admin or cross-tenant company administration behavior.
+
+#### Scenario: Company list is tenant-scoped
+- GIVEN tenants A and B each have companies
+- WHEN tenant A calls `GET /companies`
+- THEN every returned company MUST belong to tenant A
+- AND no tenant B company MUST be returned
+
+#### Scenario: Company read hides another tenant company
+- GIVEN a company exists for tenant B
+- WHEN tenant A calls `GET /companies/:id` with tenant B's company id
+- THEN the response MUST be 404
+
+#### Scenario: Company update cannot cross tenant boundary
+- GIVEN a company exists for tenant B
+- WHEN tenant A calls `PUT /companies/:id` with tenant B's company id
+- THEN the response MUST be 404
+- AND the company MUST NOT be modified
+
+#### Scenario: Company add-module hides another tenant company
+- GIVEN a company exists for tenant B
+- WHEN tenant A calls `POST /companies/add-module` with tenant B's `companyId`
+- THEN the response MUST be 404
+- AND no module link MUST be created
+
+#### Scenario: Company create derives tenant from JWT
+- GIVEN tenant A is authenticated
+- WHEN tenant A calls `POST /companies`
+- THEN the created company MUST belong to tenant A
+
 ### Requirement: Explicit Firma User Provisioning and Firma-Scoped Role Authority
 
 `POST /users` MUST require an explicit `companyId`, MUST validate that the company belongs to the caller's `tenantId`, and MUST create a `UserCompany` membership linking the new user to that company in the same provisioning flow. `UserCompany.role` MUST be authoritative for firma-scoped authorization; the legacy `User.role` MUST NOT be used to authorize firma-scoped access. A `companyId` that does not belong to the caller's tenant MUST be rejected without creating a user or membership.
@@ -219,11 +251,11 @@ Login and refresh MUST resolve the active firma from the user's first active `Us
 
 ### Requirement: Endpoint Classification Boundaries
 
-This change MUST NOT blindly tenant-filter public or platform/global endpoints. `companies`, `modules`, `companies/add-module`, `auth/login`, `auth/refresh`, and `auth/logout` are out of scope except for preserving their current category.
+This change MUST NOT blindly tenant-filter public or platform/global endpoints. `modules`, `auth/login`, `auth/refresh`, and `auth/logout` are out of scope except for preserving their current category. Company administration (`/companies` and `/companies/add-module`) is in scope and MUST be tenant-scoped per the Company Administration Tenant Scoping requirement.
 
 #### Scenario: Out-of-scope endpoints are not changed by this slice
 - GIVEN this change is applied
-- WHEN public auth or global/admin endpoints are exercised
+- WHEN public auth or global/platform endpoints such as `modules` are exercised
 - THEN behavior MUST NOT be changed solely by remaining-entity tenant/firma enforcement
 
 ## Acceptance Criteria Mapped to Tests
@@ -240,5 +272,6 @@ This change MUST NOT blindly tenant-filter public or platform/global endpoints. 
 | Cross-tenant relation rejection | Tests assert 400 for foreign `lotId`, `taskTypeId`, `userId`, `livestockId`, `machineId`, and `taskId` relations. |
 | Tenant-local user scope | Tests assert tenant-local list/read/update/create and 404 cross-tenant user targets. |
 | Explicit firma provisioning | Tests assert `POST /users` requires `companyId`, rejects foreign-tenant companies, creates `UserCompany`, and treats `UserCompany.role` as authoritative. |
+| Company administration tenant scoping | Controller/use-case/repository tests assert `/companies` and `/companies/add-module` require JWT, scope by `req.user.tenantId`, and return 404 for cross-tenant read/update/add-module targets. |
 | Active-firma login limitation | Tests assert JWT carries the earliest active membership `firmaId` and login/refresh fail with no active membership. |
 | Endpoint boundaries | Regression tests or review checklist assert auth/global endpoints are not tenant-filtered by this change. |

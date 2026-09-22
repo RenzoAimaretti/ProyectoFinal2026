@@ -30,14 +30,16 @@ type AddModuleBody = {
 export class CompanyController {
   constructor(private readonly service: CompanyService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.service.findAll();
+  findAll(@Req() req: RequestWithUser) {
+    return this.service.findAll(req.user.tenantId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.service.findOne(id, req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -50,9 +52,14 @@ export class CompanyController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: UpdateCompanyBody) {
-    return this.service.update(id, {
+  update(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+    @Body() data: UpdateCompanyBody,
+  ) {
+    return this.service.update(id, req.user.tenantId, {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.nombre !== undefined ? { name: data.nombre } : {}),
       ...(data.cuit !== undefined ? { cuit: data.cuit } : {}),
@@ -70,8 +77,13 @@ export class CompanyController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/add-module')
-  addModule(@Body() data: AddModuleBody) {
-    return this.service.addModule(data.companyId, data.moduleId);
+  addModule(@Req() req: RequestWithUser, @Body() data: AddModuleBody) {
+    return this.service.addModule(
+      data.companyId,
+      req.user.tenantId,
+      data.moduleId,
+    );
   }
 }

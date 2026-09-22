@@ -32,8 +32,3 @@ export type UpdateCompanyInput = {
   cuit?: string;
   active?: boolean;
 };
-
-export type AddCompanyModuleInput = {
-  companyId: string;
-  moduleId: string;
-};

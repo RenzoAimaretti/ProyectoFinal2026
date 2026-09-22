@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { CompanyRepositoryPort } from '../../application/company.ports';
 import {
-  AddCompanyModuleInput,
   CompanyRecord,
   CompanyWithModules,
   CreateCompanyInput,
@@ -13,13 +12,16 @@ import {
 export class PrismaCompanyRepository implements CompanyRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<CompanyRecord[]> {
-    return this.prisma.company.findMany();
+  findAllByTenantId(tenantId: string): Promise<CompanyRecord[]> {
+    return this.prisma.company.findMany({ where: { tenantId } });
   }
 
-  findById(id: string): Promise<CompanyWithModules | null> {
-    return this.prisma.company.findUnique({
-      where: { id },
+  findByIdForTenant(
+    id: string,
+    tenantId: string,
+  ): Promise<CompanyWithModules | null> {
+    return this.prisma.company.findFirst({
+      where: { id, tenantId },
       include: { modules: true },
     });
   }
@@ -41,19 +43,45 @@ export class PrismaCompanyRepository implements CompanyRepositoryPort {
     });
   }
 
-  update(id: string, data: UpdateCompanyInput): Promise<CompanyRecord> {
+  async updateForTenant(
+    id: string,
+    tenantId: string,
+    data: UpdateCompanyInput,
+  ): Promise<CompanyRecord> {
+    const company = await this.prisma.company.findFirst({
+      where: { id, tenantId },
+      select: { id: true },
+    });
+
+    if (!company) {
+      throw new Error(`Company with id ${id} not found for tenant ${tenantId}`);
+    }
+
     return this.prisma.company.update({
-      where: { id },
+      where: { id: company.id },
       data,
     });
   }
 
-  addModule(data: AddCompanyModuleInput): Promise<void> {
-    return this.prisma.company
-      .update({
-        where: { id: data.companyId },
-        data: { modules: { connect: { id: data.moduleId } } },
-      })
-      .then(() => undefined);
+  async addModuleForTenant(
+    companyId: string,
+    tenantId: string,
+    moduleId: string,
+  ): Promise<void> {
+    const company = await this.prisma.company.findFirst({
+      where: { id: companyId, tenantId },
+      select: { id: true },
+    });
+
+    if (!company) {
+      throw new Error(
+        `Company with id ${companyId} not found for tenant ${tenantId}`,
+      );
+    }
+
+    await this.prisma.company.update({
+      where: { id: company.id },
+      data: { modules: { connect: { id: moduleId } } },
+    });
   }
 }

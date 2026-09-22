@@ -32,16 +32,16 @@ export class CompanyService {
     private readonly addModuleUseCase: AddCompanyModuleUseCase,
   ) {}
 
-  findAll() {
+  findAll(tenantId: string) {
     return this.handle(
-      () => this.findAllUseCase.execute(),
+      () => this.findAllUseCase.execute(tenantId),
       'fetching companies',
     );
   }
 
-  findOne(id: string) {
+  findOne(id: string, tenantId: string) {
     return this.handle(
-      () => this.findOneUseCase.execute(id),
+      () => this.findOneUseCase.execute(id, tenantId),
       'fetching company',
     );
   }
@@ -60,16 +60,16 @@ export class CompanyService {
     );
   }
 
-  update(id: string, data: UpdateCompanyInput) {
+  update(id: string, tenantId: string, data: UpdateCompanyInput) {
     return this.handle(
-      () => this.updateUseCase.execute(id, data),
+      () => this.updateUseCase.execute(id, tenantId, data),
       'updating company',
     );
   }
 
-  addModule(companyId: string, moduleId: string) {
+  addModule(companyId: string, tenantId: string, moduleId: string) {
     return this.handle(
-      () => this.addModuleUseCase.execute(companyId, moduleId),
+      () => this.addModuleUseCase.execute(companyId, tenantId, moduleId),
       'adding module to company',
     );
   }
