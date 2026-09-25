@@ -6,6 +6,7 @@ import { RecipeModule } from './entities/recipe/recipe.module';
 import { DailyReportModule } from './entities/daily-report/daily-report.module';
 import { ReceptionModule } from './entities/reception/reception.module';
 import { StockModule } from './entities/stock/stock.module';
+import { PhotoModule } from './entities/photo/photo.module';
 import { MachineActivityModule } from './entities/machine-activity/machine-activity.module';
 import { ModuleEntityModule } from './entities/module-entity/module-entity.module';
 import { FarmModule } from './entities/farm/farm.module';
@@ -30,6 +31,7 @@ import { AuthModule } from './auth/auth.module';
     DailyReportModule,
     ReceptionModule,
     StockModule,
+    PhotoModule,
     MachineActivityModule,
     ModuleEntityModule,
     FarmModule,
