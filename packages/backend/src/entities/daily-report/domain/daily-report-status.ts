@@ -10,3 +10,5 @@ export type DailyReportStatus =
  */
 export const DAILY_REPORT_INITIAL_STATUS: DailyReportStatus =
   'PENDIENTE_APROBACION';
+
+export const DAILY_REPORT_APPROVED_STATUS: DailyReportStatus = 'APROBADO';

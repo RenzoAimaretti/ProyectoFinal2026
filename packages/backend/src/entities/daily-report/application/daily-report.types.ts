@@ -65,3 +65,16 @@ export type CreateDailyReportData = {
   status: DailyReportStatus;
   items: CreateDailyReportItemData[];
 };
+
+/**
+ * The company is the report scope and the client is the owner of the stock that
+ * gets consumed. The client is never inferred from the company: it comes from
+ * the lot farm, because stock is client-scoped and not firm-scoped (R017).
+ */
+export type ApproveDailyReportData = {
+  id: string;
+  companyId: string;
+  clientId: string;
+  approvedBy: string;
+  approvedAt: Date;
+};

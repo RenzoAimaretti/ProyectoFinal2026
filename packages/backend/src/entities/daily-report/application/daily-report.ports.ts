@@ -1,4 +1,5 @@
 import {
+  ApproveDailyReportData,
   CreateDailyReportData,
   DailyReportRecord,
 } from './daily-report.types';
@@ -9,6 +10,9 @@ export const DAILY_REPORT_COMPANY_READER = Symbol(
 );
 export const DAILY_REPORT_TASK_READER = Symbol('DAILY_REPORT_TASK_READER');
 export const DAILY_REPORT_INPUT_READER = Symbol('DAILY_REPORT_INPUT_READER');
+export const DAILY_REPORT_CLIENT_READER = Symbol('DAILY_REPORT_CLIENT_READER');
+export const DAILY_REPORT_APPROVAL = Symbol('DAILY_REPORT_APPROVAL');
+export const DAILY_REPORT_CLOCK = Symbol('DAILY_REPORT_CLOCK');
 
 export interface DailyReportRepositoryPort {
   create(data: CreateDailyReportData): Promise<DailyReportRecord>;
@@ -17,6 +21,16 @@ export interface DailyReportRepositoryPort {
     companyId: string,
   ): Promise<DailyReportRecord | null>;
   findAllByCompany(companyId: string): Promise<DailyReportRecord[]>;
+}
+
+/**
+ * Capability: approve a pending report and deduct the consumed stock of its
+ * client. Both writes must be atomic, so they belong to one transaction.
+ */
+export interface DailyReportApprovalPort {
+  approveWithStockDeduction(
+    data: ApproveDailyReportData,
+  ): Promise<DailyReportRecord>;
 }
 
 export interface DailyReportCompanyRecord {
@@ -49,4 +63,16 @@ export interface DailyReportInputReaderPort {
     inputIds: string[],
     tenantId: string,
   ): Promise<string[]>;
+}
+
+/**
+ * Stock is attributed to the client that owns the worked lot, never to the firm
+ * that reports the work, so approval resolves the client through the lot farm.
+ */
+export interface DailyReportClientReaderPort {
+  findClientIdByLotId(lotId: string): Promise<string | null>;
+}
+
+export interface ClockPort {
+  now(): Date;
 }

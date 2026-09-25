@@ -1,4 +1,8 @@
-import { InvalidInputError } from './errors';
+import {
+  DAILY_REPORT_INITIAL_STATUS,
+  DailyReportStatus,
+} from './daily-report-status';
+import { InvalidInputError, InvalidStateTransitionError } from './errors';
 
 /**
  * Hectares and hours are mandatory work amounts of a daily report journey and
@@ -29,5 +33,17 @@ export function assertDistinctItemInputs(
     }
 
     seen.add(item.inputId);
+  }
+}
+
+/**
+ * Approval is a terminal decision over a pending report, and the only one that
+ * deducts stock.
+ */
+export function assertPendingApproval(status: DailyReportStatus): void {
+  if (status !== DAILY_REPORT_INITIAL_STATUS) {
+    throw new InvalidStateTransitionError(
+      `A daily report in status ${status} cannot be approved`,
+    );
   }
 }

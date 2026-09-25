@@ -1,8 +1,10 @@
-import { InvalidInputError } from './errors';
+import { InvalidInputError, InvalidStateTransitionError } from './errors';
 import {
   assertDistinctItemInputs,
+  assertPendingApproval,
   assertPositiveNumber,
 } from './daily-report.rules';
+import { DailyReportStatus } from './daily-report-status';
 
 describe('daily report domain rules', () => {
   describe('assertPositiveNumber', () => {
@@ -41,5 +43,20 @@ describe('daily report domain rules', () => {
         ]),
       ).not.toThrow();
     });
+  });
+
+  describe('assertPendingApproval', () => {
+    it('accepts a daily report that still awaits approval', () => {
+      expect(() => assertPendingApproval('PENDIENTE_APROBACION')).not.toThrow();
+    });
+
+    it.each<DailyReportStatus>(['APROBADO', 'RECHAZADO'])(
+      'rejects a report already decided as %s',
+      (status) => {
+        expect(() => assertPendingApproval(status)).toThrow(
+          InvalidStateTransitionError,
+        );
+      },
+    );
   });
 });

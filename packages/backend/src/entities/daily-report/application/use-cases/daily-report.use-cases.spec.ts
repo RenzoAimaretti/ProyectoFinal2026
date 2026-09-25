@@ -97,6 +97,7 @@ describe('Daily report use cases', () => {
       'application/daily-report.types.ts',
       'application/daily-report.validation.ts',
       'application/use-cases/create-daily-report.use-case.ts',
+      'application/use-cases/approve-daily-report.use-case.ts',
       'application/use-cases/find-daily-report.use-case.ts',
       'application/use-cases/find-daily-reports-by-company.use-case.ts',
     ];

@@ -1,3 +1,4 @@
+import { PrismaDailyReportClientReader } from './prisma-daily-report-client.reader';
 import { PrismaDailyReportCompanyReader } from './prisma-company.reader';
 import { PrismaDailyReportInputReader } from './prisma-daily-report-input.reader';
 import { PrismaDailyReportTaskReader } from './prisma-task.reader';
@@ -7,6 +8,7 @@ describe('PrismaDailyReport readers', () => {
     company: { findUnique: jest.fn() },
     task: { findUnique: jest.fn() },
     input: { findMany: jest.fn() },
+    lot: { findFirst: jest.fn() },
   };
 
   beforeEach(() => {
@@ -97,6 +99,31 @@ describe('PrismaDailyReport readers', () => {
         where: { id: { in: ['input-1', 'input-2'] }, tenantId: 'tenant-1' },
         select: { id: true },
       });
+    });
+  });
+
+  describe('PrismaDailyReportClientReader', () => {
+    const reader = new PrismaDailyReportClientReader(prisma as never);
+
+    it('resolves the client that owns the stock through the farm of the worked lot', async () => {
+      prisma.lot.findFirst.mockResolvedValue({
+        farm: { clientId: 'client-1' },
+      });
+
+      await expect(reader.findClientIdByLotId('lot-1')).resolves.toBe(
+        'client-1',
+      );
+
+      expect(prisma.lot.findFirst).toHaveBeenCalledWith({
+        where: { id: 'lot-1' },
+        select: { farm: { select: { clientId: true } } },
+      });
+    });
+
+    it('returns null when the lot does not exist', async () => {
+      prisma.lot.findFirst.mockResolvedValue(null);
+
+      await expect(reader.findClientIdByLotId('lot-9')).resolves.toBeNull();
     });
   });
 });
