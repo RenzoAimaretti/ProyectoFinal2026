@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CompanyModule } from './entities/company/company.module';
+import { ClientModule } from './entities/client/client.module';
+import { InputModule } from './entities/input/input.module';
 import { ModuleEntityModule } from './entities/module-entity/module-entity.module';
 import { FarmModule } from './entities/farm/farm.module';
 import { LotModule } from './entities/lot/lot.module';
@@ -17,6 +19,8 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     AuthModule,
     CompanyModule,
+    ClientModule,
+    InputModule,
     ModuleEntityModule,
     FarmModule,
     LotModule,
