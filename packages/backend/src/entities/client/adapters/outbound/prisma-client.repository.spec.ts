@@ -5,8 +5,10 @@ describe('PrismaClientRepository', () => {
     client: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      findFirstOrThrow: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
     },
   };
 
@@ -61,31 +63,36 @@ describe('PrismaClientRepository', () => {
     });
   });
 
-  it('updates only after confirming the client belongs to the tenant', async () => {
-    prisma.client.findFirst.mockResolvedValue({ id: 'client-1' });
-    prisma.client.update.mockResolvedValue({ id: 'client-1' });
+  it('applies the update atomically within the tenant scope', async () => {
+    prisma.client.updateMany.mockResolvedValue({ count: 1 });
+    prisma.client.findFirstOrThrow.mockResolvedValue({ id: 'client-1' });
 
     await expect(
       repository.updateForTenant('client-1', 'tenant-1', { name: 'New name' }),
     ).resolves.toEqual({ id: 'client-1' });
 
-    expect(prisma.client.findFirst).toHaveBeenCalledWith({
+    expect(prisma.client.updateMany).toHaveBeenCalledWith({
       where: { id: 'client-1', tenantId: 'tenant-1' },
-      select: { id: true },
-    });
-    expect(prisma.client.update).toHaveBeenCalledWith({
-      where: { id: 'client-1' },
       data: { name: 'New name' },
     });
+    expect(prisma.client.findFirstOrThrow).toHaveBeenCalledWith({
+      where: { id: 'client-1', tenantId: 'tenant-1' },
+    });
+    expect(prisma.client.update).not.toHaveBeenCalled();
   });
 
   it('refuses to update a client outside the caller tenant', async () => {
-    prisma.client.findFirst.mockResolvedValue(null);
+    prisma.client.updateMany.mockResolvedValue({ count: 0 });
 
     await expect(
       repository.updateForTenant('client-1', 'tenant-2', { name: 'New name' }),
     ).rejects.toThrow('Client with id client-1 not found for tenant tenant-2');
 
+    expect(prisma.client.updateMany).toHaveBeenCalledWith({
+      where: { id: 'client-1', tenantId: 'tenant-2' },
+      data: { name: 'New name' },
+    });
+    expect(prisma.client.findFirstOrThrow).not.toHaveBeenCalled();
     expect(prisma.client.update).not.toHaveBeenCalled();
   });
 });

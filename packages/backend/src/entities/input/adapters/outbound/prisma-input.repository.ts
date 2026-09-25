@@ -35,22 +35,19 @@ export class PrismaInputRepository implements InputRepositoryPort {
     tenantId: string,
     data: UpdateInputInput,
   ): Promise<InputRecord> {
-    const input = await this.prisma.input.findFirst({
+    const { count } = await this.prisma.input.updateMany({
       where: { id, tenantId },
-      select: { id: true },
-    });
-
-    if (!input) {
-      throw new Error(`Input with id ${id} not found for tenant ${tenantId}`);
-    }
-
-    return this.prisma.input.update({
-      where: { id: input.id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.unit !== undefined ? { unit: data.unit } : {}),
         ...(data.active !== undefined ? { active: data.active } : {}),
       },
     });
+
+    if (count === 0) {
+      throw new Error(`Input with id ${id} not found for tenant ${tenantId}`);
+    }
+
+    return this.prisma.input.findFirstOrThrow({ where: { id, tenantId } });
   }
 }

@@ -5,8 +5,10 @@ describe('PrismaInputRepository', () => {
     input: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      findFirstOrThrow: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
     },
   };
 
@@ -61,31 +63,36 @@ describe('PrismaInputRepository', () => {
     });
   });
 
-  it('updates only after confirming the input belongs to the tenant', async () => {
-    prisma.input.findFirst.mockResolvedValue({ id: 'input-1' });
-    prisma.input.update.mockResolvedValue({ id: 'input-1' });
+  it('applies the update atomically within the tenant scope', async () => {
+    prisma.input.updateMany.mockResolvedValue({ count: 1 });
+    prisma.input.findFirstOrThrow.mockResolvedValue({ id: 'input-1' });
 
     await expect(
       repository.updateForTenant('input-1', 'tenant-1', { unit: 'kg' }),
     ).resolves.toEqual({ id: 'input-1' });
 
-    expect(prisma.input.findFirst).toHaveBeenCalledWith({
+    expect(prisma.input.updateMany).toHaveBeenCalledWith({
       where: { id: 'input-1', tenantId: 'tenant-1' },
-      select: { id: true },
-    });
-    expect(prisma.input.update).toHaveBeenCalledWith({
-      where: { id: 'input-1' },
       data: { unit: 'kg' },
     });
+    expect(prisma.input.findFirstOrThrow).toHaveBeenCalledWith({
+      where: { id: 'input-1', tenantId: 'tenant-1' },
+    });
+    expect(prisma.input.update).not.toHaveBeenCalled();
   });
 
   it('refuses to update an input outside the caller tenant', async () => {
-    prisma.input.findFirst.mockResolvedValue(null);
+    prisma.input.updateMany.mockResolvedValue({ count: 0 });
 
     await expect(
       repository.updateForTenant('input-1', 'tenant-2', { unit: 'kg' }),
     ).rejects.toThrow('Input with id input-1 not found for tenant tenant-2');
 
+    expect(prisma.input.updateMany).toHaveBeenCalledWith({
+      where: { id: 'input-1', tenantId: 'tenant-2' },
+      data: { unit: 'kg' },
+    });
+    expect(prisma.input.findFirstOrThrow).not.toHaveBeenCalled();
     expect(prisma.input.update).not.toHaveBeenCalled();
   });
 });

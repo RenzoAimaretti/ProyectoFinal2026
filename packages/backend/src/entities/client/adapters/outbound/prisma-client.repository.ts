@@ -38,22 +38,19 @@ export class PrismaClientRepository implements ClientRepositoryPort {
     tenantId: string,
     data: UpdateClientInput,
   ): Promise<ClientRecord> {
-    const client = await this.prisma.client.findFirst({
+    const { count } = await this.prisma.client.updateMany({
       where: { id, tenantId },
-      select: { id: true },
-    });
-
-    if (!client) {
-      throw new Error(`Client with id ${id} not found for tenant ${tenantId}`);
-    }
-
-    return this.prisma.client.update({
-      where: { id: client.id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.cuit !== undefined ? { cuit: data.cuit } : {}),
         ...(data.active !== undefined ? { active: data.active } : {}),
       },
     });
+
+    if (count === 0) {
+      throw new Error(`Client with id ${id} not found for tenant ${tenantId}`);
+    }
+
+    return this.prisma.client.findFirstOrThrow({ where: { id, tenantId } });
   }
 }
