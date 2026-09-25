@@ -1,7 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { EntityNotFoundError, InvalidInputError } from '../../domain/errors';
-import { PhotoRepositoryPort } from '../photo.ports';
+import {
+  EntityNotFoundError,
+  InvalidInputError,
+  PhotoLimitExceededError,
+} from '../../domain/errors';
+import { PhotoAttachmentPort, PhotoRepositoryPort } from '../photo.ports';
 import { AttachPhotoInput, PhotoRecord } from '../photo.types';
 import { AttachPhotoUseCase } from './attach-photo.use-case';
 import { ListEntityPhotosUseCase } from './list-entity-photos.use-case';
@@ -18,10 +22,14 @@ const baseRecord: PhotoRecord = {
 
 function createRepository(): jest.Mocked<PhotoRepositoryPort> {
   return {
-    countByEntity: jest.fn(),
     findByEntity: jest.fn(),
-    create: jest.fn(),
     deleteFromEntity: jest.fn(),
+  };
+}
+
+function createAttachment(): jest.Mocked<PhotoAttachmentPort> {
+  return {
+    attachWithLimit: jest.fn(),
   };
 }
 
@@ -49,28 +57,24 @@ describe('Photo use cases', () => {
   });
 
   describe('AttachPhotoUseCase', () => {
-    let repository: jest.Mocked<PhotoRepositoryPort>;
+    let attachment: jest.Mocked<PhotoAttachmentPort>;
     let useCase: AttachPhotoUseCase;
 
     beforeEach(() => {
-      repository = createRepository();
-      repository.countByEntity.mockResolvedValue(0);
-      repository.create.mockResolvedValue(baseRecord);
-      useCase = new AttachPhotoUseCase(repository);
+      attachment = createAttachment();
+      attachment.attachWithLimit.mockResolvedValue(baseRecord);
+      useCase = new AttachPhotoUseCase(attachment);
     });
 
     const input: AttachPhotoInput = { localPath: '/docs/photo-1.jpg' };
 
-    it('attaches a photo to the album of the referenced entity', async () => {
+    it('delegates the limit check and the insert to one atomic capability', async () => {
       await expect(
         useCase.execute('PARTE_DIARIO', 'report-1', input),
       ).resolves.toEqual(baseRecord);
 
-      expect(repository.countByEntity).toHaveBeenCalledWith(
-        'PARTE_DIARIO',
-        'report-1',
-      );
-      expect(repository.create).toHaveBeenCalledWith({
+      expect(attachment.attachWithLimit).toHaveBeenCalledTimes(1);
+      expect(attachment.attachWithLimit).toHaveBeenCalledWith({
         entityType: 'PARTE_DIARIO',
         entityId: 'report-1',
         localPath: '/docs/photo-1.jpg',
@@ -78,17 +82,13 @@ describe('Photo use cases', () => {
       });
     });
 
-    it('normalizes the album key and the local path', async () => {
+    it('normalizes the album key and the local path before attaching', async () => {
       await useCase.execute('RECEPCION', '  reception-1  ', {
         localPath: '  /docs/photo-2.jpg  ',
         orderIndex: 2,
       });
 
-      expect(repository.countByEntity).toHaveBeenCalledWith(
-        'RECEPCION',
-        'reception-1',
-      );
-      expect(repository.create).toHaveBeenCalledWith({
+      expect(attachment.attachWithLimit).toHaveBeenCalledWith({
         entityType: 'RECEPCION',
         entityId: 'reception-1',
         localPath: '/docs/photo-2.jpg',
@@ -96,44 +96,35 @@ describe('Photo use cases', () => {
       });
     });
 
-    it.each([0, 1, 4])('accepts an album with %i photos', async (current) => {
-      repository.countByEntity.mockResolvedValue(current);
+    it('propagates the album limit enforced inside the attachment transaction', async () => {
+      attachment.attachWithLimit.mockRejectedValue(
+        new PhotoLimitExceededError('PARTE_DIARIO', 'report-1', 5),
+      );
 
       await expect(
         useCase.execute('PARTE_DIARIO', 'report-1', input),
-      ).resolves.toEqual(baseRecord);
-      expect(repository.create).toHaveBeenCalledTimes(1);
-    });
-
-    it('rejects the sixth photo without persisting it', async () => {
-      repository.countByEntity.mockResolvedValue(5);
-
-      await expect(
-        useCase.execute('PARTE_DIARIO', 'report-1', input),
-      ).rejects.toThrow('PARTE_DIARIO report-1');
-      expect(repository.create).not.toHaveBeenCalled();
+      ).rejects.toBeInstanceOf(PhotoLimitExceededError);
     });
 
     it('rejects an entity type the schema does not support', async () => {
       await expect(
         useCase.execute('DAILY_REPORT', 'report-1', input),
       ).rejects.toThrow(InvalidInputError);
-      expect(repository.countByEntity).not.toHaveBeenCalled();
-      expect(repository.create).not.toHaveBeenCalled();
+      expect(attachment.attachWithLimit).not.toHaveBeenCalled();
     });
 
     it('rejects a missing local path', async () => {
       await expect(
         useCase.execute('PARTE_DIARIO', 'report-1', { localPath: '   ' }),
       ).rejects.toThrow(InvalidInputError);
-      expect(repository.create).not.toHaveBeenCalled();
+      expect(attachment.attachWithLimit).not.toHaveBeenCalled();
     });
 
     it('rejects a missing entity id', async () => {
       await expect(
         useCase.execute('PARTE_DIARIO', '  ', input),
       ).rejects.toThrow(InvalidInputError);
-      expect(repository.create).not.toHaveBeenCalled();
+      expect(attachment.attachWithLimit).not.toHaveBeenCalled();
     });
 
     it('rejects an invalid order index', async () => {
@@ -143,7 +134,7 @@ describe('Photo use cases', () => {
           orderIndex: -1,
         }),
       ).rejects.toThrow(InvalidInputError);
-      expect(repository.create).not.toHaveBeenCalled();
+      expect(attachment.attachWithLimit).not.toHaveBeenCalled();
     });
   });
 

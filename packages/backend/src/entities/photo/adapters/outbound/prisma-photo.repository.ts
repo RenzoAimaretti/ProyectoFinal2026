@@ -1,17 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { PhotoRepositoryPort } from '../../application/photo.ports';
-import { AttachPhotoData, PhotoRecord } from '../../application/photo.types';
+import { PhotoRecord } from '../../application/photo.types';
 import { PhotoEntityType } from '../../domain/photo-entity-type';
-
-type PhotoRow = {
-  id: string;
-  entityType: PhotoEntityType;
-  entityId: string;
-  localPath: string;
-  orderIndex: number;
-  createdAt: Date;
-};
+import { toPhotoRecord } from './photo.mapper';
 
 /**
  * The album order is the stored `orderIndex`; `createdAt` and `id` keep the
@@ -27,13 +19,6 @@ const PHOTO_ALBUM_ORDER_BY = [
 export class PrismaPhotoRepository implements PhotoRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  countByEntity(
-    entityType: PhotoEntityType,
-    entityId: string,
-  ): Promise<number> {
-    return this.prisma.photo.count({ where: { entityType, entityId } });
-  }
-
   async findByEntity(
     entityType: PhotoEntityType,
     entityId: string,
@@ -43,13 +28,7 @@ export class PrismaPhotoRepository implements PhotoRepositoryPort {
       orderBy: PHOTO_ALBUM_ORDER_BY,
     });
 
-    return photos.map((photo) => this.toPhotoRecord(photo));
-  }
-
-  async create(data: AttachPhotoData): Promise<PhotoRecord> {
-    const photo = await this.prisma.photo.create({ data });
-
-    return this.toPhotoRecord(photo);
+    return photos.map((photo) => toPhotoRecord(photo));
   }
 
   async deleteFromEntity(
@@ -62,16 +41,5 @@ export class PrismaPhotoRepository implements PhotoRepositoryPort {
     });
 
     return count > 0;
-  }
-
-  private toPhotoRecord(photo: PhotoRow): PhotoRecord {
-    return {
-      id: photo.id,
-      entityType: photo.entityType,
-      entityId: photo.entityId,
-      localPath: photo.localPath,
-      orderIndex: photo.orderIndex,
-      createdAt: photo.createdAt,
-    };
   }
 }

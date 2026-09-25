@@ -1,18 +1,19 @@
 import {
   assertOrderIndex,
   assertPhotoEntityType,
-  assertPhotoLimit,
   assertRequiredText,
 } from '../../domain/photo.rules';
-import { PhotoRepositoryPort } from '../photo.ports';
+import { PhotoAttachmentPort } from '../photo.ports';
 import { AttachPhotoData, AttachPhotoInput, PhotoRecord } from '../photo.types';
 
 /**
- * Attaches one photo to the album of an entity after checking the R008 limit:
- * an album never holds more than five photos.
+ * Attaches one photo to the album of an entity. The R008 limit (an album never
+ * holds more than five photos) is enforced by the attachment capability inside
+ * the same transaction as the insert, so concurrent attachments cannot both
+ * claim the last slot.
  */
 export class AttachPhotoUseCase {
-  constructor(private readonly repository: PhotoRepositoryPort) {}
+  constructor(private readonly attachment: PhotoAttachmentPort) {}
 
   async execute(
     entityType: string,
@@ -24,9 +25,6 @@ export class AttachPhotoUseCase {
     const localPath = assertRequiredText(input.localPath, 'localPath');
     const orderIndex = assertOrderIndex(input.orderIndex);
 
-    const currentCount = await this.repository.countByEntity(type, ownerId);
-    assertPhotoLimit(type, ownerId, currentCount);
-
     const data: AttachPhotoData = {
       entityType: type,
       entityId: ownerId,
@@ -34,6 +32,6 @@ export class AttachPhotoUseCase {
       orderIndex,
     };
 
-    return this.repository.create(data);
+    return this.attachment.attachWithLimit(data);
   }
 }

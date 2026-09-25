@@ -1,4 +1,4 @@
-import { AttachPhotoData, PhotoRecord } from '../../application/photo.types';
+import { PhotoRecord } from '../../application/photo.types';
 import { PrismaPhotoRepository } from './prisma-photo.repository';
 
 const persistedPhoto = {
@@ -22,8 +22,6 @@ const expectedRecord: PhotoRecord = {
 describe('PrismaPhotoRepository', () => {
   const prisma = {
     photo: {
-      create: jest.fn(),
-      count: jest.fn(),
       findMany: jest.fn(),
       deleteMany: jest.fn(),
     },
@@ -33,32 +31,6 @@ describe('PrismaPhotoRepository', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('persists the photo under the referenced entity', async () => {
-    const data: AttachPhotoData = {
-      entityType: 'PARTE_DIARIO',
-      entityId: 'report-1',
-      localPath: '/docs/photo-1.jpg',
-      orderIndex: 0,
-    };
-    prisma.photo.create.mockResolvedValue(persistedPhoto);
-
-    await expect(repository.create(data)).resolves.toEqual(expectedRecord);
-
-    expect(prisma.photo.create).toHaveBeenCalledWith({ data });
-  });
-
-  it('counts the photos of one entity only', async () => {
-    prisma.photo.count.mockResolvedValue(2);
-
-    await expect(
-      repository.countByEntity('PARTE_DIARIO', 'report-1'),
-    ).resolves.toBe(2);
-
-    expect(prisma.photo.count).toHaveBeenCalledWith({
-      where: { entityType: 'PARTE_DIARIO', entityId: 'report-1' },
-    });
   });
 
   it('lists one album ordered by its stored order index', async () => {
