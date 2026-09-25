@@ -60,15 +60,22 @@ The required entities exist as Prisma models but lack the feature-level applicat
   - Acceptance: all reads/writes enforce direct company scope and preserve the rule that company belongs to DailyReport, not Task.
   - Review workload: one honest split produced two independent commits (1,493 and 1,342 authored lines), both above target. User accepted the documented size exceptions.
 
-- [ ] **T04 — Reception and stock workflow hexagons**
+- [x] **T04 — Reception and stock workflow hexagons**
   - Route: delegated direct; multi-file write trigger.
+  - Status: complete. The user explicitly continued after reviewing the implementation, accepting the documented review-size exceptions.
   - Implement reception/items and stock, including R017 and R014/R015 boundaries.
-  - Acceptance: only web validation approves receptions; approval changes client-scoped stock correctly; mobile pending state remains allowed.
+  - Evidence: `d31b906` adds Reception/Stock, validated reception quantities, the additive migration, and generated Prisma output; `a174c29` adds atomic R017 DailyReport approval deduction.
+  - Checks: strict-TDD RED/GREEN observed; focused tests passed (17 suites, 190 tests); TypeScript and Prisma validation passed; independent verification accepted both work units.
+  - Acceptance: reception creation is pending-only; validated quantities change client-scoped stock; report approval atomically deducts client stock. Web-only validation remains explicitly pending its inbound web adapter because endpoints are out of scope.
 
-- [ ] **T05 — Photo hexagon and integration registration**
+- [x] **T05 — Photo hexagon and integration registration**
   - Route: delegated direct; multi-file write trigger.
-  - Implement Photo without artificial domain classes and finish module registration/integration coverage required by the slice.
-  - Acceptance: module is composition-root wired, tested, and contains no empty ceremonial domain model.
+  - Status: complete. Atomic album attachment correction independently verified.
+  - Implemented Photo without artificial domain classes, with album-key scoping and module registration.
+  - Evidence: `c04a8a4` adds Photo; `6f6dae2` makes the five-photo album limit atomic with serializable transaction/retry.
+  - Checks: strict-TDD RED/GREEN observed; focused Jest passed (5 suites, 59 tests); TypeScript passed; independent verification accepted the correction.
+  - Acceptance: module is composition-root wired, tested, and contains no empty ceremonial domain model. Tenant/company isolation is a documented schema gap because Photo is polymorphic with no relation or ownership field.
+  - Review workload: ~876 authored lines. The Photo module is the smallest coherent behavior + test unit, so await user acceptance of a documented size exception.
 
 ## Progress
 - 2026-09-25: Scope and constraints read from the Notion task via MCP. Baseline mapping confirms existing entity modules already use partial hexagonal patterns. Latest branch commit `657be13` establishes tenant-scoped company administration and is a compatibility constraint.
@@ -85,6 +92,14 @@ The required entities exist as Prisma models but lack the feature-level applicat
 - 2026-09-25: T03 implementation completed with strict-TDD RED/GREEN and focused checks (10 suites, 105 tests; TypeScript passed). User selected one honest split: DailyReport was committed as `0a2365a`, MachineActivity as `a9c16a3`.
 - 2026-09-25: Independent verification found no code findings in either work unit. Both commits remain above the review target (1,493 and 1,342 authored lines); the user accepted the two documented size exceptions.
 - 2026-09-25: T03 is complete and intentionally paused for human review.
+- 2026-09-25: User reviewed T03 and explicitly authorized T04. Reception and Stock workflow implementation is active.
+- 2026-09-25: T04 implementation passed focused checks (17 suites, 165 tests; TypeScript passed) but found that `ReceptionItem` has only one quantity field. Web-only validation is an inbound-adapter enforcement gap, correctly left unimplemented because endpoints are out of scope.
+- 2026-09-25: User authorized adding the validated reception-quantity Prisma field and migration needed for full R014/R015.
+- 2026-09-25: Full T04 workflow passed strict-TDD and focused checks (17 suites, 190 tests; TypeScript and Prisma validation passed). User selected one honest split: Reception/Stock was committed as `d31b906`; DailyReport approval/R017 as `a174c29`.
+- 2026-09-25: Independent verification accepted both work units. Both remain above the review target (3,115 and 1,002 authored lines); the user explicitly continued after review, accepting the documented size exceptions.
+- 2026-09-25: T04 is complete. Photo implementation is active by user continuation.
+- 2026-09-25: T05 implementation passed strict-TDD and focused checks (4 suites, 54 tests; TypeScript passed). Photo's only defensible scope is the `(entityType, entityId)` album key; tenant/company isolation is a schema relation gap. The user accepted the size exception and commit `c04a8a4` was created.
+- 2026-09-25: Independent verification rejected T05 because the five-photo limit is a non-atomic count-then-create flow. T05 remains open until an atomic attach correction is implemented and independently verified.
 
 ## Next step
-Wait for the user's review of T03. Do not begin T04 until the user explicitly continues.
+Correct the atomic five-photo limit, verify it, then close the feature and push only if verification passes.
