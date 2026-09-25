@@ -52,10 +52,13 @@ The required entities exist as Prisma models but lack the feature-level applicat
   - Review: native committed-range assessment was unavailable because unrelated untracked paths require an explicit inventory selection. Human slice review is pending.
   - Review workload: 1,570 authored lines, above the target. Keep as a documented size exception unless the user authorizes history rewriting to split the already-created slice.
 
-- [ ] **T03 — Company-scoped operational hexagons**
+- [x] **T03 — Company-scoped operational hexagons**
   - Route: delegated direct; multi-file write trigger.
-  - Implement `DailyReport`/items and `MachineActivity` with company scoping and the correct Task relationship.
-  - Acceptance: all reads/writes enforce company scope and preserve existing contracts.
+  - Status: complete. User accepted the two documented review-size exceptions.
+  - Evidence: `0a2365a` adds the DailyReport/items hexagon; `a9c16a3` adds the MachineActivity hexagon.
+  - Checks: strict-TDD RED/GREEN observed; focused tests passed (DailyReport 5 suites/53 tests; MachineActivity 5 suites/52 tests); TypeScript passed; independent verification found no code findings.
+  - Acceptance: all reads/writes enforce direct company scope and preserve the rule that company belongs to DailyReport, not Task.
+  - Review workload: one honest split produced two independent commits (1,493 and 1,342 authored lines), both above target. User accepted the documented size exceptions.
 
 - [ ] **T04 — Reception and stock workflow hexagons**
   - Route: delegated direct; multi-file write trigger.
@@ -78,6 +81,10 @@ The required entities exist as Prisma models but lack the feature-level applicat
 - 2026-09-25: Prisma client generation modified four tracked outputs under `packages/backend/prisma/generated/**`; repository configuration confirms those outputs are versioned build inputs, so they belong with the schema change.
 - 2026-09-25: User confirmed the Recipe table will be empty where the migration is applied. Required spray-volume columns therefore need no data backfill.
 - 2026-09-25: Work-unit commit `050b681` completed T02. Strict-TDD RED/GREEN evidence was observed; focused tests (5 suites, 84 tests), TypeScript, and Prisma schema validation passed. Independent verification found no code findings.
+- 2026-09-25: User reviewed T02 and explicitly authorized T03. DailyReport and MachineActivity implementation is active.
+- 2026-09-25: T03 implementation completed with strict-TDD RED/GREEN and focused checks (10 suites, 105 tests; TypeScript passed). User selected one honest split: DailyReport was committed as `0a2365a`, MachineActivity as `a9c16a3`.
+- 2026-09-25: Independent verification found no code findings in either work unit. Both commits remain above the review target (1,493 and 1,342 authored lines); the user accepted the two documented size exceptions.
+- 2026-09-25: T03 is complete and intentionally paused for human review.
 
 ## Next step
-Wait for the user's review of T02. Do not begin T03 until the user explicitly continues.
+Wait for the user's review of T03. Do not begin T04 until the user explicitly continues.
