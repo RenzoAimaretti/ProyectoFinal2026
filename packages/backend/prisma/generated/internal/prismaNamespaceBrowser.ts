@@ -277,6 +277,8 @@ export const RecipeScalarFieldEnum = {
   date: 'date',
   status: 'status',
   observations: 'observations',
+  sprayVolume: 'sprayVolume',
+  sprayVolumeUnit: 'sprayVolumeUnit',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -265,13 +265,15 @@ model Task {
 // ============================================================================
 
 model Recipe {
-  id           String       @id @default(uuid())
-  lotId        String
-  date         DateTime
-  status       RecipeStatus @default(ACTIVA)
-  observations String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id              String       @id @default(uuid())
+  lotId           String
+  date            DateTime
+  status          RecipeStatus @default(ACTIVA)
+  observations    String?
+  sprayVolume     Float
+  sprayVolumeUnit String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   lot   Lot          @relation(fields: [lotId], references: [id])
   items RecipeItem[]
