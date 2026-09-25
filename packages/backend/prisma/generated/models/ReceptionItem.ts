@@ -28,10 +28,12 @@ export type AggregateReceptionItem = {
 
 export type ReceptionItemAvgAggregateOutputType = {
   quantity: number | null
+  validatedQuantity: number | null
 }
 
 export type ReceptionItemSumAggregateOutputType = {
   quantity: number | null
+  validatedQuantity: number | null
 }
 
 export type ReceptionItemMinAggregateOutputType = {
@@ -39,6 +41,7 @@ export type ReceptionItemMinAggregateOutputType = {
   receptionId: string | null
   inputId: string | null
   quantity: number | null
+  validatedQuantity: number | null
   unit: string | null
 }
 
@@ -47,6 +50,7 @@ export type ReceptionItemMaxAggregateOutputType = {
   receptionId: string | null
   inputId: string | null
   quantity: number | null
+  validatedQuantity: number | null
   unit: string | null
 }
 
@@ -55,6 +59,7 @@ export type ReceptionItemCountAggregateOutputType = {
   receptionId: number
   inputId: number
   quantity: number
+  validatedQuantity: number
   unit: number
   _all: number
 }
@@ -62,10 +67,12 @@ export type ReceptionItemCountAggregateOutputType = {
 
 export type ReceptionItemAvgAggregateInputType = {
   quantity?: true
+  validatedQuantity?: true
 }
 
 export type ReceptionItemSumAggregateInputType = {
   quantity?: true
+  validatedQuantity?: true
 }
 
 export type ReceptionItemMinAggregateInputType = {
@@ -73,6 +80,7 @@ export type ReceptionItemMinAggregateInputType = {
   receptionId?: true
   inputId?: true
   quantity?: true
+  validatedQuantity?: true
   unit?: true
 }
 
@@ -81,6 +89,7 @@ export type ReceptionItemMaxAggregateInputType = {
   receptionId?: true
   inputId?: true
   quantity?: true
+  validatedQuantity?: true
   unit?: true
 }
 
@@ -89,6 +98,7 @@ export type ReceptionItemCountAggregateInputType = {
   receptionId?: true
   inputId?: true
   quantity?: true
+  validatedQuantity?: true
   unit?: true
   _all?: true
 }
@@ -184,6 +194,7 @@ export type ReceptionItemGroupByOutputType = {
   receptionId: string
   inputId: string
   quantity: number
+  validatedQuantity: number | null
   unit: string
   _count: ReceptionItemCountAggregateOutputType | null
   _avg: ReceptionItemAvgAggregateOutputType | null
@@ -215,6 +226,7 @@ export type ReceptionItemWhereInput = {
   receptionId?: Prisma.StringFilter<"ReceptionItem"> | string
   inputId?: Prisma.StringFilter<"ReceptionItem"> | string
   quantity?: Prisma.FloatFilter<"ReceptionItem"> | number
+  validatedQuantity?: Prisma.FloatNullableFilter<"ReceptionItem"> | number | null
   unit?: Prisma.StringFilter<"ReceptionItem"> | string
   reception?: Prisma.XOR<Prisma.ReceptionScalarRelationFilter, Prisma.ReceptionWhereInput>
   input?: Prisma.XOR<Prisma.InputScalarRelationFilter, Prisma.InputWhereInput>
@@ -225,6 +237,7 @@ export type ReceptionItemOrderByWithRelationInput = {
   receptionId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  validatedQuantity?: Prisma.SortOrderInput | Prisma.SortOrder
   unit?: Prisma.SortOrder
   reception?: Prisma.ReceptionOrderByWithRelationInput
   input?: Prisma.InputOrderByWithRelationInput
@@ -238,6 +251,7 @@ export type ReceptionItemWhereUniqueInput = Prisma.AtLeast<{
   receptionId?: Prisma.StringFilter<"ReceptionItem"> | string
   inputId?: Prisma.StringFilter<"ReceptionItem"> | string
   quantity?: Prisma.FloatFilter<"ReceptionItem"> | number
+  validatedQuantity?: Prisma.FloatNullableFilter<"ReceptionItem"> | number | null
   unit?: Prisma.StringFilter<"ReceptionItem"> | string
   reception?: Prisma.XOR<Prisma.ReceptionScalarRelationFilter, Prisma.ReceptionWhereInput>
   input?: Prisma.XOR<Prisma.InputScalarRelationFilter, Prisma.InputWhereInput>
@@ -248,6 +262,7 @@ export type ReceptionItemOrderByWithAggregationInput = {
   receptionId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  validatedQuantity?: Prisma.SortOrderInput | Prisma.SortOrder
   unit?: Prisma.SortOrder
   _count?: Prisma.ReceptionItemCountOrderByAggregateInput
   _avg?: Prisma.ReceptionItemAvgOrderByAggregateInput
@@ -264,12 +279,14 @@ export type ReceptionItemScalarWhereWithAggregatesInput = {
   receptionId?: Prisma.StringWithAggregatesFilter<"ReceptionItem"> | string
   inputId?: Prisma.StringWithAggregatesFilter<"ReceptionItem"> | string
   quantity?: Prisma.FloatWithAggregatesFilter<"ReceptionItem"> | number
+  validatedQuantity?: Prisma.FloatNullableWithAggregatesFilter<"ReceptionItem"> | number | null
   unit?: Prisma.StringWithAggregatesFilter<"ReceptionItem"> | string
 }
 
 export type ReceptionItemCreateInput = {
   id?: string
   quantity: number
+  validatedQuantity?: number | null
   unit: string
   reception: Prisma.ReceptionCreateNestedOneWithoutItemsInput
   input: Prisma.InputCreateNestedOneWithoutReceptionItemsInput
@@ -280,12 +297,14 @@ export type ReceptionItemUncheckedCreateInput = {
   receptionId: string
   inputId: string
   quantity: number
+  validatedQuantity?: number | null
   unit: string
 }
 
 export type ReceptionItemUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  validatedQuantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   reception?: Prisma.ReceptionUpdateOneRequiredWithoutItemsNestedInput
   input?: Prisma.InputUpdateOneRequiredWithoutReceptionItemsNestedInput
@@ -296,6 +315,7 @@ export type ReceptionItemUncheckedUpdateInput = {
   receptionId?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  validatedQuantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -304,12 +324,14 @@ export type ReceptionItemCreateManyInput = {
   receptionId: string
   inputId: string
   quantity: number
+  validatedQuantity?: number | null
   unit: string
 }
 
 export type ReceptionItemUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  validatedQuantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -318,6 +340,7 @@ export type ReceptionItemUncheckedUpdateManyInput = {
   receptionId?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  validatedQuantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -336,11 +359,13 @@ export type ReceptionItemCountOrderByAggregateInput = {
   receptionId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  validatedQuantity?: Prisma.SortOrder
   unit?: Prisma.SortOrder
 }
 
 export type ReceptionItemAvgOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
+  validatedQuantity?: Prisma.SortOrder
 }
 
 export type ReceptionItemMaxOrderByAggregateInput = {
@@ -348,6 +373,7 @@ export type ReceptionItemMaxOrderByAggregateInput = {
   receptionId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  validatedQuantity?: Prisma.SortOrder
   unit?: Prisma.SortOrder
 }
 
@@ -356,11 +382,13 @@ export type ReceptionItemMinOrderByAggregateInput = {
   receptionId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  validatedQuantity?: Prisma.SortOrder
   unit?: Prisma.SortOrder
 }
 
 export type ReceptionItemSumOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
+  validatedQuantity?: Prisma.SortOrder
 }
 
 export type ReceptionItemCreateNestedManyWithoutInputInput = {
@@ -447,9 +475,18 @@ export type ReceptionItemUncheckedUpdateManyWithoutReceptionNestedInput = {
   deleteMany?: Prisma.ReceptionItemScalarWhereInput | Prisma.ReceptionItemScalarWhereInput[]
 }
 
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type ReceptionItemCreateWithoutInputInput = {
   id?: string
   quantity: number
+  validatedQuantity?: number | null
   unit: string
   reception: Prisma.ReceptionCreateNestedOneWithoutItemsInput
 }
@@ -458,6 +495,7 @@ export type ReceptionItemUncheckedCreateWithoutInputInput = {
   id?: string
   receptionId: string
   quantity: number
+  validatedQuantity?: number | null
   unit: string
 }
 
@@ -495,12 +533,14 @@ export type ReceptionItemScalarWhereInput = {
   receptionId?: Prisma.StringFilter<"ReceptionItem"> | string
   inputId?: Prisma.StringFilter<"ReceptionItem"> | string
   quantity?: Prisma.FloatFilter<"ReceptionItem"> | number
+  validatedQuantity?: Prisma.FloatNullableFilter<"ReceptionItem"> | number | null
   unit?: Prisma.StringFilter<"ReceptionItem"> | string
 }
 
 export type ReceptionItemCreateWithoutReceptionInput = {
   id?: string
   quantity: number
+  validatedQuantity?: number | null
   unit: string
   input: Prisma.InputCreateNestedOneWithoutReceptionItemsInput
 }
@@ -509,6 +549,7 @@ export type ReceptionItemUncheckedCreateWithoutReceptionInput = {
   id?: string
   inputId: string
   quantity: number
+  validatedQuantity?: number | null
   unit: string
 }
 
@@ -542,12 +583,14 @@ export type ReceptionItemCreateManyInputInput = {
   id?: string
   receptionId: string
   quantity: number
+  validatedQuantity?: number | null
   unit: string
 }
 
 export type ReceptionItemUpdateWithoutInputInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  validatedQuantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   reception?: Prisma.ReceptionUpdateOneRequiredWithoutItemsNestedInput
 }
@@ -556,6 +599,7 @@ export type ReceptionItemUncheckedUpdateWithoutInputInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   receptionId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  validatedQuantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -563,6 +607,7 @@ export type ReceptionItemUncheckedUpdateManyWithoutInputInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   receptionId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  validatedQuantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -570,12 +615,14 @@ export type ReceptionItemCreateManyReceptionInput = {
   id?: string
   inputId: string
   quantity: number
+  validatedQuantity?: number | null
   unit: string
 }
 
 export type ReceptionItemUpdateWithoutReceptionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  validatedQuantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   input?: Prisma.InputUpdateOneRequiredWithoutReceptionItemsNestedInput
 }
@@ -584,6 +631,7 @@ export type ReceptionItemUncheckedUpdateWithoutReceptionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  validatedQuantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -591,6 +639,7 @@ export type ReceptionItemUncheckedUpdateManyWithoutReceptionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  validatedQuantity?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   unit?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -601,6 +650,7 @@ export type ReceptionItemSelect<ExtArgs extends runtime.Types.Extensions.Interna
   receptionId?: boolean
   inputId?: boolean
   quantity?: boolean
+  validatedQuantity?: boolean
   unit?: boolean
   reception?: boolean | Prisma.ReceptionDefaultArgs<ExtArgs>
   input?: boolean | Prisma.InputDefaultArgs<ExtArgs>
@@ -611,6 +661,7 @@ export type ReceptionItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   receptionId?: boolean
   inputId?: boolean
   quantity?: boolean
+  validatedQuantity?: boolean
   unit?: boolean
   reception?: boolean | Prisma.ReceptionDefaultArgs<ExtArgs>
   input?: boolean | Prisma.InputDefaultArgs<ExtArgs>
@@ -621,6 +672,7 @@ export type ReceptionItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   receptionId?: boolean
   inputId?: boolean
   quantity?: boolean
+  validatedQuantity?: boolean
   unit?: boolean
   reception?: boolean | Prisma.ReceptionDefaultArgs<ExtArgs>
   input?: boolean | Prisma.InputDefaultArgs<ExtArgs>
@@ -631,10 +683,11 @@ export type ReceptionItemSelectScalar = {
   receptionId?: boolean
   inputId?: boolean
   quantity?: boolean
+  validatedQuantity?: boolean
   unit?: boolean
 }
 
-export type ReceptionItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "receptionId" | "inputId" | "quantity" | "unit", ExtArgs["result"]["receptionItem"]>
+export type ReceptionItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "receptionId" | "inputId" | "quantity" | "validatedQuantity" | "unit", ExtArgs["result"]["receptionItem"]>
 export type ReceptionItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   reception?: boolean | Prisma.ReceptionDefaultArgs<ExtArgs>
   input?: boolean | Prisma.InputDefaultArgs<ExtArgs>
@@ -659,6 +712,7 @@ export type $ReceptionItemPayload<ExtArgs extends runtime.Types.Extensions.Inter
     receptionId: string
     inputId: string
     quantity: number
+    validatedQuantity: number | null
     unit: string
   }, ExtArgs["result"]["receptionItem"]>
   composites: {}
@@ -1089,6 +1143,7 @@ export interface ReceptionItemFieldRefs {
   readonly receptionId: Prisma.FieldRef<"ReceptionItem", 'String'>
   readonly inputId: Prisma.FieldRef<"ReceptionItem", 'String'>
   readonly quantity: Prisma.FieldRef<"ReceptionItem", 'Float'>
+  readonly validatedQuantity: Prisma.FieldRef<"ReceptionItem", 'Float'>
   readonly unit: Prisma.FieldRef<"ReceptionItem", 'String'>
 }
     

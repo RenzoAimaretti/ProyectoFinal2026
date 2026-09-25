@@ -4,6 +4,8 @@ import { ClientModule } from './entities/client/client.module';
 import { InputModule } from './entities/input/input.module';
 import { RecipeModule } from './entities/recipe/recipe.module';
 import { DailyReportModule } from './entities/daily-report/daily-report.module';
+import { ReceptionModule } from './entities/reception/reception.module';
+import { StockModule } from './entities/stock/stock.module';
 import { MachineActivityModule } from './entities/machine-activity/machine-activity.module';
 import { ModuleEntityModule } from './entities/module-entity/module-entity.module';
 import { FarmModule } from './entities/farm/farm.module';
@@ -26,6 +28,8 @@ import { AuthModule } from './auth/auth.module';
     InputModule,
     RecipeModule,
     DailyReportModule,
+    ReceptionModule,
+    StockModule,
     MachineActivityModule,
     ModuleEntityModule,
     FarmModule,

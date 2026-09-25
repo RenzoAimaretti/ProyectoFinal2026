@@ -367,11 +367,18 @@ model Reception {
 }
 
 model ReceptionItem {
-  id          String @id @default(uuid())
-  receptionId String
-  inputId     String
-  quantity    Float
-  unit        String
+  id                String @id @default(uuid())
+  receptionId       String
+  inputId           String
+  // Expected quantity declared by the client when the reception is created
+  // (R014, CUU06). It is the audit reference, not the amount that enters stock.
+  quantity          Float
+  // Quantity agreed by the administrator when the reception is validated
+  // (mutuo acuerdo, R014). It is what enters the client stock (R017/CUU07), and
+  // the shortage/surplus of the item is observable as validatedQuantity -
+  // quantity (R015). Null while the reception is PENDIENTE_VALIDACION.
+  validatedQuantity Float?
+  unit              String
 
   reception Reception @relation(fields: [receptionId], references: [id], onDelete: Cascade)
   input     Input     @relation(fields: [inputId], references: [id])

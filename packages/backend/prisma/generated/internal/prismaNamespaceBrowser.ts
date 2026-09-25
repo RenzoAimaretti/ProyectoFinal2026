@@ -350,6 +350,7 @@ export const ReceptionItemScalarFieldEnum = {
   receptionId: 'receptionId',
   inputId: 'inputId',
   quantity: 'quantity',
+  validatedQuantity: 'validatedQuantity',
   unit: 'unit'
 } as const
 
