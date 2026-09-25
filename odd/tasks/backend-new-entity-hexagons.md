@@ -43,10 +43,14 @@ The required entities exist as Prisma models but lack the feature-level applicat
   - Review: native committed-range assessment was unavailable because unrelated untracked paths require an explicit inventory selection. Native inspect also sees only unrelated dirty tracked paths; human slice review is pending.
   - Review workload: 1,475 authored lines across the two commits, above the target. Keep as a documented size exception unless the user authorizes history rewriting to split the already-created slice.
 
-- [ ] **T02 — Recipe aggregate hexagon**
+- [x] **T02 — Recipe aggregate hexagon**
   - Route: delegated direct; multi-file write trigger.
-  - Model R009 only where behavior belongs: dose, spray volume, and loading order.
-  - Acceptance: aggregate/item persistence stays outbound; use cases and tests protect the agronomic invariants.
+  - Implemented R009 through domain rules, application ports/use cases, Prisma adapters, Recipe module composition, and a versioned Prisma schema/migration.
+  - Evidence: `050b681` adds aggregate behavior, Recipe spray-volume persistence, generated Prisma client output, and migration `20260925120000_add_recipe_spray_volume`.
+  - Checks: strict-TDD RED/GREEN observed; focused Jest passed (5 suites, 84 tests); TypeScript and `prisma validate` passed; independent verification found no code findings.
+  - Migration premise: user confirmed the target Recipe table is empty; no migration was applied to a database.
+  - Review: native committed-range assessment was unavailable because unrelated untracked paths require an explicit inventory selection. Human slice review is pending.
+  - Review workload: 1,570 authored lines, above the target. Keep as a documented size exception unless the user authorizes history rewriting to split the already-created slice.
 
 - [ ] **T03 — Company-scoped operational hexagons**
   - Route: delegated direct; multi-file write trigger.
@@ -68,6 +72,12 @@ The required entities exist as Prisma models but lack the feature-level applicat
 - 2026-09-25: User selected strict TDD and a feature-branch chain. T01 is active; all later slices remain blocked for review after their predecessor closes.
 - 2026-09-25: Work-unit commit `97aaaf2` added Client/Input modules and `d9a20ed` corrected their atomic tenant-scoped updates. Strict-TDD RED/GREEN evidence was observed; focused tests (6 suites, 41 tests) and TypeScript passed twice, including independent verification after correction.
 - 2026-09-25: T01 is complete and intentionally paused for human review. Native committed-range assessment was unavailable due unrelated untracked inventory; the native workspace inspection confirms its current candidate is unrelated local dirty files.
+- 2026-09-25: User reviewed T01 and explicitly authorized T02. Recipe aggregate implementation is active.
+- 2026-09-25: T02 implementation discovered that `Recipe` and `RecipeItem` have no spray-volume field. The uncommitted module validates dose and deterministic load order.
+- 2026-09-25: User authorized expanding T02 with the Prisma field and migration needed to enforce the full R009 spray-volume rule.
+- 2026-09-25: Prisma client generation modified four tracked outputs under `packages/backend/prisma/generated/**`; repository configuration confirms those outputs are versioned build inputs, so they belong with the schema change.
+- 2026-09-25: User confirmed the Recipe table will be empty where the migration is applied. Required spray-volume columns therefore need no data backfill.
+- 2026-09-25: Work-unit commit `050b681` completed T02. Strict-TDD RED/GREEN evidence was observed; focused tests (5 suites, 84 tests), TypeScript, and Prisma schema validation passed. Independent verification found no code findings.
 
 ## Next step
-Wait for the user's review of T01. Do not begin T02 until the user explicitly continues.
+Wait for the user's review of T02. Do not begin T03 until the user explicitly continues.
