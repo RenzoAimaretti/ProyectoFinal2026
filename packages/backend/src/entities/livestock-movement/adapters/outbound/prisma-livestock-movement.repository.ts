@@ -14,7 +14,7 @@ export class PrismaLivestockMovementRepository implements LivestockMovementRepos
     return this.prisma.livestockMovement.findMany({
       where: {
         livestock: { companyId },
-        lot: { farm: { companyId } },
+        lot: { farm: { client: { tenant: { companies: { some: { id: companyId } } } } } },
       },
     });
   }
@@ -24,7 +24,7 @@ export class PrismaLivestockMovementRepository implements LivestockMovementRepos
       where: {
         id,
         livestock: { companyId },
-        lot: { farm: { companyId } },
+        lot: { farm: { client: { tenant: { companies: { some: { id: companyId } } } } } },
       },
     });
   }

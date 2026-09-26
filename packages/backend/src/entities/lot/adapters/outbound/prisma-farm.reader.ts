@@ -6,12 +6,12 @@ import { FarmReaderPort } from '../../application/lot.ports';
 export class PrismaFarmReader implements FarmReaderPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findByIdForCompany(
+  findByIdForTenant(
     id: string,
-    companyId: string,
+    tenantId: string,
   ): Promise<{ id: string } | null> {
     return this.prisma.farm.findFirst({
-      where: { id, companyId },
+      where: { id, client: { tenantId } },
       select: { id: true },
     });
   }

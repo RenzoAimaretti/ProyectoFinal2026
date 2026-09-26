@@ -21,24 +21,24 @@ describe('PrismaTaskRepository', () => {
     prisma.task.findMany.mockResolvedValue([{ id: 'task-1' }]);
     prisma.task.findFirst.mockResolvedValue({ id: 'task-1' });
 
-    await expect(repository.findAllByCompanyId('company-1')).resolves.toEqual([
+    await expect(repository.findAllByTenantId('company-1')).resolves.toEqual([
       { id: 'task-1' },
     ]);
-    await expect(repository.findByIdForCompany('task-1', 'company-1')).resolves.toEqual({
+    await expect(repository.findByIdForTenant('task-1', 'company-1')).resolves.toEqual({
       id: 'task-1',
     });
-    await expect(repository.findByIdWithOperatorsForCompany('task-1', 'company-1')).resolves.toEqual({
+    await expect(repository.findByIdWithOperatorsForTenant('task-1', 'company-1')).resolves.toEqual({
       id: 'task-1',
     });
 
     expect(prisma.task.findMany).toHaveBeenCalledWith({
-      where: { lot: { farm: { companyId: 'company-1' } } },
+      where: { lot: { farm: { client: { tenantId: 'company-1' } } } },
     });
     expect(prisma.task.findFirst).toHaveBeenNthCalledWith(1, {
-      where: { id: 'task-1', lot: { farm: { companyId: 'company-1' } } },
+      where: { id: 'task-1', lot: { farm: { client: { tenantId: 'company-1' } } } },
     });
     expect(prisma.task.findFirst).toHaveBeenNthCalledWith(2, {
-      where: { id: 'task-1', lot: { farm: { companyId: 'company-1' } } },
+      where: { id: 'task-1', lot: { farm: { client: { tenantId: 'company-1' } } } },
       include: { operators: { select: { id: true } } },
     });
   });
@@ -57,15 +57,15 @@ describe('PrismaTaskRepository', () => {
       }),
     ).resolves.toEqual({ id: 'task-2' });
     await expect(
-      repository.updateForCompany('task-1', 'company-1', { status: 'EN_PROGRESO' }),
+      repository.updateForTenant('task-1', 'company-1', { status: 'EN_PROGRESO' }),
     ).resolves.toEqual({ id: 'task-1' });
     await expect(
-      repository.addOperatorForCompany('task-1', 'company-1', 'user-1'),
+      repository.addOperatorForTenant('task-1', 'company-1', 'user-1'),
     ).resolves.toBeUndefined();
     await expect(
-      repository.removeOperatorForCompany('task-1', 'company-1', 'user-1'),
+      repository.removeOperatorForTenant('task-1', 'company-1', 'user-1'),
     ).resolves.toBeUndefined();
-    await expect(repository.deleteForCompany('task-1', 'company-1')).resolves.toBeUndefined();
+    await expect(repository.deleteForTenant('task-1', 'company-1')).resolves.toBeUndefined();
 
     expect(prisma.task.create).toHaveBeenCalledWith({
       data: {
@@ -75,7 +75,7 @@ describe('PrismaTaskRepository', () => {
       },
     });
     expect(prisma.task.findFirst).toHaveBeenNthCalledWith(1, {
-      where: { id: 'task-1', lot: { farm: { companyId: 'company-1' } } },
+      where: { id: 'task-1', lot: { farm: { client: { tenantId: 'company-1' } } } },
       select: { id: true },
     });
     expect(prisma.task.update).toHaveBeenNthCalledWith(1, {
@@ -83,7 +83,7 @@ describe('PrismaTaskRepository', () => {
       data: { status: 'EN_PROGRESO' },
     });
     expect(prisma.task.findFirst).toHaveBeenNthCalledWith(2, {
-      where: { id: 'task-1', lot: { farm: { companyId: 'company-1' } } },
+      where: { id: 'task-1', lot: { farm: { client: { tenantId: 'company-1' } } } },
       select: { id: true },
     });
     expect(prisma.task.update).toHaveBeenNthCalledWith(2, {
@@ -91,7 +91,7 @@ describe('PrismaTaskRepository', () => {
       data: { operators: { connect: { id: 'user-1' } } },
     });
     expect(prisma.task.findFirst).toHaveBeenNthCalledWith(3, {
-      where: { id: 'task-1', lot: { farm: { companyId: 'company-1' } } },
+      where: { id: 'task-1', lot: { farm: { client: { tenantId: 'company-1' } } } },
       select: { id: true },
     });
     expect(prisma.task.update).toHaveBeenNthCalledWith(3, {
@@ -99,7 +99,7 @@ describe('PrismaTaskRepository', () => {
       data: { operators: { disconnect: { id: 'user-1' } } },
     });
     expect(prisma.task.findFirst).toHaveBeenNthCalledWith(4, {
-      where: { id: 'task-1', lot: { farm: { companyId: 'company-1' } } },
+      where: { id: 'task-1', lot: { farm: { client: { tenantId: 'company-1' } } } },
       select: { id: true },
     });
     expect(prisma.task.delete).toHaveBeenCalledWith({ where: { id: 'task-1' } });

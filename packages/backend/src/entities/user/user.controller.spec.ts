@@ -46,18 +46,19 @@ describe('UserController', () => {
     }
   });
 
-  it('delegates tenant-scoped requests using req.user.firmaId', async () => {
+  it('delegates tenant-scoped requests using req.user.tenantId', async () => {
     service.findAll.mockResolvedValue([{ id: 'user-1' }]);
     service.findOne.mockResolvedValue({ id: 'user-1' });
     service.create.mockResolvedValue({ id: 'user-2' });
     service.update.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
 
-    const req = { user: { firmaId: 'company-1' } };
+    const req = { user: { tenantId: 'tenant-1' } };
 
     await expect((controller as any).findAll(req)).resolves.toEqual([{ id: 'user-1' }]);
     await expect((controller as any).findOne('user-1', req)).resolves.toEqual({ id: 'user-1' });
     await expect(
       (controller as any).create(req, {
+        tenantId: 'tenant-1',
         companyId: 'company-1',
         email: 'user@firma.com',
         password: 'Password123!',
@@ -69,13 +70,14 @@ describe('UserController', () => {
       role: 'OPERARIO',
     });
 
-    expect(service.findAll).toHaveBeenCalledWith('company-1');
-    expect(service.findOne).toHaveBeenCalledWith('user-1', 'company-1');
-    expect(service.create).toHaveBeenCalledWith('company-1', {
+    expect(service.findAll).toHaveBeenCalledWith('tenant-1');
+    expect(service.findOne).toHaveBeenCalledWith('user-1', 'tenant-1');
+    expect(service.create).toHaveBeenCalledWith('tenant-1', {
       email: 'user@firma.com',
+      companyId: 'company-1',
       password: 'Password123!',
       role: 'ADMIN',
     });
-    expect(service.update).toHaveBeenCalledWith('user-1', 'company-1', { role: 'OPERARIO' });
+    expect(service.update).toHaveBeenCalledWith('user-1', 'tenant-1', { role: 'OPERARIO' });
   });
 });

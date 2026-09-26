@@ -2,13 +2,20 @@
 
 ## Purpose
 
-Protect Sprint 1 tenant-owned APIs in the shared PostgreSQL schema. `companyId` is the tenant key, and the effective tenant MUST be `req.user.firmaId` from the authenticated JWT.
+Protect Sprint 1 tenant- and firma-owned APIs in the shared PostgreSQL schema.
+
+The platform has two nested scopes, and the authenticated JWT (`AuthJwtPayload`) carries both:
+
+- `tenantId` is the tenant key: the subscribed customer. Tenant-owned resources — farm, lot, task, task-type, tenant-local user, and company administration — MUST be scoped by `req.user.tenantId`.
+- `firmaId` is the firma key: a `Company` (razón social) inside a tenant. Firma-owned resources — livestock, machine, machine-usage, livestock-event, weight-record, and livestock-movement — MUST be scoped by `req.user.firmaId`, which equals the owning `companyId`.
+
+The backend MUST derive scope from the token and MUST NOT treat client-supplied `companyId` or tenant/firma identity as authoritative.
 
 ## Requirements
 
-### Requirement: Protected Tenant Context
+### Requirement: Protected Tenant/Firma Context
 
-All in-scope operational endpoints for farms, lots, livestocks, livestock-events, livestock-movements, weight-records, tasks, task-types, machines, machine-usages, and tenant-local users MUST require a bearer JWT. The backend MUST derive tenant identity from the token and MUST NOT treat client-supplied `companyId` as authoritative. Flutter clients SHOULD send `Authorization: Bearer <accessToken>` and SHOULD NOT send authoritative tenant identity for protected writes. Client-supplied `companyId` on tenant-scoped writes is deprecated; during Sprint 1 compatibility it MUST be ignored in favor of `req.user.firmaId`, not rejected.
+All in-scope operational endpoints for farms, lots, tasks, task-types, tenant-local users, company administration (`/companies` and `/companies/add-module`), livestocks, livestock-events, livestock-movements, weight-records, machines, and machine-usages MUST require a bearer JWT. The backend MUST derive scope from the token: tenant-owned resources MUST be scoped by `req.user.tenantId`, and firma-owned resources MUST be scoped by `req.user.firmaId`. The backend MUST NOT treat client-supplied `companyId` or tenant/firma identity as authoritative. Flutter clients SHOULD send `Authorization: Bearer <accessToken>` and SHOULD NOT send authoritative tenant or firma identity for protected writes. Client-supplied `companyId` on tenant-scoped writes is deprecated; during Sprint 1 compatibility it MUST be ignored in favor of `req.user.tenantId`, not rejected.
 
 #### Scenario: Farms block unauthenticated access
 - GIVEN no valid bearer token is provided
@@ -27,12 +34,12 @@ All in-scope operational endpoints for farms, lots, livestocks, livestock-events
 
 ### Requirement: Farm Tenant Isolation
 
-Farm list, read, create, and update operations MUST be scoped to the authenticated user's `firmaId`. Cross-tenant farm reads/updates MUST return 404 to avoid revealing existence.
+Farm list, read, create, and update operations MUST be scoped to the authenticated user's `tenantId`. Because a farm belongs to a client that belongs to a tenant, farm scope MUST resolve through the client's `tenantId`. Cross-tenant farm reads/updates MUST return 404 to avoid revealing existence.
 
 #### Scenario: Farm list returns only current tenant farms
 - GIVEN tenant A and tenant B both have farms
 - WHEN tenant A calls `GET /farms`
-- THEN every returned farm MUST have `companyId = tenantA.firmaId`
+- THEN every returned farm MUST resolve to tenant A through its client's `tenantId`
 - AND no tenant B farm MUST be returned
 
 #### Scenario: Farm read hides another tenant farm
@@ -58,12 +65,12 @@ Farm list, read, create, and update operations MUST be scoped to the authenticat
 
 ### Requirement: Lot Tenant Isolation Through Farm Ownership
 
-Lot list, read, create, and update operations MUST be scoped through the lot's farm ownership. Cross-tenant lot lookup/update targets MUST return 404; invalid cross-tenant farm relations in request bodies MUST return 400.
+Lot list, read, create, and update operations MUST be scoped through the lot's farm and client to the authenticated user's `tenantId`. Cross-tenant lot lookup/update targets MUST return 404; invalid cross-tenant farm relations in request bodies MUST return 400.
 
 #### Scenario: Lot list returns only lots under current tenant farms
 - GIVEN tenants A and B each have farms and lots
 - WHEN tenant A calls `GET /lots`
-- THEN every returned lot MUST belong to a farm whose `companyId = tenantA.firmaId`
+- THEN every returned lot MUST resolve to tenant A through its farm's client `tenantId`
 
 #### Scenario: Lot read hides another tenant lot
 - GIVEN a lot exists under tenant B's farm
@@ -89,50 +96,64 @@ Lot list, read, create, and update operations MUST be scoped through the lot's f
 
 ### Requirement: TaskType Tenant Ownership
 
-Task types MUST belong to exactly one company. TaskType names MUST be unique per company, not globally. Reads/writes MUST use the authenticated user's `firmaId`; client `companyId` is deprecated/non-authoritative where present.
+Task types MUST belong to exactly one tenant. TaskType names MUST be unique per tenant, not globally. Reads/writes MUST use the authenticated user's `tenantId`; client `companyId` is deprecated/non-authoritative where present.
 
 #### Scenario: Task types are tenant-local
 - GIVEN tenants A and B each have a task type named `Vaccination`
 - WHEN tenant A calls task-type list/read endpoints
 - THEN only tenant A task types MUST be returned or readable
 
-#### Scenario: Task type uniqueness is per company
+#### Scenario: Task type uniqueness is per tenant
 - GIVEN tenant A already has task type `Vaccination`
 - WHEN tenant A creates another `Vaccination`
 - THEN the response MUST be 409
 - AND tenant B MAY create `Vaccination`
 
-### Requirement: Direct-Owned Entity Tenant Isolation
+### Requirement: Task Tenant Isolation Through Lot/Farm Ownership
 
-Livestock and Machine operations MUST scope targets directly by `companyId = req.user.firmaId`. Cross-tenant targets MUST return 404. Body `companyId`, where accepted for compatibility, MUST be ignored in favor of the JWT tenant.
+Task list, read, create, update, delete, and operator-assignment operations MUST be scoped through the task's lot and farm to the authenticated user's `tenantId`. Cross-tenant task targets MUST return 404. Task relationship bodies MUST reference tenant-owned lots, task types, and users, or the request MUST fail per the Cross-Tenant Relationship Rejection requirement.
+
+#### Scenario: Task list returns only tasks under current tenant farms
+- GIVEN tenants A and B each have tasks under their own farms
+- WHEN tenant A calls `GET /tasks`
+- THEN every returned task MUST resolve to tenant A through its lot and farm
+
+#### Scenario: Task read hides another tenant task
+- GIVEN a task exists under tenant B's farm
+- WHEN tenant A calls `GET /tasks/:id` with that task id
+- THEN the response MUST be 404
+
+### Requirement: Direct-Owned Entity Firma Isolation
+
+Livestock and Machine operations MUST scope targets directly by `companyId = req.user.firmaId`. Cross-firma targets MUST return 404. Body `companyId`, where accepted for compatibility, MUST be ignored in favor of the JWT `firmaId`.
 
 #### Scenario: Direct-owned lists are scoped
-- GIVEN tenants A and B have livestock and machines
-- WHEN tenant A calls in-scope list endpoints
-- THEN no tenant B livestock or machine MUST be returned
+- GIVEN firmas A and B have livestock and machines
+- WHEN firma A calls in-scope list endpoints
+- THEN no firma B livestock or machine MUST be returned
 
-#### Scenario: Direct-owned target from another tenant is hidden
-- GIVEN a livestock or machine belongs to tenant B
-- WHEN tenant A reads, updates, or deletes that id
+#### Scenario: Direct-owned target from another firma is hidden
+- GIVEN a livestock or machine belongs to firma B
+- WHEN firma A reads, updates, or deletes that id
 - THEN the response MUST be 404
 
-### Requirement: Indirect-Owned Entity Tenant Isolation
+### Requirement: Indirect-Owned Entity Firma Isolation
 
-Task, MachineUsage, LivestockEvent, WeightRecord, and LivestockMovement operations MUST be scoped through their tenant-owned parent graph: Task through Lot/Farm; MachineUsage through Machine and Task; LivestockEvent/WeightRecord through Livestock; LivestockMovement through Livestock and Lot. Cross-tenant targets MUST return 404.
+MachineUsage, LivestockEvent, WeightRecord, and LivestockMovement operations MUST be scoped by `req.user.firmaId` through their firma-owned parent graph: MachineUsage through Machine and Task; LivestockEvent/WeightRecord through Livestock; LivestockMovement through Livestock and Lot. Cross-firma targets MUST return 404.
 
 #### Scenario: Indirect-owned lists are scoped by parent graph
-- GIVEN tenants A and B have records under their own parent entities
-- WHEN tenant A calls any in-scope list endpoint
-- THEN every returned record MUST resolve to tenant A through its parent graph
+- GIVEN firmas A and B have records under their own parent entities
+- WHEN firma A calls any in-scope list endpoint
+- THEN every returned record MUST resolve to firma A through its parent graph
 
-#### Scenario: Indirect-owned target from another tenant is hidden
-- GIVEN an indirect-owned record resolves to tenant B
-- WHEN tenant A reads, updates, or deletes that id
+#### Scenario: Indirect-owned target from another firma is hidden
+- GIVEN an indirect-owned record resolves to firma B
+- WHEN firma A reads, updates, or deletes that id
 - THEN the response MUST be 404
 
-### Requirement: Cross-Tenant Relationship Rejection
+### Requirement: Cross-Tenant/Cross-Firma Relationship Rejection
 
-For in-scope create/update requests, relationship ids in the body MUST belong to the authenticated tenant. Cross-tenant relationship ids MUST return 400 and MUST NOT mutate data.
+For in-scope create/update requests, relationship ids in the body MUST belong to the authenticated scope: `tenantId` for tenant-owned resources and `firmaId` for firma-owned resources. Out-of-scope relationship ids MUST return 400 and MUST NOT mutate data.
 
 #### Scenario: Task rejects foreign relations
 - GIVEN tenant A is authenticated
@@ -140,39 +161,117 @@ For in-scope create/update requests, relationship ids in the body MUST belong to
 - THEN the response MUST be 400
 
 #### Scenario: Usage, event, weight, and movement reject foreign relations
-- GIVEN tenant A is authenticated
-- WHEN a body references tenant B livestock, lot, machine, or task
+- GIVEN firma A is authenticated
+- WHEN a body references firma B livestock, lot, machine, task, or user
 - THEN the response MUST be 400
 - AND no record MUST be created or updated
 
 ### Requirement: Tenant-Local User Scope Deferred Admin Policy
 
-Tenant-local user list/read/update surfaces MUST be scoped to `req.user.firmaId`. Cross-tenant user targets MUST return 404. Bootstrap, platform-admin, and cross-company user administration policies are explicitly deferred and MUST NOT be introduced by this change.
+Tenant-local user list/read/update surfaces MUST be scoped to `req.user.tenantId`. Cross-tenant user targets MUST return 404. Bootstrap, platform-admin, and cross-tenant user administration policies are explicitly deferred and MUST NOT be introduced by this change.
 
 #### Scenario: Users are tenant-scoped for normal protected flows
 - GIVEN tenants A and B each have users
 - WHEN tenant A calls in-scope protected user endpoints
 - THEN only tenant A users MUST be visible
 
+### Requirement: Company Administration Tenant Scoping
+
+Company administration endpoints — `GET /companies`, `GET /companies/:id`, `PUT /companies/:id`, and `POST /companies/add-module` — MUST require a bearer JWT and MUST derive scope from `req.user.tenantId`. A `Company` belongs directly to a tenant (`Company.tenantId`), so list and read MUST return only companies whose `tenantId` matches the caller, and cross-tenant targets MUST return 404 without revealing existence. `PUT /companies/:id` MUST update only a company that belongs to the caller's tenant, otherwise 404. `POST /companies/add-module` MUST confirm the target company belongs to the caller's tenant before linking the module, otherwise 404; its request body fields `companyId` and `moduleId` are preserved. `POST /companies` MUST continue to derive the tenant from the JWT and MUST ignore client-supplied tenant/firma identity. This change MUST NOT introduce platform-admin or cross-tenant company administration behavior.
+
+#### Scenario: Company list is tenant-scoped
+- GIVEN tenants A and B each have companies
+- WHEN tenant A calls `GET /companies`
+- THEN every returned company MUST belong to tenant A
+- AND no tenant B company MUST be returned
+
+#### Scenario: Company read hides another tenant company
+- GIVEN a company exists for tenant B
+- WHEN tenant A calls `GET /companies/:id` with tenant B's company id
+- THEN the response MUST be 404
+
+#### Scenario: Company update cannot cross tenant boundary
+- GIVEN a company exists for tenant B
+- WHEN tenant A calls `PUT /companies/:id` with tenant B's company id
+- THEN the response MUST be 404
+- AND the company MUST NOT be modified
+
+#### Scenario: Company add-module hides another tenant company
+- GIVEN a company exists for tenant B
+- WHEN tenant A calls `POST /companies/add-module` with tenant B's `companyId`
+- THEN the response MUST be 404
+- AND no module link MUST be created
+
+#### Scenario: Company create derives tenant from JWT
+- GIVEN tenant A is authenticated
+- WHEN tenant A calls `POST /companies`
+- THEN the created company MUST belong to tenant A
+
+### Requirement: Explicit Firma User Provisioning and Firma-Scoped Role Authority
+
+`POST /users` MUST require an explicit `companyId`, MUST validate that the company belongs to the caller's `tenantId`, and MUST create a `UserCompany` membership linking the new user to that company in the same provisioning flow. `UserCompany.role` MUST be authoritative for firma-scoped authorization; the legacy `User.role` MUST NOT be used to authorize firma-scoped access. A `companyId` that does not belong to the caller's tenant MUST be rejected without creating a user or membership.
+
+#### Scenario: Provisioning creates a validated firma membership
+- GIVEN tenant A is authenticated
+- WHEN tenant A calls `POST /users` with a `companyId` that belongs to tenant A
+- THEN the created user MUST belong to tenant A
+- AND a `UserCompany` membership MUST exist linking that user to the given company
+
+#### Scenario: Provisioning rejects a foreign-tenant company
+- GIVEN tenant A is authenticated and `companyId` belongs to tenant B
+- WHEN tenant A calls `POST /users` with that `companyId`
+- THEN the response MUST be 404
+- AND no user and no membership MUST be created
+
+#### Scenario: Firma-scoped authorization uses the membership role
+- GIVEN a user has an active `UserCompany` membership with a role
+- WHEN firma-scoped authorization is evaluated for that user
+- THEN `UserCompany.role` MUST be authoritative for the decision
+
+### Requirement: Login and Refresh Active-Firma Selection Limitation
+
+Login and refresh MUST resolve the active firma from the user's first active `UserCompany` membership ordered by `createdAt ASC` (adapter query orders by `createdAt: 'asc'` and takes one). The issued JWT MUST carry that resolved `firmaId` alongside `tenantId`. If the user has no active firma membership, login and refresh MUST fail and MUST NOT issue a token. The login request does not accept a user-selected active firma yet, so a user with multiple active memberships is always authenticated into the earliest-created one. This is an explicit limitation and follow-up, NOT intended final UX; a future change SHOULD add explicit firma selection at login.
+
+#### Scenario: Default firma is the earliest active membership
+- GIVEN a user has multiple active `UserCompany` memberships
+- WHEN the user logs in
+- THEN the issued JWT MUST carry the `firmaId` of the active membership with the earliest `createdAt`
+
+#### Scenario: Missing active membership blocks login and refresh
+- GIVEN a user has no active `UserCompany` membership
+- WHEN the user logs in or refreshes a session
+- THEN the request MUST fail
+- AND no token MUST be issued
+
+#### Scenario: No user-selected firma at login yet
+- GIVEN the login request carries no firma selection field
+- WHEN a user with multiple active memberships logs in
+- THEN the backend MUST use the default earliest-created active membership
+- AND the response MUST NOT offer a firma selection
+
 ### Requirement: Endpoint Classification Boundaries
 
-This change MUST NOT blindly tenant-filter public or platform/global endpoints. `companies`, `modules`, `companies/add-module`, `auth/login`, `auth/refresh`, and `auth/logout` are out of scope except for preserving their current category.
+This change MUST NOT blindly tenant-filter public or platform/global endpoints. `modules`, `auth/login`, `auth/refresh`, and `auth/logout` are out of scope except for preserving their current category. Company administration (`/companies` and `/companies/add-module`) is in scope and MUST be tenant-scoped per the Company Administration Tenant Scoping requirement.
 
 #### Scenario: Out-of-scope endpoints are not changed by this slice
 - GIVEN this change is applied
-- WHEN public auth or global/admin endpoints are exercised
-- THEN behavior MUST NOT be changed solely by remaining-entity tenant enforcement
+- WHEN public auth or global/platform endpoints such as `modules` are exercised
+- THEN behavior MUST NOT be changed solely by remaining-entity tenant/firma enforcement
 
 ## Acceptance Criteria Mapped to Tests
 
 | AC | Test target |
 |----|-------------|
 | In-scope routes require JWT | Controller/e2e tests assert 401 for unauthenticated `/farms`, `/lots`, and remaining operational endpoints. |
-| Farm tenant isolation | Repository/use-case/e2e tests assert scoped list, 404 cross-tenant read/update, JWT-derived create/update tenant. |
-| Lot tenant isolation | Tests assert transitive farm ownership filters, 404 cross-tenant target, 400 cross-tenant `farmId`. |
-| TaskType tenant ownership | Controller/use-case/repository tests assert tenant-local list/read and 409 per-company duplicate names. |
-| Direct-owned isolation | Tests assert scoped livestock/machine access and 404 for cross-tenant targets. |
-| Indirect-owned isolation | Tests assert Task, MachineUsage, LivestockEvent, WeightRecord, and LivestockMovement traverse tenant-owned parents. |
+| Farm tenant isolation | Repository/use-case/e2e tests assert scoped list, 404 cross-tenant read/update, JWT `tenantId`-derived create/update tenant. |
+| Lot tenant isolation | Tests assert transitive farm/client tenant ownership filters, 404 cross-tenant target, 400 cross-tenant `farmId`. |
+| TaskType tenant ownership | Controller/use-case/repository tests assert tenant-local list/read and 409 per-tenant duplicate names. |
+| Task tenant isolation | Tests assert Task traverses its tenant-owned lot and farm, and 404 for cross-tenant tasks. |
+| Direct-owned isolation | Tests assert scoped livestock/machine access by `firmaId` and 404 for cross-firma targets. |
+| Indirect-owned isolation | Tests assert MachineUsage, LivestockEvent, WeightRecord, and LivestockMovement traverse firma-owned parents. |
 | Cross-tenant relation rejection | Tests assert 400 for foreign `lotId`, `taskTypeId`, `userId`, `livestockId`, `machineId`, and `taskId` relations. |
 | Tenant-local user scope | Tests assert tenant-local list/read/update/create and 404 cross-tenant user targets. |
+| Explicit firma provisioning | Tests assert `POST /users` requires `companyId`, rejects foreign-tenant companies, creates `UserCompany`, and treats `UserCompany.role` as authoritative. |
+| Company administration tenant scoping | Controller/use-case/repository tests assert `/companies` and `/companies/add-module` require JWT, scope by `req.user.tenantId`, and return 404 for cross-tenant read/update/add-module targets. |
+| Active-firma login limitation | Tests assert JWT carries the earliest active membership `firmaId` and login/refresh fail with no active membership. |
 | Endpoint boundaries | Regression tests or review checklist assert auth/global endpoints are not tenant-filtered by this change. |

@@ -5,16 +5,16 @@ import { UserService } from './user.service';
 
 type RequestWithUser = {
   user: {
-    firmaId: string;
+    tenantId: string;
   };
 };
 
-type CreateUserBody = Omit<CreateUserInput, 'companyId'> & {
-  companyId?: string;
+type CreateUserBody = Omit<CreateUserInput, 'tenantId'> & {
+  tenantId?: string;
 };
 
 type UpdateUserBody = UpdateUserInput & {
-  companyId?: string;
+  tenantId?: string;
 };
 
 @Controller('users')
@@ -24,21 +24,21 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Req() req: RequestWithUser) {
-    return this.service.findAll(req.user.firmaId);
+    return this.service.findAll(req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: RequestWithUser) {
-    return this.service.findOne(id, req.user.firmaId);
+    return this.service.findOne(id, req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Req() req: RequestWithUser, @Body() data: CreateUserBody) {
-    const { companyId: _companyId, ...payload } = data;
+    const { tenantId: _tenantId, ...payload } = data;
 
-    return this.service.create(req.user.firmaId, payload as Omit<CreateUserInput, 'companyId'>);
+    return this.service.create(req.user.tenantId, payload as Omit<CreateUserInput, 'tenantId'>);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -48,8 +48,8 @@ export class UserController {
     @Req() req: RequestWithUser,
     @Body() data: UpdateUserBody,
   ) {
-    const { companyId: _companyId, ...payload } = data;
+    const { tenantId: _tenantId, ...payload } = data;
 
-    return this.service.update(id, req.user.firmaId, payload);
+    return this.service.update(id, req.user.tenantId, payload);
   }
 }

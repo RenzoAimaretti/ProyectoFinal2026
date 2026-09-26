@@ -14,8 +14,8 @@ export class PrismaUserReader implements UserReaderPort {
   }
 
   findByIdForCompany(id: string, companyId: string): Promise<{ id: string } | null> {
-    return this.prisma.user.findUnique({
-      where: { id, companyId },
+    return this.prisma.user.findFirst({
+      where: { id, companyMemberships: { some: { companyId } } },
       select: { id: true },
     });
   }

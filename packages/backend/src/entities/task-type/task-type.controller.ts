@@ -5,7 +5,7 @@ import { TaskTypeService } from './task-type.service';
 
 type RequestWithUser = {
   user: {
-    firmaId: string;
+    tenantId: string;
   };
 };
 
@@ -16,19 +16,19 @@ export class TaskTypeController {
   @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Req() req: RequestWithUser) {
-    return this.service.findAll(req.user.firmaId);
+    return this.service.findAll(req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
-    return this.service.findOne(id, req.user.firmaId);
+    return this.service.findOne(id, req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Req() req: RequestWithUser, @Body() data: CreateTaskTypeInput) {
-    return this.service.create(req.user.firmaId, {
+    return this.service.create(req.user.tenantId, {
       name: data.name,
       ...(data.description !== undefined ? { description: data.description } : {}),
     });
@@ -37,7 +37,7 @@ export class TaskTypeController {
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(@Param('id') id: string, @Req() req: RequestWithUser, @Body() data: UpdateTaskTypeInput) {
-    return this.service.update(id, req.user.firmaId, {
+    return this.service.update(id, req.user.tenantId, {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.description !== undefined ? { description: data.description } : {}),
       ...(data.taskIds !== undefined ? { taskIds: data.taskIds } : {}),
@@ -46,6 +46,6 @@ export class TaskTypeController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   delete(@Param('id') id: string, @Req() req: RequestWithUser) {
-    return this.service.delete(id, req.user.firmaId);
+    return this.service.delete(id, req.user.tenantId);
   }
 }

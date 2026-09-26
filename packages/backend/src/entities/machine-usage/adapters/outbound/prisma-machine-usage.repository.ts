@@ -15,7 +15,7 @@ export class PrismaMachineUsageRepository implements MachineUsageRepositoryPort 
     return this.prisma.machineUsage.findMany({
       where: {
         machine: { companyId },
-        task: { lot: { farm: { companyId } } },
+        task: { lot: { farm: { client: { tenant: { companies: { some: { id: companyId } } } } } } },
       },
     });
   }
@@ -25,7 +25,7 @@ export class PrismaMachineUsageRepository implements MachineUsageRepositoryPort 
       where: {
         id,
         machine: { companyId },
-        task: { lot: { farm: { companyId } } },
+        task: { lot: { farm: { client: { tenant: { companies: { some: { id: companyId } } } } } } },
       },
     });
   }
@@ -43,7 +43,7 @@ export class PrismaMachineUsageRepository implements MachineUsageRepositoryPort 
       where: {
         id,
         machine: { companyId },
-        task: { lot: { farm: { companyId } } },
+        task: { lot: { farm: { client: { tenant: { companies: { some: { id: companyId } } } } } } },
       },
       select: { id: true },
     });

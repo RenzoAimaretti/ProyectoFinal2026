@@ -12,6 +12,7 @@
 export const UserRole = {
   ADMIN: 'ADMIN',
   OPERARIO: 'OPERARIO',
+  SUPERVISOR: 'SUPERVISOR',
   PRODUCTOR: 'PRODUCTOR',
   CONTRATISTA: 'CONTRATISTA',
   VETERINARIO: 'VETERINARIO'
@@ -59,3 +60,48 @@ export const EventType = {
 } as const
 
 export type EventType = (typeof EventType)[keyof typeof EventType]
+
+
+export const DailyReportStatus = {
+  PENDIENTE_APROBACION: 'PENDIENTE_APROBACION',
+  APROBADO: 'APROBADO',
+  RECHAZADO: 'RECHAZADO'
+} as const
+
+export type DailyReportStatus = (typeof DailyReportStatus)[keyof typeof DailyReportStatus]
+
+
+export const ReceptionStatus = {
+  PENDIENTE_VALIDACION: 'PENDIENTE_VALIDACION',
+  VALIDADA: 'VALIDADA',
+  RECHAZADA: 'RECHAZADA'
+} as const
+
+export type ReceptionStatus = (typeof ReceptionStatus)[keyof typeof ReceptionStatus]
+
+
+export const MachineActivityType = {
+  COMBUSTIBLE: 'COMBUSTIBLE',
+  MANTENIMIENTO: 'MANTENIMIENTO',
+  REPARACION: 'REPARACION',
+  USO_CAMPO: 'USO_CAMPO'
+} as const
+
+export type MachineActivityType = (typeof MachineActivityType)[keyof typeof MachineActivityType]
+
+
+export const PhotoEntityType = {
+  PARTE_DIARIO: 'PARTE_DIARIO',
+  RECEPCION: 'RECEPCION',
+  ACTIVIDAD_MAQUINARIA: 'ACTIVIDAD_MAQUINARIA'
+} as const
+
+export type PhotoEntityType = (typeof PhotoEntityType)[keyof typeof PhotoEntityType]
+
+
+export const RecipeStatus = {
+  ACTIVA: 'ACTIVA',
+  ARCHIVADA: 'ARCHIVADA'
+} as const
+
+export type RecipeStatus = (typeof RecipeStatus)[keyof typeof RecipeStatus]

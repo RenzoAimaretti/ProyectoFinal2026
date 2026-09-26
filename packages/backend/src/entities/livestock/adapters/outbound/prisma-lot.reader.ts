@@ -6,19 +6,13 @@ import { LotReaderPort } from '../../application/livestock.ports';
 export class PrismaLotReader implements LotReaderPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findByIdForCompany(
-    id: string,
-    companyId: string,
-  ): Promise<{ id: string; companyId: string } | null> {
-    const lot = await this.prisma.lot.findUnique({
-      where: { id },
-      select: { id: true, farm: { select: { companyId: true } } },
+  findByIdForCompany(id: string, companyId: string): Promise<{ id: string } | null> {
+    return this.prisma.lot.findFirst({
+      where: {
+        id,
+        farm: { client: { tenant: { companies: { some: { id: companyId } } } } },
+      },
+      select: { id: true },
     });
-
-    if (!lot?.farm?.companyId || lot.farm.companyId !== companyId) {
-      return null;
-    }
-
-    return { id: lot.id, companyId: lot.farm.companyId };
   }
 }

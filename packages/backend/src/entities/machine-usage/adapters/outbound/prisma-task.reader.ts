@@ -22,7 +22,11 @@ export class PrismaTaskReader implements TaskReaderPort {
         id,
         lot: {
           farm: {
-            companyId,
+            client: {
+              tenant: {
+                companies: { some: { id: companyId } },
+              },
+            },
           },
         },
       },

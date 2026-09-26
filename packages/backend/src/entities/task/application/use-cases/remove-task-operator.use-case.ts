@@ -11,17 +11,17 @@ export class RemoveTaskOperatorUseCase {
   async execute(
     taskId: string,
     operatorId: string,
-    companyId: string,
+    tenantId: string,
   ): Promise<RemoveTaskOperatorOutput> {
-    const task = await this.repository.findByIdWithOperatorsForCompany(taskId, companyId);
+    const task = await this.repository.findByIdWithOperatorsForTenant(taskId, tenantId);
 
     if (!task) {
       throw new EntityNotFoundError(`Task with id ${taskId} not found`);
     }
 
-    const user = await this.userReader.findByIdForCompany(operatorId, companyId);
+    const user = await this.userReader.findByIdForTenant(operatorId, tenantId);
     if (!user || user.role !== 'OPERARIO') {
-      throw new InvalidRelationError(`Operator with id ${operatorId} does not belong to company ${companyId}`);
+      throw new InvalidRelationError(`Operator with id ${operatorId} does not belong to company ${tenantId}`);
     }
 
     if (!task.operators.some((operator) => operator.id === operatorId)) {
@@ -30,7 +30,7 @@ export class RemoveTaskOperatorUseCase {
       );
     }
 
-    await this.repository.removeOperatorForCompany(taskId, companyId, operatorId);
+    await this.repository.removeOperatorForTenant(taskId, tenantId, operatorId);
 
     return {
       message: `Operator with id ${operatorId} removed from task with id ${taskId} successfully`,

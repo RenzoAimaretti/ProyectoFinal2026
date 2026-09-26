@@ -43,13 +43,13 @@ describe('LotController', () => {
     }
   });
 
-  it('delegates tenant-scoped requests using req.user.firmaId', async () => {
+  it('delegates tenant-scoped requests using req.user.tenantId', async () => {
     service.findAll.mockResolvedValue([{ id: 'lot-1' }]);
     service.findOne.mockResolvedValue({ id: 'lot-1' });
     service.create.mockResolvedValue({ id: 'lot-2' });
     service.update.mockResolvedValue({ id: 'lot-1', name: 'Updated' });
 
-    const req = { user: { firmaId: 'company-1' } };
+    const req = { user: { tenantId: 'tenant-1' } };
 
     await expect(controller.findAll(req)).resolves.toEqual([{ id: 'lot-1' }]);
     await expect(controller.findOne('lot-1', req)).resolves.toEqual({
@@ -72,15 +72,15 @@ describe('LotController', () => {
       }),
     ).resolves.toEqual({ id: 'lot-1', name: 'Updated' });
 
-    expect(service.findAll).toHaveBeenCalledWith('company-1');
-    expect(service.findOne).toHaveBeenCalledWith('lot-1', 'company-1');
-    expect(service.create).toHaveBeenCalledWith('company-1', {
+    expect(service.findAll).toHaveBeenCalledWith('tenant-1');
+    expect(service.findOne).toHaveBeenCalledWith('lot-1', 'tenant-1');
+    expect(service.create).toHaveBeenCalledWith('tenant-1', {
       name: 'North pasture',
       farmId: 'farm-1',
       coords: '0,0',
       area: 12.5,
     });
-    expect(service.update).toHaveBeenCalledWith('lot-1', 'company-1', {
+    expect(service.update).toHaveBeenCalledWith('lot-1', 'tenant-1', {
       name: 'Updated',
       farmId: 'farm-1',
     });

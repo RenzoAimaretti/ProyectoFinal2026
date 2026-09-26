@@ -13,16 +13,16 @@ export class PrismaUserRepository implements UserRepositoryPort {
     return this.prisma.user.findMany() as unknown as Promise<UserRecord[]>;
   }
 
-  findAllByCompanyId(companyId: string): Promise<UserRecord[]> {
-    return this.prisma.user.findMany({ where: { companyId } }) as unknown as Promise<UserRecord[]>;
+  findAllByTenantId(tenantId: string): Promise<UserRecord[]> {
+    return this.prisma.user.findMany({ where: { tenantId } }) as unknown as Promise<UserRecord[]>;
   }
 
   findById(id: string): Promise<UserRecord | null> {
     return this.prisma.user.findUnique({ where: { id } }) as unknown as Promise<UserRecord | null>;
   }
 
-  findByIdForCompany(id: string, companyId: string): Promise<UserRecord | null> {
-    return this.prisma.user.findFirst({ where: { id, companyId } }) as unknown as Promise<
+  findByIdForTenant(id: string, tenantId: string): Promise<UserRecord | null> {
+    return this.prisma.user.findFirst({ where: { id, tenantId } }) as unknown as Promise<
       UserRecord | null
     >;
   }
@@ -41,7 +41,13 @@ export class PrismaUserRepository implements UserRepositoryPort {
     try {
       return (await this.prisma.user.create({
         data: {
-          companyId: data.companyId,
+          tenantId: data.tenantId,
+          companyMemberships: {
+            create: {
+              companyId: data.companyId,
+              role: data.role,
+            },
+          },
           email: data.email,
           ...(data.username ? { username: data.username } : {}),
           passwordHash: data.passwordHash,
@@ -78,15 +84,15 @@ export class PrismaUserRepository implements UserRepositoryPort {
     }
   }
 
-  async updateForCompany(id: string, companyId: string, data: UpdateUserData): Promise<UserRecord> {
+  async updateForTenant(id: string, tenantId: string, data: UpdateUserData): Promise<UserRecord> {
     try {
       const user = await this.prisma.user.findFirst({
-        where: { id, companyId },
+        where: { id, tenantId },
         select: { id: true },
       });
 
       if (!user) {
-        throw new Error(`User with id ${id} not found for company ${companyId}`);
+        throw new Error(`User with id ${id} not found for tenant ${tenantId}`);
       }
 
       return (await this.prisma.user.update({

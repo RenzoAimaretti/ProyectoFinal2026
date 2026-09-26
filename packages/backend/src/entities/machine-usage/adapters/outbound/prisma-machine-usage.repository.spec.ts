@@ -30,14 +30,14 @@ describe('PrismaMachineUsageRepository', () => {
     expect(prisma.machineUsage.findMany).toHaveBeenCalledWith({
       where: {
         machine: { companyId: 'company-1' },
-        task: { lot: { farm: { companyId: 'company-1' } } },
+        task: { lot: { farm: { client: { tenant: { companies: { some: { id: 'company-1' } } } } } } },
       },
     });
     expect(prisma.machineUsage.findFirst).toHaveBeenCalledWith({
       where: {
         id: 'usage-1',
         machine: { companyId: 'company-1' },
-        task: { lot: { farm: { companyId: 'company-1' } } },
+        task: { lot: { farm: { client: { tenant: { companies: { some: { id: 'company-1' } } } } } } },
       },
     });
   });
@@ -59,7 +59,7 @@ describe('PrismaMachineUsageRepository', () => {
       where: {
         id: 'usage-1',
         machine: { companyId: 'company-1' },
-        task: { lot: { farm: { companyId: 'company-1' } } },
+        task: { lot: { farm: { client: { tenant: { companies: { some: { id: 'company-1' } } } } } } },
       },
       select: { id: true },
     });

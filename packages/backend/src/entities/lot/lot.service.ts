@@ -25,33 +25,33 @@ export class LotService {
     private readonly updateLotUseCase: UpdateLotUseCase,
   ) {}
 
-  async findAll(companyId: string) {
+  async findAll(tenantId: string) {
     try {
-      return await this.findAllLotsUseCase.execute(companyId);
+      return await this.findAllLotsUseCase.execute(tenantId);
     } catch (error) {
       this.handleUnexpectedError('Error fetching lots', error);
     }
   }
 
-  async findOne(id: string, companyId: string) {
+  async findOne(id: string, tenantId: string) {
     try {
-      return await this.findLotUseCase.execute(id, companyId);
+      return await this.findLotUseCase.execute(id, tenantId);
     } catch (error) {
       this.handleLotReadError('Error fetching lot', error);
     }
   }
 
-  async create(companyId: string, data: CreateLotInput) {
+  async create(tenantId: string, data: CreateLotInput) {
     try {
-      return await this.createLotUseCase.execute(companyId, data);
+      return await this.createLotUseCase.execute(tenantId, data);
     } catch (error) {
       this.handleCreateError(error);
     }
   }
 
-  async update(id: string, companyId: string, data: UpdateLotInput) {
+  async update(id: string, tenantId: string, data: UpdateLotInput) {
     try {
-      return await this.updateLotUseCase.execute(id, companyId, data);
+      return await this.updateLotUseCase.execute(id, tenantId, data);
     } catch (error) {
       this.handleUpdateError(id, error);
     }

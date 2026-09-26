@@ -53,7 +53,7 @@ describe('TaskController', () => {
     }
   });
 
-  it('delegates tenant-scoped requests using req.user.firmaId', async () => {
+  it('delegates tenant-scoped requests using req.user.tenantId', async () => {
     service.findAll.mockResolvedValue([{ id: 'task-1' }]);
     service.findOne.mockResolvedValue({ id: 'task-1' });
     service.create.mockResolvedValue({ id: 'task-2' });
@@ -62,7 +62,7 @@ describe('TaskController', () => {
     service.removeOperario.mockResolvedValue({ message: 'removed' });
     service.delete.mockResolvedValue({ message: 'deleted' });
 
-    const req = { user: { firmaId: 'company-1' } };
+    const req = { user: { tenantId: 'tenant-1' } };
 
     await expect((controller as any).findAll(req)).resolves.toEqual([{ id: 'task-1' }]);
     await expect((controller as any).findOne('task-1', req)).resolves.toEqual({ id: 'task-1' });
@@ -88,18 +88,18 @@ describe('TaskController', () => {
     });
     await expect((controller as any).delete('task-1', req)).resolves.toEqual({ message: 'deleted' });
 
-    expect(service.findAll).toHaveBeenCalledWith('company-1');
-    expect(service.findOne).toHaveBeenCalledWith('task-1', 'company-1');
-    expect(service.create).toHaveBeenCalledWith('company-1', {
+    expect(service.findAll).toHaveBeenCalledWith('tenant-1');
+    expect(service.findOne).toHaveBeenCalledWith('task-1', 'tenant-1');
+    expect(service.create).toHaveBeenCalledWith('tenant-1', {
       lotId: 'lot-1',
       taskTypeId: 'task-type-1',
       startedAt: '2026-01-10',
     });
-    expect(service.update).toHaveBeenCalledWith('task-1', 'company-1', {
+    expect(service.update).toHaveBeenCalledWith('task-1', 'tenant-1', {
       status: 'EN_PROGRESO',
     });
-    expect(service.addOperario).toHaveBeenCalledWith('task-1', 'user-1', 'company-1');
-    expect(service.removeOperario).toHaveBeenCalledWith('task-1', 'user-1', 'company-1');
-    expect(service.delete).toHaveBeenCalledWith('task-1', 'company-1');
+    expect(service.addOperario).toHaveBeenCalledWith('task-1', 'user-1', 'tenant-1');
+    expect(service.removeOperario).toHaveBeenCalledWith('task-1', 'user-1', 'tenant-1');
+    expect(service.delete).toHaveBeenCalledWith('task-1', 'tenant-1');
   });
 });

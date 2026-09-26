@@ -32,38 +32,38 @@ export class TaskService {
     private readonly deleteUseCase: DeleteTaskUseCase,
   ) {}
 
-  async findAll(companyId: string) {
-    return this.handle(() => this.findAllUseCase.execute(companyId), 'fetching tasks');
+  async findAll(tenantId: string) {
+    return this.handle(() => this.findAllUseCase.execute(tenantId), 'fetching tasks');
   }
 
-  async findOne(id: string, companyId: string) {
-    return this.handle(() => this.findOneUseCase.execute(id, companyId), 'fetching task');
+  async findOne(id: string, tenantId: string) {
+    return this.handle(() => this.findOneUseCase.execute(id, tenantId), 'fetching task');
   }
 
-  async create(companyId: string, data: CreateTaskInput) {
-    return this.handle(() => this.createUseCase.execute(companyId, data), 'creating task');
+  async create(tenantId: string, data: CreateTaskInput) {
+    return this.handle(() => this.createUseCase.execute(tenantId, data), 'creating task');
   }
 
-  async update(id: string, companyId: string, data: UpdateTaskInput) {
-    return this.handle(() => this.updateUseCase.execute(id, companyId, data), 'updating task');
+  async update(id: string, tenantId: string, data: UpdateTaskInput) {
+    return this.handle(() => this.updateUseCase.execute(id, tenantId, data), 'updating task');
   }
 
-  async addOperario(taskId: string, operatorId: string, companyId: string) {
+  async addOperario(taskId: string, operatorId: string, tenantId: string) {
     return this.handle(
-      () => this.addOperatorUseCase.execute(taskId, operatorId, companyId),
+      () => this.addOperatorUseCase.execute(taskId, operatorId, tenantId),
       'adding operator to task',
     );
   }
 
-  async removeOperario(taskId: string, operatorId: string, companyId: string) {
+  async removeOperario(taskId: string, operatorId: string, tenantId: string) {
     return this.handle(
-      () => this.removeOperatorUseCase.execute(taskId, operatorId, companyId),
+      () => this.removeOperatorUseCase.execute(taskId, operatorId, tenantId),
       'removing operator from task',
     );
   }
 
-  async delete(id: string, companyId: string) {
-    return this.handle(() => this.deleteUseCase.execute(id, companyId), 'deleting task');
+  async delete(id: string, tenantId: string) {
+    return this.handle(() => this.deleteUseCase.execute(id, tenantId), 'deleting task');
   }
 
   private async handle<T>(operation: () => Promise<T>, action: string) {

@@ -12,24 +12,24 @@ import { TaskRepositoryPort } from '../../application/task.ports';
 export class PrismaTaskRepository implements TaskRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAllByCompanyId(companyId: string): Promise<TaskOutput[]> {
+  findAllByTenantId(tenantId: string): Promise<TaskOutput[]> {
     return this.prisma.task.findMany({
-      where: { lot: { farm: { companyId } } },
+      where: { lot: { farm: { client: { tenantId } } } },
     });
   }
 
-  findByIdForCompany(id: string, companyId: string): Promise<TaskOutput | null> {
+  findByIdForTenant(id: string, tenantId: string): Promise<TaskOutput | null> {
     return this.prisma.task.findFirst({
-      where: { id, lot: { farm: { companyId } } },
+      where: { id, lot: { farm: { client: { tenantId } } } },
     });
   }
 
-  findByIdWithOperatorsForCompany(
+  findByIdWithOperatorsForTenant(
     id: string,
-    companyId: string,
+    tenantId: string,
   ): Promise<TaskWithOperatorsRecord | null> {
     return this.prisma.task.findFirst({
-      where: { id, lot: { farm: { companyId } } },
+      where: { id, lot: { farm: { client: { tenantId } } } },
       include: { operators: { select: { id: true } } },
     });
   }
@@ -44,14 +44,14 @@ export class PrismaTaskRepository implements TaskRepositoryPort {
     });
   }
 
-  async updateForCompany(id: string, companyId: string, data: UpdateTaskData): Promise<TaskOutput> {
+  async updateForTenant(id: string, tenantId: string, data: UpdateTaskData): Promise<TaskOutput> {
     const task = await this.prisma.task.findFirst({
-      where: { id, lot: { farm: { companyId } } },
+      where: { id, lot: { farm: { client: { tenantId } } } },
       select: { id: true },
     });
 
     if (!task) {
-      throw new Error(`Task with id ${id} not found for company ${companyId}`);
+      throw new Error(`Task with id ${id} not found for tenant ${tenantId}`);
     }
 
     return this.prisma.task.update({
@@ -64,14 +64,14 @@ export class PrismaTaskRepository implements TaskRepositoryPort {
     });
   }
 
-  async addOperatorForCompany(taskId: string, companyId: string, operatorId: string): Promise<void> {
+  async addOperatorForTenant(taskId: string, tenantId: string, operatorId: string): Promise<void> {
     const task = await this.prisma.task.findFirst({
-      where: { id: taskId, lot: { farm: { companyId } } },
+      where: { id: taskId, lot: { farm: { client: { tenantId } } } },
       select: { id: true },
     });
 
     if (!task) {
-      throw new Error(`Task with id ${taskId} not found for company ${companyId}`);
+      throw new Error(`Task with id ${taskId} not found for tenant ${tenantId}`);
     }
 
     await this.prisma.task.update({
@@ -80,18 +80,18 @@ export class PrismaTaskRepository implements TaskRepositoryPort {
     });
   }
 
-  async removeOperatorForCompany(
+  async removeOperatorForTenant(
     taskId: string,
-    companyId: string,
+    tenantId: string,
     operatorId: string,
   ): Promise<void> {
     const task = await this.prisma.task.findFirst({
-      where: { id: taskId, lot: { farm: { companyId } } },
+      where: { id: taskId, lot: { farm: { client: { tenantId } } } },
       select: { id: true },
     });
 
     if (!task) {
-      throw new Error(`Task with id ${taskId} not found for company ${companyId}`);
+      throw new Error(`Task with id ${taskId} not found for tenant ${tenantId}`);
     }
 
     await this.prisma.task.update({
@@ -100,14 +100,14 @@ export class PrismaTaskRepository implements TaskRepositoryPort {
     });
   }
 
-  async deleteForCompany(id: string, companyId: string): Promise<void> {
+  async deleteForTenant(id: string, tenantId: string): Promise<void> {
     const task = await this.prisma.task.findFirst({
-      where: { id, lot: { farm: { companyId } } },
+      where: { id, lot: { farm: { client: { tenantId } } } },
       select: { id: true },
     });
 
     if (!task) {
-      throw new Error(`Task with id ${id} not found for company ${companyId}`);
+      throw new Error(`Task with id ${id} not found for tenant ${tenantId}`);
     }
 
     await this.prisma.task.delete({ where: { id: task.id } });

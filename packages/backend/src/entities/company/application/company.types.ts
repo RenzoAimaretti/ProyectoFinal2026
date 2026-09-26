@@ -22,6 +22,7 @@ export type CompanyWithModules = CompanyRecord & {
 };
 
 export type CreateCompanyInput = {
+  tenantId: string;
   name: string;
   cuit: string;
 };
@@ -30,9 +31,4 @@ export type UpdateCompanyInput = {
   name?: string;
   cuit?: string;
   active?: boolean;
-};
-
-export type AddCompanyModuleInput = {
-  companyId: string;
-  moduleId: string;
 };

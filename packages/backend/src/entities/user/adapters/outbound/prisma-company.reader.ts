@@ -6,9 +6,9 @@ import { CompanyReaderPort } from '../../application/user.ports';
 export class PrismaCompanyReader implements CompanyReaderPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findById(id: string) {
-    return this.prisma.company.findUnique({
-      where: { id },
+  findByIdForTenant(id: string, tenantId: string) {
+    return this.prisma.company.findFirst({
+      where: { id, tenantId },
       select: { id: true },
     }) as Promise<{ id: string } | null>;
   }

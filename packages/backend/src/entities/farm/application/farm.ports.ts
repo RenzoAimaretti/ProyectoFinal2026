@@ -1,26 +1,26 @@
 import { CreateFarmInput, FarmRecord, UpdateFarmInput } from './farm.types';
 
 export const FARM_REPOSITORY = Symbol('FARM_REPOSITORY');
-export const COMPANY_READER = Symbol('COMPANY_READER');
+export const CLIENT_READER = Symbol('CLIENT_READER');
 
 export interface FarmRepositoryPort {
-  findAllByCompanyId(companyId: string): Promise<FarmRecord[]>;
-  findByIdForCompany(
+  findAllByTenantId(tenantId: string): Promise<FarmRecord[]>;
+  findByIdForTenant(
     id: string,
-    companyId: string,
+    tenantId: string,
   ): Promise<FarmRecord | null>;
-  findByNameAndCompanyId(
+  findByNameAndClientId(
     name: string,
-    companyId: string,
+    clientId: string,
   ): Promise<FarmRecord | null>;
-  create(data: CreateFarmInput & { companyId: string }): Promise<FarmRecord>;
-  updateForCompany(
+  create(data: CreateFarmInput & { clientId: string }): Promise<FarmRecord>;
+  updateForTenant(
     id: string,
-    companyId: string,
+    tenantId: string,
     data: UpdateFarmInput,
   ): Promise<FarmRecord>;
 }
 
-export interface CompanyReaderPort {
-  findById(id: string): Promise<{ id: string } | null>;
+export interface ClientReaderPort {
+  findByIdForTenant(id: string, tenantId: string): Promise<{ id: string } | null>;
 }

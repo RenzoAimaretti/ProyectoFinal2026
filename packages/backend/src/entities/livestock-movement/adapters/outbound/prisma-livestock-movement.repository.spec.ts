@@ -29,14 +29,14 @@ describe('PrismaLivestockMovementRepository', () => {
     expect(prisma.livestockMovement.findMany).toHaveBeenCalledWith({
       where: {
         livestock: { companyId: 'company-1' },
-        lot: { farm: { companyId: 'company-1' } },
+        lot: { farm: { client: { tenant: { companies: { some: { id: 'company-1' } } } } } },
       },
     });
     expect(prisma.livestockMovement.findFirst).toHaveBeenCalledWith({
       where: {
         id: 'movement-1',
         livestock: { companyId: 'company-1' },
-        lot: { farm: { companyId: 'company-1' } },
+        lot: { farm: { client: { tenant: { companies: { some: { id: 'company-1' } } } } } },
       },
     });
   });

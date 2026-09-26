@@ -4,23 +4,23 @@ export const LOT_REPOSITORY = Symbol('LOT_REPOSITORY');
 export const FARM_READER = Symbol('FARM_READER');
 
 export interface LotRepositoryPort {
-  findAllByCompanyId(companyId: string): Promise<LotRecord[]>;
-  findByIdForCompany(
+  findAllByTenantId(tenantId: string): Promise<LotRecord[]>;
+  findByIdForTenant(
     id: string,
-    companyId: string,
+    tenantId: string,
   ): Promise<LotRecord | null>;
   findByNameAndFarmId(name: string, farmId: string): Promise<LotRecord | null>;
   create(data: CreateLotInput): Promise<LotRecord>;
-  updateForCompany(
+  updateForTenant(
     id: string,
-    companyId: string,
+    tenantId: string,
     data: UpdateLotInput,
   ): Promise<LotRecord>;
 }
 
 export interface FarmReaderPort {
-  findByIdForCompany(
+  findByIdForTenant(
     id: string,
-    companyId: string,
+    tenantId: string,
   ): Promise<{ id: string } | null>;
 }

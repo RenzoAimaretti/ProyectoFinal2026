@@ -266,6 +266,7 @@ export type MachineWhereInput = {
   deleted?: Prisma.BoolFilter<"Machine"> | boolean
   company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
   usages?: Prisma.MachineUsageListRelationFilter
+  machineActivities?: Prisma.MachineActivityListRelationFilter
 }
 
 export type MachineOrderByWithRelationInput = {
@@ -282,6 +283,7 @@ export type MachineOrderByWithRelationInput = {
   deleted?: Prisma.SortOrder
   company?: Prisma.CompanyOrderByWithRelationInput
   usages?: Prisma.MachineUsageOrderByRelationAggregateInput
+  machineActivities?: Prisma.MachineActivityOrderByRelationAggregateInput
 }
 
 export type MachineWhereUniqueInput = Prisma.AtLeast<{
@@ -301,6 +303,7 @@ export type MachineWhereUniqueInput = Prisma.AtLeast<{
   deleted?: Prisma.BoolFilter<"Machine"> | boolean
   company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
   usages?: Prisma.MachineUsageListRelationFilter
+  machineActivities?: Prisma.MachineActivityListRelationFilter
 }, "id">
 
 export type MachineOrderByWithAggregationInput = {
@@ -352,6 +355,7 @@ export type MachineCreateInput = {
   deleted?: boolean
   company: Prisma.CompanyCreateNestedOneWithoutMachinesInput
   usages?: Prisma.MachineUsageCreateNestedManyWithoutMachineInput
+  machineActivities?: Prisma.MachineActivityCreateNestedManyWithoutMachineInput
 }
 
 export type MachineUncheckedCreateInput = {
@@ -367,6 +371,7 @@ export type MachineUncheckedCreateInput = {
   version?: number
   deleted?: boolean
   usages?: Prisma.MachineUsageUncheckedCreateNestedManyWithoutMachineInput
+  machineActivities?: Prisma.MachineActivityUncheckedCreateNestedManyWithoutMachineInput
 }
 
 export type MachineUpdateInput = {
@@ -382,6 +387,7 @@ export type MachineUpdateInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   company?: Prisma.CompanyUpdateOneRequiredWithoutMachinesNestedInput
   usages?: Prisma.MachineUsageUpdateManyWithoutMachineNestedInput
+  machineActivities?: Prisma.MachineActivityUpdateManyWithoutMachineNestedInput
 }
 
 export type MachineUncheckedUpdateInput = {
@@ -397,6 +403,7 @@ export type MachineUncheckedUpdateInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   usages?: Prisma.MachineUsageUncheckedUpdateManyWithoutMachineNestedInput
+  machineActivities?: Prisma.MachineActivityUncheckedUpdateManyWithoutMachineNestedInput
 }
 
 export type MachineCreateManyInput = {
@@ -565,6 +572,20 @@ export type MachineUpdateOneRequiredWithoutUsagesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MachineUpdateToOneWithWhereWithoutUsagesInput, Prisma.MachineUpdateWithoutUsagesInput>, Prisma.MachineUncheckedUpdateWithoutUsagesInput>
 }
 
+export type MachineCreateNestedOneWithoutMachineActivitiesInput = {
+  create?: Prisma.XOR<Prisma.MachineCreateWithoutMachineActivitiesInput, Prisma.MachineUncheckedCreateWithoutMachineActivitiesInput>
+  connectOrCreate?: Prisma.MachineCreateOrConnectWithoutMachineActivitiesInput
+  connect?: Prisma.MachineWhereUniqueInput
+}
+
+export type MachineUpdateOneRequiredWithoutMachineActivitiesNestedInput = {
+  create?: Prisma.XOR<Prisma.MachineCreateWithoutMachineActivitiesInput, Prisma.MachineUncheckedCreateWithoutMachineActivitiesInput>
+  connectOrCreate?: Prisma.MachineCreateOrConnectWithoutMachineActivitiesInput
+  upsert?: Prisma.MachineUpsertWithoutMachineActivitiesInput
+  connect?: Prisma.MachineWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MachineUpdateToOneWithWhereWithoutMachineActivitiesInput, Prisma.MachineUpdateWithoutMachineActivitiesInput>, Prisma.MachineUncheckedUpdateWithoutMachineActivitiesInput>
+}
+
 export type MachineCreateWithoutCompanyInput = {
   id?: string
   name: string
@@ -577,6 +598,7 @@ export type MachineCreateWithoutCompanyInput = {
   version?: number
   deleted?: boolean
   usages?: Prisma.MachineUsageCreateNestedManyWithoutMachineInput
+  machineActivities?: Prisma.MachineActivityCreateNestedManyWithoutMachineInput
 }
 
 export type MachineUncheckedCreateWithoutCompanyInput = {
@@ -591,6 +613,7 @@ export type MachineUncheckedCreateWithoutCompanyInput = {
   version?: number
   deleted?: boolean
   usages?: Prisma.MachineUsageUncheckedCreateNestedManyWithoutMachineInput
+  machineActivities?: Prisma.MachineActivityUncheckedCreateNestedManyWithoutMachineInput
 }
 
 export type MachineCreateOrConnectWithoutCompanyInput = {
@@ -648,6 +671,7 @@ export type MachineCreateWithoutUsagesInput = {
   version?: number
   deleted?: boolean
   company: Prisma.CompanyCreateNestedOneWithoutMachinesInput
+  machineActivities?: Prisma.MachineActivityCreateNestedManyWithoutMachineInput
 }
 
 export type MachineUncheckedCreateWithoutUsagesInput = {
@@ -662,6 +686,7 @@ export type MachineUncheckedCreateWithoutUsagesInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
+  machineActivities?: Prisma.MachineActivityUncheckedCreateNestedManyWithoutMachineInput
 }
 
 export type MachineCreateOrConnectWithoutUsagesInput = {
@@ -692,6 +717,7 @@ export type MachineUpdateWithoutUsagesInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   company?: Prisma.CompanyUpdateOneRequiredWithoutMachinesNestedInput
+  machineActivities?: Prisma.MachineActivityUpdateManyWithoutMachineNestedInput
 }
 
 export type MachineUncheckedUpdateWithoutUsagesInput = {
@@ -706,6 +732,83 @@ export type MachineUncheckedUpdateWithoutUsagesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  machineActivities?: Prisma.MachineActivityUncheckedUpdateManyWithoutMachineNestedInput
+}
+
+export type MachineCreateWithoutMachineActivitiesInput = {
+  id?: string
+  name: string
+  brand?: string | null
+  status?: $Enums.MachineStatus
+  entryDate?: Date | string | null
+  maintenanceDate?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  company: Prisma.CompanyCreateNestedOneWithoutMachinesInput
+  usages?: Prisma.MachineUsageCreateNestedManyWithoutMachineInput
+}
+
+export type MachineUncheckedCreateWithoutMachineActivitiesInput = {
+  id?: string
+  companyId: string
+  name: string
+  brand?: string | null
+  status?: $Enums.MachineStatus
+  entryDate?: Date | string | null
+  maintenanceDate?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  usages?: Prisma.MachineUsageUncheckedCreateNestedManyWithoutMachineInput
+}
+
+export type MachineCreateOrConnectWithoutMachineActivitiesInput = {
+  where: Prisma.MachineWhereUniqueInput
+  create: Prisma.XOR<Prisma.MachineCreateWithoutMachineActivitiesInput, Prisma.MachineUncheckedCreateWithoutMachineActivitiesInput>
+}
+
+export type MachineUpsertWithoutMachineActivitiesInput = {
+  update: Prisma.XOR<Prisma.MachineUpdateWithoutMachineActivitiesInput, Prisma.MachineUncheckedUpdateWithoutMachineActivitiesInput>
+  create: Prisma.XOR<Prisma.MachineCreateWithoutMachineActivitiesInput, Prisma.MachineUncheckedCreateWithoutMachineActivitiesInput>
+  where?: Prisma.MachineWhereInput
+}
+
+export type MachineUpdateToOneWithWhereWithoutMachineActivitiesInput = {
+  where?: Prisma.MachineWhereInput
+  data: Prisma.XOR<Prisma.MachineUpdateWithoutMachineActivitiesInput, Prisma.MachineUncheckedUpdateWithoutMachineActivitiesInput>
+}
+
+export type MachineUpdateWithoutMachineActivitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
+  entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maintenanceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  company?: Prisma.CompanyUpdateOneRequiredWithoutMachinesNestedInput
+  usages?: Prisma.MachineUsageUpdateManyWithoutMachineNestedInput
+}
+
+export type MachineUncheckedUpdateWithoutMachineActivitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
+  entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  maintenanceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  usages?: Prisma.MachineUsageUncheckedUpdateManyWithoutMachineNestedInput
 }
 
 export type MachineCreateManyCompanyInput = {
@@ -733,6 +836,7 @@ export type MachineUpdateWithoutCompanyInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   usages?: Prisma.MachineUsageUpdateManyWithoutMachineNestedInput
+  machineActivities?: Prisma.MachineActivityUpdateManyWithoutMachineNestedInput
 }
 
 export type MachineUncheckedUpdateWithoutCompanyInput = {
@@ -747,6 +851,7 @@ export type MachineUncheckedUpdateWithoutCompanyInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   usages?: Prisma.MachineUsageUncheckedUpdateManyWithoutMachineNestedInput
+  machineActivities?: Prisma.MachineActivityUncheckedUpdateManyWithoutMachineNestedInput
 }
 
 export type MachineUncheckedUpdateManyWithoutCompanyInput = {
@@ -769,10 +874,12 @@ export type MachineUncheckedUpdateManyWithoutCompanyInput = {
 
 export type MachineCountOutputType = {
   usages: number
+  machineActivities: number
 }
 
 export type MachineCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   usages?: boolean | MachineCountOutputTypeCountUsagesArgs
+  machineActivities?: boolean | MachineCountOutputTypeCountMachineActivitiesArgs
 }
 
 /**
@@ -792,6 +899,13 @@ export type MachineCountOutputTypeCountUsagesArgs<ExtArgs extends runtime.Types.
   where?: Prisma.MachineUsageWhereInput
 }
 
+/**
+ * MachineCountOutputType without action
+ */
+export type MachineCountOutputTypeCountMachineActivitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MachineActivityWhereInput
+}
+
 
 export type MachineSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -807,6 +921,7 @@ export type MachineSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   deleted?: boolean
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   usages?: boolean | Prisma.Machine$usagesArgs<ExtArgs>
+  machineActivities?: boolean | Prisma.Machine$machineActivitiesArgs<ExtArgs>
   _count?: boolean | Prisma.MachineCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["machine"]>
 
@@ -858,6 +973,7 @@ export type MachineOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type MachineInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   usages?: boolean | Prisma.Machine$usagesArgs<ExtArgs>
+  machineActivities?: boolean | Prisma.Machine$machineActivitiesArgs<ExtArgs>
   _count?: boolean | Prisma.MachineCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MachineIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -872,6 +988,7 @@ export type $MachinePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     company: Prisma.$CompanyPayload<ExtArgs>
     usages: Prisma.$MachineUsagePayload<ExtArgs>[]
+    machineActivities: Prisma.$MachineActivityPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1281,6 +1398,7 @@ export interface Prisma__MachineClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   company<T extends Prisma.CompanyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CompanyDefaultArgs<ExtArgs>>): Prisma.Prisma__CompanyClient<runtime.Types.Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   usages<T extends Prisma.Machine$usagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Machine$usagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MachineUsagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  machineActivities<T extends Prisma.Machine$machineActivitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Machine$machineActivitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MachineActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1743,6 +1861,30 @@ export type Machine$usagesArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.MachineUsageScalarFieldEnum | Prisma.MachineUsageScalarFieldEnum[]
+}
+
+/**
+ * Machine.machineActivities
+ */
+export type Machine$machineActivitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MachineActivity
+   */
+  select?: Prisma.MachineActivitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MachineActivity
+   */
+  omit?: Prisma.MachineActivityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MachineActivityInclude<ExtArgs> | null
+  where?: Prisma.MachineActivityWhereInput
+  orderBy?: Prisma.MachineActivityOrderByWithRelationInput | Prisma.MachineActivityOrderByWithRelationInput[]
+  cursor?: Prisma.MachineActivityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MachineActivityScalarFieldEnum | Prisma.MachineActivityScalarFieldEnum[]
 }
 
 /**

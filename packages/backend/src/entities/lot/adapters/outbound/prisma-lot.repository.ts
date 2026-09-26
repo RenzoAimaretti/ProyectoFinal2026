@@ -11,15 +11,15 @@ import {
 export class PrismaLotRepository implements LotRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAllByCompanyId(companyId: string): Promise<LotRecord[]> {
+  findAllByTenantId(tenantId: string): Promise<LotRecord[]> {
     return this.prisma.lot.findMany({
-      where: { farm: { companyId } },
+      where: { farm: { client: { tenantId } } },
     });
   }
 
-  findByIdForCompany(id: string, companyId: string): Promise<LotRecord | null> {
+  findByIdForTenant(id: string, tenantId: string): Promise<LotRecord | null> {
     return this.prisma.lot.findFirst({
-      where: { id, farm: { companyId } },
+      where: { id, farm: { client: { tenantId } } },
     });
   }
 
@@ -40,18 +40,18 @@ export class PrismaLotRepository implements LotRepositoryPort {
     });
   }
 
-  async updateForCompany(
+  async updateForTenant(
     id: string,
-    companyId: string,
+    tenantId: string,
     data: UpdateLotInput,
   ): Promise<LotRecord> {
     const lot = await this.prisma.lot.findFirst({
-      where: { id, farm: { companyId } },
+      where: { id, farm: { client: { tenantId } } },
       select: { id: true },
     });
 
     if (!lot) {
-      throw new Error(`Lot with id ${id} not found for company ${companyId}`);
+      throw new Error(`Lot with id ${id} not found for tenant ${tenantId}`);
     }
 
     return this.prisma.lot.update({

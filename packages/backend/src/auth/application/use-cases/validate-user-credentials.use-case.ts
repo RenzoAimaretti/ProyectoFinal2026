@@ -60,6 +60,10 @@ export class ValidateUserCredentialsUseCase {
       throw new AuthenticationFailedError('Usuario o contraseña incorrectos');
     }
 
+    if (!user.firmaId || !user.role) {
+      throw new AccountInactiveError('El usuario no tiene una firma activa asignada');
+    }
+
     if (user.failedLoginAttempts > 0 || user.lockedUntil !== null || passwordCheck.needsRehash) {
       const update = {
         failedLoginAttempts: 0,
@@ -74,7 +78,8 @@ export class ValidateUserCredentialsUseCase {
       id: user.id,
       email: user.email,
       role: user.role,
-      firmaId: user.companyId,
+      tenantId: user.tenantId,
+      firmaId: user.firmaId,
     };
   }
 }

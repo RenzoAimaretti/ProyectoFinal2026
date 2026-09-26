@@ -1,5 +1,13 @@
 import { Module } from '@nestjs/common';
 import { CompanyModule } from './entities/company/company.module';
+import { ClientModule } from './entities/client/client.module';
+import { InputModule } from './entities/input/input.module';
+import { RecipeModule } from './entities/recipe/recipe.module';
+import { DailyReportModule } from './entities/daily-report/daily-report.module';
+import { ReceptionModule } from './entities/reception/reception.module';
+import { StockModule } from './entities/stock/stock.module';
+import { PhotoModule } from './entities/photo/photo.module';
+import { MachineActivityModule } from './entities/machine-activity/machine-activity.module';
 import { ModuleEntityModule } from './entities/module-entity/module-entity.module';
 import { FarmModule } from './entities/farm/farm.module';
 import { LotModule } from './entities/lot/lot.module';
@@ -17,6 +25,14 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     AuthModule,
     CompanyModule,
+    ClientModule,
+    InputModule,
+    RecipeModule,
+    DailyReportModule,
+    ReceptionModule,
+    StockModule,
+    PhotoModule,
+    MachineActivityModule,
     ModuleEntityModule,
     FarmModule,
     LotModule,

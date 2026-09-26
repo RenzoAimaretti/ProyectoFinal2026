@@ -37,23 +37,23 @@ const baseTaskWithOperators = {
 function createPorts() {
   return {
     repository: {
-      findAllByCompanyId: jest.fn(),
-      findByIdForCompany: jest.fn(),
-      findByIdWithOperatorsForCompany: jest.fn(),
+      findAllByTenantId: jest.fn(),
+      findByIdForTenant: jest.fn(),
+      findByIdWithOperatorsForTenant: jest.fn(),
       create: jest.fn(),
-      updateForCompany: jest.fn(),
-      addOperatorForCompany: jest.fn(),
-      removeOperatorForCompany: jest.fn(),
-      deleteForCompany: jest.fn(),
+      updateForTenant: jest.fn(),
+      addOperatorForTenant: jest.fn(),
+      removeOperatorForTenant: jest.fn(),
+      deleteForTenant: jest.fn(),
     },
     lotReader: {
-      findByIdForCompany: jest.fn(),
+      findByIdForTenant: jest.fn(),
     },
     taskTypeReader: {
-      findByIdForCompany: jest.fn(),
+      findByIdForTenant: jest.fn(),
     },
     userReader: {
-      findByIdForCompany: jest.fn(),
+      findByIdForTenant: jest.fn(),
     },
   };
 }
@@ -87,46 +87,46 @@ describe('Task use cases', () => {
   describe('FindAllTasksUseCase', () => {
     it('returns only tasks for the provided company', async () => {
       const { repository } = createPorts();
-      repository.findAllByCompanyId.mockResolvedValue([baseTask]);
+      repository.findAllByTenantId.mockResolvedValue([baseTask]);
 
       const useCase: any = new FindAllTasksUseCase(repository as never);
 
       await expect(useCase.execute('company-1')).resolves.toEqual([baseTask]);
-      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-1');
+      expect(repository.findAllByTenantId).toHaveBeenCalledWith('company-1');
     });
 
     it('returns an empty list when there are no tasks', async () => {
       const { repository } = createPorts();
-      repository.findAllByCompanyId.mockResolvedValue([]);
+      repository.findAllByTenantId.mockResolvedValue([]);
 
       const useCase: any = new FindAllTasksUseCase(repository as never);
 
       await expect(useCase.execute('company-2')).resolves.toEqual([]);
-      expect(repository.findAllByCompanyId).toHaveBeenCalledWith('company-2');
+      expect(repository.findAllByTenantId).toHaveBeenCalledWith('company-2');
     });
   });
 
   describe('FindTaskUseCase', () => {
     it('returns a task by id within the current company', async () => {
       const { repository } = createPorts();
-      repository.findByIdForCompany.mockResolvedValue(baseTask);
+      repository.findByIdForTenant.mockResolvedValue(baseTask);
 
       const useCase: any = new FindTaskUseCase(repository as never);
 
       await expect(useCase.execute('task-1', 'company-1')).resolves.toEqual(baseTask);
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith('task-1', 'company-1');
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith('task-1', 'company-1');
     });
 
     it('rejects missing tasks outside the current company', async () => {
       const { repository } = createPorts();
-      repository.findByIdForCompany.mockResolvedValue(null);
+      repository.findByIdForTenant.mockResolvedValue(null);
 
       const useCase: any = new FindTaskUseCase(repository as never);
 
       await expect(useCase.execute('task-1', 'company-2')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith('task-1', 'company-2');
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith('task-1', 'company-2');
     });
   });
 
@@ -168,7 +168,7 @@ describe('Task use cases', () => {
     });
 
     it('rejects a lot that belongs to another company', async () => {
-      lotReader.findByIdForCompany.mockResolvedValue(null);
+      lotReader.findByIdForTenant.mockResolvedValue(null);
 
       await expect(
         useCase.execute('company-1', {
@@ -178,12 +178,12 @@ describe('Task use cases', () => {
         }),
       ).rejects.toBeInstanceOf(InvalidRelationError);
 
-      expect(lotReader.findByIdForCompany).toHaveBeenCalledWith('lot-1', 'company-1');
+      expect(lotReader.findByIdForTenant).toHaveBeenCalledWith('lot-1', 'company-1');
     });
 
     it('rejects a task type that belongs to another company', async () => {
-      lotReader.findByIdForCompany.mockResolvedValue({ id: 'lot-1' });
-      taskTypeReader.findByIdForCompany.mockResolvedValue(null);
+      lotReader.findByIdForTenant.mockResolvedValue({ id: 'lot-1' });
+      taskTypeReader.findByIdForTenant.mockResolvedValue(null);
 
       await expect(
         useCase.execute('company-1', {
@@ -193,15 +193,15 @@ describe('Task use cases', () => {
         }),
       ).rejects.toBeInstanceOf(InvalidRelationError);
 
-      expect(taskTypeReader.findByIdForCompany).toHaveBeenCalledWith(
+      expect(taskTypeReader.findByIdForTenant).toHaveBeenCalledWith(
         'task-type-1',
         'company-1',
       );
     });
 
     it('creates a task with company-scoped relations', async () => {
-      lotReader.findByIdForCompany.mockResolvedValue({ id: 'lot-1' });
-      taskTypeReader.findByIdForCompany.mockResolvedValue({ id: 'task-type-1' });
+      lotReader.findByIdForTenant.mockResolvedValue({ id: 'lot-1' });
+      taskTypeReader.findByIdForTenant.mockResolvedValue({ id: 'task-type-1' });
       repository.create.mockResolvedValue(baseTask);
 
       await expect(
@@ -212,8 +212,8 @@ describe('Task use cases', () => {
         }),
       ).resolves.toEqual(baseTask);
 
-      expect(lotReader.findByIdForCompany).toHaveBeenCalledWith('lot-1', 'company-1');
-      expect(taskTypeReader.findByIdForCompany).toHaveBeenCalledWith(
+      expect(lotReader.findByIdForTenant).toHaveBeenCalledWith('lot-1', 'company-1');
+      expect(taskTypeReader.findByIdForTenant).toHaveBeenCalledWith(
         'task-type-1',
         'company-1',
       );
@@ -241,17 +241,17 @@ describe('Task use cases', () => {
     });
 
     it('rejects missing task in the current company', async () => {
-      repository.findByIdForCompany.mockResolvedValue(null);
+      repository.findByIdForTenant.mockResolvedValue(null);
 
       await expect(useCase.execute('task-1', 'company-2', { status: 'EN_PROGRESO' })).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith('task-1', 'company-2');
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith('task-1', 'company-2');
     });
 
     it('updates a task within the current company', async () => {
-      repository.findByIdForCompany.mockResolvedValue(baseTask);
-      repository.updateForCompany.mockResolvedValue({
+      repository.findByIdForTenant.mockResolvedValue(baseTask);
+      repository.updateForTenant.mockResolvedValue({
         ...baseTask,
         status: 'EN_PROGRESO',
       });
@@ -267,8 +267,8 @@ describe('Task use cases', () => {
         status: 'EN_PROGRESO',
       });
 
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith('task-1', 'company-1');
-      expect(repository.updateForCompany).toHaveBeenCalledWith('task-1', 'company-1', {
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith('task-1', 'company-1');
+      expect(repository.updateForTenant).toHaveBeenCalledWith('task-1', 'company-1', {
         status: 'EN_PROGRESO',
         startedAt: new Date('2026-01-15'),
         finishedAt: new Date('2026-01-16'),
@@ -287,7 +287,7 @@ describe('Task use cases', () => {
     });
 
     it('rejects a missing task', async () => {
-      repository.findByIdWithOperatorsForCompany.mockResolvedValue(null);
+      repository.findByIdWithOperatorsForTenant.mockResolvedValue(null);
 
       await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         EntityNotFoundError,
@@ -295,17 +295,17 @@ describe('Task use cases', () => {
     });
 
     it('rejects a missing or foreign operator', async () => {
-      repository.findByIdWithOperatorsForCompany.mockResolvedValue({
+      repository.findByIdWithOperatorsForTenant.mockResolvedValue({
         ...baseTask,
         operators: [],
       });
-      userReader.findByIdForCompany.mockResolvedValue(null);
+      userReader.findByIdForTenant.mockResolvedValue(null);
 
       await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         InvalidRelationError,
       );
 
-      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
+      userReader.findByIdForTenant.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
 
       await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         InvalidRelationError,
@@ -313,8 +313,8 @@ describe('Task use cases', () => {
     });
 
     it('rejects duplicate operators', async () => {
-      repository.findByIdWithOperatorsForCompany.mockResolvedValue(baseTaskWithOperators);
-      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
+      repository.findByIdWithOperatorsForTenant.mockResolvedValue(baseTaskWithOperators);
+      userReader.findByIdForTenant.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
 
       await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         DuplicateEntityError,
@@ -322,22 +322,22 @@ describe('Task use cases', () => {
     });
 
     it('adds an operator to a task within the current company', async () => {
-      repository.findByIdWithOperatorsForCompany.mockResolvedValue({
+      repository.findByIdWithOperatorsForTenant.mockResolvedValue({
         ...baseTask,
         operators: [],
       });
-      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
+      userReader.findByIdForTenant.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
 
       await expect(useCase.execute('task-1', 'user-1', 'company-1')).resolves.toEqual({
         message: 'Operator with id user-1 added to task with id task-1 successfully',
       });
 
-      expect(repository.findByIdWithOperatorsForCompany).toHaveBeenCalledWith(
+      expect(repository.findByIdWithOperatorsForTenant).toHaveBeenCalledWith(
         'task-1',
         'company-1',
       );
-      expect(userReader.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-1');
-      expect(repository.addOperatorForCompany).toHaveBeenCalledWith(
+      expect(userReader.findByIdForTenant).toHaveBeenCalledWith('user-1', 'company-1');
+      expect(repository.addOperatorForTenant).toHaveBeenCalledWith(
         'task-1',
         'company-1',
         'user-1',
@@ -356,7 +356,7 @@ describe('Task use cases', () => {
     });
 
     it('rejects a missing task', async () => {
-      repository.findByIdWithOperatorsForCompany.mockResolvedValue(null);
+      repository.findByIdWithOperatorsForTenant.mockResolvedValue(null);
 
       await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         EntityNotFoundError,
@@ -364,11 +364,11 @@ describe('Task use cases', () => {
     });
 
     it('rejects a missing or foreign operator', async () => {
-      repository.findByIdWithOperatorsForCompany.mockResolvedValue({
+      repository.findByIdWithOperatorsForTenant.mockResolvedValue({
         ...baseTask,
         operators: [],
       });
-      userReader.findByIdForCompany.mockResolvedValue(null);
+      userReader.findByIdForTenant.mockResolvedValue(null);
 
       await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         InvalidRelationError,
@@ -376,11 +376,11 @@ describe('Task use cases', () => {
     });
 
     it('rejects an unassigned operator', async () => {
-      repository.findByIdWithOperatorsForCompany.mockResolvedValue({
+      repository.findByIdWithOperatorsForTenant.mockResolvedValue({
         ...baseTask,
         operators: [],
       });
-      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
+      userReader.findByIdForTenant.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
 
       await expect(useCase.execute('task-1', 'user-1', 'company-1')).rejects.toBeInstanceOf(
         EntityNotFoundError,
@@ -388,19 +388,19 @@ describe('Task use cases', () => {
     });
 
     it('removes an operator from a task within the current company', async () => {
-      repository.findByIdWithOperatorsForCompany.mockResolvedValue(baseTaskWithOperators);
-      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
+      repository.findByIdWithOperatorsForTenant.mockResolvedValue(baseTaskWithOperators);
+      userReader.findByIdForTenant.mockResolvedValue({ id: 'user-1', role: 'OPERARIO' });
 
       await expect(useCase.execute('task-1', 'user-1', 'company-1')).resolves.toEqual({
         message: 'Operator with id user-1 removed from task with id task-1 successfully',
       });
 
-      expect(repository.findByIdWithOperatorsForCompany).toHaveBeenCalledWith(
+      expect(repository.findByIdWithOperatorsForTenant).toHaveBeenCalledWith(
         'task-1',
         'company-1',
       );
-      expect(userReader.findByIdForCompany).toHaveBeenCalledWith('user-1', 'company-1');
-      expect(repository.removeOperatorForCompany).toHaveBeenCalledWith(
+      expect(userReader.findByIdForTenant).toHaveBeenCalledWith('user-1', 'company-1');
+      expect(repository.removeOperatorForTenant).toHaveBeenCalledWith(
         'task-1',
         'company-1',
         'user-1',
@@ -418,22 +418,22 @@ describe('Task use cases', () => {
     });
 
     it('rejects a missing task', async () => {
-      repository.findByIdForCompany.mockResolvedValue(null);
+      repository.findByIdForTenant.mockResolvedValue(null);
 
       await expect(useCase.execute('task-1', 'company-2')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       );
-      expect(repository.deleteForCompany).not.toHaveBeenCalled();
+      expect(repository.deleteForTenant).not.toHaveBeenCalled();
     });
 
     it('deletes a task and returns legacy message', async () => {
-      repository.findByIdForCompany.mockResolvedValue(baseTask);
+      repository.findByIdForTenant.mockResolvedValue(baseTask);
 
       await expect(useCase.execute('task-1', 'company-1')).resolves.toEqual({
         message: 'Task with id task-1 deleted successfully',
       });
-      expect(repository.findByIdForCompany).toHaveBeenCalledWith('task-1', 'company-1');
-      expect(repository.deleteForCompany).toHaveBeenCalledWith('task-1', 'company-1');
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith('task-1', 'company-1');
+      expect(repository.deleteForTenant).toHaveBeenCalledWith('task-1', 'company-1');
     });
   });
 });
