@@ -20,18 +20,19 @@ function assertUserPrincipal(
     typeof candidate.id !== 'string' ||
     typeof candidate.email !== 'string' ||
     typeof candidate.role !== 'string' ||
-    typeof candidate.companyId !== 'string' && typeof candidate.firmaId !== 'string'
+    typeof candidate.tenantId !== 'string' ||
+    typeof candidate.firmaId !== 'string'
   ) {
     throw new InvalidInputError('user is required');
   }
 }
 
-function resolveFirmaId(user: AuthUserCredentials | AuthUserPrincipal): string {
-  if ('firmaId' in user) {
-    return user.firmaId;
+function resolveFirmaId(user: AuthUserPrincipal | AuthUserCredentials): string {
+  if (!user.firmaId) {
+    throw new InvalidInputError('user has no active firma');
   }
 
-  return user.companyId;
+  return user.firmaId;
 }
 
 export class LoginUseCase {
@@ -49,6 +50,7 @@ export class LoginUseCase {
     const payload: AuthJwtPayload = {
       sub: user.id,
       role: user.role,
+      tenantId: user.tenantId,
       firmaId: resolveFirmaId(user),
       email: user.email,
     };
@@ -71,6 +73,7 @@ export class LoginUseCase {
         id: user.id,
         email: user.email,
         role: user.role,
+        tenantId: user.tenantId,
         firmaId: resolveFirmaId(user),
       },
     };

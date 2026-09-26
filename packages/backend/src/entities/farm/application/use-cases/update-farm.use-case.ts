@@ -1,48 +1,70 @@
-import { EntityNotFoundError, InvalidInputError } from '../../domain/errors';
-import { CompanyReaderPort, FarmRepositoryPort } from '../farm.ports';
+import { EntityNotFoundError, InvalidInputError, InvalidRelationError } from '../../domain/errors';
+import { ClientReaderPort, FarmRepositoryPort } from '../farm.ports';
 import { FarmRecord, UpdateFarmInput } from '../farm.types';
 import { assertPositiveNumber, assertRequiredString } from '../farm.validation';
 
 export class UpdateFarmUseCase {
   constructor(
     private readonly repository: FarmRepositoryPort,
-    private readonly companyReader: CompanyReaderPort,
+    private readonly clientReader: ClientReaderPort,
   ) {}
 
-  async execute(id: string, data: UpdateFarmInput): Promise<FarmRecord> {
-    if (!data || Object.keys(data).length === 0) {
+  async execute(
+    id: string,
+    tenantId: string,
+    data?: UpdateFarmInput,
+  ): Promise<FarmRecord> {
+    if (!data) {
       throw new InvalidInputError('No data provided for update');
     }
 
-    const farm = await this.repository.findById(id);
+    const sanitizedData: UpdateFarmInput = {
+      ...(data.name !== undefined ? { name: data.name } : {}),
+      ...(data.location !== undefined ? { location: data.location } : {}),
+      ...(data.surface !== undefined ? { surface: data.surface } : {}),
+      ...(data.clientId !== undefined ? { clientId: data.clientId } : {}),
+    };
+
+    if (Object.keys(sanitizedData).length === 0) {
+      throw new InvalidInputError('No data provided for update');
+    }
+
+    if (sanitizedData.clientId === undefined) {
+      throw new InvalidInputError('clientId is required');
+    }
+
+    const farm = await this.repository.findByIdForTenant(id, tenantId);
     if (!farm) {
       throw new EntityNotFoundError(`Farm with id ${id} not found`);
     }
 
     const updateData: UpdateFarmInput = {};
 
-    if (data.name !== undefined) {
-      updateData.name = assertRequiredString(data.name, 'name');
+    if (sanitizedData.name !== undefined) {
+      updateData.name = assertRequiredString(sanitizedData.name, 'name');
     }
 
-    if (data.location !== undefined) {
-      updateData.location = assertRequiredString(data.location, 'location');
+    if (sanitizedData.location !== undefined) {
+      updateData.location = assertRequiredString(
+        sanitizedData.location,
+        'location',
+      );
     }
 
-    if (data.companyId !== undefined) {
-      const companyId = assertRequiredString(data.companyId, 'companyId');
-      const company = await this.companyReader.findById(companyId);
-      if (!company) {
-        throw new EntityNotFoundError('Company with this ID does not exist');
-      }
-
-      updateData.companyId = companyId;
+    if (sanitizedData.surface !== undefined) {
+      updateData.surface = assertPositiveNumber(sanitizedData.surface, 'surface');
     }
 
-    if (data.surface !== undefined) {
-      updateData.surface = assertPositiveNumber(data.surface, 'surface');
+    const clientId = assertRequiredString(sanitizedData.clientId, 'clientId');
+    const client = await this.clientReader.findByIdForTenant(clientId, tenantId);
+    if (!client) {
+      throw new InvalidRelationError(
+        'Client does not belong to the authenticated tenant',
+      );
     }
 
-    return this.repository.update(id, updateData);
+    updateData.clientId = clientId;
+
+    return this.repository.updateForTenant(id, tenantId, updateData);
   }
 }

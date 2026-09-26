@@ -4,7 +4,11 @@ import { WeightRecordRecord } from '../weight-record.types';
 export class FindAllWeightRecordsUseCase {
   constructor(private readonly repository: WeightRecordRepositoryPort) {}
 
-  execute(): Promise<WeightRecordRecord[]> {
-    return this.repository.findAll();
+  execute(companyId?: string): Promise<WeightRecordRecord[]> {
+    if (!companyId) {
+      return this.repository.findAll();
+    }
+
+    return this.repository.findAllByCompanyId(companyId);
   }
 }

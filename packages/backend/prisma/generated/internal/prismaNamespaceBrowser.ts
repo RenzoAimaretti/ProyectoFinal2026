@@ -51,16 +51,29 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  Tenant: 'Tenant',
   Company: 'Company',
+  UserCompany: 'UserCompany',
   User: 'User',
   RefreshToken: 'RefreshToken',
+  Module: 'Module',
+  Client: 'Client',
+  Input: 'Input',
+  TaskType: 'TaskType',
   Farm: 'Farm',
   Lot: 'Lot',
-  TaskType: 'TaskType',
   Task: 'Task',
+  Recipe: 'Recipe',
+  RecipeItem: 'RecipeItem',
+  DailyReport: 'DailyReport',
+  DailyReportItem: 'DailyReportItem',
+  Reception: 'Reception',
+  ReceptionItem: 'ReceptionItem',
+  Stock: 'Stock',
   Machine: 'Machine',
   MachineUsage: 'MachineUsage',
-  Module: 'Module',
+  MachineActivity: 'MachineActivity',
+  Photo: 'Photo',
   Livestock: 'Livestock',
   LivestockEvent: 'LivestockEvent',
   WeightRecord: 'WeightRecord',
@@ -83,8 +96,22 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const TenantScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  version: 'version',
+  deleted: 'deleted'
+} as const
+
+export type TenantScalarFieldEnum = (typeof TenantScalarFieldEnum)[keyof typeof TenantScalarFieldEnum]
+
+
 export const CompanyScalarFieldEnum = {
   id: 'id',
+  tenantId: 'tenantId',
   name: 'name',
   cuit: 'cuit',
   active: 'active',
@@ -97,9 +124,22 @@ export const CompanyScalarFieldEnum = {
 export type CompanyScalarFieldEnum = (typeof CompanyScalarFieldEnum)[keyof typeof CompanyScalarFieldEnum]
 
 
+export const UserCompanyScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  companyId: 'companyId',
+  role: 'role',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserCompanyScalarFieldEnum = (typeof UserCompanyScalarFieldEnum)[keyof typeof UserCompanyScalarFieldEnum]
+
+
 export const UserScalarFieldEnum = {
   id: 'id',
-  companyId: 'companyId',
+  tenantId: 'tenantId',
   username: 'username',
   email: 'email',
   passwordHash: 'passwordHash',
@@ -128,9 +168,64 @@ export const RefreshTokenScalarFieldEnum = {
 export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
 
 
+export const ModuleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  price: 'price',
+  version: 'version',
+  createdAt: 'createdAt'
+} as const
+
+export type ModuleScalarFieldEnum = (typeof ModuleScalarFieldEnum)[keyof typeof ModuleScalarFieldEnum]
+
+
+export const ClientScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  cuit: 'cuit',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  version: 'version',
+  deleted: 'deleted'
+} as const
+
+export type ClientScalarFieldEnum = (typeof ClientScalarFieldEnum)[keyof typeof ClientScalarFieldEnum]
+
+
+export const InputScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  unit: 'unit',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  version: 'version',
+  deleted: 'deleted'
+} as const
+
+export type InputScalarFieldEnum = (typeof InputScalarFieldEnum)[keyof typeof InputScalarFieldEnum]
+
+
+export const TaskTypeScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  version: 'version',
+  deleted: 'deleted'
+} as const
+
+export type TaskTypeScalarFieldEnum = (typeof TaskTypeScalarFieldEnum)[keyof typeof TaskTypeScalarFieldEnum]
+
+
 export const FarmScalarFieldEnum = {
   id: 'id',
-  companyId: 'companyId',
+  clientId: 'clientId',
   name: 'name',
   location: 'location',
   surface: 'surface',
@@ -159,15 +254,6 @@ export const LotScalarFieldEnum = {
 export type LotScalarFieldEnum = (typeof LotScalarFieldEnum)[keyof typeof LotScalarFieldEnum]
 
 
-export const TaskTypeScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  description: 'description'
-} as const
-
-export type TaskTypeScalarFieldEnum = (typeof TaskTypeScalarFieldEnum)[keyof typeof TaskTypeScalarFieldEnum]
-
-
 export const TaskScalarFieldEnum = {
   id: 'id',
   lotId: 'lotId',
@@ -183,6 +269,103 @@ export const TaskScalarFieldEnum = {
 } as const
 
 export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum]
+
+
+export const RecipeScalarFieldEnum = {
+  id: 'id',
+  lotId: 'lotId',
+  date: 'date',
+  status: 'status',
+  observations: 'observations',
+  sprayVolume: 'sprayVolume',
+  sprayVolumeUnit: 'sprayVolumeUnit',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RecipeScalarFieldEnum = (typeof RecipeScalarFieldEnum)[keyof typeof RecipeScalarFieldEnum]
+
+
+export const RecipeItemScalarFieldEnum = {
+  id: 'id',
+  recipeId: 'recipeId',
+  inputId: 'inputId',
+  dose: 'dose',
+  unit: 'unit',
+  loadOrder: 'loadOrder'
+} as const
+
+export type RecipeItemScalarFieldEnum = (typeof RecipeItemScalarFieldEnum)[keyof typeof RecipeItemScalarFieldEnum]
+
+
+export const DailyReportScalarFieldEnum = {
+  id: 'id',
+  operatorId: 'operatorId',
+  companyId: 'companyId',
+  taskId: 'taskId',
+  lotId: 'lotId',
+  taskTypeId: 'taskTypeId',
+  date: 'date',
+  hectares: 'hectares',
+  hours: 'hours',
+  status: 'status',
+  rejectionReason: 'rejectionReason',
+  approvedAt: 'approvedAt',
+  approvedBy: 'approvedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DailyReportScalarFieldEnum = (typeof DailyReportScalarFieldEnum)[keyof typeof DailyReportScalarFieldEnum]
+
+
+export const DailyReportItemScalarFieldEnum = {
+  id: 'id',
+  dailyReportId: 'dailyReportId',
+  inputId: 'inputId',
+  quantity: 'quantity',
+  unit: 'unit'
+} as const
+
+export type DailyReportItemScalarFieldEnum = (typeof DailyReportItemScalarFieldEnum)[keyof typeof DailyReportItemScalarFieldEnum]
+
+
+export const ReceptionScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  date: 'date',
+  status: 'status',
+  rejectionReason: 'rejectionReason',
+  validatedBy: 'validatedBy',
+  validatedAt: 'validatedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ReceptionScalarFieldEnum = (typeof ReceptionScalarFieldEnum)[keyof typeof ReceptionScalarFieldEnum]
+
+
+export const ReceptionItemScalarFieldEnum = {
+  id: 'id',
+  receptionId: 'receptionId',
+  inputId: 'inputId',
+  quantity: 'quantity',
+  validatedQuantity: 'validatedQuantity',
+  unit: 'unit'
+} as const
+
+export type ReceptionItemScalarFieldEnum = (typeof ReceptionItemScalarFieldEnum)[keyof typeof ReceptionItemScalarFieldEnum]
+
+
+export const StockScalarFieldEnum = {
+  id: 'id',
+  clientId: 'clientId',
+  inputId: 'inputId',
+  quantity: 'quantity',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StockScalarFieldEnum = (typeof StockScalarFieldEnum)[keyof typeof StockScalarFieldEnum]
 
 
 export const MachineScalarFieldEnum = {
@@ -216,15 +399,36 @@ export const MachineUsageScalarFieldEnum = {
 export type MachineUsageScalarFieldEnum = (typeof MachineUsageScalarFieldEnum)[keyof typeof MachineUsageScalarFieldEnum]
 
 
-export const ModuleScalarFieldEnum = {
+export const MachineActivityScalarFieldEnum = {
   id: 'id',
-  name: 'name',
-  price: 'price',
-  version: 'version',
+  machineId: 'machineId',
+  companyId: 'companyId',
+  type: 'type',
+  date: 'date',
+  liters: 'liters',
+  receipt: 'receipt',
+  cost: 'cost',
+  spareParts: 'spareParts',
+  usageHours: 'usageHours',
+  hectares: 'hectares',
+  observations: 'observations',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MachineActivityScalarFieldEnum = (typeof MachineActivityScalarFieldEnum)[keyof typeof MachineActivityScalarFieldEnum]
+
+
+export const PhotoScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  localPath: 'localPath',
+  orderIndex: 'orderIndex',
   createdAt: 'createdAt'
 } as const
 
-export type ModuleScalarFieldEnum = (typeof ModuleScalarFieldEnum)[keyof typeof ModuleScalarFieldEnum]
+export type PhotoScalarFieldEnum = (typeof PhotoScalarFieldEnum)[keyof typeof PhotoScalarFieldEnum]
 
 
 export const LivestockScalarFieldEnum = {

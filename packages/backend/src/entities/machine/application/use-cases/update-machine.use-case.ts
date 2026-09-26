@@ -10,8 +10,12 @@ import {
 export class UpdateMachineUseCase {
   constructor(private readonly repository: MachineRepositoryPort) {}
 
-  async execute(id: string, input: UpdateMachineInput): Promise<MachineRecord> {
-    const existing = await this.repository.findById(id);
+  async execute(
+    id: string,
+    companyId: string,
+    input: UpdateMachineInput,
+  ): Promise<MachineRecord> {
+    const existing = await this.repository.findByIdForCompany(id, companyId);
 
     if (!existing) {
       throw new EntityNotFoundError(`Machine with id ${id} not found`);
@@ -40,6 +44,6 @@ export class UpdateMachineUseCase {
       data.maintenanceDate = normalizeRequiredDate(payload.maintenanceDate, 'maintenanceDate');
     }
 
-    return this.repository.update(id, data);
+    return this.repository.updateForCompany(id, companyId, data);
   }
 }

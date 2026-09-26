@@ -4,7 +4,7 @@ import { FarmRecord } from '../farm.types';
 export class FindAllFarmsUseCase {
   constructor(private readonly repository: FarmRepositoryPort) {}
 
-  execute(): Promise<FarmRecord[]> {
-    return this.repository.findAll();
+  execute(tenantId: string): Promise<FarmRecord[]> {
+    return this.repository.findAllByTenantId(tenantId);
   }
 }

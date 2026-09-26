@@ -6,7 +6,10 @@ import { TaskTypeReaderPort } from '../../application/task.ports';
 export class PrismaTaskTypeReader implements TaskTypeReaderPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findById(id: string) {
-    return this.prisma.taskType.findUnique({ where: { id }, select: { id: true } });
+  findByIdForTenant(id: string, tenantId: string) {
+    return this.prisma.taskType.findFirst({
+      where: { id, tenantId },
+      select: { id: true },
+    });
   }
 }

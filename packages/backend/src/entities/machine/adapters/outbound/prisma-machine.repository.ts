@@ -7,21 +7,41 @@ import { MachineRepositoryPort } from '../../application/machine.ports';
 export class PrismaMachineRepository implements MachineRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<MachineRecord[]> {
-    return this.prisma.machine.findMany();
+  findAllByCompanyId(companyId: string): Promise<MachineRecord[]> {
+    return this.prisma.machine.findMany({
+      where: { companyId },
+    });
   }
 
-  findById(id: string): Promise<MachineRecord | null> {
-    return this.prisma.machine.findUnique({ where: { id } });
+  findByIdForCompany(
+    id: string,
+    companyId: string,
+  ): Promise<MachineRecord | null> {
+    return this.prisma.machine.findFirst({
+      where: { id, companyId },
+    });
   }
 
   create(data: CreateMachineData): Promise<MachineRecord> {
     return this.prisma.machine.create({ data });
   }
 
-  update(id: string, data: UpdateMachineData): Promise<MachineRecord> {
+  async updateForCompany(
+    id: string,
+    companyId: string,
+    data: UpdateMachineData,
+  ): Promise<MachineRecord> {
+    const machine = await this.prisma.machine.findFirst({
+      where: { id, companyId },
+      select: { id: true },
+    });
+
+    if (!machine) {
+      throw new Error(`Machine with id ${id} not found for company ${companyId}`);
+    }
+
     return this.prisma.machine.update({
-      where: { id },
+      where: { id: machine.id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.brand !== undefined ? { brand: data.brand } : {}),

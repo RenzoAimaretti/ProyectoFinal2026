@@ -1,0 +1,13 @@
+change: sprint1-tenant-scope-remaining-entities
+status: archived
+phase: archive
+artifact_store: hybrid
+artifacts:
+  exploration: openspec/changes/archive/2026-08-31-sprint1-tenant-scope-remaining-entities/exploration.md
+  proposal: openspec/changes/archive/2026-08-31-sprint1-tenant-scope-remaining-entities/proposal.md
+  spec: openspec/changes/archive/2026-08-31-sprint1-tenant-scope-remaining-entities/specs/multi-tenant-enforcement/spec.md
+  design: openspec/changes/archive/2026-08-31-sprint1-tenant-scope-remaining-entities/design.md
+  tasks: openspec/changes/archive/2026-08-31-sprint1-tenant-scope-remaining-entities/tasks.md
+  verify_report: openspec/changes/archive/2026-08-31-sprint1-tenant-scope-remaining-entities/verify-report.md
+  archive_report: openspec/changes/archive/2026-08-31-sprint1-tenant-scope-remaining-entities/archive-report.md
+updated_at: 2026-08-31

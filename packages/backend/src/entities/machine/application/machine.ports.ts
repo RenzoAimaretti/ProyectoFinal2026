@@ -4,10 +4,17 @@ export const MACHINE_REPOSITORY = Symbol('MACHINE_REPOSITORY');
 export const COMPANY_READER = Symbol('MACHINE_COMPANY_READER');
 
 export interface MachineRepositoryPort {
-  findAll(): Promise<MachineRecord[]>;
-  findById(id: string): Promise<MachineRecord | null>;
+  findAllByCompanyId(companyId: string): Promise<MachineRecord[]>;
+  findByIdForCompany(
+    id: string,
+    companyId: string,
+  ): Promise<MachineRecord | null>;
   create(data: CreateMachineData): Promise<MachineRecord>;
-  update(id: string, data: UpdateMachineData): Promise<MachineRecord>;
+  updateForCompany(
+    id: string,
+    companyId: string,
+    data: UpdateMachineData,
+  ): Promise<MachineRecord>;
 }
 
 export interface CompanyReaderPort {

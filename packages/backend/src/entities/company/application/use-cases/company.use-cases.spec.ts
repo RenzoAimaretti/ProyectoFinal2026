@@ -35,12 +35,12 @@ const baseModule = {
 
 function createPorts() {
   const repository: jest.Mocked<CompanyRepositoryPort> = {
-    findAll: jest.fn(),
-    findById: jest.fn(),
+    findAllByTenantId: jest.fn(),
+    findByIdForTenant: jest.fn(),
     findByCuit: jest.fn(),
     create: jest.fn(),
-    update: jest.fn(),
-    addModule: jest.fn(),
+    updateForTenant: jest.fn(),
+    addModuleForTenant: jest.fn(),
   };
 
   const moduleReader: jest.Mocked<ModuleReaderPort> = {
@@ -85,10 +85,12 @@ describe('Company use cases', () => {
     });
 
     it.each([
+      ['tenantId', ''],
       ['name', undefined],
       ['cuit', ''],
     ])('rejects missing required %s', async (field, value) => {
       const input: CreateCompanyInput = {
+        tenantId: 'tenant-1',
         name: 'Agrolify SA',
         cuit: '30-12345678-9',
       };
@@ -105,6 +107,7 @@ describe('Company use cases', () => {
 
       await expect(
         useCase.execute({
+          tenantId: 'tenant-1',
           name: 'Agrolify SA',
           cuit: '30-12345678-9',
         }),
@@ -117,12 +120,14 @@ describe('Company use cases', () => {
 
       await expect(
         useCase.execute({
+          tenantId: 'tenant-1',
           name: 'Agrolify SA',
           cuit: '30-12345678-9',
         }),
       ).resolves.toEqual(baseCompany);
 
       expect(repository.create).toHaveBeenCalledWith({
+        tenantId: 'tenant-1',
         name: 'Agrolify SA',
         cuit: '30-12345678-9',
       });
@@ -142,19 +147,50 @@ describe('Company use cases', () => {
       'rejects empty update payload %p',
       async (input) => {
         await expect(
-          useCase.execute('company-1', input as UpdateCompanyInput),
+          useCase.execute('company-1', 'tenant-1', input as UpdateCompanyInput),
         ).rejects.toBeInstanceOf(InvalidInputError);
       },
     );
 
-    it('rejects missing company', async () => {
-      repository.findById.mockResolvedValue(null);
+    it('rejects a company that is not visible to the caller tenant', async () => {
+      repository.findByIdForTenant.mockResolvedValue(null);
 
       await expect(
-        useCase.execute('company-1', {
+        useCase.execute('company-1', 'tenant-1', {
           name: 'New name',
         }),
       ).rejects.toBeInstanceOf(EntityNotFoundError);
+
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
+        'company-1',
+        'tenant-1',
+      );
+      expect(repository.updateForTenant).not.toHaveBeenCalled();
+    });
+
+    it('updates using the caller tenant scope', async () => {
+      repository.findByIdForTenant.mockResolvedValue({
+        ...baseCompany,
+        modules: [],
+      });
+      repository.updateForTenant.mockResolvedValue({
+        ...baseCompany,
+        name: 'New name',
+      });
+
+      await expect(
+        useCase.execute('company-1', 'tenant-1', { name: 'New name' }),
+      ).resolves.toEqual({ ...baseCompany, name: 'New name' });
+
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
+        'company-1',
+        'tenant-1',
+      );
+      expect(repository.updateForTenant).toHaveBeenCalledWith(
+        'company-1',
+        'tenant-1',
+        { name: 'New name' },
+      );
     });
   });
 
@@ -172,48 +208,119 @@ describe('Company use cases', () => {
       ['missing company', null, baseModule],
       ['missing module', { ...baseCompany, modules: [] }, null],
     ])('rejects %s', async (_label, company, module) => {
-      repository.findById.mockResolvedValue(company);
+      repository.findByIdForTenant.mockResolvedValue(company);
       moduleReader.findById.mockResolvedValue(module);
 
       await expect(
-        useCase.execute('company-1', 'module-1'),
+        useCase.execute('company-1', 'tenant-1', 'module-1'),
       ).rejects.toBeInstanceOf(EntityNotFoundError);
     });
 
+    it('rejects a company that is not visible to the caller tenant', async () => {
+      repository.findByIdForTenant.mockResolvedValue(null);
+
+      await expect(
+        useCase.execute('company-1', 'tenant-1', 'module-1'),
+      ).rejects.toBeInstanceOf(EntityNotFoundError);
+
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
+        'company-1',
+        'tenant-1',
+      );
+      expect(repository.addModuleForTenant).not.toHaveBeenCalled();
+    });
+
     it('rejects already-added module', async () => {
-      repository.findById.mockResolvedValue({
+      repository.findByIdForTenant.mockResolvedValue({
         ...baseCompany,
         modules: [{ ...baseModule }],
       });
       moduleReader.findById.mockResolvedValue(baseModule);
 
       await expect(
-        useCase.execute('company-1', 'module-1'),
+        useCase.execute('company-1', 'tenant-1', 'module-1'),
       ).rejects.toBeInstanceOf(DuplicateEntityError);
+    });
+
+    it('links the module within the caller tenant scope', async () => {
+      repository.findByIdForTenant.mockResolvedValue({
+        ...baseCompany,
+        modules: [],
+      });
+      moduleReader.findById.mockResolvedValue(baseModule);
+
+      await expect(
+        useCase.execute('company-1', 'tenant-1', 'module-1'),
+      ).resolves.toEqual({
+        message: `${baseModule.name} added successfully to company: ${baseCompany.name}`,
+      });
+
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
+        'company-1',
+        'tenant-1',
+      );
+      expect(repository.addModuleForTenant).toHaveBeenCalledWith(
+        'company-1',
+        'tenant-1',
+        'module-1',
+      );
     });
   });
 
   describe('Read use cases', () => {
-    it('returns all companies', async () => {
+    it('returns all companies scoped to the caller tenant', async () => {
       const { repository } = createPorts();
-      repository.findAll.mockResolvedValue([baseCompany]);
+      repository.findAllByTenantId.mockResolvedValue([baseCompany]);
       const useCase = new FindAllCompaniesUseCase(repository);
 
-      await expect(useCase.execute()).resolves.toEqual([baseCompany]);
+      await expect(useCase.execute('tenant-1')).resolves.toEqual([baseCompany]);
+      expect(repository.findAllByTenantId).toHaveBeenCalledWith('tenant-1');
     });
 
-    it('returns a company by id', async () => {
+    it('returns a company by id scoped to the caller tenant', async () => {
       const { repository } = createPorts();
-      repository.findById.mockResolvedValue({
+      repository.findByIdForTenant.mockResolvedValue({
         ...baseCompany,
         modules: [{ ...baseModule }],
       });
       const useCase = new FindCompanyUseCase(repository);
 
-      await expect(useCase.execute('company-1')).resolves.toEqual({
+      await expect(useCase.execute('company-1', 'tenant-1')).resolves.toEqual({
         ...baseCompany,
         modules: [{ ...baseModule }],
       });
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
+        'company-1',
+        'tenant-1',
+      );
+    });
+
+    it('rejects a company that is not visible to the caller tenant', async () => {
+      const { repository } = createPorts();
+      repository.findByIdForTenant.mockResolvedValue(null);
+      const useCase = new FindCompanyUseCase(repository);
+
+      await expect(
+        useCase.execute('company-1', 'tenant-2'),
+      ).rejects.toBeInstanceOf(EntityNotFoundError);
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
+        'company-1',
+        'tenant-2',
+      );
+    });
+
+    it('rejects a company that does not exist', async () => {
+      const { repository } = createPorts();
+      repository.findByIdForTenant.mockResolvedValue(null);
+      const useCase = new FindCompanyUseCase(repository);
+
+      await expect(
+        useCase.execute('missing-company', 'tenant-1'),
+      ).rejects.toBeInstanceOf(EntityNotFoundError);
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
+        'missing-company',
+        'tenant-1',
+      );
     });
 
     it('returns a company by cuit', async () => {

@@ -23,24 +23,24 @@ export class TaskTypeService {
     private readonly deleteUseCase: DeleteTaskTypeUseCase,
   ) {}
 
-  async findAll() {
-    return this.handle(() => this.findAllUseCase.execute(), 'fetching task types');
+  async findAll(tenantId: string) {
+    return this.handle(() => this.findAllUseCase.execute(tenantId), 'fetching task types');
   }
 
-  async findOne(id: string) {
-    return this.handle(() => this.findOneUseCase.execute(id), 'fetching task type');
+  async findOne(id: string, tenantId: string) {
+    return this.handle(() => this.findOneUseCase.execute(id, tenantId), 'fetching task type');
   }
 
-  async create(data: CreateTaskTypeInput) {
-    return this.handle(() => this.createUseCase.execute(data), 'creating task type');
+  async create(tenantId: string, data: CreateTaskTypeInput) {
+    return this.handle(() => this.createUseCase.execute(tenantId, data), 'creating task type');
   }
 
-  async update(id: string, data: UpdateTaskTypeInput) {
-    return this.handle(() => this.updateUseCase.execute(id, data), 'updating task type');
+  async update(id: string, tenantId: string, data: UpdateTaskTypeInput) {
+    return this.handle(() => this.updateUseCase.execute(id, tenantId, data), 'updating task type');
   }
 
-  async delete(id: string) {
-    return this.handle(() => this.deleteUseCase.execute(id), 'deleting task type');
+  async delete(id: string, tenantId: string) {
+    return this.handle(() => this.deleteUseCase.execute(id, tenantId), 'deleting task type');
   }
 
   private async handle<T>(operation: () => Promise<T>, action: string) {

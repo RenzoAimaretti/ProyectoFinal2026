@@ -11,23 +11,31 @@ import {
 export class PrismaLivestockRepository implements LivestockRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<LivestockRecord[]> {
-    return this.prisma.livestock.findMany();
-  }
-
-  findById(id: string): Promise<LivestockRecord | null> {
-    return this.prisma.livestock.findUnique({
-      where: { id },
+  findAllByCompanyId(companyId: string): Promise<LivestockRecord[]> {
+    return this.prisma.livestock.findMany({
+      where: { companyId },
     });
   }
 
-  findByTagNumber(tagNumber: string): Promise<LivestockRecord | null> {
-    return this.prisma.livestock.findUnique({
-      where: { tagNumber },
+  findByIdForCompany(
+    id: string,
+    companyId: string,
+  ): Promise<LivestockRecord | null> {
+    return this.prisma.livestock.findFirst({
+      where: { id, companyId },
     });
   }
 
-  create(data: CreateLivestockInput): Promise<LivestockRecord> {
+  findByTagNumberAndCompanyId(
+    tagNumber: string,
+    companyId: string,
+  ): Promise<LivestockRecord | null> {
+    return this.prisma.livestock.findFirst({
+      where: { tagNumber, companyId },
+    });
+  }
+
+  create(data: CreateLivestockInput & { companyId: string }): Promise<LivestockRecord> {
     return this.prisma.livestock.create({
       data: {
         companyId: data.companyId,
@@ -41,11 +49,25 @@ export class PrismaLivestockRepository implements LivestockRepositoryPort {
     });
   }
 
-  update(id: string, data: UpdateLivestockInput): Promise<LivestockRecord> {
+  async updateForCompany(
+    id: string,
+    companyId: string,
+    data: UpdateLivestockInput,
+  ): Promise<LivestockRecord> {
+    const livestock = await this.prisma.livestock.findFirst({
+      where: { id, companyId },
+      select: { id: true },
+    });
+
+    if (!livestock) {
+      throw new Error(
+        `Livestock with id ${id} not found for company ${companyId}`,
+      );
+    }
+
     return this.prisma.livestock.update({
-      where: { id },
+      where: { id: livestock.id },
       data: {
-        ...(data.companyId !== undefined ? { companyId: data.companyId } : {}),
         ...(data.lotId !== undefined ? { lotId: data.lotId } : {}),
         ...(data.tagNumber !== undefined ? { tagNumber: data.tagNumber } : {}),
         ...(data.breed !== undefined ? { breed: data.breed } : {}),
@@ -57,9 +79,18 @@ export class PrismaLivestockRepository implements LivestockRepositoryPort {
     });
   }
 
-  delete(id: string): Promise<void> {
-    return this.prisma.livestock
-      .delete({ where: { id } })
-      .then(() => undefined);
+  async deleteForCompany(id: string, companyId: string): Promise<void> {
+    const livestock = await this.prisma.livestock.findFirst({
+      where: { id, companyId },
+      select: { id: true },
+    });
+
+    if (!livestock) {
+      throw new Error(
+        `Livestock with id ${id} not found for company ${companyId}`,
+      );
+    }
+
+    await this.prisma.livestock.delete({ where: { id: livestock.id } });
   }
 }
