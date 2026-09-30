@@ -42,6 +42,7 @@ class FakeAuthRepository implements AuthRepository {
   Session? loginResult;
   Exception? loginError;
   bool logoutCalled = false;
+  String? logoutRefreshToken;
   Exception? logoutError;
 
   @override
@@ -51,8 +52,9 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> logout() async {
+  Future<void> logout({String? refreshToken}) async {
     logoutCalled = true;
+    logoutRefreshToken = refreshToken;
     if (logoutError != null) throw logoutError!;
   }
 }

@@ -1,4 +1,7 @@
-import { InvalidRelationError } from '../../domain/errors';
+import {
+  EntityNotFoundError,
+  InvalidRelationError,
+} from '../../domain/errors';
 import { DAILY_REPORT_INITIAL_STATUS } from '../../domain/daily-report-status';
 import { assertPositiveNumber } from '../../domain/daily-report.rules';
 import {
@@ -36,6 +39,8 @@ export class CreateDailyReportUseCase {
     const hectares = assertPositiveNumber(data.hectares, 'hectares');
     const hours = assertPositiveNumber(data.hours, 'hours');
     const items = normalizeDailyReportItems(data.items);
+    const id =
+      data.id === undefined ? undefined : assertRequiredString(data.id, 'id');
 
     const companyRecord = await this.companyReader.findById(company);
     if (!companyRecord) {
@@ -44,7 +49,7 @@ export class CreateDailyReportUseCase {
 
     const task = await this.taskReader.findByIdWithScope(taskId);
     if (!task) {
-      throw new InvalidRelationError(`Task with id ${taskId} not found`);
+      throw new EntityNotFoundError(`Task with id ${taskId} not found`);
     }
 
     if (task.tenantId !== companyRecord.tenantId) {
@@ -62,12 +67,13 @@ export class CreateDailyReportUseCase {
     const missingInputIds = inputIds.filter((id) => !existing.has(id));
 
     if (missingInputIds.length > 0) {
-      throw new InvalidRelationError(
+      throw new EntityNotFoundError(
         `Daily report inputs do not belong to the company tenant: ${missingInputIds.join(', ')}`,
       );
     }
 
     return this.repository.create({
+      id,
       operatorId,
       companyId: company,
       taskId: task.id,

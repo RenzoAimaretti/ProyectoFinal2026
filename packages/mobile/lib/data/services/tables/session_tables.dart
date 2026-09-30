@@ -11,6 +11,7 @@ class Sessions extends Table {
   TextColumn get fullName => text()();
   TextColumn get role => text()();
   TextColumn get token => text()();
+  TextColumn get refreshToken => text().nullable()();
   TextColumn get companyId => text().nullable()();
   DateTimeColumn get lastAccessedAt => dateTime()();
 

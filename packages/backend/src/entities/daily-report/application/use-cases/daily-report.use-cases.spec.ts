@@ -149,6 +149,8 @@ describe('Daily report use cases', () => {
       ['an empty company id', '  ', validInput],
       ['an empty operator id', 'company-1', { ...validInput, operatorId: '' }],
       ['an empty task id', 'company-1', { ...validInput, taskId: '  ' }],
+      ['an empty id', 'company-1', { ...validInput, id: '' }],
+      ['a whitespace id', 'company-1', { ...validInput, id: '   ' }],
       ['an invalid date', 'company-1', { ...validInput, date: 'not-a-date' }],
       ['a zero hectares value', 'company-1', { ...validInput, hectares: 0 }],
       ['a negative hectares value', 'company-1', { ...validInput, hectares: -1 }],
@@ -275,7 +277,7 @@ describe('Daily report use cases', () => {
 
       await expect(
         useCase.execute('company-1', validInput),
-      ).rejects.toBeInstanceOf(InvalidRelationError);
+      ).rejects.toBeInstanceOf(EntityNotFoundError);
 
       expect(taskReader.findByIdWithScope).toHaveBeenCalledWith('task-1');
       expect(repository.create).not.toHaveBeenCalled();
@@ -302,7 +304,7 @@ describe('Daily report use cases', () => {
 
       await expect(
         useCase.execute('company-1', validInput),
-      ).rejects.toBeInstanceOf(InvalidRelationError);
+      ).rejects.toBeInstanceOf(EntityNotFoundError);
 
       expect(inputReader.findExistingIdsForTenant).toHaveBeenCalledWith(
         ['input-1', 'input-2'],
@@ -337,7 +339,41 @@ describe('Daily report use cases', () => {
       expect(taskReader.findByIdWithScope).toHaveBeenCalledWith('task-1');
     });
 
-    it('trims the scope, the operator and the item units before persisting', async () => {
+    it('passes a client-provided id through to the repository', async () => {
+      repository.create.mockResolvedValue({
+        ...baseReport,
+        id: 'client-uuid-1',
+      });
+
+      await expect(
+        useCase.execute('company-1', { ...validInput, id: 'client-uuid-1' }),
+      ).resolves.toMatchObject({ id: 'client-uuid-1' });
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'client-uuid-1',
+          lotId: 'lot-1',
+          taskTypeId: 'task-type-1',
+          status: 'PENDIENTE_APROBACION',
+        }),
+      );
+    });
+
+    it('does not pass an id when the client omits it', async () => {
+      repository.create.mockResolvedValue(baseReport);
+
+      await useCase.execute('company-1', validInput);
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: undefined,
+          lotId: 'lot-1',
+          taskTypeId: 'task-type-1',
+        }),
+      );
+    });
+
+    it('trims the scope, the operator, the item units and the client id before persisting', async () => {
       repository.create.mockResolvedValue(baseReport);
 
       await useCase.execute('  company-1  ', {

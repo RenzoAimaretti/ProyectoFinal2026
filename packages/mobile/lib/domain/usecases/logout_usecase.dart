@@ -12,7 +12,8 @@ class LogoutUseCase {
 
   Future<void> execute() async {
     try {
-      await _authRepository.logout();
+      final session = await _sessionRepository.current();
+      await _authRepository.logout(refreshToken: session?.refreshToken);
     } catch (_) {
       // best-effort: el logout local no debe fallar por falta de red.
     }

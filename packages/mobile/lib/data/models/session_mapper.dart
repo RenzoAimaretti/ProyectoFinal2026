@@ -13,6 +13,7 @@ extension SessionRowMapper on SessionRow {
         role: role,
         token: token,
         companyId: companyId,
+        refreshToken: refreshToken,
         lastAccessedAt: lastAccessedAt,
       );
 }
@@ -28,6 +29,7 @@ extension SessionDomainMapper on domain.Session {
       fullName: fullName,
       role: role,
       token: token,
+      refreshToken: Value.absentIfNull(refreshToken),
       companyId: Value.absentIfNull(companyId),
       lastAccessedAt: lastAccessedAt,
     );

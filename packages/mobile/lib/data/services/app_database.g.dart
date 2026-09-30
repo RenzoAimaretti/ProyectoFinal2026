@@ -3829,6 +3829,17 @@ class $SessionsTable extends Sessions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _refreshTokenMeta = const VerificationMeta(
+    'refreshToken',
+  );
+  @override
+  late final GeneratedColumn<String> refreshToken = GeneratedColumn<String>(
+    'refresh_token',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _companyIdMeta = const VerificationMeta(
     'companyId',
   );
@@ -3860,6 +3871,7 @@ class $SessionsTable extends Sessions
     fullName,
     role,
     token,
+    refreshToken,
     companyId,
     lastAccessedAt,
   ];
@@ -3918,6 +3930,15 @@ class $SessionsTable extends Sessions
     } else if (isInserting) {
       context.missing(_tokenMeta);
     }
+    if (data.containsKey('refresh_token')) {
+      context.handle(
+        _refreshTokenMeta,
+        refreshToken.isAcceptableOrUnknown(
+          data['refresh_token']!,
+          _refreshTokenMeta,
+        ),
+      );
+    }
     if (data.containsKey('company_id')) {
       context.handle(
         _companyIdMeta,
@@ -3968,6 +3989,10 @@ class $SessionsTable extends Sessions
         DriftSqlType.string,
         data['${effectivePrefix}token'],
       )!,
+      refreshToken: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}refresh_token'],
+      ),
       companyId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}company_id'],
@@ -3992,6 +4017,7 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
   final String fullName;
   final String role;
   final String token;
+  final String? refreshToken;
   final String? companyId;
   final DateTime lastAccessedAt;
   const SessionRow({
@@ -4001,6 +4027,7 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
     required this.fullName,
     required this.role,
     required this.token,
+    this.refreshToken,
     this.companyId,
     required this.lastAccessedAt,
   });
@@ -4013,6 +4040,9 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
     map['full_name'] = Variable<String>(fullName);
     map['role'] = Variable<String>(role);
     map['token'] = Variable<String>(token);
+    if (!nullToAbsent || refreshToken != null) {
+      map['refresh_token'] = Variable<String>(refreshToken);
+    }
     if (!nullToAbsent || companyId != null) {
       map['company_id'] = Variable<String>(companyId);
     }
@@ -4028,6 +4058,9 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
       fullName: Value(fullName),
       role: Value(role),
       token: Value(token),
+      refreshToken: refreshToken == null && nullToAbsent
+          ? const Value.absent()
+          : Value(refreshToken),
       companyId: companyId == null && nullToAbsent
           ? const Value.absent()
           : Value(companyId),
@@ -4047,6 +4080,7 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
       fullName: serializer.fromJson<String>(json['fullName']),
       role: serializer.fromJson<String>(json['role']),
       token: serializer.fromJson<String>(json['token']),
+      refreshToken: serializer.fromJson<String?>(json['refreshToken']),
       companyId: serializer.fromJson<String?>(json['companyId']),
       lastAccessedAt: serializer.fromJson<DateTime>(json['lastAccessedAt']),
     );
@@ -4061,6 +4095,7 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
       'fullName': serializer.toJson<String>(fullName),
       'role': serializer.toJson<String>(role),
       'token': serializer.toJson<String>(token),
+      'refreshToken': serializer.toJson<String?>(refreshToken),
       'companyId': serializer.toJson<String?>(companyId),
       'lastAccessedAt': serializer.toJson<DateTime>(lastAccessedAt),
     };
@@ -4073,6 +4108,7 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
     String? fullName,
     String? role,
     String? token,
+    Value<String?> refreshToken = const Value.absent(),
     Value<String?> companyId = const Value.absent(),
     DateTime? lastAccessedAt,
   }) => SessionRow(
@@ -4082,6 +4118,7 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
     fullName: fullName ?? this.fullName,
     role: role ?? this.role,
     token: token ?? this.token,
+    refreshToken: refreshToken.present ? refreshToken.value : this.refreshToken,
     companyId: companyId.present ? companyId.value : this.companyId,
     lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
   );
@@ -4093,6 +4130,9 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
       fullName: data.fullName.present ? data.fullName.value : this.fullName,
       role: data.role.present ? data.role.value : this.role,
       token: data.token.present ? data.token.value : this.token,
+      refreshToken: data.refreshToken.present
+          ? data.refreshToken.value
+          : this.refreshToken,
       companyId: data.companyId.present ? data.companyId.value : this.companyId,
       lastAccessedAt: data.lastAccessedAt.present
           ? data.lastAccessedAt.value
@@ -4109,6 +4149,7 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
           ..write('fullName: $fullName, ')
           ..write('role: $role, ')
           ..write('token: $token, ')
+          ..write('refreshToken: $refreshToken, ')
           ..write('companyId: $companyId, ')
           ..write('lastAccessedAt: $lastAccessedAt')
           ..write(')'))
@@ -4123,6 +4164,7 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
     fullName,
     role,
     token,
+    refreshToken,
     companyId,
     lastAccessedAt,
   );
@@ -4136,6 +4178,7 @@ class SessionRow extends DataClass implements Insertable<SessionRow> {
           other.fullName == this.fullName &&
           other.role == this.role &&
           other.token == this.token &&
+          other.refreshToken == this.refreshToken &&
           other.companyId == this.companyId &&
           other.lastAccessedAt == this.lastAccessedAt);
 }
@@ -4147,6 +4190,7 @@ class SessionsCompanion extends UpdateCompanion<SessionRow> {
   final Value<String> fullName;
   final Value<String> role;
   final Value<String> token;
+  final Value<String?> refreshToken;
   final Value<String?> companyId;
   final Value<DateTime> lastAccessedAt;
   final Value<int> rowid;
@@ -4157,6 +4201,7 @@ class SessionsCompanion extends UpdateCompanion<SessionRow> {
     this.fullName = const Value.absent(),
     this.role = const Value.absent(),
     this.token = const Value.absent(),
+    this.refreshToken = const Value.absent(),
     this.companyId = const Value.absent(),
     this.lastAccessedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4168,6 +4213,7 @@ class SessionsCompanion extends UpdateCompanion<SessionRow> {
     required String fullName,
     required String role,
     required String token,
+    this.refreshToken = const Value.absent(),
     this.companyId = const Value.absent(),
     required DateTime lastAccessedAt,
     this.rowid = const Value.absent(),
@@ -4184,6 +4230,7 @@ class SessionsCompanion extends UpdateCompanion<SessionRow> {
     Expression<String>? fullName,
     Expression<String>? role,
     Expression<String>? token,
+    Expression<String>? refreshToken,
     Expression<String>? companyId,
     Expression<DateTime>? lastAccessedAt,
     Expression<int>? rowid,
@@ -4195,6 +4242,7 @@ class SessionsCompanion extends UpdateCompanion<SessionRow> {
       if (fullName != null) 'full_name': fullName,
       if (role != null) 'role': role,
       if (token != null) 'token': token,
+      if (refreshToken != null) 'refresh_token': refreshToken,
       if (companyId != null) 'company_id': companyId,
       if (lastAccessedAt != null) 'last_accessed_at': lastAccessedAt,
       if (rowid != null) 'rowid': rowid,
@@ -4208,6 +4256,7 @@ class SessionsCompanion extends UpdateCompanion<SessionRow> {
     Value<String>? fullName,
     Value<String>? role,
     Value<String>? token,
+    Value<String?>? refreshToken,
     Value<String?>? companyId,
     Value<DateTime>? lastAccessedAt,
     Value<int>? rowid,
@@ -4219,6 +4268,7 @@ class SessionsCompanion extends UpdateCompanion<SessionRow> {
       fullName: fullName ?? this.fullName,
       role: role ?? this.role,
       token: token ?? this.token,
+      refreshToken: refreshToken ?? this.refreshToken,
       companyId: companyId ?? this.companyId,
       lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
       rowid: rowid ?? this.rowid,
@@ -4246,6 +4296,9 @@ class SessionsCompanion extends UpdateCompanion<SessionRow> {
     if (token.present) {
       map['token'] = Variable<String>(token.value);
     }
+    if (refreshToken.present) {
+      map['refresh_token'] = Variable<String>(refreshToken.value);
+    }
     if (companyId.present) {
       map['company_id'] = Variable<String>(companyId.value);
     }
@@ -4267,6 +4320,7 @@ class SessionsCompanion extends UpdateCompanion<SessionRow> {
           ..write('fullName: $fullName, ')
           ..write('role: $role, ')
           ..write('token: $token, ')
+          ..write('refreshToken: $refreshToken, ')
           ..write('companyId: $companyId, ')
           ..write('lastAccessedAt: $lastAccessedAt, ')
           ..write('rowid: $rowid')
@@ -14328,6 +14382,7 @@ typedef $$SessionsTableCreateCompanionBuilder =
       required String fullName,
       required String role,
       required String token,
+      Value<String?> refreshToken,
       Value<String?> companyId,
       required DateTime lastAccessedAt,
       Value<int> rowid,
@@ -14340,6 +14395,7 @@ typedef $$SessionsTableUpdateCompanionBuilder =
       Value<String> fullName,
       Value<String> role,
       Value<String> token,
+      Value<String?> refreshToken,
       Value<String?> companyId,
       Value<DateTime> lastAccessedAt,
       Value<int> rowid,
@@ -14381,6 +14437,11 @@ class $$SessionsTableFilterComposer
 
   ColumnFilters<String> get token => $composableBuilder(
     column: $table.token,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get refreshToken => $composableBuilder(
+    column: $table.refreshToken,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -14434,6 +14495,11 @@ class $$SessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get refreshToken => $composableBuilder(
+    column: $table.refreshToken,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get companyId => $composableBuilder(
     column: $table.companyId,
     builder: (column) => ColumnOrderings(column),
@@ -14471,6 +14537,11 @@ class $$SessionsTableAnnotationComposer
 
   GeneratedColumn<String> get token =>
       $composableBuilder(column: $table.token, builder: (column) => column);
+
+  GeneratedColumn<String> get refreshToken => $composableBuilder(
+    column: $table.refreshToken,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get companyId =>
       $composableBuilder(column: $table.companyId, builder: (column) => column);
@@ -14518,6 +14589,7 @@ class $$SessionsTableTableManager
                 Value<String> fullName = const Value.absent(),
                 Value<String> role = const Value.absent(),
                 Value<String> token = const Value.absent(),
+                Value<String?> refreshToken = const Value.absent(),
                 Value<String?> companyId = const Value.absent(),
                 Value<DateTime> lastAccessedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -14528,6 +14600,7 @@ class $$SessionsTableTableManager
                 fullName: fullName,
                 role: role,
                 token: token,
+                refreshToken: refreshToken,
                 companyId: companyId,
                 lastAccessedAt: lastAccessedAt,
                 rowid: rowid,
@@ -14540,6 +14613,7 @@ class $$SessionsTableTableManager
                 required String fullName,
                 required String role,
                 required String token,
+                Value<String?> refreshToken = const Value.absent(),
                 Value<String?> companyId = const Value.absent(),
                 required DateTime lastAccessedAt,
                 Value<int> rowid = const Value.absent(),
@@ -14550,6 +14624,7 @@ class $$SessionsTableTableManager
                 fullName: fullName,
                 role: role,
                 token: token,
+                refreshToken: refreshToken,
                 companyId: companyId,
                 lastAccessedAt: lastAccessedAt,
                 rowid: rowid,

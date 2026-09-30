@@ -1,3 +1,4 @@
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import {
   CreateDailyReportData,
   DailyReportRecord,
@@ -170,5 +171,139 @@ describe('PrismaDailyReportRepository', () => {
     prisma.dailyReport.findMany.mockResolvedValue([]);
 
     await expect(repository.findAllByCompany('company-2')).resolves.toEqual([]);
+  });
+
+  it('passes an explicit client id through to the Prisma create call', async () => {
+    const data: CreateDailyReportData = {
+      id: 'client-uuid-1',
+      operatorId: 'user-1',
+      companyId: 'company-1',
+      taskId: 'task-1',
+      lotId: 'lot-1',
+      taskTypeId: 'task-type-1',
+      date: new Date('2026-03-01T00:00:00.000Z'),
+      hectares: 5,
+      hours: 3,
+      status: 'PENDIENTE_APROBACION',
+      items: [{ inputId: 'input-1', quantity: 2, unit: 'kg' }],
+    };
+    prisma.dailyReport.create.mockResolvedValue({
+      ...persistedReport,
+      id: 'client-uuid-1',
+    });
+
+    await expect(repository.create(data)).resolves.toEqual({
+      ...expectedRecord,
+      id: 'client-uuid-1',
+    });
+
+    expect(prisma.dailyReport.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ id: 'client-uuid-1' }),
+      }),
+    );
+  });
+
+  it('lets Prisma generate an id when the client does not provide one', async () => {
+    const data: CreateDailyReportData = {
+      operatorId: 'user-1',
+      companyId: 'company-1',
+      taskId: 'task-1',
+      lotId: 'lot-1',
+      taskTypeId: 'task-type-1',
+      date: new Date('2026-03-01T00:00:00.000Z'),
+      hectares: 5,
+      hours: 3,
+      status: 'PENDIENTE_APROBACION',
+      items: [{ inputId: 'input-1', quantity: 2, unit: 'kg' }],
+    };
+    prisma.dailyReport.create.mockResolvedValue(persistedReport);
+
+    await expect(repository.create(data)).resolves.toEqual(expectedRecord);
+
+    expect(prisma.dailyReport.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ id: undefined }),
+      }),
+    );
+  });
+
+  it('returns the existing report when a P2002 duplicate is caught', async () => {
+    const duplicateError = new PrismaClientKnownRequestError(
+      'Unique constraint failed on the id',
+      { code: 'P2002', clientVersion: '7.8.0' },
+    );
+    prisma.dailyReport.create.mockRejectedValue(duplicateError);
+    prisma.dailyReport.findFirst.mockResolvedValue(persistedReport);
+
+    const data: CreateDailyReportData = {
+      id: 'report-1',
+      operatorId: 'user-1',
+      companyId: 'company-1',
+      taskId: 'task-1',
+      lotId: 'lot-1',
+      taskTypeId: 'task-type-1',
+      date: new Date('2026-03-01T00:00:00.000Z'),
+      hectares: 5,
+      hours: 3,
+      status: 'PENDIENTE_APROBACION',
+      items: [{ inputId: 'input-1', quantity: 2, unit: 'kg' }],
+    };
+
+    await expect(repository.create(data)).resolves.toEqual(expectedRecord);
+
+    expect(prisma.dailyReport.findFirst).toHaveBeenCalledWith({
+      where: { id: 'report-1', companyId: 'company-1' },
+      include: { items: itemOrderBy },
+    });
+  });
+
+  it('rethrows a P2002 on a different column when id is not provided', async () => {
+    const duplicateError = new PrismaClientKnownRequestError(
+      'Unique constraint failed',
+      { code: 'P2002', clientVersion: '7.8.0' },
+    );
+    prisma.dailyReport.create.mockRejectedValue(duplicateError);
+
+    const data: CreateDailyReportData = {
+      operatorId: 'user-1',
+      companyId: 'company-1',
+      taskId: 'task-1',
+      lotId: 'lot-1',
+      taskTypeId: 'task-type-1',
+      date: new Date('2026-03-01T00:00:00.000Z'),
+      hectares: 5,
+      hours: 3,
+      status: 'PENDIENTE_APROBACION',
+      items: [{ inputId: 'input-1', quantity: 2, unit: 'kg' }],
+    };
+
+    await expect(repository.create(data)).rejects.toThrow(duplicateError);
+
+    expect(prisma.dailyReport.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('rethrows non-P2002 Prisma errors unchanged', async () => {
+    const otherError = new PrismaClientKnownRequestError(
+      'Table does not exist',
+      { code: 'P2021', clientVersion: '7.8.0' },
+    );
+    prisma.dailyReport.create.mockRejectedValue(otherError);
+
+    const data: CreateDailyReportData = {
+      id: 'report-1',
+      operatorId: 'user-1',
+      companyId: 'company-1',
+      taskId: 'task-1',
+      lotId: 'lot-1',
+      taskTypeId: 'task-type-1',
+      date: new Date('2026-03-01T00:00:00.000Z'),
+      hectares: 5,
+      hours: 3,
+      status: 'PENDIENTE_APROBACION',
+      items: [{ inputId: 'input-1', quantity: 2, unit: 'kg' }],
+    };
+
+    await expect(repository.create(data)).rejects.toThrow(otherError);
   });
 });

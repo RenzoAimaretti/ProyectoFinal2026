@@ -13,5 +13,8 @@ abstract class AuthRepository {
   });
 
   /// Best-effort: el adaptador revoca el token remoto sin lanzar errores.
-  Future<void> logout();
+  ///
+  /// `refreshToken` es el token persistido en la sesión; el caller (use case)
+  /// lo lee y lo pasa para que el adaptador no retenga estado en memoria.
+  Future<void> logout({String? refreshToken});
 }

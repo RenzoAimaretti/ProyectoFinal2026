@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 
 import 'app/auth/login_view.dart';
@@ -14,16 +15,23 @@ import 'app/reports/daily_reports_view_model.dart';
 import 'app/tasks/tasks_view_model.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
+import 'data/repositories/daily_report_sync_handler.dart';
 import 'data/repositories/drift_catalog_readers.dart';
 import 'data/repositories/drift_daily_report_repository.dart';
 import 'data/repositories/drift_machine_activity_repository.dart';
 import 'data/repositories/drift_photo_repository.dart';
 import 'data/repositories/drift_reception_repository.dart';
 import 'data/repositories/drift_session_repository.dart';
+import 'data/repositories/drift_sync_queue_store.dart';
 import 'data/repositories/drift_task_reader.dart';
+import 'data/repositories/flutter_sync_delayer.dart';
 import 'data/repositories/http_auth_repository.dart';
+import 'data/repositories/http_daily_report_repository.dart';
 import 'data/repositories/path_provider_photo_storage_repository.dart';
+import 'data/repositories/sync_queue_writer.dart';
+import 'data/repositories/token_refresher.dart';
 import 'data/services/app_database.dart';
+import 'data/services/auth_api_service.dart';
 import 'data/services/catalog_seeder.dart';
 import 'data/services/photo_picker_service.dart';
 import 'domain/models/catalogs.dart' as domain;
@@ -39,6 +47,7 @@ import 'domain/usecases/list_machine_activities_usecase.dart';
 import 'domain/usecases/list_receptions_usecase.dart';
 import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
+import 'domain/services/sync_engine.dart';
 import 'domain/usecases/register_machine_activity_usecase.dart';
 import 'domain/usecases/restore_session_usecase.dart';
 import 'presentation/preview/components_preview_screen.dart';
@@ -61,7 +70,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final AppDatabase _database;
   late final DriftSessionRepository _sessionRepository;
   late final LoginViewModel _loginViewModel;
@@ -74,6 +83,11 @@ class _MyAppState extends State<MyApp> {
   late final MachineActivitiesViewModel _machineActivitiesViewModel;
   late final MachineActivityFormViewModel _machineActivityFormViewModel;
   late final RestoreSessionUseCase _restoreSessionUseCase;
+
+  /// Motor de sincronización (Sprint 2) + gate de conectividad.
+  SyncEngine? _syncEngine;
+  late final Connectivity _connectivity;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   /// Pendientes de sincronización (badge del dashboard).
   late final Stream<int> _pendingSyncCount;
@@ -96,10 +110,12 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Composition root: AppDatabase singleton → adapters → use cases → VMs.
     // Los widgets NO instancian repositorios ni servicios.
     _database = widget.database ?? AppDatabase();
-    final authRepository = HttpAuthRepository();
+    final authApiService = AuthApiService();
+    final authRepository = HttpAuthRepository(apiService: authApiService);
     final sessionRepository = DriftSessionRepository(_database);
     _sessionRepository = sessionRepository;
 
@@ -122,6 +138,23 @@ class _MyAppState extends State<MyApp> {
     // Badge "pendientes de sincronización": el stream se construye en data
     // (SyncQueueDao) y se inyecta aquí; el badge solo recibe Stream<int>.
     _pendingSyncCount = _database.syncQueueDao.watchPendingCount();
+
+    // Motor de sincronización (Sprint 2): composition root del outbox.
+    _setupSyncEngine(authApiService, sessionRepository);
+
+    // Gate/trigger de conectividad: dispara un ciclo al recuperar señal. La
+    // conectividad es heurística de trigger; la sonda real es el intento HTTP.
+    _connectivity = Connectivity();
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
+      (results) {
+        if (results.any((r) => r != ConnectivityResult.none)) {
+          unawaited(_maybeRunSync());
+        }
+      },
+      onError: (Object _) {
+        // Sin plugin de plataforma (tests) o error transitorio: ignorar.
+      },
+    );
 
     // Fotos (CUU05/06): storage físico + persistencia drift + use cases.
     final photoStorage = PathProviderPhotoStorageRepository();
@@ -199,6 +232,57 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  /// Composition root del motor de sincronización (Sprint 2).
+  ///
+  /// `SyncEngine` es genérico y vive en `domain/`; aquí se cablea el store
+  /// drift, el handler concreto `DAILY_REPORT` y el delayer real.
+  void _setupSyncEngine(
+    AuthApiService authApiService,
+    DriftSessionRepository sessionRepository,
+  ) {
+    final store = DriftSyncQueueStore(_database);
+    final remoteRepository = HttpDailyReportRepository();
+    final tokenRefresher = TokenRefresher(authApiService, sessionRepository);
+    final dailyReportHandler = DailyReportSyncHandler(
+      db: _database,
+      remoteRepository: remoteRepository,
+      sessionRepository: sessionRepository,
+      tokenRefresher: tokenRefresher,
+    );
+    _syncEngine = SyncEngine(
+      queue: store,
+      handlers: {SyncEntity.dailyReport: dailyReportHandler},
+      delayer: FlutterSyncDelayer(),
+    );
+  }
+
+  /// Gate por ciclo: sesión con token no vacío (el demo `''` no dispara) y
+  /// conectividad != none. Un fallo de red deja la fila PENDING (spec A5).
+  Future<void> _maybeRunSync() async {
+    final session = _session;
+    if (session == null || session.token.isEmpty) return;
+    if (!await _isConnected()) return;
+    await _syncEngine?.runCycle();
+  }
+
+  Future<bool> _isConnected() async {
+    try {
+      final results = await _connectivity.checkConnectivity();
+      return results.any((r) => r != ConnectivityResult.none);
+    } catch (_) {
+      // Error de plataforma (tests sin plugin): dejamos que el intento HTTP
+      // real decida; asumimos conectado para no bloquear el flujo real.
+      return true;
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_maybeRunSync());
+    }
+  }
+
   /// Siembra las tablas de catálogo vacías. Corre en background y se traga el
   /// error: el seed no debe impedir el arranque de la app.
   Future<void> _seedCatalogs() async {
@@ -220,10 +304,13 @@ class _MyAppState extends State<MyApp> {
         _restoringSession = false;
       });
     }
+    unawaited(_maybeRunSync());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _connectivitySubscription?.cancel();
     _loginViewModel.dispose();
     _dailyReportsViewModel.dispose();
     _machineActivitiesViewModel.dispose();
@@ -288,6 +375,7 @@ class _MyAppState extends State<MyApp> {
                         final session = _loginViewModel.session;
                         if (session != null) {
                           setState(() => _session = session);
+                          unawaited(_maybeRunSync());
                         }
                       },
                     ),

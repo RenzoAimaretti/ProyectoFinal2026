@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { DailyReportController } from './adapters/inbound/daily-report.controller';
 import {
   DAILY_REPORT_APPROVAL,
   DAILY_REPORT_CLIENT_READER,
@@ -30,6 +31,7 @@ import { DailyReportSystemClock } from './adapters/outbound/system-clock';
 
 @Module({
   imports: [PrismaModule],
+  controllers: [DailyReportController],
   providers: [
     PrismaDailyReportRepository,
     PrismaDailyReportCompanyReader,

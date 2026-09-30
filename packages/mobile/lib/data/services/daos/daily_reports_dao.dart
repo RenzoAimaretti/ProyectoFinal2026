@@ -26,7 +26,7 @@ class DailyReportSummaryRow {
   final String status;
 }
 
-@DriftAccessor(tables: [DailyReports])
+@DriftAccessor(tables: [DailyReports, DailyReportItems])
 class DailyReportsDao extends DatabaseAccessor<AppDatabase>
     with _$DailyReportsDaoMixin {
   DailyReportsDao(AppDatabase db) : super(db);
@@ -90,5 +90,21 @@ class DailyReportsDao extends DatabaseAccessor<AppDatabase>
         status: report.status,
       );
     }).watch();
+  }
+
+  // ─── Sprint 2 — helpers para el handler de sincronización ───────────────────
+
+  /// Resuelve un parte diario por `id` (sin join).
+  Future<DailyReport?> getById(String id) {
+    return (select(dailyReports)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+  }
+
+  /// Ítems de consumo de un parte diario, ordenados por `id` para determinismo.
+  Future<List<DailyReportItem>> itemsByReportId(String dailyReportId) {
+    return (select(dailyReportItems)
+          ..where((t) => t.dailyReportId.equals(dailyReportId))
+          ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+        .get();
   }
 }

@@ -39,6 +39,7 @@ export type CreateDailyReportItemInput = {
  * task instead of being trusted from the client.
  */
 export type CreateDailyReportInput = {
+  id?: string;
   operatorId: string;
   taskId: string;
   date: string;
@@ -54,6 +55,7 @@ export type CreateDailyReportItemData = {
 };
 
 export type CreateDailyReportData = {
+  id?: string;
   operatorId: string;
   companyId: string;
   taskId: string;

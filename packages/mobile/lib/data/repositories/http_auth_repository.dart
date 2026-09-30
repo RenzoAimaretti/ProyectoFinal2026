@@ -9,15 +9,14 @@ import '../services/auth_api_service.dart';
 /// Extraída del antiguo `data/repositories/auth_repository.dart`; ahora el
 /// contrato vive en `domain/repositories/auth_repository.dart` y esta clase es
 /// solo un adaptador de salida que consume `AuthApiService`.
+///
+/// El refresh token se persiste en `Session` (Sprint 2): fuente única de verdad
+/// SQLite, sin estado en memoria.
 class HttpAuthRepository implements AuthRepository {
   HttpAuthRepository({AuthApiService? apiService})
       : _apiService = apiService ?? AuthApiService();
 
   final AuthApiService _apiService;
-
-  /// El refresh token no se persiste en `Session` (la tabla `Sessions` no lo
-  /// tiene); se retiene en memoria para el `logout` best-effort del proceso.
-  String? _refreshToken;
 
   @override
   Future<Session> login({
@@ -25,17 +24,14 @@ class HttpAuthRepository implements AuthRepository {
     required String password,
   }) async {
     final response = await _apiService.login(email: email, password: password);
-    _refreshToken = response.refreshToken;
     return _mapToSession(response);
   }
 
   @override
-  Future<void> logout() async {
-    final token = _refreshToken;
-    if (token != null) {
-      await _apiService.logout(token);
+  Future<void> logout({String? refreshToken}) async {
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await _apiService.logout(refreshToken);
     }
-    _refreshToken = null;
   }
 
   Session _mapToSession(LoginResponseModel response) {
@@ -46,6 +42,7 @@ class HttpAuthRepository implements AuthRepository {
       fullName: _deriveFullName(user),
       role: user.role,
       token: response.accessToken,
+      refreshToken: response.refreshToken,
       companyId: user.firmaId,
       lastAccessedAt: DateTime.now(),
     );

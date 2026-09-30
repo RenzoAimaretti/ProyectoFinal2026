@@ -76,7 +76,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -86,6 +86,9 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(tasks);
             await m.createTable(taskOperators);
             await m.addColumn(dailyReports, dailyReports.taskId);
+          }
+          if (from < 3) {
+            await m.addColumn(sessions, sessions.refreshToken);
           }
         },
         beforeOpen: (details) async {

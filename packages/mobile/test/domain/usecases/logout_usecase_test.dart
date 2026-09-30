@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/domain/models/enums.dart';
+import 'package:mobile/domain/models/session.dart';
 import 'package:mobile/domain/usecases/logout_usecase.dart';
 
 import 'fakes.dart';
@@ -27,6 +29,23 @@ void main() {
     await sut.execute();
 
     expect(authRepository.logoutCalled, isTrue);
+    expect(sessionRepository.clearCalled, isTrue);
+  });
+
+  test('logout pasa el refreshToken persistido al adaptador', () async {
+    await sessionRepository.save(Session(
+      userId: 'u-1',
+      email: 'test@test.com',
+      fullName: 'Test User',
+      role: UserRole.operario,
+      token: 'tok',
+      refreshToken: 'ref-token',
+      lastAccessedAt: DateTime(2026, 1, 1),
+    ));
+
+    await sut.execute();
+
+    expect(authRepository.logoutRefreshToken, 'ref-token');
     expect(sessionRepository.clearCalled, isTrue);
   });
 }

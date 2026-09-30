@@ -36,6 +36,22 @@ void main() {
     expect(stored.token, 'jwt-token');
   });
 
+  test('save + current: persiste refreshToken', () async {
+    final withRefresh = Session(
+      userId: 'u-1',
+      email: 'test@test.com',
+      fullName: 'Test User',
+      role: UserRole.operario,
+      token: 'jwt-token',
+      refreshToken: 'jwt-refresh',
+      lastAccessedAt: DateTime(2026, 1, 1),
+    );
+    await sut.save(withRefresh);
+
+    final stored = await sut.current();
+    expect(stored!.refreshToken, 'jwt-refresh');
+  });
+
   test('save reemplaza la sesión anterior (sesión única)', () async {
     await sut.save(session);
 

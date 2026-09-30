@@ -48,3 +48,21 @@ class InvalidWorkDataException extends DomainException {
 class InvalidItemQuantityException extends DomainException {
   const InvalidItemQuantityException(super.message);
 }
+
+// ─── Sincronización (Sprint 2) ────────────────────────────────────────────────
+
+/// Error de sync retriable (5xx/red): el engine reintenta con backoff.
+class SyncRetriableException extends DomainException {
+  const SyncRetriableException(super.message);
+}
+
+/// Error de sync permanente (4xx): poison message, la fila queda `FAILED` sin
+/// reintentar y sin bloquear la cola.
+class SyncPermanentException extends DomainException {
+  const SyncPermanentException(super.message);
+}
+
+/// HTTP 401: la maneja el handler (refresh-on-401 con un retry), no el engine.
+class SyncUnauthorizedException extends DomainException {
+  const SyncUnauthorizedException(super.message);
+}
