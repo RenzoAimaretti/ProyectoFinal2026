@@ -36,8 +36,26 @@ export type TaskOperatorRecord = {
   id: string;
 };
 
+export type TaskOperatorSummary = {
+  id: string;
+  name: string;
+};
+
 export type TaskWithOperatorsRecord = TaskRecord & {
   operators: TaskOperatorRecord[];
+};
+
+/**
+ * Additive read enrichment returned by the list and single-task reads. Every
+ * new field is optional so existing consumers keep working unchanged; the
+ * mapper resolves `farmName` through `lot -> farm` and the operator display
+ * name as `username ?? email`.
+ */
+export type TaskReadOutput = TaskRecord & {
+  lotName?: string;
+  farmName?: string;
+  taskTypeName?: string;
+  operators?: TaskOperatorSummary[];
 };
 
 export type CreateTaskInput = {

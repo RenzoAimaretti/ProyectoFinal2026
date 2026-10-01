@@ -3,25 +3,33 @@ import { PrismaService } from '../../../../prisma/prisma.service';
 import {
   CreateTaskData,
   TaskOutput,
+  TaskReadOutput,
   TaskWithOperatorsRecord,
   UpdateTaskData,
 } from '../../application/task.types';
 import { TaskRepositoryPort } from '../../application/task.ports';
+import { TASK_READ_INCLUDE, toTaskReadOutput } from './task.mapper';
 
 @Injectable()
 export class PrismaTaskRepository implements TaskRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAllByTenantId(tenantId: string): Promise<TaskOutput[]> {
-    return this.prisma.task.findMany({
+  async findAllByTenantId(tenantId: string): Promise<TaskReadOutput[]> {
+    const tasks = await this.prisma.task.findMany({
       where: { lot: { farm: { client: { tenantId } } } },
+      include: TASK_READ_INCLUDE,
     });
+
+    return tasks.map((task) => toTaskReadOutput(task));
   }
 
-  findByIdForTenant(id: string, tenantId: string): Promise<TaskOutput | null> {
-    return this.prisma.task.findFirst({
+  async findByIdForTenant(id: string, tenantId: string): Promise<TaskReadOutput | null> {
+    const task = await this.prisma.task.findFirst({
       where: { id, lot: { farm: { client: { tenantId } } } },
+      include: TASK_READ_INCLUDE,
     });
+
+    return task ? toTaskReadOutput(task) : null;
   }
 
   findByIdWithOperatorsForTenant(

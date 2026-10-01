@@ -313,6 +313,68 @@ async function main(): Promise<void> {
       },
     });
 
+    // --- Tareas de hoy (tablero en vivo) ----------------------------------
+    // Dates are computed at seed time so the board always shows current-day
+    // tasks, regardless of when the seed runs. Mixed statuses across both
+    // campos keep the operator assignment visible in the board.
+    const todayAt = (hours: number, minutes: number): Date => {
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+      return date;
+    };
+
+    await prisma.task.create({
+      data: {
+        id: did(270),
+        lotId: lotAgro1.id,
+        taskTypeId: taskTypePulverizacion.id,
+        status: 'PENDIENTE',
+        startedAt: todayAt(7, 0),
+        operators: { connect: [{ id: USER_ID }] },
+      },
+    });
+    await prisma.task.create({
+      data: {
+        id: did(271),
+        lotId: lotAgro2.id,
+        taskTypeId: taskTypeFertilizacion.id,
+        status: 'EN_PROGRESO',
+        startedAt: todayAt(8, 30),
+        operators: { connect: [{ id: USER_ID }] },
+      },
+    });
+    await prisma.task.create({
+      data: {
+        id: did(272),
+        lotId: lotVerdeA.id,
+        taskTypeId: taskTypeSiembra.id,
+        status: 'FINALIZADA',
+        startedAt: todayAt(6, 0),
+        finishedAt: todayAt(11, 30),
+        operators: { connect: [{ id: USER_ID }] },
+      },
+    });
+    await prisma.task.create({
+      data: {
+        id: did(273),
+        lotId: lotVerdeB.id,
+        taskTypeId: taskTypeArranque.id,
+        status: 'EN_PROGRESO',
+        startedAt: todayAt(9, 15),
+        operators: { connect: [{ id: USER_ID }] },
+      },
+    });
+    await prisma.task.create({
+      data: {
+        id: did(274),
+        lotId: lotVerdeC.id,
+        taskTypeId: taskTypePesaje.id,
+        status: 'PENDIENTE',
+        startedAt: todayAt(13, 0),
+        operators: { connect: [{ id: USER_ID }] },
+      },
+    });
+
     // --- Partes diarios: 3 pendientes, 1 aprobado, 1 rechazado ------------
     const reportPendiente1 = await prisma.dailyReport.create({
       data: {

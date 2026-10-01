@@ -4,6 +4,7 @@ import {
   RemoveTaskOperatorOutput,
   TaskOperatorRecord,
   TaskOutput,
+  TaskReadOutput,
   TaskStatusValue,
   TaskWithOperatorsRecord,
   UpdateTaskData,
@@ -16,8 +17,8 @@ export const LOT_READER = Symbol('TASK_LOT_READER');
 export const USER_READER = Symbol('TASK_USER_READER');
 
 export interface TaskRepositoryPort {
-  findAllByTenantId(tenantId: string): Promise<TaskOutput[]>;
-  findByIdForTenant(id: string, tenantId: string): Promise<TaskOutput | null>;
+  findAllByTenantId(tenantId: string): Promise<TaskReadOutput[]>;
+  findByIdForTenant(id: string, tenantId: string): Promise<TaskReadOutput | null>;
   findByIdWithOperatorsForTenant(
     id: string,
     tenantId: string,

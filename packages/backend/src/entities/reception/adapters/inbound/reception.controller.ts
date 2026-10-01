@@ -30,6 +30,7 @@ import {
 type RequestWithUser = {
   user: {
     id: string;
+    role: string;
     tenantId: string;
     firmaId: string;
   };
@@ -87,12 +88,29 @@ export class ReceptionController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() body: CreateReceptionBody) {
+  async create(@Req() req: RequestWithUser, @Body() body: CreateReceptionBody) {
     try {
-      return await this.createReception.execute(body.clientId, {
+      const created = await this.createReception.execute(body.clientId, {
         date: body.date,
         items: body.items,
       });
+
+      // An ingreso registered by the administrator is already agreed, so it is
+      // validated immediately with the declared quantities. Any other role
+      // keeps the pending-validation flow untouched.
+      if (req.user.role !== 'ADMIN') {
+        return created;
+      }
+
+      return await this.validateReception.execute(
+        created.clientId,
+        created.id,
+        req.user.id,
+        created.items.map((item) => ({
+          inputId: item.inputId,
+          validatedQuantity: item.quantity,
+        })),
+      );
     } catch (error) {
       this.translate(error);
     }

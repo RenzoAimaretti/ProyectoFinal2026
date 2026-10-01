@@ -1,4 +1,5 @@
 import { PrismaTaskRepository } from './prisma-task.repository';
+import { TASK_READ_INCLUDE } from './task.mapper';
 
 describe('PrismaTaskRepository', () => {
   const prisma = {
@@ -33,9 +34,11 @@ describe('PrismaTaskRepository', () => {
 
     expect(prisma.task.findMany).toHaveBeenCalledWith({
       where: { lot: { farm: { client: { tenantId: 'company-1' } } } },
+      include: TASK_READ_INCLUDE,
     });
     expect(prisma.task.findFirst).toHaveBeenNthCalledWith(1, {
       where: { id: 'task-1', lot: { farm: { client: { tenantId: 'company-1' } } } },
+      include: TASK_READ_INCLUDE,
     });
     expect(prisma.task.findFirst).toHaveBeenNthCalledWith(2, {
       where: { id: 'task-1', lot: { farm: { client: { tenantId: 'company-1' } } } },

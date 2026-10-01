@@ -25,6 +25,7 @@ import { ReceptionController } from './reception.controller';
 
 const mockUser = {
   id: 'admin-1',
+  role: 'ADMIN',
   tenantId: 'tenant-1',
   firmaId: 'company-1',
 };
@@ -141,21 +142,63 @@ describe('ReceptionController', () => {
   });
 
   describe('POST /receptions', () => {
-    it('creates the reception with the body client scope', async () => {
+    it('auto-validates the reception when the admin registers it', async () => {
       createReception.execute.mockResolvedValue(mockReception);
+      validateReception.execute.mockResolvedValue({
+        ...mockReception,
+        status: 'VALIDADA',
+      });
 
       await expect(
-        controller.create({
+        controller.create({ user: mockUser } as never, {
           clientId: 'client-1',
           date: '2026-04-01T00:00:00.000Z',
           items: [{ inputId: 'input-1', quantity: 10 }],
         }),
-      ).resolves.toEqual(mockReception);
+      ).resolves.toEqual({ ...mockReception, status: 'VALIDADA' });
 
       expect(createReception.execute).toHaveBeenCalledWith('client-1', {
         date: '2026-04-01T00:00:00.000Z',
         items: [{ inputId: 'input-1', quantity: 10 }],
       });
+      expect(validateReception.execute).toHaveBeenCalledWith(
+        'client-1',
+        'reception-1',
+        'admin-1',
+        [{ inputId: 'input-1', validatedQuantity: 10 }],
+      );
+    });
+
+    it('keeps the reception pending when a non-admin registers it', async () => {
+      createReception.execute.mockResolvedValue(mockReception);
+
+      await expect(
+        controller.create(
+          { user: { ...mockUser, role: 'OPERARIO' } } as never,
+          {
+            clientId: 'client-1',
+            date: '2026-04-01T00:00:00.000Z',
+            items: [{ inputId: 'input-1', quantity: 10 }],
+          },
+        ),
+      ).resolves.toEqual(mockReception);
+
+      expect(validateReception.execute).not.toHaveBeenCalled();
+    });
+
+    it('surfaces the validation error after the admin creation', async () => {
+      createReception.execute.mockResolvedValue(mockReception);
+      validateReception.execute.mockRejectedValue(
+        new InvalidStateTransitionError('already decided'),
+      );
+
+      await expect(
+        controller.create({ user: mockUser } as never, {
+          clientId: 'client-1',
+          date: '2026-04-01T00:00:00.000Z',
+          items: [{ inputId: 'input-1', quantity: 10 }],
+        }),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('translates InvalidRelationError to 400', async () => {
@@ -164,7 +207,7 @@ describe('ReceptionController', () => {
       );
 
       await expect(
-        controller.create({
+        controller.create({ user: mockUser } as never, {
           clientId: 'client-9',
           date: '2026-04-01T00:00:00.000Z',
           items: [{ inputId: 'input-1', quantity: 10 }],
