@@ -94,7 +94,7 @@ export default function Home() {
             </svg>
           </Link>
           <Link
-            href="#"
+            href="/login"
             className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-agro-border bg-card px-7 text-sm font-semibold text-ink shadow-sm transition-all hover:border-agro-border-strong hover:bg-card-hover"
           >
             Iniciar sesión

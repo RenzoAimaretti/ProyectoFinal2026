@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ROLES, modulosPorRol, useRol } from "./rol";
+import { useRequireAuth } from "./auth";
 
 export interface NavItem {
   label: string;
@@ -15,6 +16,11 @@ const SidebarIcons: Record<string, React.ReactNode> = {
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+    </svg>
+  ),
+  "Bandeja de Aprobación": (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   ),
   "Producción": (
@@ -132,9 +138,25 @@ export const DashboardLayout = ({
   children: React.ReactNode;
 }) => {
   const pathname = usePathname();
+  const { user, ready } = useRequireAuth();
   const { rol, setRol } = useRol();
   const items = modulosPorRol(sidebarItems, rol);
   const rolLabel = ROLES.find((r) => r.id === rol)?.label ?? "Usuario";
+
+  // Guard: no render the dashboard (nor fire its data fetches) until the
+  // session has been read from localStorage and validated.
+  if (!ready) {
+    return (
+      <div className="app-canvas flex min-h-screen items-center justify-center">
+        <div className="flex items-center gap-2.5 text-sm text-ink-soft">
+          <span className="h-2 w-2 animate-pulse-soft rounded-full bg-agro-green" />
+          Cargando sesión…
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="flex min-h-screen">

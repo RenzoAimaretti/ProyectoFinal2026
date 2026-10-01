@@ -41,7 +41,7 @@ function InsumoIcon({ liquido }: { liquido: boolean }) {
 const catalog = ["Glifosato", "27-0-0", "Triazol", "Urea", "2,4-D", "Lambdacialotrina"];
 const CLIENTE_LOGUEADO = "Agro-Sur";
 
-type Ingreso = { id: number; insumo: string; cantidad: number; u: string; estado: "pendiente" | "validada" | "rechazada" };
+type Ingreso = { id: number; cliente: string; insumo: string; cantidad: number; u: string; estado: "pendiente" | "validada" | "rechazada" };
 
 const semillaPendientes: { cliente: string; insumo: string; cantidad: number; u: string }[] = [
   { cliente: "Agro-Sur", insumo: "Glifosato", cantidad: 800, u: "L" },
@@ -159,7 +159,7 @@ export default function InsumosPage() {
                   if (!q || q <= 0) return;
                   setIngresos((p) => [
                     ...p,
-                    { id: p.length + ucc + 100, insumo: fInsumo, cantidad: q, u: "u", estado: "pendiente" },
+                    { id: p.length + ucc + 100, cliente: CLIENTE_LOGUEADO, insumo: fInsumo, cantidad: q, u: "u", estado: "pendiente" },
                   ]);
                   setUcc((v) => v + 1);
                   setFCant("");

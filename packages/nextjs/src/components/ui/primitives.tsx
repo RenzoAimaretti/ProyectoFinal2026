@@ -1,5 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import type { DailyReportStatus } from "@/api/client";
+
 export type Tone = "green" | "earth" | "wheat" | "slate";
 
 export const toneBox: Record<Tone, string> = {
@@ -111,26 +115,219 @@ export function PageHeader({
   );
 }
 
-/** Button primario (estilo agro). */
+export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
+
+const buttonVariant: Record<ButtonVariant, string> = {
+  primary: "bg-agro-green text-white shadow-sm hover:bg-agro-green-dark",
+  secondary:
+    "border border-agro-border bg-card text-ink shadow-sm hover:bg-base-subtle hover:border-agro-border-strong",
+  danger: "bg-agro-earth-dark text-white shadow-sm hover:bg-agro-earth",
+  ghost: "text-ink-soft hover:bg-base-subtle hover:text-ink",
+};
+
+/** Button primario (estilo agro). El default conserva el look original. */
 export function Button({
   children,
   onClick,
   className = "",
   type = "button",
+  variant = "primary",
+  disabled = false,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   className?: string;
   type?: "button" | "submit";
+  variant?: ButtonVariant;
+  disabled?: boolean;
 }) {
   return (
     <button
       type={type}
       onClick={onClick}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg bg-agro-green px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-agro-green-dark ${className}`}
+      disabled={disabled}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariant[variant]} ${className}`}
     >
       {children}
     </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Status badge                                                        */
+/* ------------------------------------------------------------------ */
+
+const statusMeta: Record<DailyReportStatus, { label: string; tone: Tone; dot: string }> = {
+  PENDIENTE_APROBACION: { label: "Pendiente", tone: "wheat", dot: "bg-agro-wheat" },
+  APROBADO: { label: "Aprobado", tone: "green", dot: "bg-agro-green" },
+  RECHAZADO: { label: "Rechazado", tone: "earth", dot: "bg-agro-earth" },
+};
+
+/** StatusBadge: estado de un parte de trabajo con color semántico. */
+export function StatusBadge({
+  status,
+  className = "",
+}: {
+  status: DailyReportStatus;
+  className?: string;
+}) {
+  const meta = statusMeta[status];
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${toneBadge[meta.tone]} ${className}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+      {meta.label}
+    </span>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Overlay primitives                                                  */
+/* ------------------------------------------------------------------ */
+
+function Overlay({
+  open,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [open, onClose]);
+
+  if (!open || typeof document === "undefined") return null;
+  return createPortal(<>{children}</>, document.body);
+}
+
+function CloseButton({ onClose }: { onClose: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label="Cerrar"
+      className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-soft transition-colors hover:bg-base-subtle hover:text-ink"
+    >
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  );
+}
+
+/** Drawer: panel lateral para detalle master-detail. Se monta en un portal. */
+export function Drawer({
+  open,
+  onClose,
+  title,
+  subtitle,
+  footer,
+  widthClass = "max-w-2xl",
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  subtitle?: string;
+  footer?: React.ReactNode;
+  widthClass?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Overlay open={open} onClose={onClose}>
+      <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label={title}>
+        <button
+          type="button"
+          aria-label="Cerrar panel"
+          onClick={onClose}
+          className="animate-fade-in absolute inset-0 bg-agro-green-deep/40 backdrop-blur-sm"
+        />
+        <div
+          className={`animate-drawer-in relative z-10 flex h-full w-full ${widthClass} flex-col border-l border-agro-border bg-card shadow-float`}
+        >
+          <header className="flex items-start justify-between gap-3 border-b border-agro-border px-5 py-4">
+            <div>
+              <h3 className="font-semibold text-ink">{title}</h3>
+              {subtitle && <p className="mt-0.5 text-sm text-ink-soft">{subtitle}</p>}
+            </div>
+            <CloseButton onClose={onClose} />
+          </header>
+
+          <div className="flex-1 overflow-y-auto">{children}</div>
+
+          {footer && (
+            <footer className="border-t border-agro-border bg-base-subtle/40 px-5 py-4">
+              {footer}
+            </footer>
+          )}
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+/** Modal: diálogo centrado reutilizable. Se monta en un portal. */
+export function Modal({
+  open,
+  onClose,
+  title,
+  subtitle,
+  footer,
+  widthClass = "max-w-lg",
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  subtitle?: string;
+  footer?: React.ReactNode;
+  widthClass?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Overlay open={open} onClose={onClose}>
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
+        <button
+          type="button"
+          aria-label="Cerrar diálogo"
+          onClick={onClose}
+          className="animate-fade-in absolute inset-0 bg-agro-green-deep/40 backdrop-blur-sm"
+        />
+        <div
+          className={`animate-fade-in-up relative z-10 flex w-full ${widthClass} max-h-[90vh] flex-col overflow-hidden rounded-card-lg border border-agro-border bg-card shadow-float`}
+        >
+          <header className="flex items-start justify-between gap-3 border-b border-agro-border px-5 py-4">
+            <div>
+              <h3 className="font-semibold text-ink">{title}</h3>
+              {subtitle && <p className="mt-0.5 text-sm text-ink-soft">{subtitle}</p>}
+            </div>
+            <CloseButton onClose={onClose} />
+          </header>
+          <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+          {footer && (
+            <footer className="border-t border-agro-border bg-base-subtle/40 px-5 py-4">{footer}</footer>
+          )}
+        </div>
+      </div>
+    </Overlay>
   );
 }
 
