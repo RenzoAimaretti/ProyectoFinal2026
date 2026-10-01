@@ -200,6 +200,11 @@ export default function InsumosPage() {
     [visibleReceptions],
   );
 
+  const resolvedReceptions = useMemo(
+    () => visibleReceptions.filter((r) => r.status !== "PENDIENTE_VALIDACION"),
+    [visibleReceptions],
+  );
+
   const clientOptions = clients.map((c) => ({ value: c.id, label: c.name }));
   const inputOptions = inputs.map((i) => ({ value: i.id, label: `${i.name} (${i.unit})` }));
 
@@ -343,15 +348,25 @@ export default function InsumosPage() {
     setCreating(true);
     setCreateError(null);
     try {
-      await createReception({
+      // An ADMIN registers an already-final ingreso (backend returns VALIDADA);
+      // a client-registered one stays PENDIENTE_VALIDACION. Report the real state
+      // instead of assuming a pending step.
+      const created = await createReception({
         clientId: createClientId,
         date: createDate,
         items: complete.map((d) => ({ inputId: d.inputId, quantity: Number(d.quantity) })),
       });
-      toast.success(
-        "Ingreso registrado",
-        "Queda pendiente de validación por el administrador.",
-      );
+      if (created.status === "VALIDADA") {
+        toast.success(
+          "Ingreso registrado y validado",
+          "El stock del cliente se actualizó.",
+        );
+      } else {
+        toast.success(
+          "Ingreso registrado",
+          "Queda pendiente de validación por el administrador.",
+        );
+      }
       setCreateOpen(false);
       setDraftItems([]);
       refresh();
@@ -529,40 +544,96 @@ export default function InsumosPage() {
         )}
       </Card>
 
-      {/* Reception inbox */}
-      <Card className="overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
-          <div>
-            <h3 className="font-semibold text-ink">
-              {isAdmin ? "Recepciones" : "Mis recepciones"}
-            </h3>
-            <p className="text-sm text-ink-soft">
-              {isAdmin
-                ? "Ingresos declarados por los clientes; validá o rechazá los pendientes."
-                : "Estado de cada ingreso que registraste."}
-            </p>
-          </div>
-          <Badge tone={pendingReceptions.length > 0 ? "wheat" : "green"}>
-            {pendingReceptions.length} pendientes
-          </Badge>
-        </div>
+      {/* Validation inbox (ADMIN): only client-registered pendings */}
+      {isAdmin ? (
+        <>
+          <Card className="mb-5 overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
+              <div>
+                <h3 className="font-semibold text-ink">Bandeja de validación</h3>
+                <p className="text-sm text-ink-soft">
+                  Ingresos declarados por los clientes, pendientes de validar.
+                </p>
+              </div>
+              <Badge tone={pendingReceptions.length > 0 ? "wheat" : "green"}>
+                {pendingReceptions.length} pendientes
+              </Badge>
+            </div>
 
-        <DataTable
-          columns={receptionColumns}
-          data={visibleReceptions}
-          rowKey={(row) => row.id}
-          onRowClick={openDetail}
-          loading={loading}
-          skeletonRows={5}
-          emptyState={
-            <EmptyState
-              icon={<InboxIcon />}
-              title="Sin recepciones"
-              subtitle="Las recepciones registradas aparecerán acá."
+            <DataTable
+              columns={receptionColumns}
+              data={pendingReceptions}
+              rowKey={(row) => row.id}
+              onRowClick={openDetail}
+              loading={loading}
+              skeletonRows={5}
+              emptyState={
+                <EmptyState
+                  icon={<InboxIcon />}
+                  title="Sin ingresos pendientes"
+                  subtitle="No hay recepciones de clientes esperando validación."
+                />
+              }
             />
-          }
-        />
-      </Card>
+          </Card>
+
+          <Card className="overflow-hidden">
+            <div className="border-b border-agro-border px-5 py-4">
+              <h3 className="font-semibold text-ink">Recepciones resueltas</h3>
+              <p className="text-sm text-ink-soft">
+                Ingresos ya validados o rechazados, incluidos los que registra el
+                administrador (se validan al momento).
+              </p>
+            </div>
+
+            <DataTable
+              columns={receptionColumns}
+              data={resolvedReceptions}
+              rowKey={(row) => row.id}
+              onRowClick={openDetail}
+              loading={loading}
+              skeletonRows={5}
+              emptyState={
+                <EmptyState
+                  icon={<InboxIcon />}
+                  title="Sin recepciones resueltas"
+                  subtitle="Las recepciones validadas o rechazadas aparecerán acá."
+                />
+              }
+            />
+          </Card>
+        </>
+      ) : (
+        <Card className="overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
+            <div>
+              <h3 className="font-semibold text-ink">Mis recepciones</h3>
+              <p className="text-sm text-ink-soft">
+                Estado de cada ingreso que registraste.
+              </p>
+            </div>
+            <Badge tone={pendingReceptions.length > 0 ? "wheat" : "green"}>
+              {pendingReceptions.length} pendientes
+            </Badge>
+          </div>
+
+          <DataTable
+            columns={receptionColumns}
+            data={visibleReceptions}
+            rowKey={(row) => row.id}
+            onRowClick={openDetail}
+            loading={loading}
+            skeletonRows={5}
+            emptyState={
+              <EmptyState
+                icon={<InboxIcon />}
+                title="Sin recepciones"
+                subtitle="Las recepciones registradas aparecerán acá."
+              />
+            }
+          />
+        </Card>
+      )}
 
       {/* Detail / resolution drawer */}
       <Drawer
@@ -732,7 +803,11 @@ export default function InsumosPage() {
         open={createOpen}
         onClose={() => (creating ? undefined : setCreateOpen(false))}
         title="Registrar ingreso de insumos"
-        subtitle="Queda pendiente de validación por el administrador."
+        subtitle={
+          isAdmin
+            ? "Como administrador, el ingreso se registra y valida en un solo paso."
+            : "Queda pendiente de validación por el administrador."
+        }
         widthClass="max-w-2xl"
         footer={
           <div className="flex justify-end gap-2">

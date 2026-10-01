@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/ui/layout";
 import {
   Badge,
@@ -8,29 +8,18 @@ import {
   Card,
   EmptyState,
   HeroBand,
-  Modal,
-  type Tone,
+  StatusBadge,
+  type StatusMap,
 } from "@/components/ui/primitives";
-import { Alert, useToast } from "@/components/ui/feedback";
-import { SelectField, TextField } from "@/components/ui/form";
+import { Alert } from "@/components/ui/feedback";
+import { TextField } from "@/components/ui/form";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { navItems } from "@/components/ui/nav";
-import {
-  AlertIcon,
-  InputsIcon,
-  PlusIcon,
-  ProductionIcon,
-  RefreshIcon,
-  XIcon,
-} from "@/components/ui/icons";
+import { ProductionIcon, RefreshIcon } from "@/components/ui/icons";
 import {
   apiGet,
-  createDailyReport,
-  listInputs,
-  listRecipesByLot,
   type FarmDTO,
-  type InputDTO,
   type LotDTO,
-  type RecipeDTO,
   type TaskDTO,
   type TaskTypeDTO,
 } from "@/api/client";
@@ -39,141 +28,128 @@ import {
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
-type Estado = "done" | "current" | "next";
-
-type Labor = {
-  id: string;
-  startedAt: string | null;
-  finishedAt: string | null;
-  tarea: string;
-  cliente: string;
-  lote: string;
-  detalle: string;
-  estado: Estado;
-};
-
-const estadoMap: Record<TaskDTO["status"], Estado> = {
-  FINALIZADA: "done",
-  EN_PROGRESO: "current",
-  PENDIENTE: "next",
-  CANCELADA: "next",
-};
-
-const estadoBadge: Record<Estado, { label: string; tone: Tone }> = {
-  done: { label: "Completado", tone: "green" },
-  current: { label: "En curso", tone: "wheat" },
-  next: { label: "Programado", tone: "slate" },
-};
-
-const dateTimeFmt = new Intl.DateTimeFormat("es-AR", {
-  day: "2-digit",
-  month: "2-digit",
+const timeFmt = new Intl.DateTimeFormat("es-AR", {
   hour: "2-digit",
   minute: "2-digit",
   hour12: false,
 });
 
-function fmtDateTime(iso: string | null): string {
-  if (!iso) return "—";
+const dayFmt = new Intl.DateTimeFormat("es-AR", {
+  weekday: "long",
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+
+/** Local YYYY-MM-DD for "today", matching the native date input value. */
+function todayKey(): string {
+  const d = new Date();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+/** Buckets an ISO timestamp into its local calendar day (YYYY-MM-DD). */
+function localDayKey(iso: string | null): string | null {
+  if (!iso) return null;
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso.slice(0, 16).replace("T", " ") : dateTimeFmt.format(d);
+  if (Number.isNaN(d.getTime())) return null;
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
 }
 
-function buildLabores(
-  tasks: TaskDTO[],
-  lots: LotDTO[],
-  taskTypes: TaskTypeDTO[],
-  farms: FarmDTO[],
-): Labor[] {
-  const lotById = new Map(lots.map((l) => [l.id, l]));
-  const ttById = new Map(taskTypes.map((t) => [t.id, t]));
-  const farmById = new Map(farms.map((f) => [f.id, f]));
-
-  return tasks
-    .map((task) => {
-      const lot = lotById.get(task.lotId);
-      const tt = ttById.get(task.taskTypeId);
-      const farm = lot ? farmById.get(lot.farmId) : undefined;
-      return {
-        id: task.id,
-        startedAt: task.startedAt,
-        finishedAt: task.finishedAt,
-        tarea: tt?.name ?? "Labor",
-        cliente: farm?.name ?? "—",
-        lote: lot?.name ?? "—",
-        detalle: [lot ? `${lot.area} ha` : null, tt?.description ?? null]
-          .filter(Boolean)
-          .join(" · "),
-        estado: estadoMap[task.status],
-      };
-    })
-    .sort((a, b) => (b.startedAt ?? "").localeCompare(a.startedAt ?? ""));
+function fmtTime(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : timeFmt.format(d);
 }
 
-type DraftItem = { key: string; inputId: string; quantity: string };
+function fmtDayLabel(dateKey: string): string {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  if (!year || !month || !day) return dateKey;
+  const d = new Date(year, month - 1, day);
+  if (Number.isNaN(d.getTime())) return dateKey;
+  const label = dayFmt.format(d);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+const TASK_STATUS_BADGE: StatusMap<TaskDTO["status"]> = {
+  PENDIENTE: { label: "Pendiente", tone: "slate", dot: "bg-ink-faint" },
+  EN_PROGRESO: { label: "En progreso", tone: "wheat", dot: "bg-agro-wheat" },
+  FINALIZADA: { label: "Finalizada", tone: "green", dot: "bg-agro-green" },
+  CANCELADA: { label: "Cancelada", tone: "earth", dot: "bg-agro-earth" },
+};
+
+type BoardTask = {
+  id: string;
+  taskTypeName: string;
+  status: TaskDTO["status"];
+  operatorsLabel: string | null;
+  time: string | null;
+};
+
+type LotGroup = { lotName: string; tasks: BoardTask[] };
+type FarmGroup = { farmName: string; lots: LotGroup[]; taskCount: number };
+
+type Summary = {
+  pending: number;
+  inProgress: number;
+  done: number;
+  cancelled: number;
+};
+
+/** Resolves the operator line without inventing data. */
+function describeOperators(task: TaskDTO): string | null {
+  if (!Array.isArray(task.operators)) return null;
+  if (task.operators.length === 0) return "Sin operarios asignados";
+  const names = task.operators
+    .map((operator) => operator?.name)
+    .filter((name): name is string => Boolean(name && name.trim()));
+  if (names.length > 0) return names.join(", ");
+  return `${task.operators.length} ${
+    task.operators.length === 1 ? "operario" : "operarios"
+  }`;
+}
 
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
 export default function ProduccionPage() {
-  const toast = useToast();
-
   const [tasks, setTasks] = useState<TaskDTO[]>([]);
   const [lots, setLots] = useState<LotDTO[]>([]);
-  const [taskTypes, setTaskTypes] = useState<TaskTypeDTO[]>([]);
   const [farms, setFarms] = useState<FarmDTO[]>([]);
-  const [inputs, setInputs] = useState<InputDTO[]>([]);
+  const [taskTypes, setTaskTypes] = useState<TaskTypeDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
-
-  const [selectedLotId, setSelectedLotId] = useState("");
-  const [recipes, setRecipes] = useState<RecipeDTO[]>([]);
-  const [recipesLoading, setRecipesLoading] = useState(false);
-  const [recipesError, setRecipesError] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState(todayKey);
 
   const refresh = useCallback(() => {
     setLoading(true);
     setError(null);
-    setRecipesLoading(true);
-    setRecipesError(null);
     setVersion((v) => v + 1);
   }, []);
-
-  // Cargar parte modal
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createTaskId, setCreateTaskId] = useState("");
-  const [createDate, setCreateDate] = useState("");
-  const [createHectares, setCreateHectares] = useState("");
-  const [createHours, setCreateHours] = useState("");
-  const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
-  const draftKey = useRef(0);
-  const nextKey = () => `d${draftKey.current++}`;
 
   useEffect(() => {
     let alive = true;
     Promise.all([
       apiGet<TaskDTO[]>("/tasks"),
       apiGet<LotDTO[]>("/lots"),
-      apiGet<TaskTypeDTO[]>("/task-types"),
       apiGet<FarmDTO[]>("/farms"),
-      listInputs(),
+      apiGet<TaskTypeDTO[]>("/task-types"),
     ])
-      .then(([taskList, lotList, typeList, farmList, inputList]) => {
+      .then(([taskList, lotList, farmList, typeList]) => {
         if (!alive) return;
-        setTasks(taskList);
-        setLots(lotList);
-        setTaskTypes(typeList);
-        setFarms(farmList);
-        setInputs(inputList);
-        setSelectedLotId((prev) => prev || lotList[0]?.id || "");
+        setTasks(Array.isArray(taskList) ? taskList : []);
+        setLots(Array.isArray(lotList) ? lotList : []);
+        setFarms(Array.isArray(farmList) ? farmList : []);
+        setTaskTypes(Array.isArray(typeList) ? typeList : []);
       })
       .catch(() => {
         if (alive) {
-          setError("No se pudieron cargar las labores y catálogos.");
+          setError("No se pudieron cargar las tareas y los catálogos.");
         }
       })
       .finally(() => {
@@ -184,186 +160,86 @@ export default function ProduccionPage() {
     };
   }, [version]);
 
-  useEffect(() => {
-    let alive = true;
-    if (!selectedLotId) return;
-    listRecipesByLot(selectedLotId)
-      .then((data) => {
-        if (alive) setRecipes(data);
-      })
-      .catch(() => {
-        if (alive) setRecipesError("No se pudo cargar la receta del lote.");
-      })
-      .finally(() => {
-        if (alive) setRecipesLoading(false);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [selectedLotId, version]);
-
-  const labores = useMemo(
-    () => buildLabores(tasks, lots, taskTypes, farms),
-    [tasks, lots, taskTypes, farms],
+  const dayTasks = useMemo(
+    () => tasks.filter((task) => localDayKey(task.startedAt) === selectedDate),
+    [tasks, selectedDate],
   );
-  const enCurso = labores.filter((l) => l.estado === "current").length;
-  const completadas = labores.filter((l) => l.estado === "done").length;
 
-  const lotOptions = useMemo(() => {
-    const farmById = new Map(farms.map((f) => [f.id, f]));
-    return lots.map((lot) => ({
-      value: lot.id,
-      label: `${lot.name}${lot.farmId && farmById.get(lot.farmId) ? ` · ${farmById.get(lot.farmId)?.name}` : ""}`,
-    }));
-  }, [lots, farms]);
-
-  const taskOptions = useMemo(() => {
-    const lotById = new Map(lots.map((l) => [l.id, l]));
-    const ttById = new Map(taskTypes.map((t) => [t.id, t]));
-    const farmById = new Map(farms.map((f) => [f.id, f]));
-    return tasks.map((task) => {
-      const lot = lotById.get(task.lotId);
-      const tt = ttById.get(task.taskTypeId);
-      const farm = lot ? farmById.get(lot.farmId) : undefined;
-      return {
-        value: task.id,
-        label: `${tt?.name ?? "Labor"} · ${lot?.name ?? "—"}${
-          farm ? ` (${farm.name})` : ""
-        }`,
-      };
+  const summary = useMemo<Summary>(() => {
+    const acc: Summary = { pending: 0, inProgress: 0, done: 0, cancelled: 0 };
+    dayTasks.forEach((task) => {
+      if (task.status === "PENDIENTE") acc.pending += 1;
+      else if (task.status === "EN_PROGRESO") acc.inProgress += 1;
+      else if (task.status === "FINALIZADA") acc.done += 1;
+      else acc.cancelled += 1;
     });
-  }, [tasks, lots, taskTypes, farms]);
+    return acc;
+  }, [dayTasks]);
 
-  const inputOptions = inputs.map((i) => ({
-    value: i.id,
-    label: `${i.name} (${i.unit})`,
-  }));
+  const board = useMemo<FarmGroup[]>(() => {
+    const lotById = new Map(lots.map((lot) => [lot.id, lot]));
+    const farmById = new Map(farms.map((farm) => [farm.id, farm]));
+    const typeById = new Map(taskTypes.map((type) => [type.id, type]));
 
-  const activeRecipe = recipes[0] ?? null;
+    const farmMap = new Map<string, Map<string, BoardTask[]>>();
 
-  /* ----- Cargar parte ----- */
-  const openCreate = useCallback(() => {
-    setCreateTaskId(tasks[0]?.id ?? "");
-    setCreateDate(new Date().toISOString().slice(0, 10));
-    setCreateHectares("");
-    setCreateHours("");
-    setDraftItems([{ key: nextKey(), inputId: inputs[0]?.id ?? "", quantity: "" }]);
-    setCreateError(null);
-    setCreateOpen(true);
-  }, [tasks, inputs]);
+    dayTasks.forEach((task) => {
+      const lot = lotById.get(task.lotId);
+      const farmName =
+        task.farmName ??
+        (lot ? farmById.get(lot.farmId)?.name : undefined) ??
+        "Sin campo";
+      const lotName = task.lotName ?? lot?.name ?? "Sin lote";
+      const taskTypeName =
+        task.taskTypeName ?? typeById.get(task.taskTypeId)?.name ?? "Sin labor";
 
-  const updateDraftItem = (key: string, patch: Partial<DraftItem>) => {
-    setDraftItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)));
-  };
+      const boardTask: BoardTask = {
+        id: task.id,
+        taskTypeName,
+        status: task.status,
+        operatorsLabel: describeOperators(task),
+        time: fmtTime(task.startedAt),
+      };
 
-  const addDraftItem = () => {
-    const used = new Set(draftItems.map((d) => d.inputId));
-    const next = inputs.find((i) => !used.has(i.id));
-    setDraftItems((prev) => [
-      ...prev,
-      { key: nextKey(), inputId: next?.id ?? "", quantity: "" },
-    ]);
-  };
+      let lotMap = farmMap.get(farmName);
+      if (!lotMap) {
+        lotMap = new Map<string, BoardTask[]>();
+        farmMap.set(farmName, lotMap);
+      }
+      const list = lotMap.get(lotName);
+      if (list) list.push(boardTask);
+      else lotMap.set(lotName, [boardTask]);
+    });
 
-  const removeDraftItem = (key: string) => {
-    setDraftItems((prev) => (prev.length <= 1 ? prev : prev.filter((it) => it.key !== key)));
-  };
+    const byTime = (a: BoardTask, b: BoardTask) =>
+      (a.time ?? "").localeCompare(b.time ?? "");
 
-  const inputOptionsFor = (currentKey: string) => {
-    const usedElsewhere = new Set(
-      draftItems.filter((d) => d.key !== currentKey).map((d) => d.inputId),
-    );
-    return inputOptions.map((opt) => ({ ...opt, disabled: usedElsewhere.has(opt.value) }));
-  };
-
-  const handleCreate = useCallback(async () => {
-    if (creating) return;
-    if (!createTaskId) {
-      setCreateError("Seleccioná la tarea del parte.");
-      return;
-    }
-    if (!createDate) {
-      setCreateError("Indicá la fecha del parte.");
-      return;
-    }
-    const hectares = Number(createHectares);
-    const hours = Number(createHours);
-    if (!Number.isFinite(hectares) || hectares <= 0) {
-      setCreateError("Las hectáreas deben ser un número mayor a cero.");
-      return;
-    }
-    if (!Number.isFinite(hours) || hours <= 0) {
-      setCreateError("Las horas deben ser un número mayor a cero.");
-      return;
-    }
-    const complete = draftItems.filter(
-      (d) => d.inputId && Number(d.quantity) > 0 && Number.isFinite(Number(d.quantity)),
-    );
-    if (draftItems.length === 0 || complete.length !== draftItems.length) {
-      setCreateError("Cargá al menos un insumo con cantidad mayor a cero.");
-      return;
-    }
-    if (new Set(complete.map((d) => d.inputId)).size !== complete.length) {
-      setCreateError("No repitas el mismo insumo en el parte.");
-      return;
-    }
-    const unitById = new Map(inputs.map((i) => [i.id, i.unit]));
-    setCreating(true);
-    setCreateError(null);
-    try {
-      await createDailyReport({
-        taskId: createTaskId,
-        date: createDate,
-        hectares,
-        hours,
-        items: complete.map((d) => ({
-          inputId: d.inputId,
-          quantity: Number(d.quantity),
-          unit: unitById.get(d.inputId),
-        })),
-      });
-      toast.success("Parte cargado", "Queda pendiente de aprobación.");
-      setCreateOpen(false);
-      setDraftItems([]);
-      refresh();
-    } catch {
-      const message =
-        "No se pudo cargar el parte. Revisá los datos e intentá nuevamente.";
-      setCreateError(message);
-      toast.error(message);
-    } finally {
-      setCreating(false);
-    }
-  }, [
-    creating,
-    createTaskId,
-    createDate,
-    createHectares,
-    createHours,
-    draftItems,
-    inputs,
-    toast,
-    refresh,
-  ]);
+    return Array.from(farmMap.entries())
+      .map(([farmName, lotMap]) => {
+        const lotGroups: LotGroup[] = Array.from(lotMap.entries())
+          .map(([lotName, list]) => ({ lotName, tasks: [...list].sort(byTime) }))
+          .sort((a, b) => a.lotName.localeCompare(b.lotName));
+        const taskCount = lotGroups.reduce((n, group) => n + group.tasks.length, 0);
+        return { farmName, lots: lotGroups, taskCount };
+      })
+      .sort((a, b) => a.farmName.localeCompare(b.farmName));
+  }, [dayTasks, lots, farms, taskTypes]);
 
   return (
     <DashboardLayout
       title="Producción"
       sidebarItems={navItems}
-      breadcrumb="Labores agrícolas y partes diarios"
+      breadcrumb="Tablero diario de labores por campo y lote"
     >
       <HeroBand
-        kicker="Labores y partes"
-        title="Producción"
-        description="Partes diarios de la campaña, recetas de aplicación cargadas por lote y estado de las labores."
+        kicker="Tablero de tareas"
+        title="Tareas del día"
+        description="Tareas iniciadas en la fecha seleccionada, agrupadas por campo y lote."
         icon={<ProductionIcon className="h-6 w-6" />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">
-              {enCurso} en curso
-            </span>
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">
-              {completadas} completadas
+              {dayTasks.length} {dayTasks.length === 1 ? "tarea" : "tareas"}
             </span>
             <button
               type="button"
@@ -374,347 +250,107 @@ export default function ProduccionPage() {
               <RefreshIcon className="h-4 w-4" />
               Actualizar
             </button>
-            <button
-              type="button"
-              onClick={openCreate}
-              disabled={tasks.length === 0 || inputs.length === 0}
-              title={
-                tasks.length === 0 || inputs.length === 0
-                  ? "Necesitás tareas e insumos cargados para registrar un parte."
-                  : undefined
-              }
-              className="inline-flex items-center gap-2 rounded-lg bg-white/95 px-4 py-2.5 text-sm font-semibold text-agro-green-deep transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Cargar parte
-            </button>
           </div>
         }
       />
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        {/* Timeline de labores */}
-        <div className="lg:col-span-2">
-          <Card className="overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
-              <div>
-                <h3 className="font-semibold text-ink">Labores</h3>
-                <p className="text-sm text-ink-soft">
-                  {labores.length} {labores.length === 1 ? "tarea registrada" : "tareas registradas"}
-                </p>
-              </div>
-              <Badge tone={enCurso > 0 ? "wheat" : "slate"}>{enCurso} en curso</Badge>
-            </div>
-
-            {loading ? (
-              <p className="px-5 py-8 text-center text-sm text-ink-soft">Cargando labores…</p>
-            ) : error ? (
-              <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-                <span className="text-agro-earth-dark">
-                  <AlertIcon className="h-6 w-6" />
-                </span>
-                <p className="text-sm font-medium text-agro-earth-dark">{error}</p>
-                <Button variant="secondary" onClick={refresh}>
-                  Reintentar
-                </Button>
-              </div>
-            ) : labores.length === 0 ? (
-              <EmptyState
-                icon={<ProductionIcon />}
-                title="Sin labores"
-                subtitle="No hay tareas registradas para este tenant."
-              />
-            ) : (
-              <ol className="relative px-5 py-4">
-                <div className="absolute bottom-0 left-[2.7rem] top-0 w-px bg-agro-border" />
-                {labores.map((labor) => {
-                  const badge = estadoBadge[labor.estado];
-                  return (
-                    <li key={labor.id} className="relative z-10 mb-5 flex gap-4 last:mb-0">
-                      <div className="w-12 shrink-0 pt-0.5 text-xs font-medium text-ink-faint">
-                        {fmtDateTime(labor.startedAt)}
-                      </div>
-                      <span
-                        className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
-                          labor.estado === "done"
-                            ? "bg-agro-green"
-                            : labor.estado === "current"
-                              ? "bg-agro-wheat animate-pulse-soft"
-                              : "bg-ink-faint"
-                        }`}
-                      />
-                      <div className="min-w-0 flex-1 rounded-lg border border-agro-border bg-card px-4 py-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-ink">
-                              {labor.tarea}
-                            </p>
-                            <p className="text-xs text-ink-soft">
-                              {labor.lote}
-                              {labor.cliente !== "—" && (
-                                <span className="ml-1 rounded bg-agro-green/5 px-1.5 py-0.5 text-[11px] font-medium text-agro-green-deep ring-1 ring-agro-border">
-                                  {labor.cliente}
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                          <Badge tone={badge.tone}>{badge.label}</Badge>
-                        </div>
-                        {labor.detalle && (
-                          <p className="mt-1 text-xs text-ink-faint">{labor.detalle}</p>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </Card>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4 rounded-card-lg border border-agro-border bg-card px-5 py-4 shadow-card">
+        <div className="w-full sm:w-56">
+          <TextField
+            label="Fecha"
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
         </div>
-
-        {/* Receta + condiciones */}
-        <div className="space-y-5">
-          <Card className="overflow-hidden">
-            <div className="border-b border-agro-border px-5 py-4">
-              <h3 className="font-semibold text-ink">Receta de aplicación</h3>
-              <p className="text-sm text-ink-soft">Cargada por lote</p>
-            </div>
-            <div className="border-b border-agro-border px-5 py-3">
-              <SelectField
-                label="Lote"
-                value={selectedLotId}
-                onChange={(e) => {
-                  setRecipesLoading(true);
-                  setRecipesError(null);
-                  setSelectedLotId(e.target.value);
-                }}
-                options={lotOptions}
-                placeholder="Seleccioná un lote"
-                disabled={lots.length === 0}
-              />
-            </div>
-            <div className="p-5">
-              {recipesError ? (
-                <Alert tone="error">{recipesError}</Alert>
-              ) : recipesLoading ? (
-                <p className="py-6 text-center text-sm text-ink-soft">Cargando receta…</p>
-              ) : !activeRecipe ? (
-                <EmptyState
-                  icon={<InputsIcon />}
-                  title="Sin receta cargada"
-                  subtitle={
-                    selectedLotId
-                      ? "Este lote todavía no tiene una receta de aplicación registrada."
-                      : "Seleccioná un lote para ver su receta."
-                  }
-                />
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-ink-faint">
-                      {activeRecipe.date.slice(0, 10)}
-                    </span>
-                    <Badge tone={activeRecipe.status === "ACTIVA" ? "green" : "slate"}>
-                      {activeRecipe.status === "ACTIVA" ? "Activa" : "Archivada"}
-                    </Badge>
-                  </div>
-
-                  {activeRecipe.items.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-agro-border px-3 py-4 text-center text-sm text-ink-soft">
-                      La receta no tiene insumos cargados.
-                    </p>
-                  ) : (
-                    <ul className="space-y-2.5">
-                      {[...activeRecipe.items]
-                        .sort((a, b) => a.loadOrder - b.loadOrder)
-                        .map((item, index) => (
-                          <li
-                            key={`${item.inputId}-${index}`}
-                            className="flex items-center justify-between border-b border-dashed border-agro-border pb-2 text-sm last:border-0 last:pb-0"
-                          >
-                            <span className="text-ink-soft">
-                              {item.loadOrder}. {item.inputName}
-                            </span>
-                            <span className="font-semibold text-ink">
-                              {item.dose}
-                              {item.unit ? ` ${item.unit}` : ""}
-                            </span>
-                          </li>
-                        ))}
-                    </ul>
-                  )}
-
-                  <div className="flex items-center justify-between border-t border-dashed border-agro-border pt-3 text-sm">
-                    <span className="text-ink-soft">Volumen de caldo</span>
-                    <span className="font-semibold text-ink">
-                      {activeRecipe.sprayVolume} {activeRecipe.sprayVolumeUnit}
-                    </span>
-                  </div>
-
-                  {activeRecipe.observations && (
-                    <p className="rounded-lg bg-base-subtle/60 px-3 py-2 text-xs text-ink-soft">
-                      {activeRecipe.observations}
-                    </p>
-                  )}
-
-                  {recipes.length > 1 && (
-                    <p className="text-xs text-ink-faint">
-                      Hay {recipes.length} recetas para este lote; se muestra la más reciente.
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </Card>
-
-          <Card className="overflow-hidden">
-            <div className="border-b border-agro-border px-5 py-4">
-              <h3 className="font-semibold text-ink">Condiciones de aplicación</h3>
-            </div>
-            <EmptyState
-              icon={<InputsIcon />}
-              title="Proximamente"
-              subtitle="Las condiciones climáticas y de suelo todavía no están modeladas en el sistema."
-            />
-          </Card>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone="slate">{summary.pending} pendientes</Badge>
+          <Badge tone="wheat">{summary.inProgress} en progreso</Badge>
+          <Badge tone="green">{summary.done} finalizadas</Badge>
+          <Badge tone="earth">{summary.cancelled} canceladas</Badge>
         </div>
       </div>
 
-      {/* Cargar parte */}
-      <Modal
-        open={createOpen}
-        onClose={() => (creating ? undefined : setCreateOpen(false))}
-        title="Cargar parte diario"
-        subtitle="Queda pendiente de aprobación en la bandeja."
-        widthClass="max-w-2xl"
-        footer={
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setCreateOpen(false)} disabled={creating}>
-              Cancelar
+      {error && (
+        <Alert tone="error" title="No se pudo cargar el tablero" className="mb-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span>{error}</span>
+            <Button variant="secondary" onClick={refresh}>
+              Reintentar
             </Button>
-            <span
-              className="inline-flex"
-              title={
-                tasks.length === 0 || inputs.length === 0
-                  ? "Necesitás tareas e insumos cargados."
-                  : undefined
-              }
-            >
-              <Button
-                onClick={() => void handleCreate()}
-                disabled={creating || tasks.length === 0 || inputs.length === 0}
-              >
-                {creating ? "Cargando…" : "Cargar parte"}
-              </Button>
-            </span>
           </div>
-        }
-      >
-        <div className="space-y-4">
-          {createError && <Alert tone="error">{createError}</Alert>}
+        </Alert>
+      )}
 
-          <SelectField
-            label="Tarea"
-            value={createTaskId}
-            onChange={(e) => setCreateTaskId(e.target.value)}
-            options={taskOptions}
-            placeholder="Seleccioná una tarea"
-            disabled={creating || tasks.length === 0}
+      {loading ? (
+        <Card className="overflow-hidden">
+          <ListSkeleton rows={5} />
+        </Card>
+      ) : error ? null : board.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon={<ProductionIcon />}
+            title={selectedDate ? "No hay tareas para esta fecha" : "Seleccioná una fecha"}
+            subtitle={
+              selectedDate
+                ? `No se registraron tareas iniciadas el ${fmtDayLabel(selectedDate)}.`
+                : "Elegí un día para ver sus tareas."
+            }
           />
+        </Card>
+      ) : (
+        <div className="space-y-5">
+          {board.map((farm) => (
+            <Card key={farm.farmName} className="overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
+                <div>
+                  <h3 className="font-semibold text-ink">{farm.farmName}</h3>
+                  <p className="text-sm text-ink-soft">
+                    {farm.lots.length} {farm.lots.length === 1 ? "lote" : "lotes"} ·{" "}
+                    {farm.taskCount} {farm.taskCount === 1 ? "tarea" : "tareas"}
+                  </p>
+                </div>
+                <Badge tone="slate">{farm.taskCount}</Badge>
+              </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <TextField
-              label="Fecha"
-              type="date"
-              value={createDate}
-              onChange={(e) => setCreateDate(e.target.value)}
-              disabled={creating}
-            />
-            <TextField
-              label="Hectáreas"
-              type="number"
-              min="0"
-              step="any"
-              value={createHectares}
-              onChange={(e) => setCreateHectares(e.target.value)}
-              disabled={creating}
-            />
-            <TextField
-              label="Horas"
-              type="number"
-              min="0"
-              step="any"
-              value={createHours}
-              onChange={(e) => setCreateHours(e.target.value)}
-              disabled={creating}
-            />
-          </div>
+              <div className="divide-y divide-agro-border">
+                {farm.lots.map((lot) => (
+                  <section key={lot.lotName} className="px-5 py-4">
+                    <div className="mb-2 flex items-center gap-2">
+                      <h4 className="text-sm font-semibold text-ink">{lot.lotName}</h4>
+                      <span className="text-xs font-medium text-ink-faint">
+                        {lot.tasks.length}
+                      </span>
+                    </div>
 
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-ink">Insumos aplicados</h4>
-              <span
-                className="inline-flex"
-                title={
-                  draftItems.length >= inputs.length
-                    ? "Ya agregaste todos los insumos disponibles."
-                    : undefined
-                }
-              >
-                <Button
-                  variant="secondary"
-                  onClick={addDraftItem}
-                  disabled={creating || inputs.length === 0 || draftItems.length >= inputs.length}
-                >
-                  <PlusIcon className="h-4 w-4" />
-                  Agregar
-                </Button>
-              </span>
-            </div>
-
-            <ul className="space-y-2">
-              {draftItems.map((draft) => (
-                <li key={draft.key} className="flex items-end gap-2">
-                  <div className="flex-1">
-                    <SelectField
-                      label="Insumo"
-                      value={draft.inputId}
-                      onChange={(e) => updateDraftItem(draft.key, { inputId: e.target.value })}
-                      options={inputOptionsFor(draft.key)}
-                      placeholder="Seleccioná un insumo"
-                      disabled={creating}
-                    />
-                  </div>
-                  <div className="w-32">
-                    <TextField
-                      label="Cantidad"
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={draft.quantity}
-                      onChange={(e) => updateDraftItem(draft.key, { quantity: e.target.value })}
-                      disabled={creating}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeDraftItem(draft.key)}
-                    disabled={creating || draftItems.length <= 1}
-                    title={
-                      draftItems.length <= 1
-                        ? "Debe quedar al menos un insumo."
-                        : "Quitar insumo"
-                    }
-                    className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-agro-border text-ink-soft transition-colors hover:bg-base-subtle hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <XIcon className="h-4 w-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+                    <ul className="space-y-2">
+                      {lot.tasks.map((task) => (
+                        <li
+                          key={task.id}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-agro-border bg-base-subtle/30 px-4 py-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-ink">
+                              {task.taskTypeName}
+                            </p>
+                            <p className="mt-0.5 text-xs text-ink-soft">
+                              {task.time ? `${task.time} h` : "Sin horario"}
+                              {task.operatorsLabel
+                                ? ` · ${task.operatorsLabel}`
+                                : ""}
+                            </p>
+                          </div>
+                          <StatusBadge status={task.status} map={TASK_STATUS_BADGE} />
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            </Card>
+          ))}
         </div>
-      </Modal>
+      )}
     </DashboardLayout>
   );
 }

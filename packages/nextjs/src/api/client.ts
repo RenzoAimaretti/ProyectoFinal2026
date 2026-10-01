@@ -274,6 +274,11 @@ export type LotDTO = {
 
 export type TaskTypeDTO = { id: string; name: string; description: string | null };
 
+export type TaskOperatorDTO = {
+  id: string;
+  name: string | null;
+};
+
 export type TaskDTO = {
   id: string;
   lotId: string;
@@ -281,6 +286,14 @@ export type TaskDTO = {
   status: "PENDIENTE" | "EN_PROGRESO" | "FINALIZADA" | "CANCELADA";
   startedAt: string | null;
   finishedAt: string | null;
+  /**
+   * Enriched by `GET /tasks`. Optional so the UI keeps working against an
+   * older backend and can fall back to the lot/farm/task-type catalogues.
+   */
+  lotName?: string | null;
+  farmName?: string | null;
+  taskTypeName?: string | null;
+  operators?: TaskOperatorDTO[] | null;
 };
 
 export type MachineDTO = {
