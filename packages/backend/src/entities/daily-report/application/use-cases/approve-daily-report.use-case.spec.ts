@@ -51,6 +51,7 @@ function createRepository(): jest.Mocked<DailyReportRepositoryPort> {
     create: jest.fn(),
     findByIdForCompany: jest.fn(),
     findAllByCompany: jest.fn(),
+    reject: jest.fn(),
   };
 }
 

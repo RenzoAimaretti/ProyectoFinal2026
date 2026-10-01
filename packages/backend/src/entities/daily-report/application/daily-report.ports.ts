@@ -2,6 +2,7 @@ import {
   ApproveDailyReportData,
   CreateDailyReportData,
   DailyReportRecord,
+  RejectDailyReportData,
 } from './daily-report.types';
 
 export const DAILY_REPORT_REPOSITORY = Symbol('DAILY_REPORT_REPOSITORY');
@@ -21,6 +22,12 @@ export interface DailyReportRepositoryPort {
     companyId: string,
   ): Promise<DailyReportRecord | null>;
   findAllByCompany(companyId: string): Promise<DailyReportRecord[]>;
+  /**
+   * Records the terminal rejection of a pending report inside its company
+   * scope. Rejection never moves stock; it only stores status and reason, which
+   * must be atomic with the pending guard.
+   */
+  reject(data: RejectDailyReportData): Promise<DailyReportRecord>;
 }
 
 /**

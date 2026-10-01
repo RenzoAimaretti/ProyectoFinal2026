@@ -4,6 +4,7 @@ import {
   EntityNotFoundError,
   InvalidInputError,
   InvalidRelationError,
+  InvalidStateTransitionError,
 } from '../../domain/errors';
 import {
   DailyReportCompanyReaderPort,
@@ -19,6 +20,7 @@ import {
 import { CreateDailyReportUseCase } from './create-daily-report.use-case';
 import { FindDailyReportUseCase } from './find-daily-report.use-case';
 import { FindDailyReportsByCompanyUseCase } from './find-daily-reports-by-company.use-case';
+import { RejectDailyReportUseCase } from './reject-daily-report.use-case';
 
 const baseReport: DailyReportRecord = {
   id: 'report-1',
@@ -71,6 +73,7 @@ function createRepository(): jest.Mocked<DailyReportRepositoryPort> {
     create: jest.fn(),
     findByIdForCompany: jest.fn(),
     findAllByCompany: jest.fn(),
+    reject: jest.fn(),
   };
 }
 
@@ -98,6 +101,7 @@ describe('Daily report use cases', () => {
       'application/daily-report.validation.ts',
       'application/use-cases/create-daily-report.use-case.ts',
       'application/use-cases/approve-daily-report.use-case.ts',
+      'application/use-cases/reject-daily-report.use-case.ts',
       'application/use-cases/find-daily-report.use-case.ts',
       'application/use-cases/find-daily-reports-by-company.use-case.ts',
     ];
@@ -475,6 +479,83 @@ describe('Daily report use cases', () => {
         InvalidInputError,
       );
       expect(repository.findAllByCompany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('RejectDailyReportUseCase', () => {
+    let repository: jest.Mocked<DailyReportRepositoryPort>;
+    let useCase: RejectDailyReportUseCase;
+
+    beforeEach(() => {
+      repository = createRepository();
+      useCase = new RejectDailyReportUseCase(repository);
+      repository.findByIdForCompany.mockResolvedValue(baseReport);
+    });
+
+    it.each([
+      ['an empty company id', '  ', 'report-1', 'motivo'],
+      ['an empty report id', 'company-1', '  ', 'motivo'],
+      ['an empty reason', 'company-1', 'report-1', '   '],
+      ['a missing reason', 'company-1', 'report-1', undefined as unknown as string],
+    ])(
+      'rejects %s before touching any port',
+      async (_label, companyId, reportId, reason) => {
+        await expect(
+          useCase.execute(companyId, reportId, reason),
+        ).rejects.toBeInstanceOf(InvalidInputError);
+
+        expect(repository.findByIdForCompany).not.toHaveBeenCalled();
+        expect(repository.reject).not.toHaveBeenCalled();
+      },
+    );
+
+    it('rejects a report that is not visible for the company scope', async () => {
+      repository.findByIdForCompany.mockResolvedValue(null);
+
+      await expect(
+        useCase.execute('company-1', 'report-1', 'motivo'),
+      ).rejects.toBeInstanceOf(EntityNotFoundError);
+
+      expect(repository.findByIdForCompany).toHaveBeenCalledWith(
+        'report-1',
+        'company-1',
+      );
+      expect(repository.reject).not.toHaveBeenCalled();
+    });
+
+    it.each(['APROBADO', 'RECHAZADO'] as const)(
+      'rejects a report already decided as %s',
+      async (status) => {
+        repository.findByIdForCompany.mockResolvedValue({
+          ...baseReport,
+          status,
+        });
+
+        await expect(
+          useCase.execute('company-1', 'report-1', 'motivo'),
+        ).rejects.toBeInstanceOf(InvalidStateTransitionError);
+
+        expect(repository.reject).not.toHaveBeenCalled();
+      },
+    );
+
+    it('stores the trimmed reason without touching stock', async () => {
+      const rejected: DailyReportRecord = {
+        ...baseReport,
+        status: 'RECHAZADO',
+        rejectionReason: 'fuera de fecha',
+      };
+      repository.reject.mockResolvedValue(rejected);
+
+      await expect(
+        useCase.execute('company-1', 'report-1', '  fuera de fecha  '),
+      ).resolves.toEqual(rejected);
+
+      expect(repository.reject).toHaveBeenCalledWith({
+        id: 'report-1',
+        companyId: 'company-1',
+        rejectionReason: 'fuera de fecha',
+      });
     });
   });
 });

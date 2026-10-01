@@ -5,9 +5,16 @@ import { DailyReportRepositoryPort } from '../../application/daily-report.ports'
 import {
   CreateDailyReportData,
   DailyReportRecord,
+  RejectDailyReportData,
 } from '../../application/daily-report.types';
+import { EntityNotFoundError, InvalidStateTransitionError } from '../../domain/errors';
+import {
+  DAILY_REPORT_INITIAL_STATUS,
+  DAILY_REPORT_REJECTED_STATUS,
+} from '../../domain/daily-report-status';
 import {
   DAILY_REPORT_ITEM_ORDER_BY,
+  buildDailyReportInclude,
   toDailyReportRecord,
 } from './daily-report.mapper';
 
@@ -64,7 +71,7 @@ export class PrismaDailyReportRepository implements DailyReportRepositoryPort {
   ): Promise<DailyReportRecord | null> {
     const report = await this.prisma.dailyReport.findFirst({
       where: { id, companyId },
-      include: { items: DAILY_REPORT_ITEM_ORDER_BY },
+      include: buildDailyReportInclude(),
     });
 
     return report ? toDailyReportRecord(report) : null;
@@ -73,10 +80,62 @@ export class PrismaDailyReportRepository implements DailyReportRepositoryPort {
   async findAllByCompany(companyId: string): Promise<DailyReportRecord[]> {
     const reports = await this.prisma.dailyReport.findMany({
       where: { companyId },
-      include: { items: DAILY_REPORT_ITEM_ORDER_BY },
+      include: buildDailyReportInclude(),
       orderBy: [{ date: 'desc' }, { id: 'asc' }],
     });
 
     return reports.map((report) => toDailyReportRecord(report));
+  }
+
+  /**
+   * Rejection only writes the terminal status and its auditable reason, guarded
+   * by the pending state and the company scope. It never touches stock, and the
+   * read/write pair runs in one transaction so a concurrent decision cannot be
+   * overwritten.
+   */
+  async reject(data: RejectDailyReportData): Promise<DailyReportRecord> {
+    return this.prisma.$transaction(async (tx) => {
+      const report = await tx.dailyReport.findFirst({
+        where: { id: data.id, companyId: data.companyId },
+        include: buildDailyReportInclude(),
+      });
+
+      if (!report) {
+        throw new EntityNotFoundError(
+          `Daily report with id ${data.id} not found`,
+        );
+      }
+
+      if (report.status !== DAILY_REPORT_INITIAL_STATUS) {
+        throw new InvalidStateTransitionError(
+          `A daily report in status ${report.status} cannot be rejected`,
+        );
+      }
+
+      const { count } = await tx.dailyReport.updateMany({
+        where: {
+          id: data.id,
+          companyId: data.companyId,
+          status: DAILY_REPORT_INITIAL_STATUS,
+        },
+        data: {
+          status: DAILY_REPORT_REJECTED_STATUS,
+          rejectionReason: data.rejectionReason,
+        },
+      });
+
+      if (count === 0) {
+        throw new InvalidStateTransitionError(
+          `Daily report with id ${data.id} was already decided`,
+        );
+      }
+
+      const stored = await tx.dailyReport.findFirstOrThrow({
+        where: { id: data.id, companyId: data.companyId },
+        include: buildDailyReportInclude(),
+      });
+
+      return toDailyReportRecord(stored);
+    });
   }
 }

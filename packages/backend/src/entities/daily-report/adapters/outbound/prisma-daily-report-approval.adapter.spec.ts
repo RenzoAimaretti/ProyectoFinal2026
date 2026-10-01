@@ -8,7 +8,28 @@ import { PrismaDailyReportApprovalAdapter } from './prisma-daily-report-approval
 
 const approvalDate = new Date('2026-05-04T12:00:00.000Z');
 
-const itemOrderBy = { orderBy: [{ id: 'asc' }] };
+const enrichedInclude = {
+  items: { orderBy: [{ id: 'asc' }], include: { input: { select: { name: true } } } },
+  company: { select: { name: true } },
+  operator: { select: { username: true, email: true } },
+  taskType: { select: { name: true } },
+  task: {
+    select: {
+      lot: {
+        select: {
+          name: true,
+          farm: {
+            select: {
+              name: true,
+              client: { select: { name: true } },
+            },
+          },
+        },
+      },
+    },
+  },
+  approver: { select: { username: true, email: true } },
+};
 
 const pendingReport = {
   id: 'report-1',
@@ -109,7 +130,7 @@ describe('PrismaDailyReportApprovalAdapter', () => {
 
     expect(tx.dailyReport.findFirst).toHaveBeenCalledWith({
       where: { id: 'report-1', companyId: 'company-1' },
-      include: { items: itemOrderBy },
+      include: enrichedInclude,
     });
   });
 
@@ -237,5 +258,42 @@ describe('PrismaDailyReportApprovalAdapter', () => {
     ).rejects.toBeInstanceOf(InvalidStateTransitionError);
 
     expect(tx.dailyReport.findFirstOrThrow).not.toHaveBeenCalled();
+  });
+
+  it('returns the enriched names resolved by the approval read', async () => {
+    tx.dailyReport.findFirstOrThrow.mockResolvedValue({
+      ...pendingReport,
+      status: 'APROBADO',
+      approvedBy: 'user-1',
+      approvedAt: approvalDate,
+      company: { name: 'Firma SA' },
+      operator: { username: null, email: 'operador@agro.com' },
+      taskType: { name: 'Pulverizacion' },
+      task: {
+        lot: {
+          name: 'Lote 1',
+          farm: { name: 'Campo Norte', client: { name: 'Cliente X' } },
+        },
+      },
+      approver: { username: 'admin', email: 'admin@agro.com' },
+      items: [
+        { ...pendingReport.items[0], input: { name: 'Glifosato' } },
+        pendingReport.items[1],
+      ],
+    });
+
+    const record = await adapter.approveWithStockDeduction(data);
+
+    expect(record).toMatchObject({
+      companyName: 'Firma SA',
+      operatorName: 'operador@agro.com',
+      taskTypeName: 'Pulverizacion',
+      lotName: 'Lote 1',
+      farmName: 'Campo Norte',
+      clientName: 'Cliente X',
+      approvedByName: 'admin',
+    });
+    expect(record.items[0].inputName).toBe('Glifosato');
+    expect(record.items[1].inputName).toBeUndefined();
   });
 });

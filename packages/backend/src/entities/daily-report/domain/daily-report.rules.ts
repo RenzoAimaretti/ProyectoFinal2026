@@ -47,3 +47,15 @@ export function assertPendingApproval(status: DailyReportStatus): void {
     );
   }
 }
+
+/**
+ * A rejection without a reason cannot be audited, so it is refused. The blank
+ * check runs before any port is touched, keeping the decision explainable.
+ */
+export function assertRejectionReason(value: unknown): string {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new InvalidInputError('rejectionReason is required');
+  }
+
+  return value.trim();
+}

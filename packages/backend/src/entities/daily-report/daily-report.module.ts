@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { PhotoModule } from '../photo/photo.module';
 import { DailyReportController } from './adapters/inbound/daily-report.controller';
 import {
   DAILY_REPORT_APPROVAL,
@@ -21,6 +22,7 @@ import { ApproveDailyReportUseCase } from './application/use-cases/approve-daily
 import { CreateDailyReportUseCase } from './application/use-cases/create-daily-report.use-case';
 import { FindDailyReportUseCase } from './application/use-cases/find-daily-report.use-case';
 import { FindDailyReportsByCompanyUseCase } from './application/use-cases/find-daily-reports-by-company.use-case';
+import { RejectDailyReportUseCase } from './application/use-cases/reject-daily-report.use-case';
 import { PrismaDailyReportApprovalAdapter } from './adapters/outbound/prisma-daily-report-approval.adapter';
 import { PrismaDailyReportClientReader } from './adapters/outbound/prisma-daily-report-client.reader';
 import { PrismaDailyReportCompanyReader } from './adapters/outbound/prisma-company.reader';
@@ -30,7 +32,7 @@ import { PrismaDailyReportTaskReader } from './adapters/outbound/prisma-task.rea
 import { DailyReportSystemClock } from './adapters/outbound/system-clock';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, PhotoModule],
   controllers: [DailyReportController],
   providers: [
     PrismaDailyReportRepository,
@@ -113,12 +115,19 @@ import { DailyReportSystemClock } from './adapters/outbound/system-clock';
         DAILY_REPORT_CLOCK,
       ],
     },
+    {
+      provide: RejectDailyReportUseCase,
+      useFactory: (repository: DailyReportRepositoryPort) =>
+        new RejectDailyReportUseCase(repository),
+      inject: [DAILY_REPORT_REPOSITORY],
+    },
   ],
   exports: [
     FindDailyReportsByCompanyUseCase,
     FindDailyReportUseCase,
     CreateDailyReportUseCase,
     ApproveDailyReportUseCase,
+    RejectDailyReportUseCase,
   ],
 })
 export class DailyReportModule {}

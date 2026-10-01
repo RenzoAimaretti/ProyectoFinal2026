@@ -3,6 +3,7 @@ import {
   assertDistinctItemInputs,
   assertPendingApproval,
   assertPositiveNumber,
+  assertRejectionReason,
 } from './daily-report.rules';
 import { DailyReportStatus } from './daily-report-status';
 
@@ -58,5 +59,22 @@ describe('daily report domain rules', () => {
         );
       },
     );
+  });
+
+  describe('assertRejectionReason', () => {
+    it.each([
+      ['an empty reason', ''],
+      ['a whitespace reason', '   '],
+      ['a missing reason', undefined],
+      ['a non string reason', 42],
+    ])('rejects %s', (_label, value) => {
+      expect(() => assertRejectionReason(value)).toThrow(InvalidInputError);
+    });
+
+    it('returns the trimmed reason', () => {
+      expect(assertRejectionReason('  fuera de fecha  ')).toBe(
+        'fuera de fecha',
+      );
+    });
   });
 });

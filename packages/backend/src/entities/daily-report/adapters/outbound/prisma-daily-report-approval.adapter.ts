@@ -15,7 +15,7 @@ import {
   DAILY_REPORT_INITIAL_STATUS,
 } from '../../domain/daily-report-status';
 import {
-  DAILY_REPORT_ITEM_ORDER_BY,
+  buildDailyReportInclude,
   toDailyReportRecord,
 } from './daily-report.mapper';
 
@@ -42,7 +42,7 @@ export class PrismaDailyReportApprovalAdapter
     return this.prisma.$transaction(async (tx) => {
       const report = await tx.dailyReport.findFirst({
         where: { id: data.id, companyId: data.companyId },
-        include: { items: DAILY_REPORT_ITEM_ORDER_BY },
+        include: buildDailyReportInclude(),
       });
 
       if (!report) {
@@ -117,7 +117,7 @@ export class PrismaDailyReportApprovalAdapter
 
       const stored = await tx.dailyReport.findFirstOrThrow({
         where: { id: report.id, companyId: data.companyId },
-        include: { items: DAILY_REPORT_ITEM_ORDER_BY },
+        include: buildDailyReportInclude(),
       });
 
       return toDailyReportRecord(stored);

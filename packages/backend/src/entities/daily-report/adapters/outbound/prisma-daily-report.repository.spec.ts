@@ -3,6 +3,10 @@ import {
   CreateDailyReportData,
   DailyReportRecord,
 } from '../../application/daily-report.types';
+import {
+  EntityNotFoundError,
+  InvalidStateTransitionError,
+} from '../../domain/errors';
 import { PrismaDailyReportRepository } from './prisma-daily-report.repository';
 
 const persistedReport = {
@@ -75,12 +79,57 @@ const expectedRecord: DailyReportRecord = {
 
 const itemOrderBy = { orderBy: [{ id: 'asc' }] };
 
+/**
+ * The enriched read joins the display names of the report. It is asserted
+ * verbatim so the contract cannot silently lose a relation.
+ */
+const enrichedInclude = {
+  items: { orderBy: [{ id: 'asc' }], include: { input: { select: { name: true } } } },
+  company: { select: { name: true } },
+  operator: { select: { username: true, email: true } },
+  taskType: { select: { name: true } },
+  task: {
+    select: {
+      lot: {
+        select: {
+          name: true,
+          farm: {
+            select: {
+              name: true,
+              client: { select: { name: true } },
+            },
+          },
+        },
+      },
+    },
+  },
+  approver: { select: { username: true, email: true } },
+};
+
 describe('PrismaDailyReportRepository', () => {
+  const tx = {
+    dailyReport: {
+      findFirst: jest.fn(),
+      findFirstOrThrow: jest.fn(),
+      updateMany: jest.fn(),
+    },
+    stock: {
+      findUnique: jest.fn(),
+      updateMany: jest.fn(),
+    },
+  };
   const prisma = {
+    $transaction: jest.fn((callback: (client: typeof tx) => unknown) =>
+      callback(tx),
+    ),
     dailyReport: {
       create: jest.fn(),
       findFirst: jest.fn(),
       findMany: jest.fn(),
+    },
+    stock: {
+      findUnique: jest.fn(),
+      updateMany: jest.fn(),
     },
   };
 
@@ -88,6 +137,9 @@ describe('PrismaDailyReportRepository', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    prisma.$transaction.mockImplementation(
+      (callback: (client: typeof tx) => unknown) => callback(tx),
+    );
   });
 
   it('persists the report header and its items in a single aggregate write scoped to the company', async () => {
@@ -141,7 +193,7 @@ describe('PrismaDailyReportRepository', () => {
 
     expect(prisma.dailyReport.findFirst).toHaveBeenCalledWith({
       where: { id: 'report-1', companyId: 'company-1' },
-      include: { items: itemOrderBy },
+      include: enrichedInclude,
     });
   });
 
@@ -162,7 +214,7 @@ describe('PrismaDailyReportRepository', () => {
 
     expect(prisma.dailyReport.findMany).toHaveBeenCalledWith({
       where: { companyId: 'company-1' },
-      include: { items: itemOrderBy },
+      include: enrichedInclude,
       orderBy: [{ date: 'desc' }, { id: 'asc' }],
     });
   });
@@ -254,7 +306,7 @@ describe('PrismaDailyReportRepository', () => {
 
     expect(prisma.dailyReport.findFirst).toHaveBeenCalledWith({
       where: { id: 'report-1', companyId: 'company-1' },
-      include: { items: itemOrderBy },
+      include: enrichedInclude,
     });
   });
 
@@ -305,5 +357,88 @@ describe('PrismaDailyReportRepository', () => {
     };
 
     await expect(repository.create(data)).rejects.toThrow(otherError);
+  });
+
+  describe('reject', () => {
+    const rejectData = {
+      id: 'report-1',
+      companyId: 'company-1',
+      rejectionReason: 'fuera de fecha',
+    };
+
+    beforeEach(() => {
+      tx.dailyReport.findFirst.mockResolvedValue(persistedReport);
+      tx.dailyReport.updateMany.mockResolvedValue({ count: 1 });
+      tx.dailyReport.findFirstOrThrow.mockResolvedValue({
+        ...persistedReport,
+        status: 'RECHAZADO',
+        rejectionReason: 'fuera de fecha',
+      });
+    });
+
+    it('writes the terminal status and reason atomically with a pending guard and no stock movement', async () => {
+      const result = await repository.reject(rejectData);
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(tx.dailyReport.findFirst).toHaveBeenCalledWith({
+        where: { id: 'report-1', companyId: 'company-1' },
+        include: enrichedInclude,
+      });
+      expect(tx.dailyReport.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'report-1',
+          companyId: 'company-1',
+          status: 'PENDIENTE_APROBACION',
+        },
+        data: {
+          status: 'RECHAZADO',
+          rejectionReason: 'fuera de fecha',
+        },
+      });
+      expect(tx.dailyReport.findFirstOrThrow).toHaveBeenCalledWith({
+        where: { id: 'report-1', companyId: 'company-1' },
+        include: enrichedInclude,
+      });
+      expect(tx.stock.updateMany).not.toHaveBeenCalled();
+      expect(prisma.stock.updateMany).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        ...expectedRecord,
+        status: 'RECHAZADO',
+        rejectionReason: 'fuera de fecha',
+      });
+    });
+
+    it('fails without writing when the report is not visible for the company', async () => {
+      tx.dailyReport.findFirst.mockResolvedValue(null);
+
+      await expect(repository.reject(rejectData)).rejects.toBeInstanceOf(
+        EntityNotFoundError,
+      );
+
+      expect(tx.dailyReport.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('fails without writing when the report was already decided', async () => {
+      tx.dailyReport.findFirst.mockResolvedValue({
+        ...persistedReport,
+        status: 'APROBADO',
+      });
+
+      await expect(repository.reject(rejectData)).rejects.toBeInstanceOf(
+        InvalidStateTransitionError,
+      );
+
+      expect(tx.dailyReport.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('fails when a concurrent decision wins the guarded status write', async () => {
+      tx.dailyReport.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(repository.reject(rejectData)).rejects.toBeInstanceOf(
+        InvalidStateTransitionError,
+      );
+
+      expect(tx.dailyReport.findFirstOrThrow).not.toHaveBeenCalled();
+    });
   });
 });

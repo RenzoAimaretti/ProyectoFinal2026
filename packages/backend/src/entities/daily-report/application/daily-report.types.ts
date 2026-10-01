@@ -6,6 +6,12 @@ export type DailyReportItemRecord = {
   inputId: string;
   quantity: number;
   unit: string;
+  /**
+   * Resolved display name of the consumed input. Optional and additive: reads
+   * that do not join the catalogue simply omit it, so existing consumers keep
+   * working unchanged.
+   */
+  inputName?: string;
 };
 
 export type DailyReportRecord = {
@@ -25,6 +31,18 @@ export type DailyReportRecord = {
   createdAt: Date;
   updatedAt: Date;
   items: DailyReportItemRecord[];
+  /**
+   * Additive display names resolved by the outbound read adapters. They are
+   * optional on purpose: every existing read path and consumer keeps compiling
+   * and behaving the same when a name cannot be resolved.
+   */
+  companyName?: string;
+  operatorName?: string;
+  taskTypeName?: string;
+  lotName?: string;
+  farmName?: string;
+  clientName?: string;
+  approvedByName?: string;
 };
 
 export type CreateDailyReportItemInput = {
@@ -79,4 +97,14 @@ export type ApproveDailyReportData = {
   clientId: string;
   approvedBy: string;
   approvedAt: Date;
+};
+
+/**
+ * Rejecting never touches stock: it only records the terminal decision and the
+ * auditable reason over a pending report scoped to its company.
+ */
+export type RejectDailyReportData = {
+  id: string;
+  companyId: string;
+  rejectionReason: string;
 };

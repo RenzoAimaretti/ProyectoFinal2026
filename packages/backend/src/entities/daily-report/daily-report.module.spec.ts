@@ -13,6 +13,7 @@ import { ApproveDailyReportUseCase } from './application/use-cases/approve-daily
 import { CreateDailyReportUseCase } from './application/use-cases/create-daily-report.use-case';
 import { FindDailyReportUseCase } from './application/use-cases/find-daily-report.use-case';
 import { FindDailyReportsByCompanyUseCase } from './application/use-cases/find-daily-reports-by-company.use-case';
+import { RejectDailyReportUseCase } from './application/use-cases/reject-daily-report.use-case';
 import { DailyReportModule } from './daily-report.module';
 
 describe('DailyReportModule', () => {
@@ -26,6 +27,12 @@ describe('DailyReportModule', () => {
         items: [],
       }),
       findAllByCompany: jest.fn().mockResolvedValue([]),
+      reject: jest.fn().mockResolvedValue({
+        id: 'report-1',
+        status: 'RECHAZADO',
+        rejectionReason: 'motivo',
+        items: [],
+      }),
     };
     const companyReader = {
       findById: jest
@@ -86,6 +93,9 @@ describe('DailyReportModule', () => {
     expect(moduleRef.get(ApproveDailyReportUseCase)).toBeInstanceOf(
       ApproveDailyReportUseCase,
     );
+    expect(moduleRef.get(RejectDailyReportUseCase)).toBeInstanceOf(
+      RejectDailyReportUseCase,
+    );
 
     await expect(
       moduleRef.get(FindDailyReportsByCompanyUseCase).execute('company-1'),
@@ -103,6 +113,22 @@ describe('DailyReportModule', () => {
       clientId: 'client-1',
       approvedBy: 'user-1',
       approvedAt: expect.any(Date),
+    });
+
+    await expect(
+      moduleRef
+        .get(RejectDailyReportUseCase)
+        .execute('company-1', 'report-1', 'motivo'),
+    ).resolves.toEqual({
+      id: 'report-1',
+      status: 'RECHAZADO',
+      rejectionReason: 'motivo',
+      items: [],
+    });
+    expect(repository.reject).toHaveBeenCalledWith({
+      id: 'report-1',
+      companyId: 'company-1',
+      rejectionReason: 'motivo',
     });
   });
 });
