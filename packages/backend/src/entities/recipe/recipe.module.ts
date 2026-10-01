@@ -11,12 +11,14 @@ import {
 import { CreateRecipeUseCase } from './application/use-cases/create-recipe.use-case';
 import { FindRecipeUseCase } from './application/use-cases/find-recipe.use-case';
 import { FindRecipesByLotUseCase } from './application/use-cases/find-recipes-by-lot.use-case';
+import { RecipeController } from './adapters/inbound/recipe.controller';
 import { PrismaLotReader } from './adapters/outbound/prisma-lot.reader';
 import { PrismaRecipeInputReader } from './adapters/outbound/prisma-recipe-input.reader';
 import { PrismaRecipeRepository } from './adapters/outbound/prisma-recipe.repository';
 
 @Module({
   imports: [PrismaModule],
+  controllers: [RecipeController],
   providers: [
     PrismaRecipeRepository,
     PrismaLotReader,

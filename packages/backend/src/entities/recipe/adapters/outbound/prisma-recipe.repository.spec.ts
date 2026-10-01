@@ -44,7 +44,10 @@ const expectedRecord: RecipeRecord = {
   items: [persistedRecipe.items[1], persistedRecipe.items[0]],
 };
 
-const itemOrderBy = { orderBy: [{ loadOrder: 'asc' }, { id: 'asc' }] };
+const itemInclude = {
+  orderBy: [{ loadOrder: 'asc' }, { id: 'asc' }],
+  include: { input: { select: { name: true } } },
+};
 
 describe('PrismaRecipeRepository', () => {
   const prisma = {
@@ -93,7 +96,7 @@ describe('PrismaRecipeRepository', () => {
           ],
         },
       },
-      include: { items: itemOrderBy },
+      include: { items: itemInclude },
     });
   });
 
@@ -129,7 +132,7 @@ describe('PrismaRecipeRepository', () => {
         id: 'recipe-1',
         lot: { farm: { client: { tenantId: 'tenant-1' } } },
       },
-      include: { items: itemOrderBy },
+      include: { items: itemInclude },
     });
   });
 
@@ -153,9 +156,34 @@ describe('PrismaRecipeRepository', () => {
         lotId: 'lot-1',
         lot: { farm: { client: { tenantId: 'tenant-1' } } },
       },
-      include: { items: itemOrderBy },
+      include: { items: itemInclude },
       orderBy: [{ date: 'desc' }, { id: 'asc' }],
     });
+  });
+
+  it('exposes the input catalogue name additively on every item', async () => {
+    prisma.recipe.findMany.mockResolvedValue([
+      {
+        ...persistedRecipe,
+        items: [
+          {
+            ...persistedRecipe.items[1],
+            input: { name: 'Atrazina' },
+          },
+          {
+            ...persistedRecipe.items[0],
+            input: { name: 'Glifosato' },
+          },
+        ],
+      },
+    ]);
+
+    const [recipe] = await repository.findAllByLotForTenant('lot-1', 'tenant-1');
+
+    expect(recipe.items.map((item) => item.inputName)).toEqual([
+      'Atrazina',
+      'Glifosato',
+    ]);
   });
 
   it('returns an empty list when the tenant owns no recipe for the lot', async () => {

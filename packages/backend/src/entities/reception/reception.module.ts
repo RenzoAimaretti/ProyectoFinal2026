@@ -13,10 +13,13 @@ import {
   ReceptionValidationPort,
 } from './application/reception.ports';
 import { CreateReceptionUseCase } from './application/use-cases/create-reception.use-case';
+import { FindReceptionByTenantUseCase } from './application/use-cases/find-reception-by-tenant.use-case';
 import { FindReceptionUseCase } from './application/use-cases/find-reception.use-case';
 import { FindReceptionsByClientUseCase } from './application/use-cases/find-receptions-by-client.use-case';
+import { FindReceptionsByTenantUseCase } from './application/use-cases/find-receptions-by-tenant.use-case';
 import { RejectReceptionUseCase } from './application/use-cases/reject-reception.use-case';
 import { ValidateReceptionUseCase } from './application/use-cases/validate-reception.use-case';
+import { ReceptionController } from './adapters/inbound/reception.controller';
 import { PrismaReceptionClientReader } from './adapters/outbound/prisma-reception-client.reader';
 import { PrismaReceptionInputReader } from './adapters/outbound/prisma-reception-input.reader';
 import { PrismaReceptionRepository } from './adapters/outbound/prisma-reception.repository';
@@ -25,6 +28,7 @@ import { ReceptionSystemClock } from './adapters/outbound/system-clock';
 
 @Module({
   imports: [PrismaModule],
+  controllers: [ReceptionController],
   providers: [
     PrismaReceptionRepository,
     PrismaReceptionValidationAdapter,
@@ -52,9 +56,21 @@ import { ReceptionSystemClock } from './adapters/outbound/system-clock';
       inject: [RECEPTION_REPOSITORY],
     },
     {
+      provide: FindReceptionsByTenantUseCase,
+      useFactory: (repository: ReceptionRepositoryPort) =>
+        new FindReceptionsByTenantUseCase(repository),
+      inject: [RECEPTION_REPOSITORY],
+    },
+    {
       provide: FindReceptionUseCase,
       useFactory: (repository: ReceptionRepositoryPort) =>
         new FindReceptionUseCase(repository),
+      inject: [RECEPTION_REPOSITORY],
+    },
+    {
+      provide: FindReceptionByTenantUseCase,
+      useFactory: (repository: ReceptionRepositoryPort) =>
+        new FindReceptionByTenantUseCase(repository),
       inject: [RECEPTION_REPOSITORY],
     },
     {
@@ -86,7 +102,9 @@ import { ReceptionSystemClock } from './adapters/outbound/system-clock';
   ],
   exports: [
     FindReceptionsByClientUseCase,
+    FindReceptionsByTenantUseCase,
     FindReceptionUseCase,
+    FindReceptionByTenantUseCase,
     CreateReceptionUseCase,
     /**
      * Exported so the web application can expose the administrator decision.

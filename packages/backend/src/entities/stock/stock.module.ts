@@ -6,10 +6,12 @@ import {
 } from './application/stock.ports';
 import { FindStockBalanceUseCase } from './application/use-cases/find-stock-balance.use-case';
 import { FindStockByClientUseCase } from './application/use-cases/find-stock-by-client.use-case';
+import { StockController } from './adapters/inbound/stock.controller';
 import { PrismaStockRepository } from './adapters/outbound/prisma-stock.repository';
 
 @Module({
   imports: [PrismaModule],
+  controllers: [StockController],
   providers: [
     PrismaStockRepository,
     { provide: STOCK_REPOSITORY, useExisting: PrismaStockRepository },

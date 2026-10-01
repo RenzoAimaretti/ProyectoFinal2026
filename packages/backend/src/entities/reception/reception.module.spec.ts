@@ -8,8 +8,10 @@ import {
   RECEPTION_VALIDATION,
 } from './application/reception.ports';
 import { CreateReceptionUseCase } from './application/use-cases/create-reception.use-case';
+import { FindReceptionByTenantUseCase } from './application/use-cases/find-reception-by-tenant.use-case';
 import { FindReceptionUseCase } from './application/use-cases/find-reception.use-case';
 import { FindReceptionsByClientUseCase } from './application/use-cases/find-receptions-by-client.use-case';
+import { FindReceptionsByTenantUseCase } from './application/use-cases/find-receptions-by-tenant.use-case';
 import { RejectReceptionUseCase } from './application/use-cases/reject-reception.use-case';
 import { ValidateReceptionUseCase } from './application/use-cases/validate-reception.use-case';
 import { ReceptionModule } from './reception.module';
@@ -25,6 +27,8 @@ describe('ReceptionModule', () => {
         items: [{ id: 'item-1', inputId: 'input-1', quantity: 10 }],
       }),
       findAllByClient: jest.fn().mockResolvedValue([]),
+      findAllByTenant: jest.fn().mockResolvedValue([]),
+      findByIdForTenant: jest.fn().mockResolvedValue(null),
     };
     const validation = {
       validateWithStock: jest
@@ -62,8 +66,14 @@ describe('ReceptionModule', () => {
     expect(moduleRef.get(FindReceptionsByClientUseCase)).toBeInstanceOf(
       FindReceptionsByClientUseCase,
     );
+    expect(moduleRef.get(FindReceptionsByTenantUseCase)).toBeInstanceOf(
+      FindReceptionsByTenantUseCase,
+    );
     expect(moduleRef.get(FindReceptionUseCase)).toBeInstanceOf(
       FindReceptionUseCase,
+    );
+    expect(moduleRef.get(FindReceptionByTenantUseCase)).toBeInstanceOf(
+      FindReceptionByTenantUseCase,
     );
     expect(moduleRef.get(CreateReceptionUseCase)).toBeInstanceOf(
       CreateReceptionUseCase,

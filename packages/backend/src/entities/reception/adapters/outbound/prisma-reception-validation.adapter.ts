@@ -16,10 +16,7 @@ import {
   RECEPTION_REJECTED_STATUS,
   RECEPTION_VALIDATED_STATUS,
 } from '../../domain/reception-status';
-import {
-  RECEPTION_ITEM_ORDER_BY,
-  toReceptionRecord,
-} from './reception.mapper';
+import { RECEPTION_INCLUDE, toReceptionRecord } from './reception.mapper';
 
 /**
  * The stock entries of a validated reception and the reception status change
@@ -46,7 +43,7 @@ export class PrismaReceptionValidationAdapter
     return this.prisma.$transaction(async (tx) => {
       const reception = await tx.reception.findFirst({
         where: { id: data.id, clientId: data.clientId },
-        include: { items: RECEPTION_ITEM_ORDER_BY },
+        include: RECEPTION_INCLUDE,
       });
 
       if (!reception) {
@@ -118,7 +115,7 @@ export class PrismaReceptionValidationAdapter
 
       const stored = await tx.reception.findFirstOrThrow({
         where: { id: reception.id, clientId: reception.clientId },
-        include: { items: RECEPTION_ITEM_ORDER_BY },
+        include: RECEPTION_INCLUDE,
       });
 
       return toReceptionRecord(stored);
@@ -129,7 +126,7 @@ export class PrismaReceptionValidationAdapter
     return this.prisma.$transaction(async (tx) => {
       const reception = await tx.reception.findFirst({
         where: { id: data.id, clientId: data.clientId },
-        include: { items: RECEPTION_ITEM_ORDER_BY },
+        include: RECEPTION_INCLUDE,
       });
 
       if (!reception) {
@@ -162,7 +159,7 @@ export class PrismaReceptionValidationAdapter
 
       const stored = await tx.reception.findFirstOrThrow({
         where: { id: reception.id, clientId: reception.clientId },
-        include: { items: RECEPTION_ITEM_ORDER_BY },
+        include: RECEPTION_INCLUDE,
       });
 
       return toReceptionRecord(stored);

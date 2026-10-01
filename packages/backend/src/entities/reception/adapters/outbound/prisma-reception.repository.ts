@@ -5,10 +5,7 @@ import {
   CreateReceptionData,
   ReceptionRecord,
 } from '../../application/reception.types';
-import {
-  RECEPTION_ITEM_ORDER_BY,
-  toReceptionRecord,
-} from './reception.mapper';
+import { RECEPTION_INCLUDE, toReceptionRecord } from './reception.mapper';
 
 @Injectable()
 export class PrismaReceptionRepository implements ReceptionRepositoryPort {
@@ -28,7 +25,7 @@ export class PrismaReceptionRepository implements ReceptionRepositoryPort {
           })),
         },
       },
-      include: { items: RECEPTION_ITEM_ORDER_BY },
+      include: RECEPTION_INCLUDE,
     });
 
     return toReceptionRecord(reception);
@@ -40,7 +37,7 @@ export class PrismaReceptionRepository implements ReceptionRepositoryPort {
   ): Promise<ReceptionRecord | null> {
     const reception = await this.prisma.reception.findFirst({
       where: { id, clientId },
-      include: { items: RECEPTION_ITEM_ORDER_BY },
+      include: RECEPTION_INCLUDE,
     });
 
     return reception ? toReceptionRecord(reception) : null;
@@ -49,10 +46,32 @@ export class PrismaReceptionRepository implements ReceptionRepositoryPort {
   async findAllByClient(clientId: string): Promise<ReceptionRecord[]> {
     const receptions = await this.prisma.reception.findMany({
       where: { clientId },
-      include: { items: RECEPTION_ITEM_ORDER_BY },
+      include: RECEPTION_INCLUDE,
       orderBy: [{ date: 'desc' }, { id: 'asc' }],
     });
 
     return receptions.map((reception) => toReceptionRecord(reception));
+  }
+
+  async findAllByTenant(tenantId: string): Promise<ReceptionRecord[]> {
+    const receptions = await this.prisma.reception.findMany({
+      where: { client: { tenantId } },
+      include: RECEPTION_INCLUDE,
+      orderBy: [{ date: 'desc' }, { id: 'asc' }],
+    });
+
+    return receptions.map((reception) => toReceptionRecord(reception));
+  }
+
+  async findByIdForTenant(
+    id: string,
+    tenantId: string,
+  ): Promise<ReceptionRecord | null> {
+    const reception = await this.prisma.reception.findFirst({
+      where: { id, client: { tenantId } },
+      include: RECEPTION_INCLUDE,
+    });
+
+    return reception ? toReceptionRecord(reception) : null;
   }
 }

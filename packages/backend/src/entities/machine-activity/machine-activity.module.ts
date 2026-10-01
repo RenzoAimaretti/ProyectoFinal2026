@@ -11,12 +11,14 @@ import {
 import { FindAllMachineActivitiesUseCase } from './application/use-cases/find-all-machine-activities.use-case';
 import { FindMachineActivityUseCase } from './application/use-cases/find-machine-activity.use-case';
 import { RegisterMachineActivityUseCase } from './application/use-cases/register-machine-activity.use-case';
+import { MachineActivityController } from './adapters/inbound/machine-activity.controller';
 import { PrismaMachineActivityRepository } from './adapters/outbound/prisma-machine-activity.repository';
 import { PrismaMachineReader } from './adapters/outbound/prisma-machine.reader';
 import { SystemClock } from './adapters/outbound/system-clock';
 
 @Module({
   imports: [PrismaModule],
+  controllers: [MachineActivityController],
   providers: [
     PrismaMachineActivityRepository,
     PrismaMachineReader,

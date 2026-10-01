@@ -20,8 +20,10 @@ import {
   ValidateReceptionData,
 } from '../reception.types';
 import { CreateReceptionUseCase } from './create-reception.use-case';
+import { FindReceptionByTenantUseCase } from './find-reception-by-tenant.use-case';
 import { FindReceptionUseCase } from './find-reception.use-case';
 import { FindReceptionsByClientUseCase } from './find-receptions-by-client.use-case';
+import { FindReceptionsByTenantUseCase } from './find-receptions-by-tenant.use-case';
 import { RejectReceptionUseCase } from './reject-reception.use-case';
 import { ValidateReceptionUseCase } from './validate-reception.use-case';
 
@@ -72,6 +74,8 @@ function createRepository(): jest.Mocked<ReceptionRepositoryPort> {
     create: jest.fn(),
     findByIdForClient: jest.fn(),
     findAllByClient: jest.fn(),
+    findAllByTenant: jest.fn(),
+    findByIdForTenant: jest.fn(),
   };
 }
 
@@ -109,6 +113,8 @@ describe('Reception use cases', () => {
       'application/use-cases/reject-reception.use-case.ts',
       'application/use-cases/find-reception.use-case.ts',
       'application/use-cases/find-receptions-by-client.use-case.ts',
+      'application/use-cases/find-receptions-by-tenant.use-case.ts',
+      'application/use-cases/find-reception-by-tenant.use-case.ts',
     ];
 
     const contents = files
@@ -605,6 +611,72 @@ describe('Reception use cases', () => {
       );
 
       expect(repository.findAllByClient).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('FindReceptionsByTenantUseCase', () => {
+    it('lists the receptions of the tenant', async () => {
+      const repository = createRepository();
+      const useCase = new FindReceptionsByTenantUseCase(repository);
+      repository.findAllByTenant.mockResolvedValue([baseReception]);
+
+      await expect(useCase.execute('tenant-1')).resolves.toEqual([
+        baseReception,
+      ]);
+
+      expect(repository.findAllByTenant).toHaveBeenCalledWith('tenant-1');
+    });
+
+    it('rejects a blank tenant id', async () => {
+      const repository = createRepository();
+      const useCase = new FindReceptionsByTenantUseCase(repository);
+
+      await expect(useCase.execute('  ')).rejects.toBeInstanceOf(
+        InvalidInputError,
+      );
+
+      expect(repository.findAllByTenant).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('FindReceptionByTenantUseCase', () => {
+    it('returns a reception scoped to the tenant', async () => {
+      const repository = createRepository();
+      const useCase = new FindReceptionByTenantUseCase(repository);
+      repository.findByIdForTenant.mockResolvedValue(baseReception);
+
+      await expect(
+        useCase.execute('reception-1', 'tenant-1'),
+      ).resolves.toEqual(baseReception);
+
+      expect(repository.findByIdForTenant).toHaveBeenCalledWith(
+        'reception-1',
+        'tenant-1',
+      );
+    });
+
+    it('throws when the reception is outside the tenant', async () => {
+      const repository = createRepository();
+      const useCase = new FindReceptionByTenantUseCase(repository);
+      repository.findByIdForTenant.mockResolvedValue(null);
+
+      await expect(
+        useCase.execute('reception-1', 'tenant-2'),
+      ).rejects.toBeInstanceOf(EntityNotFoundError);
+    });
+
+    it('rejects blank identifiers', async () => {
+      const repository = createRepository();
+      const useCase = new FindReceptionByTenantUseCase(repository);
+
+      await expect(
+        useCase.execute('  ', 'tenant-1'),
+      ).rejects.toBeInstanceOf(InvalidInputError);
+      await expect(
+        useCase.execute('reception-1', '  '),
+      ).rejects.toBeInstanceOf(InvalidInputError);
+
+      expect(repository.findByIdForTenant).not.toHaveBeenCalled();
     });
   });
 });

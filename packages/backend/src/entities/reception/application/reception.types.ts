@@ -10,6 +10,14 @@ export type ReceptionItemRecord = {
   validatedQuantity: number | null;
   /** R015 shortage (negative) or surplus (positive); null while pending. */
   quantityVariance: number | null;
+  /**
+   * Additive read enrichment: shortage or surplus of the item, present only
+   * once the reception has an agreed quantity. It mirrors `quantityVariance`
+   * and is exposed so the UI can render the label without guessing the rule.
+   */
+  variance?: number;
+  /** Additive read enrichment: catalogue name of the input. */
+  inputName?: string;
   unit: string;
 };
 
@@ -23,6 +31,8 @@ export type ReceptionRecord = {
   validatedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  /** Additive read enrichment: name of the client that owns the reception. */
+  clientName?: string;
   items: ReceptionItemRecord[];
 };
 

@@ -14,6 +14,15 @@ const RECIPE_ITEM_ORDER_BY = [
   { id: 'asc' as const },
 ];
 
+/**
+ * Items are always read together with the catalogue name of their input so the
+ * inbound adapter can expose `inputName` without an extra round trip.
+ */
+const RECIPE_ITEM_INCLUDE = {
+  orderBy: RECIPE_ITEM_ORDER_BY,
+  include: { input: { select: { name: true as const } } },
+};
+
 type RecipeRow = {
   id: string;
   lotId: string;
@@ -34,6 +43,7 @@ type RecipeItemRow = {
   dose: number;
   unit: string | null;
   loadOrder: number;
+  input?: { name: string } | null;
 };
 
 @Injectable()
@@ -58,7 +68,7 @@ export class PrismaRecipeRepository implements RecipeRepositoryPort {
           })),
         },
       },
-      include: { items: { orderBy: RECIPE_ITEM_ORDER_BY } },
+      include: { items: RECIPE_ITEM_INCLUDE },
     });
 
     return this.toRecipeRecord(recipe);
@@ -70,7 +80,7 @@ export class PrismaRecipeRepository implements RecipeRepositoryPort {
   ): Promise<RecipeRecord | null> {
     const recipe = await this.prisma.recipe.findFirst({
       where: { id, lot: { farm: { client: { tenantId } } } },
-      include: { items: { orderBy: RECIPE_ITEM_ORDER_BY } },
+      include: { items: RECIPE_ITEM_INCLUDE },
     });
 
     return recipe ? this.toRecipeRecord(recipe) : null;
@@ -82,7 +92,7 @@ export class PrismaRecipeRepository implements RecipeRepositoryPort {
   ): Promise<RecipeRecord[]> {
     const recipes = await this.prisma.recipe.findMany({
       where: { lotId, lot: { farm: { client: { tenantId } } } },
-      include: { items: { orderBy: RECIPE_ITEM_ORDER_BY } },
+      include: { items: RECIPE_ITEM_INCLUDE },
       orderBy: [{ date: 'desc' }, { id: 'asc' }],
     });
 
@@ -108,6 +118,7 @@ export class PrismaRecipeRepository implements RecipeRepositoryPort {
           dose: item.dose,
           unit: item.unit,
           loadOrder: item.loadOrder,
+          inputName: item.input?.name,
         }),
       ),
     };

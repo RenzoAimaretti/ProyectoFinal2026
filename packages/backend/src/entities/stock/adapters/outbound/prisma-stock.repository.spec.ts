@@ -17,6 +17,10 @@ const expectedRecord: StockRecord = {
   updatedAt: new Date('2026-04-02T09:30:00.000Z'),
 };
 
+const expectedInclude = {
+  input: { select: { name: true, unit: true } },
+};
+
 describe('PrismaStockRepository', () => {
   const prisma = {
     stock: { findMany: jest.fn(), findFirst: jest.fn() },
@@ -37,8 +41,21 @@ describe('PrismaStockRepository', () => {
 
     expect(prisma.stock.findMany).toHaveBeenCalledWith({
       where: { clientId: 'client-1' },
+      include: expectedInclude,
       orderBy: [{ inputId: 'asc' }],
     });
+  });
+
+  it('exposes the input catalogue name and unit additively', async () => {
+    prisma.stock.findMany.mockResolvedValue([
+      { ...persistedStock, input: { name: 'Glifosato', unit: 'L' } },
+    ]);
+
+    const [record] = await repository.findAllByClient('client-1');
+
+    expect(record.inputName).toBe('Glifosato');
+    expect(record.unit).toBe('L');
+    expect(record.quantity).toBe(16.5);
   });
 
   it('reads a single balance keyed by client and input', async () => {
@@ -50,6 +67,7 @@ describe('PrismaStockRepository', () => {
 
     expect(prisma.stock.findFirst).toHaveBeenCalledWith({
       where: { clientId: 'client-1', inputId: 'input-1' },
+      include: expectedInclude,
     });
   });
 

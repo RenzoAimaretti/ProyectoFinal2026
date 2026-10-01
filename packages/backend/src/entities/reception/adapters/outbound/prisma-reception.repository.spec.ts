@@ -66,7 +66,13 @@ const expectedRecord: ReceptionRecord = {
   ],
 };
 
-const itemOrderBy = { orderBy: [{ id: 'asc' }] };
+const expectedInclude = {
+  client: { select: { name: true } },
+  items: {
+    orderBy: [{ id: 'asc' }],
+    include: { input: { select: { name: true } } },
+  },
+};
 
 describe('PrismaReceptionRepository', () => {
   const prisma = {
@@ -109,7 +115,7 @@ describe('PrismaReceptionRepository', () => {
           ],
         },
       },
-      include: { items: itemOrderBy },
+      include: expectedInclude,
     });
   });
 
@@ -122,7 +128,7 @@ describe('PrismaReceptionRepository', () => {
 
     expect(prisma.reception.findFirst).toHaveBeenCalledWith({
       where: { id: 'reception-1', clientId: 'client-1' },
-      include: { items: itemOrderBy },
+      include: expectedInclude,
     });
   });
 
@@ -143,7 +149,7 @@ describe('PrismaReceptionRepository', () => {
 
     expect(prisma.reception.findMany).toHaveBeenCalledWith({
       where: { clientId: 'client-1' },
-      include: { items: itemOrderBy },
+      include: expectedInclude,
       orderBy: [{ date: 'desc' }, { id: 'asc' }],
     });
   });
@@ -152,5 +158,40 @@ describe('PrismaReceptionRepository', () => {
     prisma.reception.findMany.mockResolvedValue([]);
 
     await expect(repository.findAllByClient('client-2')).resolves.toEqual([]);
+  });
+
+  it('lists every reception of the tenant through the client relation', async () => {
+    prisma.reception.findMany.mockResolvedValue([persistedReception]);
+
+    await expect(repository.findAllByTenant('tenant-1')).resolves.toEqual([
+      expectedRecord,
+    ]);
+
+    expect(prisma.reception.findMany).toHaveBeenCalledWith({
+      where: { client: { tenantId: 'tenant-1' } },
+      include: expectedInclude,
+      orderBy: [{ date: 'desc' }, { id: 'asc' }],
+    });
+  });
+
+  it('reads a single reception scoped to the tenant through the client relation', async () => {
+    prisma.reception.findFirst.mockResolvedValue(persistedReception);
+
+    await expect(
+      repository.findByIdForTenant('reception-1', 'tenant-1'),
+    ).resolves.toEqual(expectedRecord);
+
+    expect(prisma.reception.findFirst).toHaveBeenCalledWith({
+      where: { id: 'reception-1', client: { tenantId: 'tenant-1' } },
+      include: expectedInclude,
+    });
+  });
+
+  it('returns null when the reception is outside the tenant', async () => {
+    prisma.reception.findFirst.mockResolvedValue(null);
+
+    await expect(
+      repository.findByIdForTenant('reception-1', 'tenant-2'),
+    ).resolves.toBeNull();
   });
 });

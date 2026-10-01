@@ -65,16 +65,24 @@ const expectedValidatedRecord: ReceptionRecord = {
       ...storedValidatedReception.items[0],
       validatedQuantity: 12,
       quantityVariance: 2,
+      variance: 2,
     },
     {
       ...storedValidatedReception.items[1],
       validatedQuantity: 3,
       quantityVariance: -1,
+      variance: -1,
     },
   ],
 };
 
-const itemOrderBy = { orderBy: [{ id: 'asc' }] };
+const expectedInclude = {
+  client: { select: { name: true } },
+  items: {
+    orderBy: [{ id: 'asc' }],
+    include: { input: { select: { name: true } } },
+  },
+};
 
 describe('PrismaReceptionValidationAdapter', () => {
   const tx = {
@@ -185,7 +193,7 @@ describe('PrismaReceptionValidationAdapter', () => {
     });
     expect(tx.reception.findFirstOrThrow).toHaveBeenCalledWith({
       where: { id: 'reception-1', clientId: 'client-1' },
-      include: { items: itemOrderBy },
+      include: expectedInclude,
     });
     expect(record).toEqual(expectedValidatedRecord);
   });

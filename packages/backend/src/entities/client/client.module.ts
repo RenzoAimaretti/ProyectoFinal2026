@@ -8,10 +8,12 @@ import { CreateClientUseCase } from './application/use-cases/create-client.use-c
 import { FindAllClientsUseCase } from './application/use-cases/find-all-clients.use-case';
 import { FindClientUseCase } from './application/use-cases/find-client.use-case';
 import { UpdateClientUseCase } from './application/use-cases/update-client.use-case';
+import { ClientController } from './adapters/inbound/client.controller';
 import { PrismaClientRepository } from './adapters/outbound/prisma-client.repository';
 
 @Module({
   imports: [PrismaModule],
+  controllers: [ClientController],
   providers: [
     PrismaClientRepository,
     { provide: CLIENT_REPOSITORY, useExisting: PrismaClientRepository },

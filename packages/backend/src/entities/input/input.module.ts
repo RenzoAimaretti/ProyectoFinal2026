@@ -8,10 +8,12 @@ import { CreateInputUseCase } from './application/use-cases/create-input.use-cas
 import { FindAllInputsUseCase } from './application/use-cases/find-all-inputs.use-case';
 import { FindInputUseCase } from './application/use-cases/find-input.use-case';
 import { UpdateInputUseCase } from './application/use-cases/update-input.use-case';
+import { InputController } from './adapters/inbound/input.controller';
 import { PrismaInputRepository } from './adapters/outbound/prisma-input.repository';
 
 @Module({
   imports: [PrismaModule],
+  controllers: [InputController],
   providers: [
     PrismaInputRepository,
     { provide: INPUT_REPOSITORY, useExisting: PrismaInputRepository },

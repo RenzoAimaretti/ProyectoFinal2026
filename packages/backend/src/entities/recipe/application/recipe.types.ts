@@ -7,6 +7,8 @@ export type RecipeItemRecord = {
   dose: number;
   unit: string | null;
   loadOrder: number;
+  /** Additive read enrichment: catalogue name of the input. */
+  inputName?: string;
 };
 
 export type RecipeRecord = {

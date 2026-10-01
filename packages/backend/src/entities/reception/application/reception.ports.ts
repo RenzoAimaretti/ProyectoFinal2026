@@ -18,6 +18,19 @@ export interface ReceptionRepositoryPort {
     clientId: string,
   ): Promise<ReceptionRecord | null>;
   findAllByClient(clientId: string): Promise<ReceptionRecord[]>;
+  /**
+   * Tenant-wide read: every reception whose client belongs to the tenant. It
+   * powers the administrator list and is not scoped to a single client.
+   */
+  findAllByTenant(tenantId: string): Promise<ReceptionRecord[]>;
+  /**
+   * Tenant-wide single read used to resolve the client scope of an
+   * administrator decision before the client-scoped operation runs.
+   */
+  findByIdForTenant(
+    id: string,
+    tenantId: string,
+  ): Promise<ReceptionRecord | null>;
 }
 
 /**
