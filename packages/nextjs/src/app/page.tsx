@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Card } from "@/components/ui/primitives";
 
 const features = [
   {
@@ -47,10 +48,10 @@ export default function Home() {
             Panel
           </Link>
           <Link
-            href="#"
+            href="/login"
             className="rounded-full px-4 py-1.5 text-sm font-medium text-ink-soft hover:text-ink"
           >
-            Contacto
+            Iniciar sesión
           </Link>
         </nav>
       </header>
@@ -104,13 +105,13 @@ export default function Home() {
         {/* Features */}
         <div className="mt-16 grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
           {features.map((f) => (
-            <div
+            <Card
               key={f.title}
-              className="rounded-card-lg border border-agro-border bg-card p-5 text-left shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
+              className="p-5 text-left transition-all hover:-translate-y-0.5"
             >
               <h3 className="font-semibold text-ink">{f.title}</h3>
               <p className="mt-1.5 text-sm text-ink-soft">{f.description}</p>
-            </div>
+            </Card>
           ))}
         </div>
       </main>

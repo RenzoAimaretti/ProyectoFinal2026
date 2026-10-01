@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ApiError, getStoredUser, getToken, login } from "@/api/client";
 import { Button } from "@/components/ui/primitives";
+import { Alert } from "@/components/ui/feedback";
+import { TextField } from "@/components/ui/form";
+import { Spinner } from "@/components/ui/spinner";
 
 function LoginForm() {
   const router = useRouter();
@@ -95,49 +98,29 @@ function LoginForm() {
           </p>
 
           <form className="mt-7 space-y-4" onSubmit={onSubmit}>
-            <div>
-              <label htmlFor="email" className="mb-1.5 block text-xs font-semibold text-ink-faint">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="usuario@agro.com"
-                className="w-full rounded-lg border border-agro-border bg-card px-3 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-agro-green/40"
-              />
-            </div>
+            <TextField
+              id="email"
+              label="Email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="usuario@agro.com"
+            />
 
-            <div>
-              <label htmlFor="password" className="mb-1.5 block text-xs font-semibold text-ink-faint">
-                Contraseña
-              </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-lg border border-agro-border bg-card px-3 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-agro-green/40"
-              />
-            </div>
+            <TextField
+              id="password"
+              label="Contraseña"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
 
-            {error && (
-              <div
-                role="alert"
-                className="flex items-start gap-2 rounded-lg border border-agro-earth/40 bg-agro-earth/10 px-3 py-2.5 text-sm text-agro-earth-dark"
-              >
-                <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                </svg>
-                {error}
-              </div>
-            )}
+            {error && <Alert tone="error">{error}</Alert>}
 
             <Button type="submit" disabled={submitting} className="w-full">
               {submitting ? "Ingresando…" : "Ingresar"}
@@ -158,10 +141,7 @@ function LoginForm() {
 function LoginFallback() {
   return (
     <div className="app-canvas flex min-h-screen items-center justify-center p-4">
-      <div className="flex items-center gap-2.5 text-sm text-ink-soft">
-        <span className="h-2 w-2 animate-pulse-soft rounded-full bg-agro-green" />
-        Cargando…
-      </div>
+      <Spinner label="Cargando…" />
     </div>
   );
 }

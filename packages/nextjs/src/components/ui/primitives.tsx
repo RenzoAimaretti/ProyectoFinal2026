@@ -157,26 +157,53 @@ export function Button({
 /* Status badge                                                        */
 /* ------------------------------------------------------------------ */
 
-const statusMeta: Record<DailyReportStatus, { label: string; tone: Tone; dot: string }> = {
+export type StatusMeta = { label: string; tone: Tone; dot?: string };
+
+/** Maps a status value to its display label, tone and optional dot class. */
+export type StatusMap<S extends string = string> = Record<S, StatusMeta>;
+
+/**
+ * Default map so the existing `<StatusBadge status={dailyReport.status} />`
+ * usage keeps working without passing `map`.
+ */
+export const DAILY_REPORT_STATUS_BADGE: StatusMap<DailyReportStatus> = {
   PENDIENTE_APROBACION: { label: "Pendiente", tone: "wheat", dot: "bg-agro-wheat" },
   APROBADO: { label: "Aprobado", tone: "green", dot: "bg-agro-green" },
   RECHAZADO: { label: "Rechazado", tone: "earth", dot: "bg-agro-earth" },
 };
 
-/** StatusBadge: estado de un parte de trabajo con color semántico. */
-export function StatusBadge({
+const toneDot: Record<Tone, string> = {
+  green: "bg-agro-green",
+  earth: "bg-agro-earth",
+  wheat: "bg-agro-wheat",
+  slate: "bg-ink-faint",
+};
+
+/**
+ * Generic status badge. Pass `map` to describe any status enum:
+ *   const RECEPTION_BADGE: StatusMap<ReceptionStatus> = { ... };
+ *   <StatusBadge status={reception.status} map={RECEPTION_BADGE} />
+ * When `map` is omitted and the status is a daily-report status, the default
+ * map above is used. Unknown statuses fall back to a neutral badge.
+ */
+export function StatusBadge<S extends string>({
   status,
+  map,
   className = "",
 }: {
-  status: DailyReportStatus;
+  status: S;
+  map?: StatusMap<S>;
   className?: string;
 }) {
-  const meta = statusMeta[status];
+  const meta: StatusMeta =
+    (map as StatusMap | undefined)?.[status] ??
+    (DAILY_REPORT_STATUS_BADGE as StatusMap)[status] ??
+    { label: status, tone: "slate" };
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${toneBadge[meta.tone]} ${className}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+      <span className={`h-1.5 w-1.5 rounded-full ${meta.dot ?? toneDot[meta.tone]}`} />
       {meta.label}
     </span>
   );
@@ -452,5 +479,57 @@ export function HeroBand({
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
+  );
+}
+
+export type KpiDeltaDirection = "up" | "down" | "flat";
+
+const kpiDeltaTone: Record<KpiDeltaDirection, string> = {
+  up: "text-agro-green-dark",
+  down: "text-agro-earth-dark",
+  flat: "text-ink-soft",
+};
+
+/** KpiCard: métrica destacada con icono, valor y delta opcional. */
+export function KpiCard({
+  label,
+  value,
+  delta,
+  deltaDirection = "flat",
+  icon,
+  tone = "green",
+  hint,
+  className = "",
+}: {
+  label: string;
+  value: React.ReactNode;
+  /** Short delta or hint text shown under the value. */
+  delta?: string;
+  deltaDirection?: KpiDeltaDirection;
+  icon?: React.ReactNode;
+  tone?: Tone;
+  hint?: string;
+  className?: string;
+}) {
+  const footer = delta ?? hint;
+  return (
+    <Card className={`p-5 ${className}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">{label}</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-ink">{value}</p>
+          {footer && (
+            <p className={`mt-1 text-xs font-medium ${delta ? kpiDeltaTone[deltaDirection] : "text-ink-soft"}`}>
+              {footer}
+            </p>
+          )}
+        </div>
+        {icon && (
+          <IconTile tone={tone} className="h-11 w-11">
+            {icon}
+          </IconTile>
+        )}
+      </div>
+    </Card>
   );
 }

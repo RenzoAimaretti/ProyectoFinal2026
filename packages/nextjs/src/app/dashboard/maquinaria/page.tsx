@@ -1,38 +1,197 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/ui/layout";
-import { Card, Badge, IconTile, Button, StatRow, ProgressBar, HeroBand, type Tone } from "@/components/ui/primitives";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  HeroBand,
+  IconTile,
+  Modal,
+  StatRow,
+  type Tone,
+} from "@/components/ui/primitives";
+import { Alert, useToast } from "@/components/ui/feedback";
+import { SelectField, TextField } from "@/components/ui/form";
+import { TableSkeleton } from "@/components/ui/skeleton";
+import { MachineIcon, PlusIcon } from "@/components/ui/icons";
 import { navItems } from "@/components/ui/nav";
-import { apiGet, type MachineDTO } from "@/api/client";
+import {
+  ApiError,
+  apiGet,
+  createMachine,
+  listMachineActivities,
+  MACHINE_STATUS_LABELS,
+  type MachineActivityDTO,
+  type MachineDTO,
+  type MachineStatus,
+} from "@/api/client";
 
-// Estado back -> presentación. "peatón" no modelado: horas/umbral/combustible/ubi
-const estadoToPres: Record<MachineDTO["status"], "ok" | "avisa" | "alerta"> = {
-  ACTIVA: "ok",
-  MANTENIMIENTO: "alerta",
-  FUERA_SERVICIO: "alerta",
+const STATUS_TONE: Record<MachineStatus, Tone> = {
+  ACTIVA: "green",
+  MANTENIMIENTO: "wheat",
+  FUERA_SERVICIO: "earth",
 };
 
-const estadoMeta: Record<string, { label: string; tone: Tone }> = {
-  ok: { label: "En rango", tone: "green" },
-  avisa: { label: "Preventivo próximo", tone: "wheat" },
-  alerta: { label: "Requiere atención", tone: "earth" },
+const dateFmt = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+function fmtDate(value: string | null | undefined): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? value.slice(0, 10) : dateFmt.format(d);
+}
+
+function fmtLiters(value: number): string {
+  return `${value.toLocaleString("es-AR", { maximumFractionDigits: 1 })} L`;
+}
+
+function describeError(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 401) return "Tu sesión expiró. Volvé a iniciar sesión.";
+    if (err.status === 400) return "Revisá los datos ingresados.";
+    return `No se pudo completar la operación (código ${err.status}).`;
+  }
+  return "Ocurrió un error inesperado. Intentá nuevamente.";
+}
+
+type MachineSummary = {
+  machine: MachineDTO;
+  fuelLiters: number;
+  usageHours: number;
+  activityCount: number;
+  lastActivityAt: string | null;
+  lastServiceAt: string | null;
 };
 
-export default async function MaquinariaPage() {
-  const maquinas = await apiGet<MachineDTO[]>("/machines");
-  // Horas de uso no modeladas: exponemos un progreso derivado del estado para la barra
-  const flota = maquinas.map((m) => {
-    const estado = estadoToPres[m.status];
-    const pct = estado === "ok" ? 40 : estado === "avisa" ? 78 : 100;
-    return {
-      nombre: m.name,
-      tipo: m.brand ?? "Maquinaria",
-      horas: null as number | null,
-      umbral: null as number | null,
-      combustible: "—",
-      ubi: m.status === "MANTENIMIENTO" ? "En taller" : "En campo",
-      estado,
-      pct,
-    };
-  });
+function latestDate(dates: string[]): string | null {
+  if (dates.length === 0) return null;
+  return dates.reduce((a, b) => (+new Date(a) >= +new Date(b) ? a : b));
+}
+
+function summarize(machine: MachineDTO, activities: MachineActivityDTO[]): MachineSummary {
+  const own = activities.filter((a) => a.machineId === machine.id);
+  const fuelLiters = own
+    .filter((a) => a.type === "COMBUSTIBLE" && typeof a.liters === "number")
+    .reduce((sum, a) => sum + (a.liters as number), 0);
+  const usageHours = own
+    .filter((a) => typeof a.usageHours === "number")
+    .reduce((sum, a) => sum + (a.usageHours as number), 0);
+  const lastActivityAt = latestDate(own.map((a) => a.date));
+  const lastServiceAt = latestDate(
+    own
+      .filter((a) => a.type === "MANTENIMIENTO" || a.type === "REPARACION")
+      .map((a) => a.date),
+  );
+
+  return {
+    machine,
+    fuelLiters,
+    usageHours,
+    activityCount: own.length,
+    lastActivityAt,
+    lastServiceAt,
+  };
+}
+
+export default function MaquinariaPage() {
+  const { success, error: toastError } = useToast();
+
+  const [machines, setMachines] = useState<MachineDTO[]>([]);
+  const [activities, setActivities] = useState<MachineActivityDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", brand: "", entryDate: today() });
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const [machineData, activityData] = await Promise.all([
+        apiGet<MachineDTO[]>("/machines"),
+        listMachineActivities(),
+      ]);
+      setMachines(machineData);
+      setActivities(activityData);
+    } catch (err) {
+      setLoadError(describeError(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const summaries = useMemo(
+    () => machines.map((m) => summarize(m, activities)),
+    [machines, activities],
+  );
+
+  const totalFuel = useMemo(
+    () =>
+      activities
+        .filter((a) => a.type === "COMBUSTIBLE" && typeof a.liters === "number")
+        .reduce((sum, a) => sum + (a.liters as number), 0),
+    [activities],
+  );
+
+  const openModal = useCallback(() => {
+    setForm({ name: "", brand: "", entryDate: today() });
+    setFormError(null);
+    setModalOpen(true);
+  }, []);
+
+  const submitMachine = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (submitting) return;
+
+      if (!form.name.trim()) {
+        setFormError("Ingresá el nombre de la máquina.");
+        return;
+      }
+      if (!form.brand.trim()) {
+        setFormError("Ingresá la marca.");
+        return;
+      }
+      if (!form.entryDate) {
+        setFormError("Indicá la fecha de ingreso.");
+        return;
+      }
+
+      setSubmitting(true);
+      setFormError(null);
+      try {
+        await createMachine({
+          name: form.name.trim(),
+          brand: form.brand.trim(),
+          entryDate: form.entryDate,
+        });
+        success("Máquina registrada.", "Maquinaria");
+        setModalOpen(false);
+        await load();
+      } catch (err) {
+        const message = describeError(err);
+        setFormError(message);
+        toastError(message, "No se pudo registrar");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [form, load, submitting, success, toastError],
+  );
+
   return (
     <DashboardLayout
       title="Maquinaria"
@@ -42,52 +201,89 @@ export default async function MaquinariaPage() {
       <HeroBand
         kicker="Flota, combustible y mantenimiento"
         title="Maquinaria"
-        description="Control de horas por máquina con umbral de mantenimiento preventivo y consumo de combustible."
-        icon={
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
-          </svg>
-        }
+        description="Control de la flota con combustible, horas de uso y mantenimiento registrados por actividad."
+        icon={<MachineIcon className="h-6 w-6" />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">{flota.length} máquinas</span>
-            <Button className="!bg-white/95 !text-agro-green-deep !hover:bg-white">+ Registrar máquina</Button>
+            <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">
+              {machines.length} máquinas
+            </span>
+            <Button
+              className="!bg-white/95 !text-agro-green-deep !hover:bg-white"
+              onClick={openModal}
+            >
+              <PlusIcon className="h-4 w-4" />
+              Registrar máquina
+            </Button>
           </div>
         }
       />
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {flota.map((m) => {
-          const s = estadoMeta[m.estado];
-          return (
-            <Card key={m.nombre} className="stagger-item overflow-hidden">
+      {loadError && (
+        <Alert tone="error" title="No se pudo cargar la flota" className="mb-5">
+          {loadError}
+        </Alert>
+      )}
+
+      {loading ? (
+        <Card className="overflow-hidden">
+          <TableSkeleton rows={4} columns={3} />
+        </Card>
+      ) : summaries.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon={<MachineIcon />}
+            title="Todavía no hay máquinas"
+            subtitle="Registrá la primera máquina para empezar a seguir combustible y mantenimiento."
+          />
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          {summaries.map(({ machine, fuelLiters, usageHours, activityCount, lastActivityAt, lastServiceAt }) => (
+            <Card key={machine.id} className="stagger-item overflow-hidden">
               <div className="flex items-start justify-between gap-3 p-5">
                 <div className="flex items-center gap-3">
-                  <IconTile tone={s.tone}>
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877" /></svg>
+                  <IconTile tone={STATUS_TONE[machine.status]}>
+                    <MachineIcon />
                   </IconTile>
                   <div>
-                    <h3 className="font-semibold text-ink">{m.nombre}</h3>
-                    <p className="text-sm text-ink-soft">{m.tipo} · {m.ubi}</p>
+                    <h3 className="font-semibold text-ink">{machine.name}</h3>
+                    <p className="text-sm text-ink-soft">{machine.brand ?? "Sin marca"}</p>
                   </div>
                 </div>
-                <Badge tone={s.tone}>{s.label}</Badge>
+                <Badge tone={STATUS_TONE[machine.status]}>
+                  {MACHINE_STATUS_LABELS[machine.status]}
+                </Badge>
               </div>
 
-              {/* Gauge de horas vs umbral de mantenimiento */}
               <div className="border-t border-agro-border px-5 py-4">
-                <div className="mb-1.5 flex items-center justify-between text-sm">
-                  <span className="text-ink-soft">Estado general</span>
-                  <span className="font-semibold text-ink">{m.estado === "ok" ? "En operación" : "Requiere atención"}</span>
-                </div>
-                <ProgressBar value={m.pct} tone={s.tone} />
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-faint">
+                  Actividad registrada
+                </p>
+                {activityCount === 0 ? (
+                  <p className="text-sm text-ink-soft">
+                    Sin actividades cargadas para esta máquina.
+                  </p>
+                ) : (
+                  <StatRow
+                    label={`${activityCount} ${activityCount === 1 ? "actividad" : "actividades"}`}
+                    value={`Última: ${fmtDate(lastActivityAt)}`}
+                  />
+                )}
               </div>
 
-              <div className="grid grid-cols-3 gap-px border-t border-agro-border bg-agro-border">
+              <div className="grid grid-cols-2 gap-px border-t border-agro-border bg-agro-border lg:grid-cols-4">
                 {[
-                  { k: "Tipo", v: m.tipo },
-                  { k: "Ubicación", v: m.ubi },
-                  { k: "Última revisión", v: m.estado === "ok" ? "Hace 2 sem" : "En curso" },
+                  {
+                    k: "Combustible",
+                    v: fuelLiters > 0 ? fmtLiters(fuelLiters) : "Sin registros",
+                  },
+                  {
+                    k: "Horas de uso",
+                    v: usageHours > 0 ? `${usageHours.toLocaleString("es-AR")} h` : "Sin registros",
+                  },
+                  { k: "Última actividad", v: fmtDate(lastActivityAt) },
+                  { k: "Último service", v: fmtDate(lastServiceAt) },
                 ].map((d) => (
                   <div key={d.k} className="bg-card px-4 py-3">
                     <p className="text-[11px] text-ink-faint">{d.k}</p>
@@ -96,28 +292,92 @@ export default async function MaquinariaPage() {
                 ))}
               </div>
             </Card>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Pie: resumen de combustible */}
+      {/* Pie: resumen real de combustible */}
       <Card className="mt-5 overflow-hidden">
         <div className="flex flex-wrap items-center gap-6 p-5">
           <div className="flex items-center gap-3">
             <IconTile tone="wheat">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 8.25h3.75a4.5 4.5 0 014.5 4.5v7.5" /></svg>
+              <MachineIcon />
             </IconTile>
             <div>
-              <p className="text-base font-bold text-ink">42.000 L</p>
-              <p className="text-xs text-ink-faint">Combustible en campaña</p>
+              <p className="text-base font-bold text-ink">
+                {totalFuel > 0 ? fmtLiters(totalFuel) : "Sin registros"}
+              </p>
+              <p className="text-xs text-ink-faint">Combustible total cargado</p>
             </div>
           </div>
           <div className="h-10 w-px bg-agro-border" />
           <p className="max-w-md text-sm text-ink-soft">
-            Compras registradas con comprobantes y <b className="text-ink">costos discriminados por firma</b> (Eliggi y Eliggi Néstor) para no mezclar unidades de negocio.
+            Suma de las actividades de tipo combustible registradas por la firma. El detalle
+            por comprobante y costo se consulta en el módulo de Insumos.
           </p>
         </div>
       </Card>
+
+      <Modal
+        open={modalOpen}
+        onClose={() => (submitting ? undefined : setModalOpen(false))}
+        title="Registrar máquina"
+        subtitle="El alta queda asociada a la firma de tu sesión."
+      >
+        <form className="space-y-4" onSubmit={submitMachine}>
+          <TextField
+            label="Nombre"
+            required
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            placeholder="Ej: Tractor John Deere 6110"
+            disabled={submitting}
+          />
+          <TextField
+            label="Marca"
+            required
+            value={form.brand}
+            onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))}
+            placeholder="Ej: John Deere"
+            disabled={submitting}
+          />
+          <TextField
+            label="Fecha de ingreso"
+            type="date"
+            required
+            value={form.entryDate}
+            onChange={(e) => setForm((f) => ({ ...f, entryDate: e.target.value }))}
+            disabled={submitting}
+          />
+          <SelectField
+            label="Estado"
+            value="ACTIVA"
+            options={[{ value: "ACTIVA", label: MACHINE_STATUS_LABELS.ACTIVA }]}
+            disabled
+            title="El backend crea la máquina como Activa; el estado se actualiza luego."
+            hint="El alta se registra como Activa. El backend no permite definir otro estado al crear."
+          />
+
+          {formError && <Alert tone="error">{formError}</Alert>}
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button
+              variant="secondary"
+              onClick={() => setModalOpen(false)}
+              disabled={submitting}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Registrando…" : "Registrar máquina"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </DashboardLayout>
   );
+}
+
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
 }

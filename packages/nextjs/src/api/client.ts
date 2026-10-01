@@ -143,6 +143,14 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   return request<T>("POST", path, body ?? {});
 }
 
+export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
+  return request<T>("PUT", path, body ?? {});
+}
+
+export async function apiDelete<T>(path: string): Promise<T> {
+  return request<T>("DELETE", path);
+}
+
 /* ------------------------------------------------------------------ */
 /* Auth endpoints                                                      */
 /* ------------------------------------------------------------------ */
@@ -309,3 +317,331 @@ export type WeightRecordDTO = {
   weight: number;
   measuredAt: string;
 };
+
+/* ------------------------------------------------------------------ */
+/* Inputs catalogue (insumos)                                          */
+/* ------------------------------------------------------------------ */
+
+export type InputDTO = {
+  id: string;
+  name: string;
+  unit: string;
+};
+
+export function listInputs(): Promise<InputDTO[]> {
+  return apiGet<InputDTO[]>("/inputs");
+}
+
+/* ------------------------------------------------------------------ */
+/* Clients (clientes / productores)                                    */
+/* ------------------------------------------------------------------ */
+
+export type ClientDTO = {
+  id: string;
+  name: string;
+  cuit: string | null;
+  active: boolean;
+};
+
+export function listClients(): Promise<ClientDTO[]> {
+  return apiGet<ClientDTO[]>("/clients");
+}
+
+/* ------------------------------------------------------------------ */
+/* Receptions (recepciones de insumos)                                 */
+/* ------------------------------------------------------------------ */
+
+export type ReceptionStatus = "PENDIENTE_VALIDACION" | "VALIDADA" | "RECHAZADA";
+
+export const RECEPTION_STATUS_LABELS: Record<ReceptionStatus, string> = {
+  PENDIENTE_VALIDACION: "Pendiente de validación",
+  VALIDADA: "Validada",
+  RECHAZADA: "Rechazada",
+};
+
+export type ReceptionItemDTO = {
+  id: string;
+  inputId: string;
+  inputName: string;
+  /** Expected quantity declared when the reception was created. */
+  quantity: number;
+  /** Quantity agreed by the administrator; null while pending. */
+  validatedQuantity: number | null;
+  /** Shortage (negative) or surplus (positive); null while pending. */
+  variance: number | null;
+  unit: string;
+};
+
+export type ReceptionDTO = {
+  id: string;
+  clientId: string;
+  clientName: string;
+  date: string;
+  status: ReceptionStatus;
+  rejectionReason: string | null;
+  validatedAt: string | null;
+  createdAt: string;
+  items: ReceptionItemDTO[];
+};
+
+export type CreateReceptionBody = {
+  clientId: string;
+  date: string;
+  items: { inputId: string; quantity: number }[];
+};
+
+export type ValidateReceptionItem = {
+  inputId: string;
+  validatedQuantity: number;
+};
+
+export function listReceptions(): Promise<ReceptionDTO[]> {
+  return apiGet<ReceptionDTO[]>("/receptions");
+}
+
+export function getReception(id: string): Promise<ReceptionDTO> {
+  return apiGet<ReceptionDTO>(`/receptions/${id}`);
+}
+
+export function createReception(body: CreateReceptionBody): Promise<ReceptionDTO> {
+  return apiPost<ReceptionDTO>("/receptions", body);
+}
+
+export function validateReception(
+  id: string,
+  items: ValidateReceptionItem[],
+): Promise<ReceptionDTO> {
+  return apiPost<ReceptionDTO>(`/receptions/${id}/validate`, { items });
+}
+
+export function rejectReception(id: string, reason: string): Promise<ReceptionDTO> {
+  return apiPost<ReceptionDTO>(`/receptions/${id}/reject`, { reason });
+}
+
+/* ------------------------------------------------------------------ */
+/* Stock                                                               */
+/* ------------------------------------------------------------------ */
+
+export type StockDTO = {
+  id: string;
+  clientId: string;
+  inputId: string;
+  inputName: string;
+  unit: string;
+  quantity: number;
+};
+
+/** Derived stock level: below the campaign target, on target, or above it. */
+export type StockStatus = "FALTANTE" | "OK" | "SOBRANTE";
+
+export const STOCK_STATUS_LABELS: Record<StockStatus, string> = {
+  FALTANTE: "Faltante",
+  OK: "OK",
+  SOBRANTE: "Sobrante",
+};
+
+export function listStock(clientId?: string): Promise<StockDTO[]> {
+  const query = clientId ? `?clientId=${encodeURIComponent(clientId)}` : "";
+  return apiGet<StockDTO[]>(`/stock${query}`);
+}
+
+/* ------------------------------------------------------------------ */
+/* Recipes (recetas / órdenes de aplicación)                           */
+/* ------------------------------------------------------------------ */
+
+export type RecipeStatus = "ACTIVA" | "ARCHIVADA";
+
+export const RECIPE_STATUS_LABELS: Record<RecipeStatus, string> = {
+  ACTIVA: "Activa",
+  ARCHIVADA: "Archivada",
+};
+
+export type RecipeItemDTO = {
+  inputId: string;
+  inputName: string;
+  dose: number;
+  unit: string | null;
+  loadOrder: number;
+};
+
+export type RecipeDTO = {
+  id: string;
+  lotId: string;
+  date: string;
+  status: RecipeStatus;
+  observations: string | null;
+  sprayVolume: number;
+  sprayVolumeUnit: string;
+  items: RecipeItemDTO[];
+};
+
+export function listRecipesByLot(lotId: string): Promise<RecipeDTO[]> {
+  return apiGet<RecipeDTO[]>(`/recipes?lotId=${encodeURIComponent(lotId)}`);
+}
+
+/* ------------------------------------------------------------------ */
+/* Machine activities (actividades de maquinaria)                      */
+/* ------------------------------------------------------------------ */
+
+export type MachineActivityType = "COMBUSTIBLE" | "MANTENIMIENTO" | "REPARACION" | "USO_CAMPO";
+
+export const MACHINE_ACTIVITY_TYPE_LABELS: Record<MachineActivityType, string> = {
+  COMBUSTIBLE: "Combustible",
+  MANTENIMIENTO: "Mantenimiento",
+  REPARACION: "Reparación",
+  USO_CAMPO: "Uso en campo",
+};
+
+export type MachineStatus = "ACTIVA" | "MANTENIMIENTO" | "FUERA_SERVICIO";
+
+export const MACHINE_STATUS_LABELS: Record<MachineStatus, string> = {
+  ACTIVA: "Activa",
+  MANTENIMIENTO: "En mantenimiento",
+  FUERA_SERVICIO: "Fuera de servicio",
+};
+
+export type MachineActivityDTO = {
+  id: string;
+  machineId: string;
+  companyId: string;
+  type: MachineActivityType;
+  date: string;
+  liters: number | null;
+  receipt: string | null;
+  cost: number | null;
+  spareParts: string | null;
+  usageHours: number | null;
+  hectares: number | null;
+  observations: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateMachineActivityBody = {
+  machineId: string;
+  type: MachineActivityType;
+  date: string;
+  liters?: number | null;
+  receipt?: string | null;
+  cost?: number | null;
+  spareParts?: string | null;
+  usageHours?: number | null;
+  hectares?: number | null;
+  observations?: string | null;
+};
+
+export function listMachineActivities(): Promise<MachineActivityDTO[]> {
+  return apiGet<MachineActivityDTO[]>("/machine-activities");
+}
+
+export function createMachineActivity(
+  body: CreateMachineActivityBody,
+): Promise<MachineActivityDTO> {
+  return apiPost<MachineActivityDTO>("/machine-activities", body);
+}
+
+/* ------------------------------------------------------------------ */
+/* Livestock events and weight records                                 */
+/* ------------------------------------------------------------------ */
+
+export type LivestockEventType =
+  | "VACUNACION"
+  | "TRATAMIENTO"
+  | "CASTRACION"
+  | "INSEMINACION"
+  | "PARTO"
+  | "ENFERMEDAD";
+
+export type CreateLivestockEventBody = {
+  livestockId: string;
+  eventType: LivestockEventType;
+  eventDate: string;
+  operatorId: string;
+  obs?: string;
+  vaccine?: string | null;
+  dose?: number | null;
+};
+
+export function createLivestockEvent(
+  body: CreateLivestockEventBody,
+): Promise<LivestockEventDTO> {
+  return apiPost<LivestockEventDTO>("/livestock-events", body);
+}
+
+export type CreateWeightRecordBody = {
+  livestockId: string;
+  operatorId: string;
+  weight: number;
+  measuredAt: string;
+};
+
+export function createWeightRecord(
+  body: CreateWeightRecordBody,
+): Promise<WeightRecordDTO> {
+  return apiPost<WeightRecordDTO>("/weight-records", body);
+}
+
+/* ------------------------------------------------------------------ */
+/* Users (personal)                                                    */
+/* ------------------------------------------------------------------ */
+
+export type UserRole =
+  | "ADMIN"
+  | "OPERARIO"
+  | "SUPERVISOR"
+  | "PRODUCTOR"
+  | "CONTRATISTA"
+  | "VETERINARIO";
+
+export type UserDTO = {
+  id: string;
+  email: string;
+  username: string | null;
+  role: UserRole;
+  active: boolean;
+};
+
+export type CreateUserBody = {
+  email: string;
+  username?: string;
+  password: string;
+  role: UserRole;
+  companyId: string;
+  active?: boolean;
+};
+
+export function listUsers(): Promise<UserDTO[]> {
+  return apiGet<UserDTO[]>("/users");
+}
+
+export function createUser(body: CreateUserBody): Promise<UserDTO> {
+  return apiPost<UserDTO>("/users", body);
+}
+
+/* ------------------------------------------------------------------ */
+/* Machines and daily reports (creation)                               */
+/* ------------------------------------------------------------------ */
+
+export type CreateMachineBody = {
+  name: string;
+  brand: string;
+  entryDate: string;
+  companyId?: string;
+};
+
+export function createMachine(body: CreateMachineBody): Promise<MachineDTO> {
+  return apiPost<MachineDTO>("/machines", body);
+}
+
+export type CreateDailyReportBody = {
+  taskId: string;
+  date: string;
+  hectares: number;
+  hours: number;
+  items: { inputId: string; quantity: number; unit?: string }[];
+  id?: string;
+};
+
+export function createDailyReport(body: CreateDailyReportBody): Promise<DailyReportDTO> {
+  return apiPost<DailyReportDTO>("/daily-reports", body);
+}

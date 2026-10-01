@@ -255,6 +255,22 @@ body {
   animation: drawer-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Entrada del panel lateral mobile (desde la izquierda) */
+@keyframes sidebar-in {
+  from {
+    opacity: 0.6;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-sidebar-in {
+  animation: sidebar-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Hoja de cuaderno: fondo rayado para el visor de partes */
 .paper-page {
   background-color: var(--bg-card);

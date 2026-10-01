@@ -14,8 +14,8 @@ import {
   TabButton,
   type Tone,
 } from "@/components/ui/primitives";
-import { navItems } from "@/components/ui/nav";
-import { useRol } from "@/components/ui/rol";
+import { isClientRole, navItems } from "@/components/ui/nav";
+import { useAuth } from "@/components/ui/auth";
 import {
   ApiError,
   approveDailyReport,
@@ -431,8 +431,8 @@ function ListSkeleton() {
 /* ------------------------------------------------------------------ */
 
 export default function BandejaAprobacionPage() {
-  const { rol } = useRol();
-  const esAdmin = rol !== "cliente";
+  const { user } = useAuth();
+  const esAdmin = !isClientRole(user?.role);
 
   const [reports, setReports] = useState<DailyReportDTO[]>([]);
   const [loading, setLoading] = useState(true);

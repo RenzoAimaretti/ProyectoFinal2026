@@ -1,149 +1,356 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/ui/layout";
-import { Card, Badge, IconTile, Button, StatRow, TabButton, HeroBand, type Tone } from "@/components/ui/primitives";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  HeroBand,
+  Modal,
+  StatRow,
+  TabButton,
+  type Tone,
+} from "@/components/ui/primitives";
+import { Alert, useToast } from "@/components/ui/feedback";
+import { SelectField, TextField } from "@/components/ui/form";
+import { DataTable, type DataTableColumn } from "@/components/ui/table";
+import { PeopleIcon, PlusIcon } from "@/components/ui/icons";
 import { navItems } from "@/components/ui/nav";
+import {
+  ApiError,
+  createUser,
+  getStoredUser,
+  listUsers,
+  type UserDTO,
+  type UserRole,
+} from "@/api/client";
 
-const plantel = [
-  { nombre: "Juan Pérez", cargo: "Operario", esquema: "Destajo", valor: "$ 18/ha", cert: "ok" },
-  { nombre: "María López", cargo: "Operaria", esquema: "Porcentaje", valor: "8 %", cert: "ok" },
-  { nombre: "Carlos Ruiz", cargo: "Operario", esquema: "Jornal", valor: "$ 45.000/día", cert: "avisa" },
-  { nombre: "Ana Torres", cargo: "Ing. Agrónoma", esquema: "Porcentaje", valor: "6 %", cert: "ok" },
-  { nombre: "Luis Díaz", cargo: "Operario", esquema: "Destajo", valor: "$ 20/ha", cert: "avisa" },
-] as const;
-
-const esquemaTone: Record<string, Tone> = { Destajo: "earth", Porcentaje: "green", Jornal: "slate" };
-const certTone: Record<string, { label: string; tone: Tone }> = {
-  ok: { label: "Al día", tone: "green" },
-  avisa: { label: "Certif. por vencer", tone: "wheat" },
+const ROLE_LABELS: Record<UserRole, string> = {
+  ADMIN: "Administrador",
+  OPERARIO: "Operario",
+  SUPERVISOR: "Supervisor",
+  PRODUCTOR: "Productor",
+  CONTRATISTA: "Contratista",
+  VETERINARIO: "Veterinario",
 };
 
+const ROLE_TONES: Record<UserRole, Tone> = {
+  ADMIN: "green",
+  OPERARIO: "slate",
+  SUPERVISOR: "wheat",
+  PRODUCTOR: "earth",
+  CONTRATISTA: "slate",
+  VETERINARIO: "green",
+};
+
+const ALL_ROLES = Object.keys(ROLE_LABELS) as UserRole[];
+
+function describeError(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 401) return "Tu sesión expiró. Volvé a iniciar sesión.";
+    if (err.status === 409) return "Ya existe un usuario con ese email o nombre de usuario.";
+    if (err.status === 400) return "Revisá los datos ingresados.";
+    return `No se pudo completar la operación (código ${err.status}).`;
+  }
+  return "Ocurrió un error inesperado. Intentá nuevamente.";
+}
+
 export default function PersonalPage() {
-  const [esquema, setEsquema] = useState<string>("Destajo");
-  const visibles = plantel.filter((p) => p.esquema === esquema);
+  const { success, error: toastError } = useToast();
+
+  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [roleFilter, setRoleFilter] = useState<UserRole | "TODOS">("TODOS");
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [form, setForm] = useState({
+    email: "",
+    username: "",
+    password: "",
+    role: "OPERARIO" as UserRole,
+  });
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      setUsers(await listUsers());
+    } catch (err) {
+      setLoadError(describeError(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const roleTabs = useMemo(() => {
+    const present = Array.from(new Set(users.map((u) => u.role)));
+    return ["TODOS", ...present] as (UserRole | "TODOS")[];
+  }, [users]);
+
+  const visible = useMemo(
+    () => (roleFilter === "TODOS" ? users : users.filter((u) => u.role === roleFilter)),
+    [users, roleFilter],
+  );
+
+  const openModal = useCallback(() => {
+    setForm({ email: "", username: "", password: "", role: "OPERARIO" });
+    setFormError(null);
+    setModalOpen(true);
+  }, []);
+
+  const submitUser = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (submitting) return;
+
+      const companyId = getStoredUser()?.firmaId;
+      if (!companyId) {
+        setFormError("Tu sesión no tiene una firma asociada. Volvé a iniciar sesión.");
+        return;
+      }
+      if (!form.email.trim()) {
+        setFormError("Ingresá el email del operario.");
+        return;
+      }
+      if (form.password.length < 6) {
+        setFormError("La contraseña debe tener al menos 6 caracteres.");
+        return;
+      }
+
+      setSubmitting(true);
+      setFormError(null);
+      try {
+        await createUser({
+          email: form.email.trim(),
+          username: form.username.trim() || undefined,
+          password: form.password,
+          role: form.role,
+          companyId,
+          active: true,
+        });
+        success("Operario creado.", "Personal");
+        setModalOpen(false);
+        await load();
+      } catch (err) {
+        const message = describeError(err);
+        setFormError(message);
+        toastError(message, "No se pudo crear");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [form, load, submitting, success, toastError],
+  );
+
+  const columns: DataTableColumn<UserDTO>[] = [
+    {
+      key: "user",
+      header: "Operario",
+      render: (u) => (
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-agro-green/15 text-xs font-semibold text-agro-green-deep">
+            {(u.username ?? u.email).slice(0, 2).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-ink">{u.username ?? "Sin usuario"}</p>
+            <p className="truncate text-xs text-ink-faint">{u.email}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "email",
+      header: "Email",
+      className: "hidden lg:table-cell",
+      headerClassName: "hidden lg:table-cell",
+      render: (u) => <span className="text-sm text-ink-soft">{u.email}</span>,
+    },
+    {
+      key: "role",
+      header: "Rol",
+      render: (u) => <Badge tone={ROLE_TONES[u.role]}>{ROLE_LABELS[u.role]}</Badge>,
+    },
+    {
+      key: "active",
+      header: "Estado",
+      align: "right",
+      render: (u) => (
+        <Badge tone={u.active ? "green" : "slate"}>{u.active ? "Activo" : "Inactivo"}</Badge>
+      ),
+    },
+  ];
 
   return (
     <DashboardLayout
       title="Personal"
       sidebarItems={navItems}
-      breadcrumb="Gestión de usuarios y liquidaciones"
+      breadcrumb="Gestión de usuarios"
     >
       <HeroBand
         kicker="Gestión de recursos humanos"
         title="Personal"
-        description="Plantel activo, esquemas de pago, certificaciones y liquidaciones por destajo."
-        icon={
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-          </svg>
-        }
+        description="Usuarios de la firma con su rol y estado. Las liquidaciones y certificaciones llegan en una próxima etapa."
+        icon={<PeopleIcon className="h-6 w-6" />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">42 operarios</span>
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">7 destajo</span>
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">12 por %</span>
-            <Button className="!bg-white/95 !text-agro-green-deep !hover:bg-white">+ Nuevo operario</Button>
+            <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">
+              {users.length} usuarios
+            </span>
+            <Button
+              className="!bg-white/95 !text-agro-green-deep !hover:bg-white"
+              onClick={openModal}
+            >
+              <PlusIcon className="h-4 w-4" />
+              Nuevo operario
+            </Button>
           </div>
         }
       />
 
-      {/* Esquemas de pago */}
+      {loadError && (
+        <Alert tone="error" title="No se pudo cargar el personal" className="mb-5">
+          {loadError}
+        </Alert>
+      )}
 
-      <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         {/* Tabla del plantel */}
         <Card className="overflow-hidden lg:col-span-2">
-          <div className="flex items-center justify-between border-b border-agro-border px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
             <div>
-              <h3 className="font-semibold text-ink">Plantel y esquema de pago</h3>
-              <p className="text-sm text-ink-soft">Destajo, porcentaje o jornal según liquidación.</p>
+              <h3 className="font-semibold text-ink">Usuarios de la firma</h3>
+              <p className="text-sm text-ink-soft">Rol y estado reales del backend.</p>
             </div>
-            <div className="flex gap-1 rounded-lg bg-base-subtle p-1">
-              {["Destajo", "Porcentaje", "Jornal"].map((t) => (
-                <TabButton key={t} active={esquema === t} onClick={() => setEsquema(t)}>{t}</TabButton>
+            <div className="flex flex-wrap gap-1 rounded-lg bg-base-subtle p-1">
+              {roleTabs.map((role) => (
+                <TabButton
+                  key={role}
+                  active={roleFilter === role}
+                  onClick={() => setRoleFilter(role)}
+                >
+                  {role === "TODOS" ? "Todos" : ROLE_LABELS[role]}
+                </TabButton>
               ))}
             </div>
           </div>
 
-          <div className="hidden grid-cols-12 gap-3 border-b border-agro-border px-5 py-2 text-[11px] font-semibold uppercase tracking-wider text-ink-faint lg:grid">
-            <span className="col-span-6">Operario</span>
-            <span className="col-span-4">Esquema</span>
-            <span className="col-span-2 text-right">Certificación</span>
-          </div>
-
-          <ul className="divide-y divide-agro-border">
-            {visibles.map((p) => {
-              const c = certTone[p.cert];
-              const esq = esquemaTone[p.esquema];
-              return (
-                <li key={p.nombre} className="grid grid-cols-12 items-center gap-3 px-5 py-3.5 transition-colors hover:bg-base-subtle">
-                  <div className="col-span-12 flex items-center gap-3 lg:col-span-6">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-agro-green/15 text-xs font-semibold text-agro-green-deep">
-                      {p.nombre.split(" ").map((n) => n[0]).join("")}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-ink">{p.nombre}</p>
-                      <p className="text-xs text-ink-faint">{p.cargo}</p>
-                    </div>
-                  </div>
-                  <div className="col-span-6 lg:col-span-4">
-                    <Badge tone={esq}>{p.esquema}</Badge>
-                    <span className="ml-2 text-xs text-ink-soft">{p.valor}</span>
-                  </div>
-                  <div className="col-span-6 flex justify-end lg:col-span-2">
-                    {p.cert === "avisa" ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-agro-ochre/10 px-2.5 py-1 text-[11px] font-semibold text-agro-earth-dark ring-1 ring-inset ring-agro-ochre/30">
-                        <span className="h-1.5 w-1.5 rounded-full bg-agro-ochre" />
-                        Certif. por vencer
-                      </span>
-                    ) : (
-                      <Badge tone={c.tone}>{c.label}</Badge>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <DataTable
+            columns={columns}
+            data={visible}
+            rowKey={(u) => u.id}
+            loading={loading}
+            emptyState={
+              <EmptyState
+                icon={<PeopleIcon />}
+                title={users.length === 0 ? "Todavía no hay usuarios" : "Sin usuarios en este rol"}
+                subtitle={
+                  users.length === 0
+                    ? "Creá el primer operario para empezar a gestionar el plantel."
+                    : "Probá con otro rol o mirá todos los usuarios."
+                }
+              />
+            }
+          />
         </Card>
 
-        {/* Certificaciones + haberes */}
+        {/* Proximamente: liquidaciones y certificaciones */}
         <div className="space-y-5">
           <Card>
             <div className="border-b border-agro-border px-5 py-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-ink">Certificaciones</h3>
-                <Badge tone="wheat">2 por vencer</Badge>
-              </div>
+              <h3 className="font-semibold text-ink">Liquidaciones</h3>
             </div>
-            <div className="space-y-3 px-5 py-4">
-              {[
-                { n: "Carlos Ruiz", materia: "Licencia fitosanitaria", vence: "12 días" },
-                { n: "Luis Díaz", materia: "Apto físico", vence: "30 días" },
-              ].map((c) => (
-                <div key={c.n} className="flex items-start gap-3 rounded-lg bg-agro-wheat/10 p-3">
-                  <IconTile tone="wheat" className="h-8 w-8">
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 3.75h.008M9 3.75h6a3 3 0 013 3v10.5a3 3 0 01-3 3H9a3 3 0 01-3-3V6.75a3 3 0 013-3z" /></svg>
-                  </IconTile>
-                  <div>
-                    <p className="text-sm font-medium text-ink">{c.n}</p>
-                    <p className="text-xs text-ink-soft">{c.materia}</p>
-                    <p className="mt-0.5 text-[11px] font-semibold text-agro-earth-dark">Vence en {c.vence}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <EmptyState
+              icon={<PeopleIcon />}
+              title="Proximamente"
+              subtitle="El modelo de esquemas de pago, destajo y jornal todavía no existe en el backend."
+            />
           </Card>
 
           <Card className="p-5">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Liquidación por destajo</p>
-            <StatRow label="Hectáreas reportadas" value="1.540 ha" />
-            <StatRow label="Valor por hectárea" value="$ 18" className="mt-1.5" />
-            <div className="mt-3 rounded-lg bg-agro-green/10 p-3">
-              <StatRow label="Total a pagar" value="$ 27.720" />
+            <p className="text-sm font-semibold text-ink">Certificaciones</p>
+            <p className="mt-1 text-sm text-ink-soft">
+              Proximamente. No hay modelo de certificaciones ni vencimientos para mostrar.
+            </p>
+            <div className="mt-3">
+              <StatRow label="Total usuarios" value={String(users.length)} />
+              <StatRow
+                label="Activos"
+                value={String(users.filter((u) => u.active).length)}
+                className="mt-1.5"
+              />
             </div>
           </Card>
         </div>
       </div>
+
+      <Modal
+        open={modalOpen}
+        onClose={() => (submitting ? undefined : setModalOpen(false))}
+        title="Nuevo operario"
+        subtitle="El usuario queda en la firma de tu sesión."
+      >
+        <form className="space-y-4" onSubmit={submitUser}>
+          <TextField
+            label="Email"
+            type="email"
+            required
+            autoComplete="email"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            placeholder="operario@agro.com"
+            disabled={submitting}
+          />
+          <TextField
+            label="Usuario"
+            value={form.username}
+            onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
+            placeholder="Opcional"
+            disabled={submitting}
+          />
+          <TextField
+            label="Contraseña"
+            type="password"
+            required
+            autoComplete="new-password"
+            value={form.password}
+            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            placeholder="Mínimo 6 caracteres"
+            disabled={submitting}
+          />
+          <SelectField
+            label="Rol"
+            required
+            options={ALL_ROLES.map((r) => ({ value: r, label: ROLE_LABELS[r] }))}
+            value={form.role}
+            onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as UserRole }))}
+            disabled={submitting}
+          />
+
+          {formError && <Alert tone="error">{formError}</Alert>}
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button
+              variant="secondary"
+              onClick={() => setModalOpen(false)}
+              disabled={submitting}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Creando…" : "Crear operario"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </DashboardLayout>
   );
 }

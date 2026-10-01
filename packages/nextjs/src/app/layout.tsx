@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { RolProvider } from "@/components/ui/rol";
+import { ToastProvider, Toaster } from "@/components/ui/feedback";
 import "./globals.css";
 
 const inter = Inter({
@@ -26,7 +26,10 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full">
-        <RolProvider>{children}</RolProvider>
+        <ToastProvider>
+          {children}
+          <Toaster />
+        </ToastProvider>
       </body>
     </html>
   );
