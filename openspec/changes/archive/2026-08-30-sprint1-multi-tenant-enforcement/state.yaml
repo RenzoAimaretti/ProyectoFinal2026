@@ -1,0 +1,22 @@
+change: sprint1-multi-tenant-enforcement
+status: archived
+phase: archive
+artifact_store: hybrid
+artifacts:
+  exploration: openspec/changes/archive/2026-08-30-sprint1-multi-tenant-enforcement/exploration.md
+  proposal: openspec/changes/archive/2026-08-30-sprint1-multi-tenant-enforcement/proposal.md
+  spec: openspec/changes/archive/2026-08-30-sprint1-multi-tenant-enforcement/specs/multi-tenant-enforcement/spec.md
+  design: openspec/changes/archive/2026-08-30-sprint1-multi-tenant-enforcement/design.md
+  tasks: openspec/changes/archive/2026-08-30-sprint1-multi-tenant-enforcement/tasks.md
+  apply_progress: openspec/changes/archive/2026-08-30-sprint1-multi-tenant-enforcement/apply-progress.md
+  verify_report: openspec/changes/archive/2026-08-30-sprint1-multi-tenant-enforcement/verify-report.md
+  archive_report: openspec/changes/archive/2026-08-30-sprint1-multi-tenant-enforcement/archive-report.md
+updated_at: 2026-08-30
+verification:
+  command: pnpm --filter backend run test
+  result: pass
+  suites: 25
+  tests: 238
+  coverage_command: pnpm --filter backend run test:cov
+  coverage_result: pass
+  coverage_note: Targeted coverage rerun passed after the TS2420 fix; route-level tenant behavior remains indirectly covered by unit/controller tests.

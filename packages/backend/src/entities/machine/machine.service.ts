@@ -20,20 +20,32 @@ export class MachineService {
     private readonly updateUseCase: UpdateMachineUseCase,
   ) {}
 
-  async findAll() {
-    return this.handle(() => this.findAllUseCase.execute(), 'fetching machines');
+  async findAll(companyId: string) {
+    return this.handle(
+      () => this.findAllUseCase.execute(companyId),
+      'fetching machines',
+    );
   }
 
-  async findOne(id: string) {
-    return this.handle(() => this.findOneUseCase.execute(id), 'fetching machine');
+  async findOne(id: string, companyId: string) {
+    return this.handle(
+      () => this.findOneUseCase.execute(id, companyId),
+      'fetching machine',
+    );
   }
 
-  async create(data: CreateMachineInput) {
-    return this.handle(() => this.createUseCase.execute(data), 'creating machine');
+  async create(companyId: string, data: CreateMachineInput) {
+    return this.handle(
+      () => this.createUseCase.execute(companyId, data),
+      'creating machine',
+    );
   }
 
-  async update(id: string, data: UpdateMachineInput) {
-    return this.handle(() => this.updateUseCase.execute(id, data), 'updating machine');
+  async update(id: string, companyId: string, data: UpdateMachineInput) {
+    return this.handle(
+      () => this.updateUseCase.execute(id, companyId, data),
+      'updating machine',
+    );
   }
 
   private async handle<T>(operation: () => Promise<T>, action: string) {

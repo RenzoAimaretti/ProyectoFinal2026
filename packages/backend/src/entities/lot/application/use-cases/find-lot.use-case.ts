@@ -5,8 +5,8 @@ import { LotRecord } from '../lot.types';
 export class FindLotUseCase {
   constructor(private readonly repository: LotRepositoryPort) {}
 
-  async execute(id: string): Promise<LotRecord> {
-    const lot = await this.repository.findById(id);
+  async execute(id: string, tenantId: string): Promise<LotRecord> {
+    const lot = await this.repository.findByIdForTenant(id, tenantId);
 
     if (!lot) {
       throw new EntityNotFoundError(`Lot with id ${id} not found`);

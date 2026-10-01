@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
 
 /// Input de texto estandarizado del Design System Agropecuario.
@@ -22,6 +23,7 @@ class CustomTextField extends StatelessWidget {
     this.onTap,
     this.maxLines = 1,
     this.autofocus = false,
+    this.inputFormatters,
   });
 
   /// Etiqueta que aparece arriba del campo.
@@ -66,6 +68,9 @@ class CustomTextField extends StatelessWidget {
   /// Autofocus al montar.
   final bool autofocus;
 
+  /// Formateadores de entrada (máscaras, límites de longitud, filtros).
+  final List<TextInputFormatter>? inputFormatters;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -94,6 +99,7 @@ class CustomTextField extends StatelessWidget {
           onTap: onTap,
           maxLines: maxLines,
           autofocus: autofocus,
+          inputFormatters: inputFormatters,
           style: const TextStyle(
             fontSize: 15,
             color: AppColors.onSurface,

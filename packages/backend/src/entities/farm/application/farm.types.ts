@@ -1,6 +1,6 @@
 export type FarmRecord = {
   id: string;
-  companyId: string;
+  clientId: string;
   name: string;
   location: string | null;
   surface: number;
@@ -13,13 +13,13 @@ export type FarmRecord = {
 export type CreateFarmInput = {
   name: string;
   location: string;
-  companyId: string;
   surface: number;
+  clientId: string;
 };
 
 export type UpdateFarmInput = {
   name?: string;
   location?: string;
-  companyId?: string;
   surface?: number;
+  clientId?: string;
 };

@@ -1,22 +1,23 @@
 import 'package:flutter/foundation.dart';
-import '../../data/models/login_response_model.dart';
-import '../../data/repositories/auth_repository.dart';
-import '../../domain/models/auth_user.dart';
+import '../../domain/models/session.dart';
+import '../../domain/usecases/demo_login_usecase.dart';
+import '../../domain/usecases/login_usecase.dart';
 
 class LoginViewModel extends ChangeNotifier {
-  LoginViewModel({AuthRepository? authRepository})
-      : _authRepository = authRepository ?? HttpAuthRepository();
+  LoginViewModel({
+    required LoginUseCase loginUseCase,
+    required DemoLoginUseCase demoLoginUseCase,
+  })  : _loginUseCase = loginUseCase,
+        _demoLoginUseCase = demoLoginUseCase;
 
-  final AuthRepository _authRepository;
+  final LoginUseCase _loginUseCase;
+  final DemoLoginUseCase _demoLoginUseCase;
 
   String _email = '';
   String get email => _email;
 
   String _password = '';
   String get password => _password;
-
-  String _selectedFirmaId = 'eliggi';
-  String get selectedFirmaId => _selectedFirmaId;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -36,8 +37,8 @@ class LoginViewModel extends ChangeNotifier {
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
 
-  AuthUser? _loggedUser;
-  AuthUser? get loggedUser => _loggedUser;
+  Session? _session;
+  Session? get session => _session;
 
   void setEmail(String value) {
     _email = value.trim();
@@ -53,11 +54,6 @@ class LoginViewModel extends ChangeNotifier {
       _passwordError = null;
       notifyListeners();
     }
-  }
-
-  void setSelectedFirmaId(String id) {
-    _selectedFirmaId = id;
-    notifyListeners();
   }
 
   void toggleObscurePassword() {
@@ -101,13 +97,38 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final LoginResponseModel response = await _authRepository.login(
+      final session = await _loginUseCase.execute(
         email: _email,
         password: _password,
       );
 
+      _session = session;
       _isLoggedIn = true;
-      _loggedUser = response.user;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// CUU00 (modo demo): login offline sin backend, para desarrollo/demos.
+  ///
+  /// Crea la sesión de operario vía [DemoLoginUseCase] y dispara el mismo flujo
+  /// de éxito que el login remoto.
+  Future<bool> demoLogin() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final session = await _demoLoginUseCase.execute();
+
+      _session = session;
+      _isLoggedIn = true;
       _isLoading = false;
       notifyListeners();
       return true;

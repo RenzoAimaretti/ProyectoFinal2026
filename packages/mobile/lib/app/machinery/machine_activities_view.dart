@@ -1,0 +1,120 @@
+import 'package:flutter/material.dart';
+
+import '../../core/theme/app_colors.dart';
+import '../../domain/models/enums.dart';
+import '../../domain/models/machine_activity_summary.dart';
+import '../../presentation/components/empty_state.dart';
+import 'machine_activities_view_model.dart';
+
+/// Historial de actividades de maquinaria (CUU08).
+///
+/// Lista las [MachineActivitySummary] vía `StreamBuilder` sobre el ViewModel.
+/// Cada fila muestra el NOMBRE de la máquina (join D2), tipo y fecha.
+class MachineActivitiesView extends StatelessWidget {
+  const MachineActivitiesView({super.key, required this.viewModel});
+
+  final MachineActivitiesViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    // ListenableBuilder resuscribe el StreamBuilder cuando cambia la firma
+    // activa (el ViewModel notifica y `summaries` devuelve un stream nuevo).
+    return ListenableBuilder(
+      listenable: viewModel,
+      builder: (context, _) {
+        return StreamBuilder<List<MachineActivitySummary>>(
+          stream: viewModel.summaries,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                !snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final activities = snapshot.data ?? const <MachineActivitySummary>[];
+            if (activities.isEmpty) {
+              return const EmptyState(
+                icon: Icons.agriculture_outlined,
+                title: 'Aún no hay actividades de maquinaria',
+                subtitle: 'Tocá el botón + para registrar una actividad.',
+              );
+            }
+
+            return ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: activities.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                return _ActivityTile(activity: activities[index]);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Fila de una actividad: máquina (nombre), tipo y fecha.
+class _ActivityTile extends StatelessWidget {
+  const _ActivityTile({required this.activity});
+
+  final MachineActivitySummary activity;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      tileColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.outlineVariant),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.primaryContainer,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(
+          Icons.agriculture_outlined,
+          size: 20,
+          color: AppColors.primary,
+        ),
+      ),
+      title: Text(
+        activity.machineName,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.onSurface,
+        ),
+      ),
+      subtitle: Text(
+        '${_typeLabel(activity.type)} · ${_formatDate(activity.date)}',
+        style: const TextStyle(
+          fontSize: 12,
+          color: AppColors.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
+  static String _typeLabel(MachineActivityType type) {
+    switch (type) {
+      case MachineActivityType.FUEL:
+        return 'Combustible';
+      case MachineActivityType.MAINTENANCE:
+        return 'Mantenimiento';
+      case MachineActivityType.REPAIR:
+        return 'Reparación';
+      case MachineActivityType.FIELD_USAGE:
+        return 'Uso en campo';
+    }
+  }
+
+  static String _formatDate(DateTime d) {
+    final dd = d.day.toString().padLeft(2, '0');
+    final mm = d.month.toString().padLeft(2, '0');
+    return '$dd/$mm/${d.year}';
+  }
+}

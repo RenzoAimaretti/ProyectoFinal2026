@@ -18,10 +18,20 @@ export { Prisma }
 export * as $Enums from './enums'
 export * from './enums';
 /**
+ * Model Tenant
+ * 
+ */
+export type Tenant = Prisma.TenantModel
+/**
  * Model Company
  * 
  */
 export type Company = Prisma.CompanyModel
+/**
+ * Model UserCompany
+ * 
+ */
+export type UserCompany = Prisma.UserCompanyModel
 /**
  * Model User
  * 
@@ -33,6 +43,26 @@ export type User = Prisma.UserModel
  */
 export type RefreshToken = Prisma.RefreshTokenModel
 /**
+ * Model Module
+ * 
+ */
+export type Module = Prisma.ModuleModel
+/**
+ * Model Client
+ * 
+ */
+export type Client = Prisma.ClientModel
+/**
+ * Model Input
+ * 
+ */
+export type Input = Prisma.InputModel
+/**
+ * Model TaskType
+ * 
+ */
+export type TaskType = Prisma.TaskTypeModel
+/**
  * Model Farm
  * 
  */
@@ -43,15 +73,45 @@ export type Farm = Prisma.FarmModel
  */
 export type Lot = Prisma.LotModel
 /**
- * Model TaskType
- * 
- */
-export type TaskType = Prisma.TaskTypeModel
-/**
  * Model Task
  * 
  */
 export type Task = Prisma.TaskModel
+/**
+ * Model Recipe
+ * 
+ */
+export type Recipe = Prisma.RecipeModel
+/**
+ * Model RecipeItem
+ * 
+ */
+export type RecipeItem = Prisma.RecipeItemModel
+/**
+ * Model DailyReport
+ * 
+ */
+export type DailyReport = Prisma.DailyReportModel
+/**
+ * Model DailyReportItem
+ * 
+ */
+export type DailyReportItem = Prisma.DailyReportItemModel
+/**
+ * Model Reception
+ * 
+ */
+export type Reception = Prisma.ReceptionModel
+/**
+ * Model ReceptionItem
+ * 
+ */
+export type ReceptionItem = Prisma.ReceptionItemModel
+/**
+ * Model Stock
+ * 
+ */
+export type Stock = Prisma.StockModel
 /**
  * Model Machine
  * 
@@ -63,10 +123,15 @@ export type Machine = Prisma.MachineModel
  */
 export type MachineUsage = Prisma.MachineUsageModel
 /**
- * Model Module
+ * Model MachineActivity
  * 
  */
-export type Module = Prisma.ModuleModel
+export type MachineActivity = Prisma.MachineActivityModel
+/**
+ * Model Photo
+ * 
+ */
+export type Photo = Prisma.PhotoModel
 /**
  * Model Livestock
  * 

@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import {
-  CompanyReaderPort,
-  FarmRepositoryPort,
-} from '../../application/farm.ports';
+import { FarmRepositoryPort } from '../../application/farm.ports';
 import {
   CreateFarmInput,
   FarmRecord,
@@ -11,49 +8,59 @@ import {
 } from '../../application/farm.types';
 
 @Injectable()
-export class PrismaFarmRepository
-  implements FarmRepositoryPort, CompanyReaderPort
-{
+export class PrismaFarmRepository implements FarmRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<FarmRecord[]> {
-    return this.prisma.farm.findMany();
-  }
-
-  findById(id: string): Promise<FarmRecord | null> {
-    return this.prisma.farm.findUnique({
-      where: { id },
+  findAllByTenantId(tenantId: string): Promise<FarmRecord[]> {
+    return this.prisma.farm.findMany({
+      where: { client: { tenantId } },
     });
   }
 
-  findByNameAndCompanyId(
-    name: string,
-    companyId: string,
-  ): Promise<FarmRecord | null> {
+  findByIdForTenant(id: string, tenantId: string): Promise<FarmRecord | null> {
     return this.prisma.farm.findFirst({
-      where: { name, companyId },
+      where: { id, client: { tenantId } },
     });
   }
 
-  create(data: CreateFarmInput): Promise<FarmRecord> {
+  findByNameAndClientId(name: string, clientId: string): Promise<FarmRecord | null> {
+    return this.prisma.farm.findFirst({
+      where: { name, clientId },
+    });
+  }
+
+  create(data: CreateFarmInput & { clientId: string }): Promise<FarmRecord> {
     return this.prisma.farm.create({
       data: {
         name: data.name,
         location: data.location,
-        companyId: data.companyId,
+        clientId: data.clientId,
         surface: data.surface,
       },
     });
   }
 
-  update(id: string, data: UpdateFarmInput): Promise<FarmRecord> {
+  async updateForTenant(
+    id: string,
+    tenantId: string,
+    data: UpdateFarmInput,
+  ): Promise<FarmRecord> {
+    const farm = await this.prisma.farm.findFirst({
+      where: { id, client: { tenantId } },
+      select: { id: true },
+    });
+
+    if (!farm) {
+      throw new Error(`Farm with id ${id} not found for tenant ${tenantId}`);
+    }
+
     return this.prisma.farm.update({
-      where: { id },
+      where: { id: farm.id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.location !== undefined ? { location: data.location } : {}),
-        ...(data.companyId !== undefined ? { companyId: data.companyId } : {}),
         ...(data.surface !== undefined ? { surface: data.surface } : {}),
+        ...(data.clientId !== undefined ? { clientId: data.clientId } : {}),
       },
     });
   }

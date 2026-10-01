@@ -9,9 +9,10 @@ export class AddCompanyModuleUseCase {
 
   async execute(
     companyId: string,
+    tenantId: string,
     moduleId: string,
   ): Promise<{ message: string }> {
-    const company = await this.repository.findById(companyId);
+    const company = await this.repository.findByIdForTenant(companyId, tenantId);
     if (!company) {
       throw new EntityNotFoundError(`Company with id ${companyId} not found`);
     }
@@ -25,7 +26,7 @@ export class AddCompanyModuleUseCase {
       throw new DuplicateEntityError('Module already added to company');
     }
 
-    await this.repository.addModule({ companyId, moduleId });
+    await this.repository.addModuleForTenant(companyId, tenantId, moduleId);
 
     return {
       message: `${module.name} added successfully to company: ${company.name}`,

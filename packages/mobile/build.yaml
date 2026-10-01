@@ -1,0 +1,15 @@
+# Configuración de codegen para drift (build_runner + drift_dev).
+#
+# drift_dev auto-detecta las clases anotadas con @DriftDatabase dentro del
+# package, por lo que no hace falta listar bases individuales en una app
+# single-package. El builder se habilita declarándolo en `$default`.
+#
+# Si en el futuro se divide el código generado entre varias libraries,
+# agregar entradas `databases` explícitas:
+#   databases:
+#     AppDatabase: lib/data/services/app_database.dart
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options: {}

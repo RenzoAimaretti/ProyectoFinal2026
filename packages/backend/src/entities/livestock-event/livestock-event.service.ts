@@ -15,6 +15,7 @@ import {
 import {
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
 } from './domain/errors';
 
 @Injectable()
@@ -26,24 +27,37 @@ export class LivestockEventService {
     private readonly updateUseCase: UpdateLivestockEventUseCase,
   ) {}
 
-  async findAll() {
-    return this.handle(() => this.findAllUseCase.execute(), 'fetching livestock events');
-  }
-
-  async findOne(id: string) {
-    return this.handle(() => this.findOneUseCase.execute(id), 'fetching livestock event');
-  }
-
-  async update(id: string, data: UpdateLivestockEventInput) {
+  async findAll(companyId?: string) {
     return this.handle(
-      () => this.updateUseCase.execute(id, data),
+      () => this.findAllUseCase.execute(companyId),
+      'fetching livestock events',
+    );
+  }
+
+  async findOne(id: string, companyId?: string) {
+    return this.handle(
+      () => this.findOneUseCase.execute(id, companyId),
+      'fetching livestock event',
+    );
+  }
+
+  async update(
+    id: string,
+    companyIdOrData?: string | UpdateLivestockEventInput,
+    maybeData?: UpdateLivestockEventInput,
+  ) {
+    return this.handle(
+      () => this.updateUseCase.execute(id, companyIdOrData as never, maybeData),
       'updating livestock event',
     );
   }
 
-  async create(data: CreateLivestockEventInput) {
+  async create(
+    companyIdOrData?: string | CreateLivestockEventInput,
+    maybeData?: CreateLivestockEventInput,
+  ) {
     return this.handle(
-      () => this.createUseCase.execute(data),
+      () => this.createUseCase.execute(companyIdOrData as never, maybeData),
       'creating livestock event',
     );
   }
@@ -62,6 +76,10 @@ export class LivestockEventService {
     }
 
     if (error instanceof InvalidInputError) {
+      return new BadRequestException(error.message);
+    }
+
+    if (error instanceof InvalidRelationError) {
       return new BadRequestException(error.message);
     }
 

@@ -6,15 +6,18 @@ import { assertRequiredString, normalizeOptionalString } from '../task-type.vali
 export class CreateTaskTypeUseCase {
   constructor(private readonly repository: TaskTypeRepositoryPort) {}
 
-  async execute(input: CreateTaskTypeInput): Promise<TaskTypeRecord> {
+  async execute(tenantId: string, input: CreateTaskTypeInput): Promise<TaskTypeRecord> {
+    const validatedTenantId = assertRequiredString(tenantId, 'companyId');
     const name = assertRequiredString(input?.name, 'name');
     const description = normalizeOptionalString(input?.description, 'description');
 
-    const existing = await this.repository.findByName(name);
+    const existing = await this.repository.findByNameAndTenantId(name, validatedTenantId);
     if (existing) {
-      throw new DuplicateEntityError(`Task type with name ${name} already exists`);
+      throw new DuplicateEntityError(
+        `Task type with name ${name} already exists for company ${validatedTenantId}`,
+      );
     }
 
-    return this.repository.create({ name, description });
+    return this.repository.create({ tenantId: validatedTenantId, name, description });
   }
 }
