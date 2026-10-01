@@ -143,3 +143,14 @@ Error mapping (approve/reject):
   (commit `5b35f72`). Seed conflict resolved (bootstrap + multifirma demo data
   incl. 5 daily reports). `nest build` OK, 99 daily-report tests green.
 - DB discovered at localhost:5433; `DATABASE_URL` missing from backend `.env`.
+
+## Status: DONE (verified)
+
+T1-T13 complete. Commits: `6091591` (backend), `92d12fd` (web) on `BandejaParteDiario`.
+
+- Backend: `pnpm --filter backend build` OK; `pnpm --filter backend test` = 78 suites / 762 tests green (daily-report: 132).
+- Web: `pnpm --filter nextjs build` OK (14 routes).
+- DB: `prisma migrate reset --force` + seed on localhost:5433; seed stock extended to 10 rows so pending reports can be approved.
+- E2E (real HTTP): login 200; `GET /daily-reports` -> 5 with joined names; detail items + `inputName`; photos endpoint reachable; `approve` -> APROBADO and client stock 5000 -> 4940 for Atrazina (R017 proven in DB); `reject` -> RECHAZADO with reason; re-approve/re-reject -> 409; empty reason -> 400; unknown id -> 404; no token -> 401.
+- Running now: web http://localhost:3000 (login `admin@agrolify.local` / `Admin1234!`), API :3001.
+- Delivery: >400 authored lines (backend ~1030, web ~1665). `ask-on-risk`: decide PR slicing (chained/stacked) before opening a PR. Nothing pushed; push/PR is the user's call.
