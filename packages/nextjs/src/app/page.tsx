@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { Badge, Card, IconTile, type Tone } from "@/components/ui/primitives";
 import { LogoWordmark } from "@/components/ui/logo";
 import { TrendChart, type ChartSeries } from "@/components/ui/charts";
+import { Reveal, usePrefersReducedMotion } from "@/components/ui/reveal";
+import {
+  CountUp,
+  ScrollProgress,
+  useParallax,
+  useScrolled,
+} from "@/components/ui/scroll";
 import {
   ArrowRightIcon,
   ChartIcon,
@@ -254,6 +261,24 @@ const PREVIEW_LABELS = [
   "23/10",
 ];
 
+/* Factual product numbers only — every figure below is derived from the copy
+   or the module/role lists on this page. No invented metrics. */
+const AVAILABLE_MODULE_COUNT = MODULES.filter((mod) => !mod.soon).length;
+
+const PRODUCT_STATS: { value: number; label: string; hint: string }[] = [
+  { value: 3, label: "Razones sociales", hint: "Eliggi, Tufoni y Néstor" },
+  {
+    value: AVAILABLE_MODULE_COUNT,
+    label: "Módulos en producción",
+    hint: "Finanzas, en camino",
+  },
+  { value: 5, label: "Roles operativos", hint: "Oficina, campo y auditoría" },
+  { value: 3, label: "Pasos para rendir", hint: "Cargar, aprobar, auditar" },
+];
+
+/* Real product concepts for the ticker — module names, no fake logos. */
+const MARQUEE_ITEMS = MODULES.map((mod) => mod.title);
+
 /* ------------------------------------------------------------------ */
 /* Small building blocks                                              */
 /* ------------------------------------------------------------------ */
@@ -276,7 +301,7 @@ function SectionHeading({
   inverse?: boolean;
 }) {
   return (
-    <div className="max-w-2xl">
+    <Reveal className="max-w-2xl">
       <p
         className={`text-xs font-semibold uppercase tracking-[0.22em] ${
           inverse ? "text-agro-wheat" : "text-agro-green-dark"
@@ -296,7 +321,7 @@ function SectionHeading({
           {description}
         </p>
       )}
-    </div>
+    </Reveal>
   );
 }
 
@@ -503,12 +528,35 @@ function ProductPreview() {
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const reduced = usePrefersReducedMotion();
+  const scrolled = useScrolled(24);
+
+  const previewRef = useRef<HTMLDivElement | null>(null);
+  const glowARef = useRef<HTMLDivElement | null>(null);
+  const glowBRef = useRef<HTMLDivElement | null>(null);
+
+  useParallax(previewRef, { y: 0.06, max: 56, scale: 0.035, disabled: reduced });
+  useParallax(glowARef, { y: -0.09, x: 0.02, max: 140, disabled: reduced });
+  useParallax(glowBRef, { y: 0.12, x: -0.02, max: 140, disabled: reduced });
 
   return (
     <div className="app-canvas relative min-h-screen overflow-x-hidden">
-      {/* Sticky nav */}
-      <header className="sticky top-0 z-50 border-b border-agro-border bg-card/85 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <ScrollProgress />
+
+      {/* Sticky nav: relaxed and transparent at the top, compact with
+          backdrop-blur, border and shadow once the page scrolls. */}
+      <header
+        className={`sticky top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300 ${
+          scrolled
+            ? "border-b border-agro-border bg-card/80 shadow-nav backdrop-blur-md"
+            : "border-b border-transparent bg-transparent"
+        }`}
+      >
+        <div
+          className={`mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 transition-[padding] duration-300 sm:px-6 ${
+            scrolled ? "py-2.5" : "py-4"
+          }`}
+        >
           <Link href="/" className="shrink-0" aria-label="Agro Trazabilidad, inicio">
             <LogoWordmark size={38} subtitle="Trazabilidad agropecuaria" />
           </Link>
@@ -585,85 +633,170 @@ export default function Home() {
       </header>
 
       {/* 1. Hero */}
-      <section id="producto" className="relative scroll-mt-24">
+      <section id="producto" className="relative scroll-mt-24 overflow-hidden">
+        {/* Aurora + decorative glows: gentle drift at rest, parallax on scroll */}
         <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -top-40 flex justify-center"
+        >
+          <div
+            className="animate-aurora h-[520px] w-[820px] max-w-[130vw] rounded-full blur-3xl"
+            style={{
+              backgroundImage:
+                "radial-gradient(60% 60% at 30% 40%, color-mix(in srgb, var(--color-agro-green) 22%, transparent), transparent 70%), radial-gradient(50% 50% at 75% 30%, color-mix(in srgb, var(--color-agro-wheat) 20%, transparent), transparent 70%), radial-gradient(50% 50% at 55% 85%, color-mix(in srgb, var(--color-agro-earth) 16%, transparent), transparent 70%)",
+            }}
+          />
+        </div>
+        <div
+          ref={glowARef}
           aria-hidden
           className="pointer-events-none absolute -top-32 right-[-10%] h-[460px] w-[460px] rounded-full bg-agro-green/10 blur-3xl"
         />
         <div
+          ref={glowBRef}
           aria-hidden
           className="pointer-events-none absolute bottom-[-15%] left-[-8%] h-[380px] w-[380px] rounded-full bg-agro-earth/10 blur-3xl"
         />
 
-        <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-12 lg:py-20">
+        <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:py-24">
           <div className="lg:col-span-5">
-            <span className="inline-flex items-center gap-2 rounded-full border border-agro-green/30 bg-agro-green/10 px-4 py-1.5 text-xs font-semibold text-agro-green-dark">
-              <span className="h-1.5 w-1.5 rounded-full bg-agro-green" />
-              SaaS multi-tenant · Multi-firma · Offline-first
-            </span>
-
-            <h1 className="font-display mt-6 text-display-xl font-semibold text-ink">
-              Toda la operación del campo,{" "}
-              <span className="bg-gradient-to-r from-agro-green to-agro-green-deep bg-clip-text text-transparent">
-                con trazabilidad de la firma al lote
+            <Reveal>
+              <span className="inline-flex items-center gap-2 rounded-full border border-agro-green/30 bg-agro-green/10 px-4 py-1.5 text-xs font-semibold text-agro-green-dark">
+                <span className="h-1.5 w-1.5 rounded-full bg-agro-green" />
+                SaaS multi-tenant · Multi-firma · Offline-first
               </span>
-            </h1>
+            </Reveal>
 
-            <p className="mt-6 text-lg text-ink-soft">
-              Agro Trazabilidad reúne mapeo, producción, partes de trabajo, insumos,
-              maquinaria, personal, ganadería y finanzas en una sola plataforma. Los
-              operarios cargan desde el móvil, incluso sin señal, y el productor audita
-              todo desde su panel.
-            </p>
+            <Reveal delay={80}>
+              <h1 className="font-display mt-6 text-display-xl font-semibold text-ink">
+                Toda la operación del campo,{" "}
+                <span className="bg-gradient-to-r from-agro-green to-agro-green-deep bg-clip-text text-transparent">
+                  con trazabilidad de la firma al lote
+                </span>
+              </h1>
+            </Reveal>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/dashboard" className={PRIMARY_CTA}>
-                Explorar el panel
-                <ArrowRightIcon className="h-4 w-4" />
-              </Link>
-              <Link href="/login" className={SECONDARY_CTA}>
-                Iniciar sesión
-              </Link>
-            </div>
+            <Reveal delay={160}>
+              <p className="mt-6 text-lg text-ink-soft">
+                Agro Trazabilidad reúne mapeo, producción, partes de trabajo, insumos,
+                maquinaria, personal, ganadería y finanzas en una sola plataforma. Los
+                operarios cargan desde el móvil, incluso sin señal, y el productor audita
+                todo desde su panel.
+              </p>
+            </Reveal>
 
-            <ul className="mt-8 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              {[
-                "Partes aprobados con foto del cuaderno",
-                "Stock por cliente: ingresado, consumido y sobrante",
-                "Roles separados para oficina, campo y auditoría",
-                "Finanzas consolidadas por razón social",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2 text-sm text-ink-soft">
-                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-agro-green" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+            <Reveal delay={240}>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link href="/dashboard" className={PRIMARY_CTA}>
+                  Explorar el panel
+                  <ArrowRightIcon className="h-4 w-4" />
+                </Link>
+                <Link href="/login" className={SECONDARY_CTA}>
+                  Iniciar sesión
+                </Link>
+              </div>
+            </Reveal>
+
+            <Reveal delay={320}>
+              <ul className="mt-8 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {[
+                  "Partes aprobados con foto del cuaderno",
+                  "Stock por cliente: ingresado, consumido y sobrante",
+                  "Roles separados para oficina, campo y auditoría",
+                  "Finanzas consolidadas por razón social",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-sm text-ink-soft">
+                    <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-agro-green" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
           </div>
 
           <div className="lg:col-span-7">
-            <ProductPreview />
+            <Reveal y={28} delay={140}>
+              <div ref={previewRef}>
+                <ProductPreview />
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
-      {/* 2. Value strip */}
-      <section className="border-y border-agro-border bg-base-subtle/50">
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-x-8 gap-y-8 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
-          {VALUE_PROPS.map((value) => (
-            <div key={value.title} className="flex flex-col gap-3">
-              <IconTile tone={value.tone}>{value.icon}</IconTile>
-              <h3 className="font-display text-title font-semibold text-ink">
-                {value.title}
-              </h3>
-              <p className="text-sm text-ink-soft">{value.description}</p>
-            </div>
-          ))}
+      {/* 2. Marquee: real product concepts (module names only) */}
+      <section
+        aria-label="Módulos de la plataforma"
+        className="border-y border-agro-border bg-card/50"
+      >
+        <div
+          className="relative flex overflow-hidden py-5"
+          style={{
+            maskImage:
+              "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
+            WebkitMaskImage:
+              "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
+          }}
+        >
+          <div className="marquee-track items-center">
+            {[0, 1].map((copy) => (
+              <ul
+                key={copy}
+                aria-hidden={copy === 1}
+                className="flex items-center"
+              >
+                {MARQUEE_ITEMS.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-center gap-3 whitespace-nowrap pr-3"
+                  >
+                    <span className="text-sm font-medium text-ink-soft">{item}</span>
+                    <span className="h-1 w-1 rounded-full bg-agro-border-strong" />
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* 3. Módulos */}
-      <section id="modulos" className="scroll-mt-24 py-16 sm:py-20">
+      {/* 3. Value strip + factual count-up stats */}
+      <section className="border-b border-agro-border bg-base-subtle/50">
+        <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
+          {/* Count-up stats — every number is factual about the product */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
+            {PRODUCT_STATS.map((stat, index) => (
+              <Reveal
+                key={stat.label}
+                delay={index * 90}
+                className={index === 0 ? "" : "lg:border-l lg:border-agro-border lg:pl-8"}
+              >
+                <CountUp
+                  value={stat.value}
+                  className="font-display text-kpi text-numeric font-semibold text-ink"
+                />
+                <p className="mt-2 text-sm font-semibold text-ink">{stat.label}</p>
+                <p className="mt-0.5 text-xs text-ink-faint">{stat.hint}</p>
+              </Reveal>
+            ))}
+          </div>
+
+          <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-10 border-t border-agro-border pt-12 sm:grid-cols-2 lg:grid-cols-4">
+            {VALUE_PROPS.map((value, index) => (
+              <Reveal key={value.title} delay={index * 90} className="flex flex-col gap-3">
+                <IconTile tone={value.tone}>{value.icon}</IconTile>
+                <h3 className="font-display text-title font-semibold text-ink">
+                  {value.title}
+                </h3>
+                <p className="text-sm text-ink-soft">{value.description}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Módulos */}
+      <section id="modulos" className="scroll-mt-24 py-20 sm:py-28">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
           <SectionHeading
             kicker="Módulos"
@@ -671,25 +804,27 @@ export default function Home() {
             description="Cada módulo resuelve una parte concreta de la operación y comparte los mismos datos: lo que se carga en el campo llega a la oficina y al productor sin recargar nada."
           />
 
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {MODULES.map((mod) => (
-              <Card key={mod.title} className="p-5 transition-transform hover:-translate-y-0.5">
-                <div className="flex items-start justify-between gap-2">
-                  <IconTile tone={mod.tone}>{mod.icon}</IconTile>
-                  {mod.soon && <Badge tone="wheat">Próximamente</Badge>}
-                </div>
-                <h3 className="font-display mt-4 text-title font-semibold text-ink">
-                  {mod.title}
-                </h3>
-                <p className="mt-2 text-sm text-ink-soft">{mod.description}</p>
-              </Card>
+          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {MODULES.map((mod, index) => (
+              <Reveal key={mod.title} delay={(index % 4) * 90} y={20}>
+                <Card className="edge-glow relative h-full p-5 transition-transform hover:-translate-y-0.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <IconTile tone={mod.tone}>{mod.icon}</IconTile>
+                    {mod.soon && <Badge tone="wheat">Próximamente</Badge>}
+                  </div>
+                  <h3 className="font-display mt-4 text-title font-semibold text-ink">
+                    {mod.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-ink-soft">{mod.description}</p>
+                </Card>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 4. Para quién es */}
-      <section id="roles" className="scroll-mt-24 bg-agro-forest py-16 sm:py-20">
+      {/* 5. Para quién es */}
+      <section id="roles" className="scroll-mt-24 bg-agro-forest py-20 sm:py-28">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
           <SectionHeading
             kicker="Para quién es"
@@ -698,27 +833,26 @@ export default function Home() {
             inverse
           />
 
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {ROLES.map((role) => (
-              <div
-                key={role.title}
-                className="rounded-card-lg border border-white/10 bg-white/5 p-5 shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] backdrop-blur transition-colors hover:border-white/20 hover:bg-white/[0.07]"
-              >
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-agro-wheat ring-1 ring-inset ring-white/15">
-                  {role.icon}
-                </span>
-                <h3 className="font-display mt-4 text-title font-semibold text-white">
-                  {role.title}
-                </h3>
-                <p className="mt-2 text-sm text-white/70">{role.description}</p>
-              </div>
+          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {ROLES.map((role, index) => (
+              <Reveal key={role.title} delay={(index % 3) * 90} y={20} className="h-full">
+                <div className="h-full rounded-card-lg border border-white/10 bg-white/5 p-5 shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] backdrop-blur transition-colors hover:border-white/20 hover:bg-white/[0.07]">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-agro-wheat ring-1 ring-inset ring-white/15">
+                    {role.icon}
+                  </span>
+                  <h3 className="font-display mt-4 text-title font-semibold text-white">
+                    {role.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-white/70">{role.description}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 5. Móvil offline-first */}
-      <section id="movil" className="scroll-mt-24 py-16 sm:py-20">
+      {/* 6. Móvil offline-first */}
+      <section id="movil" className="scroll-mt-24 py-20 sm:py-28">
         <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
           <div>
             <SectionHeading
@@ -749,20 +883,20 @@ export default function Home() {
                   title: "RFID a futuro",
                   text: "La lectura de caravanas electrónicas está prevista para el módulo ganadero.",
                 },
-              ].map((item) => (
-                <li key={item.title} className="flex items-start gap-3">
+              ].map((item, index) => (
+                <Reveal as="li" key={item.title} delay={index * 80} className="flex items-start gap-3">
                   <IconTile tone="green">{item.icon}</IconTile>
                   <div>
                     <p className="font-semibold text-ink">{item.title}</p>
                     <p className="mt-0.5 text-sm text-ink-soft">{item.text}</p>
                   </div>
-                </li>
+                </Reveal>
               ))}
             </ul>
           </div>
 
           {/* Phone mockup */}
-          <div className="flex justify-center lg:justify-end">
+          <Reveal y={28} className="flex justify-center lg:justify-end">
             <div className="relative w-full max-w-[320px]">
               <div
                 aria-hidden
@@ -821,12 +955,12 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* 6. Cómo funciona */}
-      <section id="como-funciona" className="scroll-mt-24 border-y border-agro-border bg-base-subtle/50 py-16 sm:py-20">
+      {/* 7. Cómo funciona */}
+      <section id="como-funciona" className="scroll-mt-24 border-y border-agro-border bg-base-subtle/50 py-20 sm:py-28">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
           <SectionHeading
             kicker="Cómo funciona"
@@ -834,143 +968,162 @@ export default function Home() {
             description="La información recorre el mismo camino que el trabajo real, sin planillas paralelas ni dobles cargas."
           />
 
-          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+          <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
             {STEPS.map((step, index) => (
-              <Card key={step.step} className="relative p-6">
-                <div className="flex items-center justify-between">
-                  <IconTile tone={index === 1 ? "wheat" : index === 2 ? "earth" : "green"}>
-                    {step.icon}
-                  </IconTile>
-                  <span className="text-numeric font-display text-display font-semibold text-agro-border-strong">
-                    {step.step}
-                  </span>
-                </div>
-                <h3 className="font-display mt-5 text-title font-semibold text-ink">
-                  {step.title}
-                </h3>
-                <p className="mt-2 text-sm text-ink-soft">{step.description}</p>
-              </Card>
+              <Reveal key={step.step} delay={index * 110} y={20} className="h-full">
+                <Card className="edge-glow relative h-full p-6">
+                  <div className="flex items-center justify-between">
+                    <IconTile tone={index === 1 ? "wheat" : index === 2 ? "earth" : "green"}>
+                      {step.icon}
+                    </IconTile>
+                    <span className="text-numeric font-display text-display font-semibold text-agro-border-strong">
+                      {step.step}
+                    </span>
+                  </div>
+                  <h3 className="font-display mt-5 text-title font-semibold text-ink">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-ink-soft">{step.description}</p>
+                </Card>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 7. FAQ */}
-      <section id="faq" className="scroll-mt-24 py-16 sm:py-20">
+      {/* 8. FAQ */}
+      <section id="faq" className="scroll-mt-24 py-20 sm:py-28">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
           <SectionHeading
             kicker="Preguntas frecuentes"
             title="Lo que conviene saber antes de empezar"
           />
 
-          <div className="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
+          <div className="mt-12 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
             <div className="space-y-3">
-              {FAQ.slice(0, 3).map((item) => (
-                <details
-                  key={item.question}
-                  className="group card-surface rounded-card-lg border border-agro-border bg-card shadow-card transition-colors open:border-agro-border-strong"
-                >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-display font-semibold text-ink [&::-webkit-details-marker]:hidden">
-                    {item.question}
-                    <svg
-                      className="h-5 w-5 shrink-0 text-ink-faint transition-transform duration-200 group-open:rotate-180"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.8}
-                      aria-hidden="true"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                  </summary>
-                  <p className="px-5 pb-5 text-sm text-ink-soft">{item.answer}</p>
-                </details>
+              {FAQ.slice(0, 3).map((item, index) => (
+                <Reveal key={item.question} delay={index * 70} y={16}>
+                  <details className="group card-surface rounded-card-lg border border-agro-border bg-card shadow-card transition-colors open:border-agro-border-strong">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-display font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                      {item.question}
+                      <svg
+                        className="h-5 w-5 shrink-0 text-ink-faint transition-transform duration-200 group-open:rotate-180"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.8}
+                        aria-hidden="true"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </summary>
+                    <p className="px-5 pb-5 text-sm text-ink-soft">{item.answer}</p>
+                  </details>
+                </Reveal>
               ))}
             </div>
             <div className="space-y-3">
-              {FAQ.slice(3).map((item) => (
-                <details
-                  key={item.question}
-                  className="group card-surface rounded-card-lg border border-agro-border bg-card shadow-card transition-colors open:border-agro-border-strong"
-                >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-display font-semibold text-ink [&::-webkit-details-marker]:hidden">
-                    {item.question}
-                    <svg
-                      className="h-5 w-5 shrink-0 text-ink-faint transition-transform duration-200 group-open:rotate-180"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.8}
-                      aria-hidden="true"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                  </summary>
-                  <p className="px-5 pb-5 text-sm text-ink-soft">{item.answer}</p>
-                </details>
+              {FAQ.slice(3).map((item, index) => (
+                <Reveal key={item.question} delay={index * 70} y={16}>
+                  <details className="group card-surface rounded-card-lg border border-agro-border bg-card shadow-card transition-colors open:border-agro-border-strong">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-display font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                      {item.question}
+                      <svg
+                        className="h-5 w-5 shrink-0 text-ink-faint transition-transform duration-200 group-open:rotate-180"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.8}
+                        aria-hidden="true"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </summary>
+                    <p className="px-5 pb-5 text-sm text-ink-soft">{item.answer}</p>
+                  </details>
+                </Reveal>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* 8. CTA final */}
-      <section className="pb-16 sm:pb-20">
+      {/* 9. CTA final */}
+      <section className="pb-20 sm:pb-28">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <div className="hero-band px-6 py-10 sm:px-10 sm:py-14">
-            <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
-              <div className="max-w-2xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
-                  Empezá hoy
-                </p>
-                <h2 className="font-display mt-3 text-display-lg font-semibold text-white">
-                  Ordená la operación desde el primer parte de trabajo
-                </h2>
-                <p className="mt-3 text-white/80">
-                  Explorá el panel con la vista de producto o iniciá sesión para entrar a
-                  tu cuenta.
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row lg:shrink-0">
-                <Link
-                  href="/dashboard"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-semibold text-agro-green-deep shadow-card transition-all hover:bg-white/90 active:translate-y-px"
-                >
-                  Explorar el panel
-                  <ArrowRightIcon className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/login"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/20"
-                >
-                  Iniciar sesión
-                </Link>
+          <Reveal y={24}>
+            <div className="hero-band px-6 py-12 sm:px-10 sm:py-16">
+              <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
+                <div className="max-w-2xl">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
+                    Empezá hoy
+                  </p>
+                  <h2 className="font-display mt-3 text-display-lg font-semibold text-white">
+                    Ordená la operación desde el primer parte de trabajo
+                  </h2>
+                  <p className="mt-3 text-white/80">
+                    Explorá el panel con la vista de producto o iniciá sesión para entrar a
+                    tu cuenta.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row lg:shrink-0">
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-semibold text-agro-green-deep shadow-card transition-all hover:bg-white/90 active:translate-y-px"
+                  >
+                    Explorar el panel
+                    <ArrowRightIcon className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/20"
+                  >
+                    Iniciar sesión
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* 9. Footer */}
-      <footer className="border-t border-white/10 bg-agro-sidebar-deep">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
+      {/* 10. Footer */}
+      <footer className="bg-agro-sidebar-deep">
+        <div
+          aria-hidden
+          className="h-px w-full bg-gradient-to-r from-transparent via-agro-green/60 to-transparent"
+        />
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-14 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-sm">
             <LogoWordmark size={40} subtitle="Trazabilidad agropecuaria" tone="inverse" />
             <p className="mt-4 text-sm text-white/60">
               Plataforma SaaS multi-tenant y multi-firma para gestionar campos,
               producción, partes de trabajo e insumos con trazabilidad de punta a punta.
             </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {["Multi-tenant", "Multi-firma", "Offline-first"].map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/70"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
                 Producto
               </p>
-              <ul className="mt-3 space-y-2">
+              <ul className="mt-4 space-y-2.5">
                 {NAV_ANCHORS.map((anchor) => (
                   <li key={anchor.href}>
-                    <a href={anchor.href} className="text-sm text-white/70 hover:text-white">
+                    <a
+                      href={anchor.href}
+                      className="text-sm text-white/70 transition-colors hover:text-white"
+                    >
                       {anchor.label}
                     </a>
                   </li>
@@ -981,14 +1134,20 @@ export default function Home() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
                 Acceso
               </p>
-              <ul className="mt-3 space-y-2">
+              <ul className="mt-4 space-y-2.5">
                 <li>
-                  <Link href="/dashboard" className="text-sm text-white/70 hover:text-white">
+                  <Link
+                    href="/dashboard"
+                    className="text-sm text-white/70 transition-colors hover:text-white"
+                  >
                     Explorar el panel
                   </Link>
                 </li>
                 <li>
-                  <Link href="/login" className="text-sm text-white/70 hover:text-white">
+                  <Link
+                    href="/login"
+                    className="text-sm text-white/70 transition-colors hover:text-white"
+                  >
                     Iniciar sesión
                   </Link>
                 </li>
@@ -996,20 +1155,37 @@ export default function Home() {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
-                Plataforma
+                Módulos
               </p>
-              <ul className="mt-3 space-y-2 text-sm text-white/70">
-                <li>Multi-tenant</li>
-                <li>Multi-firma</li>
-                <li>Offline-first</li>
+              <ul className="mt-4 space-y-2.5 text-sm text-white/70">
+                <li>Mi Campo &amp; Mapeo</li>
+                <li>Producción</li>
+                <li>Partes de trabajo</li>
+                <li>Insumos por cliente</li>
               </ul>
             </div>
           </div>
         </div>
 
         <div className="border-t border-white/10">
-          <div className="mx-auto w-full max-w-6xl px-4 py-5 text-xs text-white/50 sm:px-6">
-            © 2026 Agro Trazabilidad. Todos los derechos reservados.
+          <div className="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-3 px-4 py-5 text-xs text-white/50 sm:flex-row sm:items-center sm:px-6">
+            <p>© 2026 Agro Trazabilidad. Todos los derechos reservados.</p>
+            <a
+              href="#producto"
+              className="inline-flex items-center gap-1.5 text-white/60 transition-colors hover:text-white"
+            >
+              Volver arriba
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.8}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+              </svg>
+            </a>
           </div>
         </div>
       </footer>
