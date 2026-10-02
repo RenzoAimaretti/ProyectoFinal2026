@@ -7,17 +7,17 @@ import type { DailyReportStatus } from "@/api/client";
 export type Tone = "green" | "earth" | "wheat" | "slate";
 
 export const toneBox: Record<Tone, string> = {
-  green: "bg-agro-green/10 text-agro-green",
-  earth: "bg-agro-earth/15 text-agro-earth-dark",
-  wheat: "bg-agro-wheat/15 text-agro-earth-dark",
-  slate: "bg-base-subtle text-ink-soft",
+  green: "bg-agro-green/10 text-agro-green-dark ring-1 ring-inset ring-agro-green/15",
+  earth: "bg-agro-earth/12 text-agro-earth-dark ring-1 ring-inset ring-agro-earth/15",
+  wheat: "bg-agro-wheat/18 text-agro-wheat-dark ring-1 ring-inset ring-agro-wheat/25",
+  slate: "bg-base-subtle text-ink-soft ring-1 ring-inset ring-agro-border",
 };
 
 export const toneBadge: Record<Tone, string> = {
-  green: "bg-agro-green/10 text-agro-green-dark",
-  earth: "bg-agro-earth/15 text-agro-earth-dark",
-  wheat: "bg-agro-wheat/15 text-agro-earth-dark",
-  slate: "bg-base-subtle text-ink-soft",
+  green: "bg-agro-green/10 text-agro-green-dark ring-1 ring-inset ring-agro-green/15",
+  earth: "bg-agro-earth/12 text-agro-earth-dark ring-1 ring-inset ring-agro-earth/15",
+  wheat: "bg-agro-wheat/18 text-agro-wheat-dark ring-1 ring-inset ring-agro-wheat/25",
+  slate: "bg-base-subtle text-ink-soft ring-1 ring-inset ring-agro-border",
 };
 
 /** IconTile: caja redondeada con icono, tono establecido. */
@@ -66,7 +66,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-card-lg border border-agro-border bg-card shadow-card transition-all hover:shadow-card-hover ${className}`}
+      className={`card-surface rounded-card-lg border border-agro-border bg-card shadow-card transition-all hover:shadow-card-hover ${className}`}
     >
       {children}
     </div>
@@ -86,7 +86,7 @@ export function CardHeader({
   return (
     <div className="flex items-start justify-between gap-3 border-b border-agro-border px-5 py-4">
       <div>
-        <h3 className="font-semibold text-ink">{title}</h3>
+        <h3 className="font-display font-semibold text-ink">{title}</h3>
         {subtitle && <p className="mt-0.5 text-sm text-ink-soft">{subtitle}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
@@ -107,7 +107,7 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-ink">{title}</h2>
+        <h2 className="font-display text-display font-semibold text-ink">{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-ink-soft">{subtitle}</p>}
       </div>
       {action}
@@ -118,7 +118,7 @@ export function PageHeader({
 export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 
 const buttonVariant: Record<ButtonVariant, string> = {
-  primary: "bg-agro-green text-white shadow-sm hover:bg-agro-green-dark",
+  primary: "btn-primary text-white",
   secondary:
     "border border-agro-border bg-card text-ink shadow-sm hover:bg-base-subtle hover:border-agro-border-strong",
   danger: "bg-agro-earth-dark text-white shadow-sm hover:bg-agro-earth",
@@ -146,7 +146,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariant[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariant[variant]} ${className}`}
     >
       {children}
     </button>
@@ -371,7 +371,7 @@ export function StatRow({
   return (
     <div className={`flex items-center justify-between ${className}`}>
       <span className="text-sm text-ink-soft">{label}</span>
-      <span className="font-semibold text-ink">{value}</span>
+      <span className="text-numeric font-semibold text-ink">{value}</span>
     </div>
   );
 }
@@ -449,35 +449,61 @@ export function EmptyState({
 }
 
 /** HeroBand: banner superior de un modulo con color de marca.
- *  Rompe el patron "todo cards" dandole peso visual y jerarquia a la pagina. */
+ *  Rompe el patron "todo cards" dandole peso visual y jerarquia a la pagina.
+ *  El bloque `metric` opcional monta el numero protagonista del modulo. */
 export function HeroBand({
   kicker,
   title,
   description,
   actions,
   icon,
+  metric,
+  metricLabel,
+  metricHint,
 }: {
   kicker: string;
   title: string;
   description: string;
   actions?: React.ReactNode;
   icon?: React.ReactNode;
+  /** Protagonist value rendered with display typography. */
+  metric?: React.ReactNode;
+  metricLabel?: string;
+  metricHint?: string;
 }) {
   return (
-    <div className="hero-band mb-6 flex flex-wrap items-center justify-between gap-4 px-6 py-6 lg:px-8">
+    <div className="hero-band mb-6 flex flex-wrap items-center justify-between gap-5 px-6 py-6 lg:px-8">
       <div className="flex items-start gap-4">
         {icon && (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 text-ink ring-1 ring-white/30">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.25)] ring-1 ring-white/30">
             {icon}
           </div>
         )}
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-white/70">{kicker}</p>
-          <h2 className="mt-0.5 text-2xl font-bold tracking-tight text-white">{title}</h2>
+          <h2 className="mt-0.5 font-display text-display-lg font-semibold text-white">{title}</h2>
           <p className="mt-1 max-w-xl text-sm text-white/80">{description}</p>
         </div>
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+
+      <div className="flex flex-wrap items-center gap-5">
+        {metric !== undefined && (
+          <div className="flex items-center rounded-xl bg-white/10 px-4 py-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.18)] ring-1 ring-inset ring-white/20">
+            <div className="text-right">
+              {metricLabel && (
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-white/70">
+                  {metricLabel}
+                </p>
+              )}
+              <p className="text-numeric font-display text-display-xl font-semibold leading-none text-white">
+                {metric}
+              </p>
+              {metricHint && <p className="mt-1 text-xs text-white/75">{metricHint}</p>}
+            </div>
+          </div>
+        )}
+        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+      </div>
     </div>
   );
 }
@@ -513,11 +539,11 @@ export function KpiCard({
 }) {
   const footer = delta ?? hint;
   return (
-    <Card className={`p-5 ${className}`}>
+    <Card className={`edge-glow relative p-5 ${className}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">{label}</p>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-ink">{value}</p>
+          <p className="mt-2 font-display text-kpi text-numeric text-ink">{value}</p>
           {footer && (
             <p className={`mt-1 text-xs font-medium ${delta ? kpiDeltaTone[deltaDirection] : "text-ink-soft"}`}>
               {footer}

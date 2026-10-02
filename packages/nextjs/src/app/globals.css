@@ -1,33 +1,36 @@
 @import "tailwindcss";
 
 /* =========================================================
-   Agro Trazabilidad — Design System v2
-   Estética: ERP agronómico moderno "Bento box".
-   - Verdes maduros y sofisticados (bosque, esmeralda oscuro, oliva).
-   - Tonos tierra para codificar datos (terracota, ocre, mostaza).
-   - Sidebar carbón/pizarra oscuro para peso y contraste.
-   - Tarjetas blancas, radios generosos, sombras paralelas sutiles.
+   Agro Trazabilidad — Design System v3 "Agro-tech premium"
+   - Bosque profundo + tinta casi negra, acentos de tierra cálida.
+   - Serif display (Fraunces) para títulos y cifras protagonistas.
+   - Inter para la UI y los datos (tabular-nums).
+   - Profundidad real: hairline inset + sombras en 2 capas +
+     gradientes de superficie sutiles + grano fino.
+   - Radios generosos, motion contenido con curva spring.
    ========================================================= */
 
 @theme {
   /* Brand — verdes maduros, no básicos */
   --color-agro-green: #3a7d44;        /* esmeralda maduro */
   --color-agro-green-dark: #2f6b38;   /* esmeralda oscuro */
-  --color-agro-green-deep: #1e3c2a;   /* bosque */
+  --color-agro-green-deep: #1a3323;   /* bosque casi tinta */
   --color-agro-olive: #6b8f4e;        /* oliva */
-  --color-agro-forest: #2f5233;       /* verde bosque */
-  --color-agro-green-soft: #e9f0e8;   /* verdoso suave para fondos */
+  --color-agro-forest: #24402c;       /* verde bosque */
+  --color-agro-green-soft: #e8efe6;   /* verdoso suave para fondos */
 
   /* Acento / datos — tonos tierra */
   --color-agro-earth: #c8754f;        /* terracota */
-  --color-agro-earth-dark: #a85c38;   /* terracota profunda */
+  --color-agro-earth-dark: #9c4f2f;   /* terracota profunda */
   --color-agro-ochre: #c9a227;        /* ocre */
-  --color-agro-mustard: #c7911c;      /* mostaza */
+  --color-agro-mustard: #b9821a;      /* mostaza */
+  --color-agro-wheat: #cfa43c;        /* trigo cálido (pendiente) */
+  --color-agro-wheat-dark: #8a6a12;   /* trigo profundo para texto */
   --color-agro-sand: #d9c9a8;         /* marrón claro */
 
   /* Sidebar oscuro */
-  --color-agro-sidebar: #1d2430;      /* pizarra/carbón */
-  --color-agro-sidebar-deep: #171d27; /* más oscuro para profundidad */
+  --color-agro-sidebar: #161d28;      /* pizarra/carbón */
+  --color-agro-sidebar-deep: #10161f; /* más oscuro para profundidad */
 
   /* Superficies (dinámicas) */
   --color-base: var(--bg-base);
@@ -44,55 +47,109 @@
   --color-agro-border: var(--border);
   --color-agro-border-strong: var(--border-strong);
 
+  /* Semánticos (mapeados a variables de runtime para soportar dark mode) */
+  --color-success: var(--semantic-success);
+  --color-success-soft: var(--semantic-success-soft);
+  --color-warning: var(--semantic-warning);
+  --color-warning-soft: var(--semantic-warning-soft);
+  --color-danger: var(--semantic-danger);
+  --color-danger-soft: var(--semantic-danger-soft);
+  --color-info: var(--semantic-info);
+  --color-info-soft: var(--semantic-info-soft);
+
   /* Sombras */
   --shadow-card: var(--shadow-card-1);
   --shadow-card-hover: var(--shadow-card-hover-1);
   --shadow-nav: var(--shadow-nav-1);
   --shadow-float: var(--shadow-float-1);
+  --shadow-pop: var(--shadow-pop-1);
 
   /* Radios */
   --radius-sm: 0.5rem;
-  --radius-card: 0.75rem;
-  --radius-card-lg: 1rem;
+  --radius-card: 1rem;        /* 16px */
+  --radius-card-lg: 1.25rem;  /* 20px */
 }
 
 :root {
-  --bg-base: #f3f4f2;
-  --bg-subtle: #edefec;
+  --bg-base: #f4f5f1;
+  --bg-subtle: #eceee8;
   --bg-card: #ffffff;
-  --bg-card-hover: #fafaf8;
+  --bg-card-hover: #fafbf8;
 
-  --text: #1c2330;
-  --text-secondary: #5b6472;
-  --text-muted: #9aa3ad;
+  --text: #151a20;            /* tinta casi negra */
+  --text-secondary: #545f6b;
+  --text-muted: #8b95a0;
 
-  --border: #e5e8e4;
-  --border-strong: #d1d6d0;
+  --border: #e3e7e0;
+  --border-strong: #ced6cb;
 
-  --shadow-card-1: 0 1px 2px 0 rgb(23 29 39 / 0.04), 0 2px 8px -2px rgb(23 29 39 / 0.05);
-  --shadow-card-hover-1: 0 10px 28px -8px rgb(23 29 39 / 0.1), 0 4px 10px -4px rgb(23 29 39 / 0.06);
-  --shadow-nav-1: 0 1px 2px rgb(23 29 39 / 0.05);
-  --shadow-float-1: 0 16px 40px -12px rgb(23 29 39 / 0.16), 0 4px 14px -6px rgb(23 29 39 / 0.1);
+  /* Semánticos light */
+  --semantic-success: #2f7d43;
+  --semantic-success-soft: color-mix(in srgb, #2f7d43 12%, transparent);
+  --semantic-warning: #b07d12;
+  --semantic-warning-soft: color-mix(in srgb, #cfa43c 18%, transparent);
+  --semantic-danger: #b4472a;
+  --semantic-danger-soft: color-mix(in srgb, #b4472a 12%, transparent);
+  --semantic-info: #2f6b8f;
+  --semantic-info-soft: color-mix(in srgb, #2f6b8f 12%, transparent);
+
+  /* Elevación: hairline inset superior + sombra en 2 capas */
+  --edge-highlight: inset 0 1px 0 0 rgb(255 255 255 / 0.75);
+  --shadow-card-1: var(--edge-highlight), 0 1px 2px 0 rgb(20 26 21 / 0.05),
+    0 2px 10px -3px rgb(20 26 21 / 0.07);
+  --shadow-card-hover-1: var(--edge-highlight), 0 16px 36px -14px rgb(20 26 21 / 0.18),
+    0 5px 14px -6px rgb(20 26 21 / 0.08);
+  --shadow-nav-1: 0 1px 2px rgb(20 26 21 / 0.05);
+  --shadow-float-1: 0 28px 64px -24px rgb(20 26 21 / 0.28),
+    0 10px 24px -10px rgb(20 26 21 / 0.14);
+  --shadow-pop-1: var(--edge-highlight), 0 2px 4px rgb(20 26 21 / 0.06),
+    0 18px 40px -16px rgb(20 26 21 / 0.22);
+
+  /* Motion tokens */
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 160ms;
+  --dur: 240ms;
+  --dur-slow: 460ms;
+
+  /* Grano fino (feTurbulence, monocromo y muy sutil) */
+  --grain-url: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='180'%20height='180'%3E%3Cfilter%20id='g'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.85'%20numOctaves='3'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3C/filter%3E%3Crect%20width='180'%20height='180'%20filter='url(%23g)'%20opacity='0.5'/%3E%3C/svg%3E");
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-base: #10141c;
-    --bg-subtle: #161b26;
-    --bg-card: #1e2530;
-    --bg-card-hover: #232b38;
+    --bg-base: #0d1117;
+    --bg-subtle: #141a22;
+    --bg-card: #1a222c;
+    --bg-card-hover: #202a36;
 
-    --text: #e6e9ec;
-    --text-secondary: #9aa3ad;
-    --text-muted: #6b7480;
+    --text: #e8ebee;
+    --text-secondary: #9aa4b0;
+    --text-muted: #6a7480;
 
-    --border: #2c3442;
-    --border-strong: #3a4454;
+    --border: #28313d;
+    --border-strong: #38424f;
 
-    --shadow-card-1: 0 1px 2px rgb(0 0 0 / 0.3);
-    --shadow-card-hover-1: 0 12px 28px -8px rgb(0 0 0 / 0.5);
-    --shadow-nav-1: 0 1px 2px rgb(0 0 0 / 0.4);
-    --shadow-float-1: 0 16px 40px -10px rgb(0 0 0 / 0.6), 0 6px 16px -6px rgb(0 0 0 / 0.4);
+    /* Semánticos dark */
+    --semantic-success: #62b477;
+    --semantic-success-soft: color-mix(in srgb, #62b477 18%, transparent);
+    --semantic-warning: #e0b24d;
+    --semantic-warning-soft: color-mix(in srgb, #e0b24d 18%, transparent);
+    --semantic-danger: #e08363;
+    --semantic-danger-soft: color-mix(in srgb, #e08363 18%, transparent);
+    --semantic-info: #6fb0d4;
+    --semantic-info-soft: color-mix(in srgb, #6fb0d4 18%, transparent);
+
+    --edge-highlight: inset 0 1px 0 0 rgb(255 255 255 / 0.06);
+    --shadow-card-1: var(--edge-highlight), 0 1px 2px rgb(0 0 0 / 0.45),
+      0 4px 16px -6px rgb(0 0 0 / 0.5);
+    --shadow-card-hover-1: var(--edge-highlight), 0 20px 44px -16px rgb(0 0 0 / 0.65),
+      0 6px 16px -8px rgb(0 0 0 / 0.5);
+    --shadow-nav-1: 0 1px 2px rgb(0 0 0 / 0.5);
+    --shadow-float-1: 0 32px 72px -24px rgb(0 0 0 / 0.75),
+      0 12px 28px -12px rgb(0 0 0 / 0.55);
+    --shadow-pop-1: var(--edge-highlight), 0 2px 6px rgb(0 0 0 / 0.5),
+      0 22px 48px -18px rgb(0 0 0 / 0.7);
   }
 }
 
@@ -106,37 +163,151 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv05" 1, "ss01" 1;
+}
+
+/* =========================================================
+   Tipografía: escala display + utilidades numéricas
+   ========================================================= */
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display), "Fraunces", Georgia, "Times New Roman", serif;
+    font-optical-sizing: auto;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: var(--font-display), "Fraunces", Georgia, "Times New Roman", serif;
+    font-optical-sizing: auto;
+  }
+
+  /* Números de datos: Inter tabular */
+  .text-numeric {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .text-display-xl {
+    font-size: clamp(2.5rem, 6vw, 3.75rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+  }
+  .text-display-lg {
+    font-size: clamp(1.875rem, 3.5vw, 2.5rem);
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+  }
+  .text-display {
+    font-size: clamp(1.625rem, 2.6vw, 2rem);
+    line-height: 1.1;
+    letter-spacing: -0.026em;
+  }
+  .text-title {
+    font-size: 1.25rem;
+    line-height: 1.28;
+    letter-spacing: -0.015em;
+  }
+  .text-kpi {
+    font-size: clamp(1.875rem, 3vw, 2.25rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  /* Superficie con gradiente sutil (evita el look "plástico" plano) */
+  .card-surface {
+    background-image: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-card) 94%, var(--color-agro-green) 6%),
+      var(--bg-card) 40%
+    );
+  }
+
+  /* Borde/edge degradado de 1px (hairline de marca) */
+  .edge-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      140deg,
+      color-mix(in srgb, var(--color-agro-green) 55%, transparent),
+      transparent 48%,
+      color-mix(in srgb, var(--color-agro-wheat) 45%, transparent)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  /* Botón primario con relieve */
+  .btn-primary {
+    background-image: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-agro-green) 86%, white 14%),
+      var(--color-agro-green)
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      0 1px 2px rgb(20 26 21 / 0.2);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-image: linear-gradient(
+      180deg,
+      var(--color-agro-green),
+      var(--color-agro-green-dark)
+    );
+  }
 }
 
 /* Fondo ambiental: gradiente sutil + micro-textura de campo.
-   Le da profundidad al "canvas" para que las cards no floten sobre blanco plano. */
+   Usa tokens reales (--color-agro-*) para que sea on-brand en light y dark. */
 .app-canvas {
-  background:
-    radial-gradient(60rem 40rem at -10% -10%, color-mix(in srgb, var(--agro-green, #16a34a) 8%, transparent), transparent 55%),
-    radial-gradient(50rem 35rem at 110% 5%, color-mix(in srgb, var(--agro-earth, #d97706) 9%, transparent), transparent 55%),
-    radial-gradient(45rem 30rem at 50% 120%, color-mix(in srgb, var(--agro-sky, #e0f2fe) 22%, transparent), transparent 60%),
-    var(--bg-base);
+  background-color: var(--bg-base);
+  background-image:
+    var(--grain-url),
+    radial-gradient(60rem 40rem at -10% -10%, color-mix(in srgb, var(--color-agro-green) 9%, transparent), transparent 55%),
+    radial-gradient(50rem 35rem at 110% 5%, color-mix(in srgb, var(--color-agro-earth) 9%, transparent), transparent 55%),
+    radial-gradient(45rem 30rem at 50% 120%, color-mix(in srgb, var(--color-agro-olive) 14%, transparent), transparent 60%);
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 180px 180px, auto, auto, auto;
+  background-blend-mode: soft-light, normal, normal, normal;
 }
 
 @media (prefers-color-scheme: dark) {
   .app-canvas {
-    background:
-      radial-gradient(60rem 40rem at -10% -10%, color-mix(in srgb, var(--agro-green, #16a34a) 10%, transparent), transparent 55%),
-      radial-gradient(50rem 35rem at 110% 5%, color-mix(in srgb, var(--agro-earth, #d97706) 8%, transparent), transparent 55%),
-      radial-gradient(45rem 30rem at 50% 120%, rgb(15 23 42 / 0.6), transparent 60%),
-      var(--bg-base);
+    background-image:
+      var(--grain-url),
+      radial-gradient(60rem 40rem at -10% -10%, color-mix(in srgb, var(--color-agro-green) 16%, transparent), transparent 55%),
+      radial-gradient(50rem 35rem at 110% 5%, color-mix(in srgb, var(--color-agro-earth) 12%, transparent), transparent 55%),
+      radial-gradient(45rem 30rem at 50% 120%, color-mix(in srgb, var(--color-agro-olive) 12%, transparent), transparent 60%);
+    background-blend-mode: overlay, normal, normal, normal;
   }
 }
 
-/* Banda de bienvenida: hero del modulo con bloque de color de marca */
+/* Banda de bienvenida: hero del modulo con bloque de color de marca.
+   Borde degradado de 1px + inset highlight + grano fino. */
 .hero-band {
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-card-lg);
-  border: 1px solid color-mix(in srgb, #1e3c2a 60%, transparent);
-  background: linear-gradient(120deg, #2f5233, #3a7d44 52%, #6b8f4e);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(120deg, var(--color-agro-forest), var(--color-agro-green) 52%, var(--color-agro-olive)) padding-box,
+    linear-gradient(140deg, color-mix(in srgb, var(--color-agro-olive) 85%, transparent), color-mix(in srgb, var(--color-agro-wheat) 70%, transparent)) border-box;
   color: #fff;
-  box-shadow: var(--shadow-float);
+  box-shadow: var(--shadow-float), inset 0 1px 0 rgb(255 255 255 / 0.14);
 }
 .hero-band::before {
   content: "";
@@ -154,9 +325,13 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background:
+  background-image:
+    var(--grain-url),
     radial-gradient(22rem 14rem at 90% -20%, rgb(255 255 255 / 0.22), transparent 60%),
-    linear-gradient(120deg, transparent 40%, color-mix(in srgb, #fff 9%, transparent) 100%);
+    linear-gradient(120deg, transparent 40%, color-mix(in srgb, white 9%, transparent) 100%);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 160px 160px, auto, auto;
+  background-blend-mode: soft-light, normal, normal;
   pointer-events: none;
 }
 .hero-band > * {
@@ -188,10 +363,10 @@ body {
   inset: 0;
   transform: translateX(-100%);
   background: linear-gradient(90deg, transparent, color-mix(in srgb, #fff 40%, transparent), transparent);
-  animation: shimmer 1.6s infinite;
+  animation: shimmer 1.6s var(--ease-spring) infinite;
 }
 
-/* Scrollbar personalizado */
+/* Scrollbar personalizado (fina, on-brand) */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -200,17 +375,27 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 5px;
+  background: color-mix(in srgb, var(--text-muted) 45%, transparent);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: color-mix(in srgb, var(--text-muted) 75%, transparent);
+  background-clip: content-box;
 }
 
-/* Focus accesible */
+/* Selección de texto de marca */
+::selection {
+  background: color-mix(in srgb, var(--color-agro-green) 26%, transparent);
+  color: var(--text);
+}
+
+/* Focus accesible refinado (var corregida: --color-agro-green) */
 :focus-visible {
-  outline: 2px solid var(--agro-green);
+  outline: 2px solid color-mix(in srgb, var(--color-agro-green) 70%, transparent);
   outline-offset: 2px;
+  border-radius: 0.35rem;
 }
 
 /* Animación de entrada */
@@ -226,7 +411,7 @@ body {
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 0.4s ease-out both;
+  animation: fade-in-up var(--dur-slow) var(--ease-spring) both;
 }
 
 /* Fade simple para overlays */
@@ -236,7 +421,7 @@ body {
 }
 
 .animate-fade-in {
-  animation: fade-in 0.2s ease-out both;
+  animation: fade-in var(--dur) var(--ease-out-soft) both;
 }
 
 /* Entrada del panel lateral */
@@ -252,7 +437,7 @@ body {
 }
 
 .animate-drawer-in {
-  animation: drawer-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: drawer-in var(--dur-slow) var(--ease-spring) both;
 }
 
 /* Entrada del panel lateral mobile (desde la izquierda) */
@@ -268,7 +453,7 @@ body {
 }
 
 .animate-sidebar-in {
-  animation: sidebar-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: sidebar-in var(--dur-slow) var(--ease-spring) both;
 }
 
 /* Hoja de cuaderno: fondo rayado para el visor de partes */
@@ -294,7 +479,7 @@ body {
   }
 }
 .stagger-item {
-  animation: stagger-in 0.45s ease-out both;
+  animation: stagger-in var(--dur-slow) var(--ease-spring) both;
 }
 .stagger-item:nth-child(1) { animation-delay: 0ms; }
 .stagger-item:nth-child(2) { animation-delay: 60ms; }
@@ -309,4 +494,19 @@ body {
 }
 .animate-pulse-soft {
   animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Accesibilidad: neutraliza motion cuando el usuario lo pide */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -6,17 +6,9 @@ import { usePathname } from "next/navigation";
 import { modulesForRole, navIcon, roleLabel, type NavItem } from "./nav";
 import { useAuth, useRequireAuth } from "./auth";
 import { LogoutIcon } from "./icons";
+import { LogoMark } from "./logo";
 
 export type { NavItem } from "./nav";
-
-const BrandMark = ({ size = 40 }: { size?: number }) => (
-  <div
-    style={{ width: size, height: size }}
-    className="flex shrink-0 items-center justify-center rounded-xl bg-agro-green text-[#fff] font-bold shadow-card"
-  >
-    AG
-  </div>
-);
 
 /**
  * Shared sidebar body. Rendered once for the desktop rail and once inside the
@@ -40,8 +32,8 @@ function SidebarBody({
   return (
     <>
       <div className="flex h-16 items-center gap-3 border-b border-white/10 px-5">
-        <BrandMark size={36} />
-        <span className="truncate font-semibold tracking-tight text-white">
+        <LogoMark size={36} />
+        <span className="truncate font-display font-semibold tracking-tight text-white">
           {title}
         </span>
       </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/primitives";
+import { LogoWordmark } from "@/components/ui/logo";
 
 const features = [
   {
@@ -32,12 +33,7 @@ export default function Home() {
       {/* Header */}
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-agro-green text-sm font-bold text-white shadow-card">
-            AG
-          </div>
-          <span className="text-lg font-semibold tracking-tight text-ink">
-            Agro Trazabilidad
-          </span>
+          <LogoWordmark size={40} subtitle="Trazabilidad agropecuaria" />
         </div>
 
         <nav className="hidden items-center gap-1 rounded-full bg-base-subtle p-1 sm:flex">
@@ -62,7 +58,7 @@ export default function Home() {
           Multi-tenant · Eliggi / Eliggi Tufoni / Eliggi Néstor
         </span>
 
-        <h1 className="mt-6 max-w-3xl text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+        <h1 className="font-display mt-6 max-w-3xl text-display-xl font-semibold text-ink">
           Agronegocios bajo control,{" "}
           <span className="bg-gradient-to-r from-agro-green to-agro-green-deep bg-clip-text text-transparent">
             desde el campo

@@ -64,7 +64,7 @@ export function Table({
 }) {
   return (
     <div className={`overflow-x-auto rounded-lg border border-agro-border ${className}`}>
-      <table className="w-full border-collapse text-left text-sm">{children}</table>
+      <table className="text-numeric w-full border-collapse text-left text-sm">{children}</table>
     </div>
   );
 }

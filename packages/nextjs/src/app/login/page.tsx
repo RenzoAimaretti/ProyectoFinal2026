@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/primitives";
 import { Alert } from "@/components/ui/feedback";
 import { TextField } from "@/components/ui/form";
 import { Spinner } from "@/components/ui/spinner";
+import { LogoWordmark } from "@/components/ui/logo";
 
 function LoginForm() {
   const router = useRouter();
@@ -59,12 +60,12 @@ function LoginForm() {
             className="pointer-events-none absolute -bottom-24 -left-10 h-56 w-56 rounded-full bg-agro-wheat/20 blur-3xl"
           />
           <div className="relative">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-sm font-bold ring-1 ring-white/25">
-                AG
-              </div>
-              <span className="text-lg font-semibold tracking-tight">Agro Trazabilidad</span>
-            </div>
+            <LogoWordmark
+              size={44}
+              title="Agro Trazabilidad"
+              subtitle="Trazabilidad agropecuaria"
+              tone="inverse"
+            />
             <p className="mt-8 text-xs font-semibold uppercase tracking-widest text-white/70">
               Bandeja de aprobación
             </p>
@@ -84,12 +85,7 @@ function LoginForm() {
         {/* Form panel */}
         <div className="p-8 sm:p-10">
           <div className="lg:hidden">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-agro-green text-sm font-bold text-white shadow-card">
-                AG
-              </div>
-              <span className="font-semibold tracking-tight text-ink">Agro Trazabilidad</span>
-            </div>
+            <LogoWordmark size={40} subtitle="Trazabilidad agropecuaria" />
           </div>
 
           <h2 className="mt-6 text-2xl font-bold tracking-tight text-ink lg:mt-0">Iniciar sesión</h2>

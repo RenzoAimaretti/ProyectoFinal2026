@@ -117,8 +117,8 @@ export function useToast(): ToastContextValue {
 }
 
 const toastTone: Record<ToastTone, { icon: React.ReactNode; accent: string }> = {
-  success: { icon: <CheckIcon className="h-5 w-5" />, accent: "text-agro-green" },
-  error: { icon: <AlertIcon className="h-5 w-5" />, accent: "text-agro-earth-dark" },
+  success: { icon: <CheckIcon className="h-5 w-5" />, accent: "text-success" },
+  error: { icon: <AlertIcon className="h-5 w-5" />, accent: "text-danger" },
   info: { icon: <InfoIcon />, accent: "text-ink-soft" },
 };
 
@@ -188,18 +188,18 @@ const alertTone: Record<
 > = {
   info: { box: "border-agro-border bg-base-subtle text-ink", icon: "text-ink-soft", iconNode: <InfoIcon /> },
   success: {
-    box: "border-agro-green/30 bg-agro-green/10 text-agro-green-dark",
-    icon: "text-agro-green-dark",
+    box: "border-success/30 bg-success-soft text-success",
+    icon: "text-success",
     iconNode: <CheckIcon />,
   },
   warning: {
-    box: "border-agro-wheat/40 bg-agro-wheat/15 text-agro-earth-dark",
-    icon: "text-agro-earth-dark",
+    box: "border-warning/30 bg-warning-soft text-warning",
+    icon: "text-warning",
     iconNode: <AlertIcon />,
   },
   error: {
-    box: "border-agro-earth/40 bg-agro-earth/10 text-agro-earth-dark",
-    icon: "text-agro-earth-dark",
+    box: "border-danger/30 bg-danger-soft text-danger",
+    icon: "text-danger",
     iconNode: <AlertIcon />,
   },
 };
