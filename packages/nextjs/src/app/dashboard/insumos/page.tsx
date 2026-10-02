@@ -6,9 +6,11 @@ import {
   Badge,
   Button,
   Card,
+  CardHeader,
   Drawer,
   EmptyState,
   HeroBand,
+  KpiCard,
   Modal,
   StatusBadge,
   type StatusMap,
@@ -23,6 +25,7 @@ import {
   CheckIcon,
   InboxIcon,
   InputsIcon,
+  PeopleIcon,
   PlusIcon,
   RefreshIcon,
   XIcon,
@@ -67,6 +70,11 @@ const RECEPTION_BADGE: StatusMap<ReceptionStatus> = {
   VALIDADA: { label: RECEPTION_STATUS_LABELS.VALIDADA, tone: "green" },
   RECHAZADA: { label: RECEPTION_STATUS_LABELS.RECHAZADA, tone: "earth" },
 };
+
+/** Semantic text tone for a shortage (negative) / surplus (positive) variance. */
+function varianceTone(variance: number): string {
+  return variance < 0 ? "text-danger" : variance > 0 ? "text-success" : "text-ink-soft";
+}
 
 function describeError(err: unknown): string {
   if (err instanceof ApiError) {
@@ -202,6 +210,11 @@ export default function InsumosPage() {
 
   const resolvedReceptions = useMemo(
     () => visibleReceptions.filter((r) => r.status !== "PENDIENTE_VALIDACION"),
+    [visibleReceptions],
+  );
+
+  const validatedCount = useMemo(
+    () => visibleReceptions.filter((r) => r.status === "VALIDADA").length,
     [visibleReceptions],
   );
 
@@ -391,7 +404,7 @@ export default function InsumosPage() {
       header: "Disponible",
       align: "right",
       render: (row) => (
-        <span className="font-semibold text-ink">
+        <span className="text-numeric font-semibold text-ink">
           {numberFmt.format(row.quantity)}
           <span className="ml-1 text-xs font-medium text-ink-faint">{row.unit}</span>
         </span>
@@ -428,6 +441,13 @@ export default function InsumosPage() {
   const isPending = selectedReception?.status === "PENDIENTE_VALIDACION";
   const canResolve = isAdmin && isPending;
 
+  /* ----- Protagonist metrics (real) ----- */
+  const heroMetric = isAdmin ? pendingReceptions.length : visibleReceptions.length;
+  const heroMetricLabel = isAdmin ? "Ingresos por validar" : "Movimientos registrados";
+  const heroMetricHint = isAdmin
+    ? `${visibleReceptions.length} recepciones en total`
+    : `${validatedCount} validadas`;
+
   return (
     <DashboardLayout
       title="Insumos"
@@ -443,11 +463,11 @@ export default function InsumosPage() {
             : "Registrá los insumos que dejás en el campo y seguí su estado de validación y stock."
         }
         icon={<InputsIcon className="h-6 w-6" />}
+        metric={heroMetric}
+        metricLabel={heroMetricLabel}
+        metricHint={heroMetricHint}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">
-              {pendingReceptions.length} por validar
-            </span>
             <button
               type="button"
               onClick={refresh}
@@ -493,11 +513,53 @@ export default function InsumosPage() {
         </Alert>
       )}
 
+      {/* KPI band */}
+      <section className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <KpiCard
+          label="Ingresos por validar"
+          value={pendingReceptions.length}
+          delta="Esperando decisión"
+          tone="wheat"
+          icon={<InboxIcon className="h-5 w-5" />}
+        />
+        <KpiCard
+          label="Recepciones registradas"
+          value={visibleReceptions.length}
+          delta={isAdmin ? "De todos los clientes" : selectedClient?.name ?? "Cliente"}
+          tone="slate"
+          icon={<InputsIcon className="h-5 w-5" />}
+        />
+        <KpiCard
+          label="Insumos con stock"
+          value={stock.length}
+          delta={selectedClient ? selectedClient.name : "Seleccioná un cliente"}
+          tone="green"
+          icon={<InputsIcon className="h-5 w-5" />}
+        />
+        {isAdmin ? (
+          <KpiCard
+            label="Clientes"
+            value={clients.length}
+            delta="En la cartera"
+            tone="earth"
+            icon={<PeopleIcon className="h-5 w-5" />}
+          />
+        ) : (
+          <KpiCard
+            label="Recepciones validadas"
+            value={validatedCount}
+            delta="Con stock acreditado"
+            tone="green"
+            icon={<CheckIcon className="h-5 w-5" />}
+          />
+        )}
+      </section>
+
       {/* Stock */}
       <Card className="mb-5 overflow-hidden">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-agro-border px-5 py-4">
           <div>
-            <h3 className="font-semibold text-ink">Stock por cliente</h3>
+            <h3 className="font-display font-semibold text-ink">Stock por cliente</h3>
             <p className="text-sm text-ink-soft">
               Disponible según recepciones validadas.
             </p>
@@ -548,17 +610,15 @@ export default function InsumosPage() {
       {isAdmin ? (
         <>
           <Card className="mb-5 overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
-              <div>
-                <h3 className="font-semibold text-ink">Bandeja de validación</h3>
-                <p className="text-sm text-ink-soft">
-                  Ingresos declarados por los clientes, pendientes de validar.
-                </p>
-              </div>
-              <Badge tone={pendingReceptions.length > 0 ? "wheat" : "green"}>
-                {pendingReceptions.length} pendientes
-              </Badge>
-            </div>
+            <CardHeader
+              title="Bandeja de validación"
+              subtitle="Ingresos declarados por los clientes, pendientes de validar."
+              action={
+                <Badge tone={pendingReceptions.length > 0 ? "wheat" : "green"}>
+                  {pendingReceptions.length} pendientes
+                </Badge>
+              }
+            />
 
             <DataTable
               columns={receptionColumns}
@@ -578,13 +638,10 @@ export default function InsumosPage() {
           </Card>
 
           <Card className="overflow-hidden">
-            <div className="border-b border-agro-border px-5 py-4">
-              <h3 className="font-semibold text-ink">Recepciones resueltas</h3>
-              <p className="text-sm text-ink-soft">
-                Ingresos ya validados o rechazados, incluidos los que registra el
-                administrador (se validan al momento).
-              </p>
-            </div>
+            <CardHeader
+              title="Recepciones resueltas"
+              subtitle="Ingresos ya validados o rechazados, incluidos los que registra el administrador (se validan al momento)."
+            />
 
             <DataTable
               columns={receptionColumns}
@@ -605,17 +662,15 @@ export default function InsumosPage() {
         </>
       ) : (
         <Card className="overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
-            <div>
-              <h3 className="font-semibold text-ink">Mis recepciones</h3>
-              <p className="text-sm text-ink-soft">
-                Estado de cada ingreso que registraste.
-              </p>
-            </div>
-            <Badge tone={pendingReceptions.length > 0 ? "wheat" : "green"}>
-              {pendingReceptions.length} pendientes
-            </Badge>
-          </div>
+          <CardHeader
+            title="Mis recepciones"
+            subtitle="Estado de cada ingreso que registraste."
+            action={
+              <Badge tone={pendingReceptions.length > 0 ? "wheat" : "green"}>
+                {pendingReceptions.length} pendientes
+              </Badge>
+            }
+          />
 
           <DataTable
             columns={receptionColumns}
@@ -668,7 +723,7 @@ export default function InsumosPage() {
       >
         {selectedReception && (
           <div className="space-y-5 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-agro-border bg-base-subtle/40 px-4 py-3">
               <StatusBadge status={selectedReception.status} map={RECEPTION_BADGE} />
               <span className="text-sm text-ink-soft">
                 {selectedReception.clientName} · {fmtDate(selectedReception.date)}
@@ -684,7 +739,9 @@ export default function InsumosPage() {
             {validateError && <Alert tone="error">{validateError}</Alert>}
 
             <div>
-              <h4 className="mb-2 text-sm font-semibold text-ink">Insumos declarados</h4>
+              <h4 className="mb-2 text-sm font-display font-semibold text-ink">
+                Insumos declarados
+              </h4>
               {!hasItems ? (
                 <p className="rounded-lg border border-dashed border-agro-border px-3 py-4 text-center text-sm text-ink-soft">
                   Esta recepción no tiene insumos.
@@ -697,14 +754,17 @@ export default function InsumosPage() {
                     const hasValue = raw !== "" && Number.isFinite(parsed);
                     const variance = hasValue ? parsed - item.quantity : null;
                     return (
-                      <li key={item.inputId} className="px-4 py-3">
+                      <li key={item.inputId} className="px-4 py-3.5">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium text-ink">
                               {item.inputName}
                             </p>
-                            <p className="text-xs text-ink-faint">
-                              Declarado: {numberFmt.format(item.quantity)} {item.unit}
+                            <p className="mt-0.5 text-xs text-ink-faint">
+                              Declarado:{" "}
+                              <span className="text-numeric font-semibold text-ink-soft">
+                                {numberFmt.format(item.quantity)} {item.unit}
+                              </span>
                             </p>
                           </div>
 
@@ -729,11 +789,7 @@ export default function InsumosPage() {
                                 className={`pb-2.5 text-xs font-semibold ${
                                   variance === null
                                     ? "text-ink-faint"
-                                    : variance < 0
-                                      ? "text-agro-earth-dark"
-                                      : variance > 0
-                                        ? "text-agro-green-dark"
-                                        : "text-ink-soft"
+                                    : varianceTone(variance)
                                 }`}
                               >
                                 {variance === null
@@ -743,22 +799,19 @@ export default function InsumosPage() {
                             </div>
                           ) : (
                             <div className="text-right">
-                              <p className="text-sm font-semibold text-ink">
-                                {item.validatedQuantity === null
-                                  ? "Sin validar"
-                                  : `${numberFmt.format(item.validatedQuantity)} ${item.unit}`}
-                              </p>
+                              {item.validatedQuantity === null ? (
+                                <p className="text-sm text-ink-soft">Sin validar</p>
+                              ) : (
+                                <p className="text-numeric font-display text-title font-semibold text-ink">
+                                  {numberFmt.format(item.validatedQuantity)}
+                                  <span className="ml-1 text-xs font-sans font-medium text-ink-faint">
+                                    {item.unit}
+                                  </span>
+                                </p>
+                              )}
                               {item.variance !== null && (
-                                <p
-                                  className={`text-xs font-medium ${
-                                    item.variance < 0
-                                      ? "text-agro-earth-dark"
-                                      : item.variance > 0
-                                        ? "text-agro-green-dark"
-                                        : "text-ink-soft"
-                                  }`}
-                                >
-                                  Diferencia: {item.variance > 0 ? "+" : ""}
+                                <p className={`mt-0.5 text-xs font-semibold ${varianceTone(item.variance)}`}>
+                                  Diferencia {item.variance > 0 ? "+" : ""}
                                   {numberFmt.format(item.variance)} {item.unit}
                                 </p>
                               )}
@@ -774,7 +827,9 @@ export default function InsumosPage() {
 
             {canResolve && (
               <div className="rounded-lg border border-agro-border bg-base-subtle/40 p-4">
-                <h4 className="text-sm font-semibold text-ink">Rechazar recepción</h4>
+                <h4 className="text-sm font-display font-semibold text-ink">
+                  Rechazar recepción
+                </h4>
                 <p className="mt-0.5 text-xs text-ink-soft">
                   El rechazo no modifica el stock y queda registrado con su motivo.
                 </p>
@@ -855,7 +910,7 @@ export default function InsumosPage() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-ink">Insumos</h4>
+              <h4 className="text-sm font-display font-semibold text-ink">Insumos</h4>
               <span
                 className="inline-flex"
                 title={

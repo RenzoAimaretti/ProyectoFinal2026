@@ -4,18 +4,21 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { DashboardLayout } from "@/components/ui/layout";
 import {
+  Badge,
   Card,
+  CardHeader,
   EmptyState,
   HeroBand,
   KpiCard,
   ProgressBar,
   StatRow,
   StatusBadge,
+  type KpiDeltaDirection,
   type StatusMap,
 } from "@/components/ui/primitives";
 import { Alert } from "@/components/ui/feedback";
 import { DataTable, type DataTableColumn } from "@/components/ui/table";
-import { navItems, modulesForRole, navIcon } from "@/components/ui/nav";
+import { navItems, modulesForRole, navIcon, isApproverRole } from "@/components/ui/nav";
 import { useAuth } from "@/components/ui/auth";
 import {
   DashboardIcon,
@@ -26,6 +29,13 @@ import {
   ProductionIcon,
   RefreshIcon,
 } from "@/components/ui/icons";
+import {
+  BarChart,
+  Donut,
+  TrendChart,
+  type ChartSeries,
+  type Segment,
+} from "@/components/ui/charts";
 import {
   apiGet,
   listClients,
@@ -50,9 +60,45 @@ const dateFmt = new Intl.DateTimeFormat("es-AR", {
 
 const numberFmt = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 1 });
 
-function fmtDate(value: string): string {
+/** Parses a date (date-only or ISO) into a local Date without timezone drift. */
+function parseLocalDate(value: string): Date | null {
+  if (!value) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
   const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? value.slice(0, 10) : dateFmt.format(d);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function fmtDate(value: string): string {
+  const d = parseLocalDate(value);
+  return d ? dateFmt.format(d) : value.slice(0, 10);
+}
+
+function dayKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate(),
+  ).padStart(2, "0")}`;
+}
+
+function toDayKey(value: string): string | null {
+  const d = parseLocalDate(value);
+  return d ? dayKey(d) : null;
+}
+
+/** Ordered buckets for the last `count` days, oldest first. */
+function lastNDays(count: number): { key: string; label: string }[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const out: { key: string; label: string }[] = [];
+  for (let i = count - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    out.push({
+      key: dayKey(d),
+      label: `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
+    });
+  }
+  return out;
 }
 
 function startOfWeek(): number {
@@ -63,9 +109,12 @@ function startOfWeek(): number {
   return d.getTime();
 }
 
-function isThisWeek(value: string): boolean {
-  const d = new Date(value);
-  return !Number.isNaN(d.getTime()) && d.getTime() >= startOfWeek();
+/** Real week-over-week delta, only reported when there is a previous baseline. */
+function deltaMeta(current: number, previous: number): { text: string; direction: KpiDeltaDirection } {
+  if (previous <= 0) return { text: "Primera semana con datos", direction: "flat" };
+  const pct = Math.round(((current - previous) / previous) * 100);
+  const direction: KpiDeltaDirection = pct > 0 ? "up" : pct < 0 ? "down" : "flat";
+  return { text: `${pct > 0 ? "+" : ""}${pct}% vs semana anterior`, direction };
 }
 
 const RECEPTION_BADGE: StatusMap<ReceptionStatus> = {
@@ -92,6 +141,7 @@ export default function Dashboard() {
   const [machines, setMachines] = useState<MachineDTO[]>([]);
   const [tasks, setTasks] = useState<TaskDTO[]>([]);
   const [stockRows, setStockRows] = useState<StockRow[]>([]);
+  const [clientCount, setClientCount] = useState(0);
   const [version, setVersion] = useState(0);
 
   const refresh = useCallback(() => {
@@ -121,6 +171,7 @@ export default function Dashboard() {
 
         const clients: ClientDTO[] =
           clientsRes.status === "fulfilled" ? clientsRes.value : [];
+        setClientCount(clients.length);
 
         const stockResults = await Promise.allSettled(
           clients.map((client) => listStock(client.id)),
@@ -190,15 +241,35 @@ export default function Dashboard() {
     [tasks],
   );
 
-  const weekReports = useMemo(() => reports.filter((r) => isThisWeek(r.date)), [reports]);
-  const weekHectares = useMemo(
-    () => weekReports.reduce((acc, r) => acc + (r.hectares ?? 0), 0),
-    [weekReports],
-  );
-  const weekHours = useMemo(
-    () => weekReports.reduce((acc, r) => acc + (r.hours ?? 0), 0),
-    [weekReports],
-  );
+  /* ----- Weekly hectares/hours with a real week-over-week delta ----- */
+  const weekStart = startOfWeek();
+  const weekEnd = weekStart + 7 * 24 * 60 * 60 * 1000;
+  const prevWeekStart = weekStart - 7 * 24 * 60 * 60 * 1000;
+
+  const { weekHectares, weekHours, hectareDelta, hourDelta } = useMemo(() => {
+    let curHa = 0;
+    let curHs = 0;
+    let prevHa = 0;
+    let prevHs = 0;
+    reports.forEach((r) => {
+      const d = parseLocalDate(r.date);
+      if (!d) return;
+      const t = d.getTime();
+      if (t >= weekStart && t < weekEnd) {
+        curHa += r.hectares ?? 0;
+        curHs += r.hours ?? 0;
+      } else if (t >= prevWeekStart && t < weekStart) {
+        prevHa += r.hectares ?? 0;
+        prevHs += r.hours ?? 0;
+      }
+    });
+    return {
+      weekHectares: curHa,
+      weekHours: curHs,
+      hectareDelta: deltaMeta(curHa, prevHa),
+      hourDelta: deltaMeta(curHs, prevHs),
+    };
+  }, [reports, weekStart, weekEnd, prevWeekStart]);
 
   const approvedPct =
     reports.length === 0
@@ -213,7 +284,98 @@ export default function Dashboard() {
           (receptions.filter((r) => r.status === "VALIDADA").length / receptions.length) * 100,
         );
 
+  /* ----- Designed charts from real data ----- */
+  const activity = useMemo(() => {
+    const days = lastNDays(14);
+    const reportCounts = new Map<string, number>();
+    const receptionCounts = new Map<string, number>();
+    reports.forEach((r) => {
+      const k = toDayKey(r.date);
+      if (k) reportCounts.set(k, (reportCounts.get(k) ?? 0) + 1);
+    });
+    receptions.forEach((r) => {
+      const k = toDayKey(r.date);
+      if (k) receptionCounts.set(k, (receptionCounts.get(k) ?? 0) + 1);
+    });
+    return {
+      labels: days.map((d) => d.label),
+      series: [
+        {
+          key: "partes",
+          label: "Partes de trabajo",
+          color: "var(--color-agro-green)",
+          values: days.map((d) => reportCounts.get(d.key) ?? 0),
+        },
+        {
+          key: "recepciones",
+          label: "Recepciones",
+          color: "var(--color-agro-earth)",
+          values: days.map((d) => receptionCounts.get(d.key) ?? 0),
+        },
+      ] satisfies ChartSeries[],
+    };
+  }, [reports, receptions]);
+
+  const weeklyReceptions = useMemo(() => {
+    const days = lastNDays(7);
+    const total = new Map<string, number>();
+    const validated = new Map<string, number>();
+    receptions.forEach((r) => {
+      const k = toDayKey(r.date);
+      if (k) total.set(k, (total.get(k) ?? 0) + 1);
+      if (r.status === "VALIDADA") {
+        const vk = toDayKey(r.validatedAt ?? r.date);
+        if (vk) validated.set(vk, (validated.get(vk) ?? 0) + 1);
+      }
+    });
+    return {
+      labels: days.map((d) => d.label),
+      series: [
+        {
+          key: "ingresos",
+          label: "Ingresos",
+          color: "var(--color-agro-ochre)",
+          values: days.map((d) => total.get(d.key) ?? 0),
+        },
+        {
+          key: "validadas",
+          label: "Validadas",
+          color: "var(--color-agro-green)",
+          values: days.map((d) => validated.get(d.key) ?? 0),
+        },
+      ] satisfies ChartSeries[],
+    };
+  }, [receptions]);
+
+  const receptionStatus = useMemo(
+    () => ({
+      validated: receptions.filter((r) => r.status === "VALIDADA").length,
+      pending: pendingReceptions.length,
+      rejected: receptions.filter((r) => r.status === "RECHAZADA").length,
+    }),
+    [receptions, pendingReceptions],
+  );
+
+  const donutSegments: Segment[] = useMemo(
+    () => [
+      { label: RECEPTION_STATUS_LABELS.VALIDADA, value: receptionStatus.validated, color: "var(--color-agro-green)" },
+      { label: RECEPTION_STATUS_LABELS.PENDIENTE_VALIDACION, value: receptionStatus.pending, color: "var(--color-agro-wheat)" },
+      { label: RECEPTION_STATUS_LABELS.RECHAZADA, value: receptionStatus.rejected, color: "var(--color-agro-earth)" },
+    ],
+    [receptionStatus],
+  );
+
   const visibleModules = modulesForRole(navItems, user?.role);
+  const isApprover = isApproverRole(user?.role);
+
+  /* ----- Protagonist metric (role-aware, real) ----- */
+  const heroMetric = isApprover
+    ? String(pendingReports.length)
+    : numberFmt.format(weekHectares);
+  const heroMetricLabel = isApprover ? "Partes por aprobar" : "Hectáreas esta semana";
+  const heroMetricHint = isApprover
+    ? `de ${reports.length} partes en total`
+    : `${reports.length} partes cargados`;
 
   const stockColumns: DataTableColumn<StockRow>[] = [
     {
@@ -247,9 +409,16 @@ export default function Dashboard() {
     >
       <HeroBand
         kicker="Panel principal"
-        title="Vista general"
-        description="Resumen de la operación de la campaña."
+        title={isApprover ? "Lo que espera tu decisión" : "La campaña, en foco"}
+        description={
+          isApprover
+            ? "Pulso de la operación y backlog pendiente de aprobación y validación."
+            : "Resumen de la operación de la campaña según los partes y recepciones cargados."
+        }
         icon={<DashboardIcon className="h-6 w-6" />}
+        metric={heroMetric}
+        metricLabel={heroMetricLabel}
+        metricHint={heroMetricHint}
         actions={
           <button
             type="button"
@@ -274,123 +443,190 @@ export default function Dashboard() {
         </Alert>
       )}
 
-      {/* KPIs reales */}
+      {/* KPIs reales con contexto y delta calculados */}
       <section className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         <KpiCard
-          label="Partes pendientes"
+          label="Partes por aprobar"
           value={pendingReports.length}
-          hint="Por aprobar"
+          delta={`de ${reports.length} partes`}
           tone="wheat"
           icon={<InboxIcon className="h-5 w-5" />}
         />
         <KpiCard
-          label="Recepciones pendientes"
+          label="Recepciones por validar"
           value={pendingReceptions.length}
-          hint="Por validar"
+          delta={`de ${receptions.length} registradas`}
           tone="earth"
           icon={<InputsIcon className="h-5 w-5" />}
         />
         <KpiCard
           label="Máquinas activas"
           value={activeMachines.length}
-          hint={`de ${machines.length} registradas`}
+          delta={`de ${machines.length} registradas`}
           tone="green"
           icon={<MachineIcon className="h-5 w-5" />}
         />
         <KpiCard
-          label="Tareas en progreso"
+          label="Labores en curso"
           value={tasksInProgress.length}
-          hint="Labores en curso"
+          delta={`de ${tasks.length} tareas`}
           tone="slate"
           icon={<ProductionIcon className="h-5 w-5" />}
         />
         <KpiCard
           label="Hectáreas esta semana"
           value={`${numberFmt.format(weekHectares)} ha`}
-          hint="Según partes cargados"
+          delta={hectareDelta.text}
+          deltaDirection={hectareDelta.direction}
           tone="green"
           icon={<FieldIcon className="h-5 w-5" />}
         />
         <KpiCard
           label="Horas esta semana"
           value={`${numberFmt.format(weekHours)} hs`}
-          hint="Según partes cargados"
+          delta={hourDelta.text}
+          deltaDirection={hourDelta.direction}
           tone="slate"
           icon={<DashboardIcon className="h-5 w-5" />}
         />
       </section>
 
-      {/* Resumen de gestión */}
-      <section className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <Card className="p-5">
-          <h3 className="font-semibold text-ink">Aprobación de partes</h3>
-          <p className="mt-0.5 text-sm text-ink-soft">
-            {reports.length} partes en total
-          </p>
-          <div className="mt-4 space-y-3">
-            <StatRow label="Aprobados" value={`${approvedPct}%`} />
-            <ProgressBar
-              value={approvedPct}
-              tone={approvedPct >= 70 ? "green" : approvedPct >= 40 ? "wheat" : "earth"}
+      {/* Actividad diaria + estado de recepciones */}
+      <section className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <Card className="overflow-hidden xl:col-span-2">
+          <CardHeader
+            title="Actividad diaria"
+            subtitle="Partes de trabajo y recepciones de los últimos 14 días"
+            action={<Badge tone="green">14 días</Badge>}
+          />
+          <div className="px-4 pb-4 pt-5">
+            <TrendChart
+              labels={activity.labels}
+              series={activity.series}
+              height={260}
+              ariaLabel="Partes de trabajo y recepciones por día"
+              emptyMessage="Todavía no hay partes ni recepciones en los últimos 14 días."
             />
           </div>
         </Card>
 
-        <Card className="p-5">
-          <h3 className="font-semibold text-ink">Validación de recepciones</h3>
-          <p className="mt-0.5 text-sm text-ink-soft">
-            {receptions.length} recepciones registradas
-          </p>
-          <div className="mt-4 space-y-3">
-            <StatRow label="Validadas" value={`${validatedPct}%`} />
-            <ProgressBar
-              value={validatedPct}
-              tone={validatedPct >= 70 ? "green" : validatedPct >= 40 ? "wheat" : "earth"}
+        <Card className="overflow-hidden">
+          <CardHeader
+            title="Estado de recepciones"
+            subtitle={`${receptions.length} ${
+              receptions.length === 1 ? "recepción" : "recepciones"
+            } en total`}
+          />
+          <div className="flex flex-col items-center gap-5 px-5 py-6">
+            <Donut
+              segments={donutSegments}
+              size={156}
+              thickness={18}
+              center={
+                <div className="text-center">
+                  <p className="text-numeric font-display text-kpi text-ink">{validatedPct}%</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
+                    validadas
+                  </p>
+                </div>
+              }
             />
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <h3 className="font-semibold text-ink">Módulos</h3>
-          <p className="mt-0.5 text-sm text-ink-soft">Accesos según tu rol</p>
-          <ul className="mt-4 space-y-2">
-            {visibleModules.map((module) => {
-              const Icon = navIcon(module.icon);
-              return (
-                <li key={module.label}>
-                  <Link
-                    href={module.href}
-                    className="flex items-center gap-2.5 rounded-lg border border-agro-border px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-base-subtle"
-                  >
-                    <span className="text-ink-soft">
-                      {Icon ? <Icon className="h-4 w-4" /> : null}
-                    </span>
-                    {module.label}
-                  </Link>
+            <ul className="w-full space-y-2">
+              {donutSegments.map((seg) => (
+                <li key={seg.label} className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-sm text-ink-soft">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full ring-1 ring-inset ring-black/5"
+                      style={{ backgroundColor: seg.color }}
+                    />
+                    {seg.label}
+                  </span>
+                  <span className="text-numeric text-sm font-semibold text-ink">{seg.value}</span>
                 </li>
-              );
-            })}
-          </ul>
+              ))}
+            </ul>
+          </div>
         </Card>
       </section>
 
-      {/* Estado de insumos (stock real por cliente) */}
+      {/* Recepciones vs validadas + resumen operativo */}
       <section className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
         <Card className="overflow-hidden xl:col-span-2">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
+          <CardHeader
+            title="Recepciones vs validadas"
+            subtitle="Ingresos declarados y efectivamente validados, últimos 7 días"
+            action={<Badge tone="slate">7 días</Badge>}
+          />
+          <div className="px-4 pb-4 pt-5">
+            <BarChart
+              labels={weeklyReceptions.labels}
+              series={weeklyReceptions.series}
+              height={230}
+              ariaLabel="Ingresos y recepciones validadas por día"
+              emptyMessage="No hay recepciones registradas en los últimos 7 días."
+            />
+          </div>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardHeader title="Resumen operativo" subtitle="Avance sobre el total cargado" />
+          <div className="space-y-5 px-5 py-6">
             <div>
-              <h3 className="font-semibold text-ink">Estado de insumos</h3>
-              <p className="text-sm text-ink-soft">
-                Stock disponible por cliente según recepciones validadas.
+              <div className="flex items-end justify-between">
+                <span className="text-sm text-ink-soft">Aprobación de partes</span>
+                <span className="text-numeric font-display text-title font-semibold text-ink">
+                  {approvedPct}%
+                </span>
+              </div>
+              <ProgressBar
+                className="mt-2"
+                value={approvedPct}
+                tone={approvedPct >= 70 ? "green" : approvedPct >= 40 ? "wheat" : "earth"}
+              />
+              <p className="mt-1.5 text-xs text-ink-faint">
+                {reports.filter((r) => r.status === "APROBADO").length} de {reports.length} aprobados
               </p>
             </div>
-            <Link
-              href="/dashboard/insumos"
-              className="text-sm font-semibold text-agro-green-dark hover:underline"
-            >
-              Gestionar insumos
-            </Link>
+
+            <div>
+              <div className="flex items-end justify-between">
+                <span className="text-sm text-ink-soft">Validación de recepciones</span>
+                <span className="text-numeric font-display text-title font-semibold text-ink">
+                  {validatedPct}%
+                </span>
+              </div>
+              <ProgressBar
+                className="mt-2"
+                value={validatedPct}
+                tone={validatedPct >= 70 ? "green" : validatedPct >= 40 ? "wheat" : "earth"}
+              />
+              <p className="mt-1.5 text-xs text-ink-faint">
+                {receptionStatus.validated} de {receptions.length} validadas
+              </p>
+            </div>
+
+            <div className="border-t border-agro-border pt-4">
+              <StatRow label="Clientes" value={String(clientCount)} />
+            </div>
           </div>
+        </Card>
+      </section>
+
+      {/* Estado de insumos + pendientes + módulos */}
+      <section className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <Card className="overflow-hidden xl:col-span-2">
+          <CardHeader
+            title="Estado de insumos"
+            subtitle="Stock disponible por cliente según recepciones validadas"
+            action={
+              <Link
+                href="/dashboard/insumos"
+                className="text-sm font-semibold text-agro-green-dark hover:underline"
+              >
+                Gestionar insumos
+              </Link>
+            }
+          />
           <DataTable
             columns={stockColumns}
             data={stockRows}
@@ -407,44 +643,66 @@ export default function Dashboard() {
           />
         </Card>
 
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
-            <div>
-              <h3 className="font-semibold text-ink">Recepciones pendientes</h3>
-              <p className="text-sm text-ink-soft">Esperando validación</p>
-            </div>
-            <StatusBadge status="PENDIENTE_VALIDACION" map={RECEPTION_BADGE} />
-          </div>
-          {loading ? (
-            <p className="px-5 py-8 text-center text-sm text-ink-soft">Cargando…</p>
-          ) : pendingReceptions.length === 0 ? (
-            <EmptyState
-              icon={<InboxIcon />}
-              title="Nada pendiente"
-              subtitle="No hay recepciones esperando validación."
+        <div className="flex flex-col gap-5">
+          <Card className="overflow-hidden">
+            <CardHeader
+              title="Recepciones pendientes"
+              subtitle="Esperando validación"
+              action={<StatusBadge status="PENDIENTE_VALIDACION" map={RECEPTION_BADGE} />}
             />
-          ) : (
+            {loading ? (
+              <p className="px-5 py-8 text-center text-sm text-ink-soft">Cargando…</p>
+            ) : pendingReceptions.length === 0 ? (
+              <EmptyState
+                icon={<InboxIcon />}
+                title="Nada pendiente"
+                subtitle="No hay recepciones esperando validación."
+              />
+            ) : (
+              <ul className="divide-y divide-agro-border">
+                {pendingReceptions.slice(0, 6).map((reception) => (
+                  <li
+                    key={reception.id}
+                    className="flex items-center justify-between gap-3 px-5 py-3.5"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-ink">
+                        {reception.clientName}
+                      </p>
+                      <p className="text-xs text-ink-faint">
+                        {fmtDate(reception.date)} · {reception.items.length}{" "}
+                        {reception.items.length === 1 ? "insumo" : "insumos"}
+                      </p>
+                    </div>
+                    <StatusBadge status={reception.status} map={RECEPTION_BADGE} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card className="overflow-hidden">
+            <CardHeader title="Módulos" subtitle="Accesos según tu rol" />
             <ul className="divide-y divide-agro-border">
-              {pendingReceptions.slice(0, 6).map((reception) => (
-                <li
-                  key={reception.id}
-                  className="flex items-center justify-between gap-3 px-5 py-3.5"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-ink">
-                      {reception.clientName}
-                    </p>
-                    <p className="text-xs text-ink-faint">
-                      {fmtDate(reception.date)} · {reception.items.length}{" "}
-                      {reception.items.length === 1 ? "insumo" : "insumos"}
-                    </p>
-                  </div>
-                  <StatusBadge status={reception.status} map={RECEPTION_BADGE} />
-                </li>
-              ))}
+              {visibleModules.map((module) => {
+                const Icon = navIcon(module.icon);
+                return (
+                  <li key={module.label}>
+                    <Link
+                      href={module.href}
+                      className="flex items-center gap-2.5 px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-base-subtle"
+                    >
+                      <span className="text-ink-soft">
+                        {Icon ? <Icon className="h-4 w-4" /> : null}
+                      </span>
+                      {module.label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
-          )}
-        </Card>
+          </Card>
+        </div>
       </section>
     </DashboardLayout>
   );
