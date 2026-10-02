@@ -219,3 +219,52 @@ export function MapZoomIcon(props: IconProps) {
     </Icon>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Landing additions                                                   */
+/* ------------------------------------------------------------------ */
+
+export function ClipboardIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M9 4.5h6a1.5 1.5 0 011.5 1.5A1.5 1.5 0 0115 7.5H9A1.5 1.5 0 017.5 6 1.5 1.5 0 019 4.5z" />
+      <path d="M16.5 6h.75A2.25 2.25 0 0119.5 8.25v9a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25v-9A2.25 2.25 0 016.75 6h.75" />
+      <path d="M8.25 11.25h7.5M8.25 14.25h7.5M8.25 17.25h4.5" />
+    </Icon>
+  );
+}
+
+export function CloudOfflineIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M22.61 16.95A5 5 0 0018 10h-1.26a8 8 0 00-7.05-6M5 5a8 8 0 004 15h9a5 5 0 001.7-.3" />
+      <path d="M2 2l20 20" />
+    </Icon>
+  );
+}
+
+export function ShieldIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 2.25l7.5 3v5.25c0 4.97-3.2 8.86-7.5 10.5-4.3-1.64-7.5-5.53-7.5-10.5V5.25l7.5-3z" />
+      <path d="M9 12l2 2 4-4" />
+    </Icon>
+  );
+}
+
+export function ChartIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M3 3v16.5A1.5 1.5 0 004.5 21H21" />
+      <path d="M7.5 16.5v-5.25M12 16.5V7.5M16.5 16.5v-8.25M21 16.5V5.25" />
+    </Icon>
+  );
+}
+
+export function ArrowRightIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4.5 12h15m0 0l-6-6m6 6l-6 6" />
+    </Icon>
+  );
+}
