@@ -296,6 +296,52 @@ export type TaskDTO = {
   operators?: TaskOperatorDTO[] | null;
 };
 
+/* ------------------------------------------------------------------ */
+/* Tasks                                                               */
+/* ------------------------------------------------------------------ */
+
+export type CreateTaskBody = {
+  lotId: string;
+  taskTypeId: string;
+  /** ISO timestamp built from the chosen date + time. */
+  startedAt: string;
+};
+
+export function listTasks(): Promise<TaskDTO[]> {
+  return apiGet<TaskDTO[]>("/tasks");
+}
+
+export function createTask(body: CreateTaskBody): Promise<TaskDTO> {
+  return apiPost<TaskDTO>("/tasks", body);
+}
+
+/** Assigns an operator to a task (`POST /tasks/:id/:operatorId`). */
+export function assignTaskOperator(
+  taskId: string,
+  operatorId: string,
+): Promise<{ message: string }> {
+  return apiPost<{ message: string }>(
+    `/tasks/${encodeURIComponent(taskId)}/${encodeURIComponent(operatorId)}`,
+    {},
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Task types, farms and lots                                          */
+/* ------------------------------------------------------------------ */
+
+export function listTaskTypes(): Promise<TaskTypeDTO[]> {
+  return apiGet<TaskTypeDTO[]>("/task-types");
+}
+
+export function listFarms(): Promise<FarmDTO[]> {
+  return apiGet<FarmDTO[]>("/farms");
+}
+
+export function listLots(): Promise<LotDTO[]> {
+  return apiGet<LotDTO[]>("/lots");
+}
+
 export type MachineDTO = {
   id: string;
   companyId: string;
