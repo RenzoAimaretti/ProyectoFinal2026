@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/ui/layout";
 import {
   Badge,
@@ -18,8 +19,15 @@ import {
 } from "@/components/ui/primitives";
 import { Alert } from "@/components/ui/feedback";
 import { DataTable, type DataTableColumn } from "@/components/ui/table";
-import { navItems, modulesForRole, navIcon, isApproverRole } from "@/components/ui/nav";
+import {
+  navItems,
+  modulesForRole,
+  navIcon,
+  isApproverRole,
+  isClientRole,
+} from "@/components/ui/nav";
 import { useAuth } from "@/components/ui/auth";
+import { Spinner } from "@/components/ui/spinner";
 import {
   DashboardIcon,
   FieldIcon,
@@ -38,6 +46,7 @@ import {
 } from "@/components/ui/charts";
 import {
   apiGet,
+  getStoredUser,
   listClients,
   listDailyReports,
   listReceptions,
@@ -133,6 +142,7 @@ type StockRow = {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -151,6 +161,15 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    // A PRODUCTOR cannot read this admin index: send them to their own home
+    // instead of firing the admin-only requests below.
+    const stored = getStoredUser();
+    if (stored && isClientRole(stored.role)) {
+      setLoading(false);
+      router.replace("/dashboard/mi-campo");
+      return;
+    }
+
     let alive = true;
     (async () => {
       try {
@@ -222,7 +241,7 @@ export default function Dashboard() {
     return () => {
       alive = false;
     };
-  }, [version]);
+  }, [version, router]);
 
   const pendingReports = useMemo(
     () => reports.filter((r) => r.status === "PENDIENTE_APROBACION"),
@@ -400,6 +419,21 @@ export default function Dashboard() {
       ),
     },
   ];
+
+  // A PRODUCTOR only sees Mi Campo e Insumos; the admin index is not theirs.
+  if (isClientRole(user?.role)) {
+    return (
+      <DashboardLayout
+        title="Vista general"
+        sidebarItems={navItems}
+        breadcrumb="Panel principal"
+      >
+        <Card className="flex items-center justify-center p-10">
+          <Spinner label="Redirigiendo a Mi Campo…" />
+        </Card>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout

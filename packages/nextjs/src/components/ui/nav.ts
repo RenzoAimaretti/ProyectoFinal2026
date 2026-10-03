@@ -53,7 +53,7 @@ export interface NavItem {
   icon?: NavIconKey;
 }
 
-/** The eight modules of the back-office, shared by every dashboard page. */
+/** The modules of the back-office, shared by every dashboard page. */
 export const navItems: NavItem[] = [
   { label: "Mi Campo", href: "/dashboard/mi-campo", icon: "field" },
   { label: "Producción", href: "/dashboard/produccion", icon: "production" },
@@ -67,6 +67,7 @@ export const navItems: NavItem[] = [
     href: "/dashboard/bandeja-aprobacion",
     icon: "inbox",
   },
+  { label: "Clientes", href: "/dashboard/clientes", icon: "people" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -98,7 +99,8 @@ const MODULES_BY_ROLE: Record<string, string[] | "all"> = {
   ADMIN: "all",
   SUPERVISOR: "all",
   OPERARIO: ["Mi Campo", "Producción", "Insumos", "Maquinaria"],
-  PRODUCTOR: ["Mi Campo", "Producción", "Insumos", "Ganadería"],
+  // A PRODUCTOR is a client: only their own field and their own inputs.
+  PRODUCTOR: ["Mi Campo", "Insumos"],
   CONTRATISTA: ["Producción", "Maquinaria"],
   VETERINARIO: ["Mi Campo", "Ganadería"],
 };
@@ -123,9 +125,19 @@ export function isApproverRole(role?: string | null): boolean {
 }
 
 /**
- * PRODUCTOR is the client-facing role. There is no user-to-client mapping in
- * the backend, so the pages must still resolve the client scope explicitly.
+ * PRODUCTOR is the client-facing role. The backend now links a productor user
+ * to a client, so a PRODUCTOR reads `/clients/me` for their own scope.
  */
 export function isClientRole(role?: string | null): boolean {
   return role === "PRODUCTOR";
+}
+
+/** ADMIN and SUPERVISOR manage the tenant client portfolio (`GET /clients`). */
+export function isClientManagerRole(role?: string | null): boolean {
+  return role === "ADMIN" || role === "SUPERVISOR";
+}
+
+/** Landing route for an authenticated role. */
+export function homePathForRole(role?: string | null): string {
+  return role === "PRODUCTOR" ? "/dashboard/mi-campo" : "/dashboard";
 }

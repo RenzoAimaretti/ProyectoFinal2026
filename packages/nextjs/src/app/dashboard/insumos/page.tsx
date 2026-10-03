@@ -19,7 +19,7 @@ import { Alert, useToast } from "@/components/ui/feedback";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/table";
 import { SelectField, TextField, TextareaField } from "@/components/ui/form";
-import { isAdminRole, navItems } from "@/components/ui/nav";
+import { isAdminRole, isClientRole, navItems } from "@/components/ui/nav";
 import { useAuth } from "@/components/ui/auth";
 import {
   CheckIcon,
@@ -33,6 +33,7 @@ import {
 import {
   ApiError,
   createReception,
+  getMyClient,
   listClients,
   listInputs,
   listReceptions,
@@ -108,10 +109,12 @@ type DraftItem = { key: string; inputId: string; quantity: string };
 
 export default function InsumosPage() {
   const toast = useToast();
-  const { user } = useAuth();
+  const { user, ready } = useAuth();
   const isAdmin = isAdminRole(user?.role);
+  const isClient = isClientRole(user?.role);
 
   const [clients, setClients] = useState<ClientDTO[]>([]);
+  const [myClient, setMyClient] = useState<{ id: string; name: string } | null>(null);
   const [inputs, setInputs] = useState<InputDTO[]>([]);
   const [receptions, setReceptions] = useState<ReceptionDTO[]>([]);
   const [stock, setStock] = useState<StockDTO[]>([]);
@@ -154,15 +157,41 @@ export default function InsumosPage() {
 
   /* ----- Catalogues + receptions ----- */
   useEffect(() => {
+    // Wait until the session (and therefore the role) is known, otherwise a
+    // PRODUCTOR would fire the admin-only `listClients()` and get a 403.
+    if (!ready) return;
     let alive = true;
-    Promise.all([listClients(), listInputs(), listReceptions()])
-      .then(([clientList, inputList, receptionList]) => {
+
+    const load = async () => {
+      if (isClient) {
+        // A PRODUCTOR cannot list clients: resolve their own scope instead.
+        const [profile, inputList, receptionList] = await Promise.all([
+          getMyClient(),
+          listInputs(),
+          listReceptions(),
+        ]);
         if (!alive) return;
+        setMyClient({ id: profile.id, name: profile.name });
+        setClients([]);
+        setInputs(inputList);
+        setReceptions(receptionList);
+        setSelectedClientId(profile.id);
+      } else {
+        const [clientList, inputList, receptionList] = await Promise.all([
+          listClients(),
+          listInputs(),
+          listReceptions(),
+        ]);
+        if (!alive) return;
+        setMyClient(null);
         setClients(clientList);
         setInputs(inputList);
         setReceptions(receptionList);
         setSelectedClientId((prev) => prev || clientList[0]?.id || "");
-      })
+      }
+    };
+
+    load()
       .catch((err) => {
         if (alive) setLoadError(describeError(err));
       })
@@ -172,13 +201,15 @@ export default function InsumosPage() {
     return () => {
       alive = false;
     };
-  }, [version]);
+  }, [version, ready, isClient]);
 
-  /* ----- Stock for the selected client ----- */
+  /* ----- Stock for the selected client (auto-scoped for a PRODUCTOR) ----- */
   useEffect(() => {
+    if (!ready) return;
+    if (!isClient && !selectedClientId) return;
     let alive = true;
-    if (!selectedClientId) return;
-    listStock(selectedClientId)
+    const request = isClient ? listStock() : listStock(selectedClientId);
+    request
       .then((data) => {
         if (alive) setStock(data);
       })
@@ -191,9 +222,12 @@ export default function InsumosPage() {
     return () => {
       alive = false;
     };
-  }, [selectedClientId, version]);
+  }, [selectedClientId, version, ready, isClient]);
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
+  const scopeClientName = isClient ? myClient?.name ?? "Mi cliente" : selectedClient?.name;
+  const canCreateReception =
+    inputs.length > 0 && (isAdmin ? clients.length > 0 : Boolean(myClient));
 
   const visibleReceptions = useMemo(
     () =>
@@ -304,14 +338,17 @@ export default function InsumosPage() {
 
   /* ----- Create modal ----- */
   const openCreate = useCallback(() => {
-    setCreateClientId(selectedClientId || clients[0]?.id || "");
+    const defaultClientId = isAdmin
+      ? selectedClientId || clients[0]?.id || ""
+      : myClient?.id ?? "";
+    setCreateClientId(defaultClientId);
     setCreateDate(new Date().toISOString().slice(0, 10));
     setDraftItems([
       { key: nextKey(), inputId: inputs[0]?.id ?? "", quantity: "" },
     ]);
     setCreateError(null);
     setCreateOpen(true);
-  }, [selectedClientId, clients, inputs]);
+  }, [isAdmin, selectedClientId, clients, inputs, myClient]);
 
   const updateDraftItem = (key: string, patch: Partial<DraftItem>) => {
     setDraftItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)));
@@ -480,10 +517,12 @@ export default function InsumosPage() {
             <button
               type="button"
               onClick={openCreate}
-              disabled={clients.length === 0 || inputs.length === 0}
+              disabled={!canCreateReception}
               title={
-                clients.length === 0 || inputs.length === 0
-                  ? "Necesitás clientes e insumos cargados para registrar una recepción."
+                !canCreateReception
+                  ? isClient
+                    ? "Tu usuario debe estar vinculado a un cliente y necesitás insumos cargados."
+                    : "Necesitás clientes e insumos cargados para registrar una recepción."
                   : undefined
               }
               className="inline-flex items-center gap-2 rounded-lg bg-white/95 px-4 py-2.5 text-sm font-semibold text-agro-green-deep transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
@@ -525,14 +564,14 @@ export default function InsumosPage() {
         <KpiCard
           label="Recepciones registradas"
           value={visibleReceptions.length}
-          delta={isAdmin ? "De todos los clientes" : selectedClient?.name ?? "Cliente"}
+          delta={isAdmin ? "De todos los clientes" : scopeClientName ?? "Mi cliente"}
           tone="slate"
           icon={<InputsIcon className="h-5 w-5" />}
         />
         <KpiCard
           label="Insumos con stock"
           value={stock.length}
-          delta={selectedClient ? selectedClient.name : "Seleccioná un cliente"}
+          delta={scopeClientName ?? "Seleccioná un cliente"}
           tone="green"
           icon={<InputsIcon className="h-5 w-5" />}
         />
@@ -559,25 +598,31 @@ export default function InsumosPage() {
       <Card className="mb-5 overflow-hidden">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-agro-border px-5 py-4">
           <div>
-            <h3 className="font-display font-semibold text-ink">Stock por cliente</h3>
+            <h3 className="font-display font-semibold text-ink">
+              {isAdmin ? "Stock por cliente" : "Mi stock"}
+            </h3>
             <p className="text-sm text-ink-soft">
               Disponible según recepciones validadas.
             </p>
           </div>
-          <div className="w-full sm:w-72">
-            <SelectField
-              label="Cliente"
-              value={selectedClientId}
-              onChange={(e) => {
-                setStockLoading(true);
-                setStockError(null);
-                setSelectedClientId(e.target.value);
-              }}
-              options={clientOptions}
-              placeholder="Seleccioná un cliente"
-              disabled={clients.length === 0}
-            />
-          </div>
+          {isAdmin ? (
+            <div className="w-full sm:w-72">
+              <SelectField
+                label="Cliente"
+                value={selectedClientId}
+                onChange={(e) => {
+                  setStockLoading(true);
+                  setStockError(null);
+                  setSelectedClientId(e.target.value);
+                }}
+                options={clientOptions}
+                placeholder="Seleccioná un cliente"
+                disabled={clients.length === 0}
+              />
+            </div>
+          ) : (
+            <Badge tone="green">{scopeClientName ?? "Sin cliente"}</Badge>
+          )}
         </div>
 
         {stockError ? (
@@ -596,8 +641,8 @@ export default function InsumosPage() {
                 icon={<InputsIcon />}
                 title="Sin stock para este cliente"
                 subtitle={
-                  selectedClient
-                    ? `No hay insumos disponibles para ${selectedClient.name}.`
+                  scopeClientName
+                    ? `No hay insumos disponibles para ${scopeClientName}.`
                     : "Seleccioná un cliente para ver su stock."
                 }
               />
@@ -872,14 +917,14 @@ export default function InsumosPage() {
             <span
               className="inline-flex"
               title={
-                inputs.length === 0 || clients.length === 0
-                  ? "Necesitás clientes e insumos cargados."
+                !canCreateReception
+                  ? "Necesitás un cliente y al menos un insumo cargado."
                   : undefined
               }
             >
               <Button
                 onClick={() => void handleCreate()}
-                disabled={creating || inputs.length === 0 || clients.length === 0}
+                disabled={creating || !canCreateReception}
               >
                 {creating ? "Registrando…" : "Registrar ingreso"}
               </Button>
@@ -891,14 +936,25 @@ export default function InsumosPage() {
           {createError && <Alert tone="error">{createError}</Alert>}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <SelectField
-              label="Cliente"
-              value={createClientId}
-              onChange={(e) => setCreateClientId(e.target.value)}
-              options={clientOptions}
-              placeholder="Seleccioná un cliente"
-              disabled={creating || clients.length === 0}
-            />
+            {isAdmin ? (
+              <SelectField
+                label="Cliente"
+                value={createClientId}
+                onChange={(e) => setCreateClientId(e.target.value)}
+                options={clientOptions}
+                placeholder="Seleccioná un cliente"
+                disabled={creating || clients.length === 0}
+              />
+            ) : (
+              <div>
+                <span className="mb-1.5 block text-xs font-semibold text-ink-faint">
+                  Cliente
+                </span>
+                <p className="rounded-lg border border-agro-border bg-base-subtle/40 px-3 py-2.5 text-sm text-ink">
+                  {scopeClientName ?? "Sin cliente"}
+                </p>
+              </div>
+            )}
             <TextField
               label="Fecha"
               type="date"

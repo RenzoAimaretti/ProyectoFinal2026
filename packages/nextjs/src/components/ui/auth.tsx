@@ -36,7 +36,8 @@ export function useAuth() {
 
 /**
  * Guard for protected areas. Redirects unauthenticated users to /login and
- * preserves the intended path in ?next=.
+ * preserves the intended path in ?next=. An authenticated user that still has
+ * `mustChangePassword` is forced into /onboarding from any dashboard route.
  */
 export function useRequireAuth(): { user: AuthUser | null; ready: boolean } {
   const { user, ready, isAuthenticated } = useAuth();
@@ -44,10 +45,18 @@ export function useRequireAuth(): { user: AuthUser | null; ready: boolean } {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!ready || isAuthenticated) return;
-    const next = pathname ? `?next=${encodeURIComponent(pathname)}` : "";
-    router.replace(`/login${next}`);
-  }, [ready, isAuthenticated, pathname, router]);
+    if (!ready) return;
+
+    if (!isAuthenticated) {
+      const next = pathname ? `?next=${encodeURIComponent(pathname)}` : "";
+      router.replace(`/login${next}`);
+      return;
+    }
+
+    if (user?.mustChangePassword && pathname !== "/onboarding") {
+      router.replace("/onboarding");
+    }
+  }, [ready, isAuthenticated, user, pathname, router]);
 
   return { user, ready };
 }

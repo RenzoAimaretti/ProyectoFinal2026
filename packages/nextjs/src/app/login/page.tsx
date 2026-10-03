@@ -9,21 +9,38 @@ import { Alert } from "@/components/ui/feedback";
 import { TextField } from "@/components/ui/form";
 import { Spinner } from "@/components/ui/spinner";
 import { LogoWordmark } from "@/components/ui/logo";
+import { homePathForRole } from "@/components/ui/nav";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") || "/dashboard";
+  const nextParam = searchParams.get("next");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /** Restores the intended path, falling back to the role's home. */
+  function destination(role?: string | null): string {
+    if (nextParam && nextParam !== "/dashboard") return nextParam;
+    return homePathForRole(role);
+  }
+
   // Already signed in? Skip the form.
   useEffect(() => {
-    if (getStoredUser() && getToken()) router.replace(nextPath);
-  }, [router, nextPath]);
+    const stored = getStoredUser();
+    if (!stored || !getToken()) return;
+    if (stored.mustChangePassword) {
+      router.replace("/onboarding");
+      return;
+    }
+    const target =
+      nextParam && nextParam !== "/dashboard"
+        ? nextParam
+        : homePathForRole(stored.role);
+    router.replace(target);
+  }, [router, nextParam]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,8 +48,12 @@ function LoginForm() {
     setSubmitting(true);
     setError(null);
     try {
-      await login(email.trim(), password);
-      router.replace(nextPath);
+      const result = await login(email.trim(), password);
+      router.replace(
+        result.user.mustChangePassword
+          ? "/onboarding"
+          : destination(result.user.role),
+      );
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setError("Email o contraseña incorrectos.");

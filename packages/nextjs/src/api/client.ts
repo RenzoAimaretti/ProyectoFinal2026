@@ -14,6 +14,11 @@ export type AuthUser = {
   role: string;
   tenantId: string | null;
   firmaId: string | null;
+  /**
+   * Present after a client is provisioned with a generated password. The user
+   * must go through `/onboarding` before reaching any dashboard route.
+   */
+  mustChangePassword?: boolean;
 };
 
 export type AuthResponse = {
@@ -47,6 +52,20 @@ export function setAuth(accessToken: string, refreshToken: string, user: AuthUse
   window.localStorage.setItem(TOKEN_KEY, accessToken);
   window.localStorage.setItem(REFRESH_KEY, refreshToken);
   window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+/**
+ * Merges a partial update into the persisted session user (localStorage).
+ * Returns the updated user, or null when there is no local session.
+ */
+export function updateStoredUser(partial: Partial<AuthUser>): AuthUser | null {
+  const current = getStoredUser();
+  if (!current) return null;
+  const next: AuthUser = { ...current, ...partial };
+  if (canUseStorage()) {
+    window.localStorage.setItem(USER_KEY, JSON.stringify(next));
+  }
+  return next;
 }
 
 export function clearAuth(): void {
@@ -139,8 +158,12 @@ export async function apiGet<T>(path: string): Promise<T> {
   return request<T>("GET", path);
 }
 
-export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
-  return request<T>("POST", path, body ?? {});
+export async function apiPost<T>(
+  path: string,
+  body?: unknown,
+  opts: RequestOptions = {},
+): Promise<T> {
+  return request<T>("POST", path, body ?? {}, opts);
 }
 
 export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
@@ -400,10 +423,119 @@ export type ClientDTO = {
   name: string;
   cuit: string | null;
   active: boolean;
+  /** Extra fields present in the Prisma record; optional for compatibility. */
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  address?: string | null;
 };
 
 export function listClients(): Promise<ClientDTO[]> {
   return apiGet<ClientDTO[]>("/clients");
+}
+
+/* ------------------------------------------------------------------ */
+/* Client onboarding (POST /clients, /clients/me)                      */
+/* ------------------------------------------------------------------ */
+
+export const DEFAULT_CLIENT_PASSWORD = "Cliente2026!";
+
+export type ClientProfileLotDTO = {
+  id: string;
+  name: string;
+  area: number;
+  coords: string | null;
+};
+
+export type ClientProfileFarmDTO = {
+  id: string;
+  name: string;
+  location: string | null;
+  surface: number;
+  lots: ClientProfileLotDTO[];
+};
+
+/** Shape returned by `GET /clients/me` and `PUT /clients/me`. */
+export type ClientProfileDTO = {
+  id: string;
+  name: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  farms: ClientProfileFarmDTO[];
+};
+
+export type CreateClientLot = {
+  name: string;
+  area: number;
+  coords?: string | null;
+};
+
+export type CreateClientBody = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  farmName: string;
+  lots: CreateClientLot[];
+  /** When omitted, the backend assigns the generic client password. */
+  password?: string;
+  phone?: string | null;
+  address?: string | null;
+};
+
+/** Shape returned by `POST /clients`; includes the effective password. */
+export type CreateClientResult = {
+  id: string;
+  name: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string;
+  phone: string | null;
+  address: string | null;
+  farms: ClientProfileFarmDTO[];
+  lots: ClientProfileLotDTO[];
+  password: string;
+};
+
+export type UpdateMyClientBody = {
+  firstName?: string;
+  lastName?: string;
+  phone?: string | null;
+  address?: string | null;
+};
+
+/** ADMIN/SUPERVISOR: provisions a client, its productor user, farm and lots. */
+export function createClientWithAccess(
+  body: CreateClientBody,
+): Promise<CreateClientResult> {
+  return apiPost<CreateClientResult>("/clients", body);
+}
+
+/** Resolves the profile of the client linked to the authenticated user. */
+export function getMyClient(): Promise<ClientProfileDTO> {
+  return apiGet<ClientProfileDTO>("/clients/me");
+}
+
+/** Updates the authenticated client's own contact profile. */
+export function updateMyClient(body: UpdateMyClientBody): Promise<ClientProfileDTO> {
+  return apiPut<ClientProfileDTO>("/clients/me", body);
+}
+
+/**
+ * Changes the authenticated user's password. A wrong current password returns
+ * 401, so this call must NOT trigger the global sign-out redirect.
+ */
+export function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ message: string }> {
+  return apiPost<{ message: string }>(
+    "/auth/change-password",
+    { currentPassword, newPassword },
+    { redirectOn401: false },
+  );
 }
 
 /* ------------------------------------------------------------------ */
