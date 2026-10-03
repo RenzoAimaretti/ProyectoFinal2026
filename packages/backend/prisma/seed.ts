@@ -27,7 +27,17 @@ const COMPANY_NAME = process.env.SEED_COMPANY_NAME ?? 'Eliggi';
 const COMPANY_CUIT = process.env.SEED_COMPANY_CUIT ?? '30-00000000-1';
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'admin@agrolify.local';
 const ADMIN_USERNAME = process.env.SEED_ADMIN_USERNAME ?? 'admin';
-const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? 'Admin1234!';
+const ADMIN_PASSWORD = requireSeedAdminPassword();
+
+function requireSeedAdminPassword(): string {
+  const value = process.env.SEED_ADMIN_PASSWORD;
+  if (!value || value.trim().length === 0) {
+    throw new Error(
+      'SEED_ADMIN_PASSWORD is not set. Define it in the environment before running the seed.',
+    );
+  }
+  return value;
+}
 
 // Deterministic ids for demo rows: 00000000-0000-4000-8000-000000000NNN.
 // The bootstrap ids occupy 1..4, so demo rows start at 100 to avoid collisions.

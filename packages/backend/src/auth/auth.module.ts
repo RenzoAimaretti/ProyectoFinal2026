@@ -19,6 +19,7 @@ import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { RefreshTokensUseCase } from './application/use-cases/refresh-tokens.use-case';
 import { ValidateUserCredentialsUseCase } from './application/use-cases/validate-user-credentials.use-case';
 import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
+import { requireJwtSecret } from './jwt-secret';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { ChangePasswordUseCase } from './application/use-cases/change-password.u
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       useFactory: () => ({
-        secret: process.env.JWT_SECRET,
+        secret: requireJwtSecret(),
         signOptions: { expiresIn: '15m' },
       }),
     }),
