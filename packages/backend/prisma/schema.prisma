@@ -86,6 +86,7 @@ model User {
   email               String           @unique
   passwordHash        String
   role                UserRole
+  mustChangePassword  Boolean          @default(false)
   failedLoginAttempts Int              @default(0)
   lockedUntil         DateTime?
   active              Boolean          @default(true)
@@ -103,6 +104,7 @@ model User {
   dailyReports      DailyReport[]    @relation("DailyReportOperator")
   approvedReports   DailyReport[]    @relation("DailyReportApprover")
   validatedReceptions Reception[]    @relation("ReceptionValidator")
+  client            Client?
 
   @@index([tenantId])
 }
@@ -136,6 +138,11 @@ model Client {
   id        String   @id @default(uuid())
   tenantId  String
   name      String
+  firstName String?
+  lastName  String?
+  phone     String?
+  address   String?
+  userId    String?  @unique
   cuit      String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -144,6 +151,7 @@ model Client {
   deleted   Boolean  @default(false)
 
   tenant     Tenant      @relation(fields: [tenantId], references: [id])
+  user       User?       @relation(fields: [userId], references: [id])
   farms      Farm[]
   receptions Reception[]
   stocks     Stock[]

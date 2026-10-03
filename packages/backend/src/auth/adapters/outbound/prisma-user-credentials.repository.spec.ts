@@ -11,12 +11,14 @@ describe('toAuthUserCredentials', () => {
       deleted: false,
       failedLoginAttempts: 0,
       lockedUntil: null,
+      mustChangePassword: true,
       companyMemberships: [{ companyId: 'company-1', role: 'OPERARIO' }],
     });
 
     expect(credentials).toMatchObject({
       firmaId: 'company-1',
       role: 'OPERARIO',
+      mustChangePassword: true,
     });
   });
 });

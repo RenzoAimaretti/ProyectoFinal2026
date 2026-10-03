@@ -12,6 +12,7 @@ type UserWithMemberships = {
   deleted: boolean;
   failedLoginAttempts: number;
   lockedUntil: Date | null;
+  mustChangePassword: boolean;
   companyMemberships: { companyId: string; role: AuthUserRole }[];
 };
 
@@ -27,6 +28,7 @@ export function toAuthUserCredentials(user: UserWithMemberships): AuthUserCreden
     deleted: user.deleted,
     failedLoginAttempts: user.failedLoginAttempts,
     lockedUntil: user.lockedUntil,
+    mustChangePassword: user.mustChangePassword,
   };
 }
 
@@ -50,6 +52,22 @@ export class PrismaUserCredentialsRepository implements UserCredentialsRepositor
     return user ? toAuthUserCredentials(user) : null;
   }
 
+  async findById(id: string): Promise<AuthUserCredentials | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        companyMemberships: {
+          where: { active: true },
+          orderBy: { createdAt: 'asc' },
+          take: 1,
+          select: { companyId: true, role: true },
+        },
+      },
+    });
+
+    return user ? toAuthUserCredentials(user) : null;
+  }
+
   async updateSecurityState(id: string, data: UpdateSecurityStateInput): Promise<void> {
     await this.prisma.user.update({
       where: { id },
@@ -57,6 +75,9 @@ export class PrismaUserCredentialsRepository implements UserCredentialsRepositor
         failedLoginAttempts: data.failedLoginAttempts,
         lockedUntil: data.lockedUntil,
         ...(data.passwordHash ? { passwordHash: data.passwordHash } : {}),
+        ...(data.mustChangePassword !== undefined
+          ? { mustChangePassword: data.mustChangePassword }
+          : {}),
       },
     });
   }

@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
 import { FarmController } from './farm.controller';
 import { FarmService } from './farm.service';
 
@@ -9,6 +10,7 @@ describe('FarmController', () => {
   let controller: FarmController;
   let service: {
     findAll: jest.Mock;
+    findAllForUser: jest.Mock;
     findOne: jest.Mock;
     create: jest.Mock;
     update: jest.Mock;
@@ -17,6 +19,7 @@ describe('FarmController', () => {
   beforeEach(async () => {
     service = {
       findAll: jest.fn(),
+      findAllForUser: jest.fn(),
       findOne: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
@@ -40,16 +43,17 @@ describe('FarmController', () => {
       ) as Array<new (...args: never[]) => unknown> | undefined;
 
       expect(guards).toContain(JwtAuthGuard);
+      expect(guards).toContain(RolesGuard);
     }
   });
 
   it('delegates tenant-scoped requests using req.user.tenantId', async () => {
-    service.findAll.mockResolvedValue([{ id: 'farm-1' }]);
+    service.findAllForUser.mockResolvedValue([{ id: 'farm-1' }]);
     service.findOne.mockResolvedValue({ id: 'farm-1' });
     service.create.mockResolvedValue({ id: 'farm-2' });
     service.update.mockResolvedValue({ id: 'farm-1', name: 'Updated' });
 
-    const req = { user: { tenantId: 'tenant-1' } };
+    const req = { user: { id: 'user-1', tenantId: 'tenant-1', role: 'ADMIN' } };
 
     await expect(controller.findAll(req)).resolves.toEqual([{ id: 'farm-1' }]);
     await expect(controller.findOne('farm-1', req)).resolves.toEqual({
@@ -70,7 +74,11 @@ describe('FarmController', () => {
       }),
     ).resolves.toEqual({ id: 'farm-1', name: 'Updated' });
 
-    expect(service.findAll).toHaveBeenCalledWith('tenant-1');
+    expect(service.findAllForUser).toHaveBeenCalledWith(
+      'tenant-1',
+      'user-1',
+      'ADMIN',
+    );
     expect(service.findOne).toHaveBeenCalledWith('farm-1', 'tenant-1');
     expect(service.create).toHaveBeenCalledWith('tenant-1', {
       name: 'North Field',

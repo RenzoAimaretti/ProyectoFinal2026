@@ -7,4 +7,8 @@ export class FindAllFarmsUseCase {
   execute(tenantId: string): Promise<FarmRecord[]> {
     return this.repository.findAllByTenantId(tenantId);
   }
+
+  executeByClient(clientId: string): Promise<FarmRecord[]> {
+    return this.repository.findAllByClientId(clientId);
+  }
 }

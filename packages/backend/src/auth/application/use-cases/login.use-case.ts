@@ -75,6 +75,7 @@ export class LoginUseCase {
         role: user.role,
         tenantId: user.tenantId,
         firmaId: resolveFirmaId(user),
+        mustChangePassword: user.mustChangePassword ?? false,
       },
     };
   }

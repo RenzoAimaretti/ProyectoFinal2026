@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -15,6 +16,10 @@ import { FindAllLotsUseCase } from './application/use-cases/find-all-lots.use-ca
 import { FindLotUseCase } from './application/use-cases/find-lot.use-case';
 import { UpdateLotUseCase } from './application/use-cases/update-lot.use-case';
 import { CreateLotInput, UpdateLotInput } from './application/lot.types';
+import {
+  CLIENT_USER_READER,
+  ClientUserReaderPort,
+} from '../client/application/client.ports';
 
 @Injectable()
 export class LotService {
@@ -23,10 +28,33 @@ export class LotService {
     private readonly findLotUseCase: FindLotUseCase,
     private readonly createLotUseCase: CreateLotUseCase,
     private readonly updateLotUseCase: UpdateLotUseCase,
+    @Inject(CLIENT_USER_READER)
+    private readonly clientUserReader: ClientUserReaderPort,
   ) {}
 
   async findAll(tenantId: string) {
     try {
+      return await this.findAllLotsUseCase.execute(tenantId);
+    } catch (error) {
+      this.handleUnexpectedError('Error fetching lots', error);
+    }
+  }
+
+  /**
+   * Server-side scoping: a PRODUCTOR only sees the lots that belong to the
+   * client linked to their own user id. Other roles keep the tenant-wide read.
+   */
+  async findAllForUser(tenantId: string, userId: string, role: string) {
+    try {
+      if (role === 'PRODUCTOR') {
+        const clientId = await this.clientUserReader.findClientIdByUserId(userId);
+        if (!clientId) {
+          return [];
+        }
+
+        return await this.findAllLotsUseCase.executeByClient(clientId);
+      }
+
       return await this.findAllLotsUseCase.execute(tenantId);
     } catch (error) {
       this.handleUnexpectedError('Error fetching lots', error);

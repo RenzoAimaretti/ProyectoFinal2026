@@ -36,6 +36,7 @@ const baseUser: AuthUserCredentials = {
 function createPorts() {
   const userRepository: jest.Mocked<UserCredentialsRepositoryPort> = {
     findByEmail: jest.fn(),
+    findById: jest.fn(),
     updateSecurityState: jest.fn(),
   };
 
@@ -86,6 +87,7 @@ describe('Auth use cases', () => {
         role: baseUser.role,
         tenantId: baseUser.tenantId,
         firmaId: baseUser.firmaId as string,
+        mustChangePassword: false,
       });
 
       expect(userRepository.updateSecurityState).toHaveBeenCalledWith(baseUser.id, {
@@ -145,6 +147,7 @@ describe('Auth use cases', () => {
           role: baseUser.role,
           tenantId: baseUser.tenantId,
           firmaId: baseUser.firmaId,
+          mustChangePassword: false,
         },
       });
 

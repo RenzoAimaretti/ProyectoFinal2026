@@ -12,6 +12,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../../auth/guards/roles.guard';
+import { Roles } from '../../../../auth/decorators/roles.decorator';
 import { CreateInputInput, UpdateInputInput } from '../../application/input.types';
 import { CreateInputUseCase } from '../../application/use-cases/create-input.use-case';
 import { FindAllInputsUseCase } from '../../application/use-cases/find-all-inputs.use-case';
@@ -58,7 +60,8 @@ export class InputController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post()
   async create(@Req() req: RequestWithUser, @Body() body: CreateInputInput) {
     try {
@@ -71,7 +74,8 @@ export class InputController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Put(':id')
   async update(
     @Param('id') id: string,

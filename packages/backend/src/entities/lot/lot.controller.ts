@@ -9,12 +9,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { CreateLotInput, UpdateLotInput } from './application/lot.types';
 import { LotService } from './lot.service';
 
 type RequestWithUser = {
   user: {
+    id: string;
     tenantId: string;
+    role: string;
   };
 };
 
@@ -22,19 +26,25 @@ type RequestWithUser = {
 export class LotController {
   constructor(private readonly service: LotService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   findAll(@Req() req: RequestWithUser) {
-    return this.service.findAll(req.user.tenantId);
+    return this.service.findAllForUser(
+      req.user.tenantId,
+      req.user.id,
+      req.user.role,
+    );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.service.findOne(id, req.user.tenantId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post()
   create(@Req() req: RequestWithUser, @Body() data: CreateLotInput) {
     return this.service.create(req.user.tenantId, {
@@ -45,7 +55,8 @@ export class LotController {
     });
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Put(':id')
   update(
     @Param('id') id: string,

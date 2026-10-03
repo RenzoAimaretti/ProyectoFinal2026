@@ -1,5 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import {
   CreateWeightRecordInput,
   UpdateWeightRecordInput,
@@ -28,7 +30,8 @@ function hasUser(value: unknown): value is RequestWithUser {
 export class WeightRecordController {
   constructor(private readonly service: WeightRecordService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Get()
   findAll(@Req() req?: RequestWithUser) {
     return hasUser(req)
@@ -36,7 +39,8 @@ export class WeightRecordController {
       : this.service.findAll();
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req?: RequestWithUser) {
     return hasUser(req)
@@ -44,7 +48,8 @@ export class WeightRecordController {
       : this.service.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post()
   create(
     @Req() reqOrData?: RequestWithUser | CreateWeightRecordBody,
@@ -59,7 +64,8 @@ export class WeightRecordController {
       : this.service.create(payload as CreateWeightRecordInput);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Put(':id')
   update(
     @Param('id') id: string,
@@ -75,7 +81,8 @@ export class WeightRecordController {
       : this.service.update(id, payload as UpdateWeightRecordInput);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Delete(':id')
   remove(@Param('id') id: string, @Req() req?: RequestWithUser) {
     return hasUser(req) ? this.service.delete(id, req.user.firmaId) : this.service.delete(id);

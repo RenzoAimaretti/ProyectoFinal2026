@@ -16,6 +16,7 @@ export type AuthUserCredentials = {
   deleted: boolean;
   failedLoginAttempts: number;
   lockedUntil: Date | null;
+  mustChangePassword?: boolean;
 };
 
 export type AuthUserPrincipal = {
@@ -24,6 +25,7 @@ export type AuthUserPrincipal = {
   role: AuthUserRole;
   tenantId: string;
   firmaId: string;
+  mustChangePassword?: boolean;
 };
 
 export type AuthJwtPayload = {
@@ -69,4 +71,5 @@ export type UpdateSecurityStateInput = {
   failedLoginAttempts: number;
   lockedUntil: Date | null;
   passwordHash?: string;
+  mustChangePassword?: boolean;
 };

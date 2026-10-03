@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { CreateMachineInput, UpdateMachineInput } from './application/machine.types';
 import { MachineService } from './machine.service';
 
@@ -21,19 +23,22 @@ type UpdateMachineBody = UpdateMachineInput & {
 export class MachineController {
   constructor(private readonly service: MachineService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Get()
   findAll(@Req() req: RequestWithUser) {
     return this.service.findAll(req.user.firmaId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.service.findOne(id, req.user.firmaId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post()
   create(@Req() req: RequestWithUser, @Body() data: CreateMachineBody) {
     const { companyId: _companyId, ...payload } = data;
@@ -41,7 +46,8 @@ export class MachineController {
     return this.service.create(req.user.firmaId, payload as CreateMachineInput);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Put(':id')
   update(
     @Param('id') id: string,

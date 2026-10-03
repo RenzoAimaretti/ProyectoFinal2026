@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { ClientModule } from '../client/client.module';
 import {
   STOCK_REPOSITORY,
   StockRepositoryPort,
@@ -10,7 +11,7 @@ import { StockController } from './adapters/inbound/stock.controller';
 import { PrismaStockRepository } from './adapters/outbound/prisma-stock.repository';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, ClientModule],
   controllers: [StockController],
   providers: [
     PrismaStockRepository,

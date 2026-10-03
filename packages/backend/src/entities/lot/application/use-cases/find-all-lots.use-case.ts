@@ -7,4 +7,8 @@ export class FindAllLotsUseCase {
   async execute(tenantId: string): Promise<LotRecord[]> {
     return this.repository.findAllByTenantId(tenantId);
   }
+
+  async executeByClient(clientId: string): Promise<LotRecord[]> {
+    return this.repository.findAllByClientId(clientId);
+  }
 }

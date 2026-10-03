@@ -9,6 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../../auth/guards/roles.guard';
+import { Roles } from '../../../../auth/decorators/roles.decorator';
 import { FindRecipeUseCase } from '../../application/use-cases/find-recipe.use-case';
 import { FindRecipesByLotUseCase } from '../../application/use-cases/find-recipes-by-lot.use-case';
 import {
@@ -36,7 +38,8 @@ export class RecipeController {
     private readonly findRecipe: FindRecipeUseCase,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Get()
   async findByLot(@Query('lotId') lotId: string, @Req() req: RequestWithUser) {
     try {
@@ -46,7 +49,8 @@ export class RecipeController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
     try {

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -16,6 +17,10 @@ import { FindAllFarmsUseCase } from './application/use-cases/find-all-farms.use-
 import { FindFarmUseCase } from './application/use-cases/find-farm.use-case';
 import { UpdateFarmUseCase } from './application/use-cases/update-farm.use-case';
 import { CreateFarmInput, UpdateFarmInput } from './application/farm.types';
+import {
+  CLIENT_USER_READER,
+  ClientUserReaderPort,
+} from '../client/application/client.ports';
 
 @Injectable()
 export class FarmService {
@@ -24,11 +29,35 @@ export class FarmService {
     private readonly findOneUseCase: FindFarmUseCase,
     private readonly createUseCase: CreateFarmUseCase,
     private readonly updateUseCase: UpdateFarmUseCase,
+    @Inject(CLIENT_USER_READER)
+    private readonly clientUserReader: ClientUserReaderPort,
   ) {}
 
   findAll(tenantId: string) {
     return this.handle(
       () => this.findAllUseCase.execute(tenantId),
+      'fetching farms',
+    );
+  }
+
+  /**
+   * Server-side scoping: a PRODUCTOR only ever sees the farms of the client
+   * linked to their own user id. Any other role keeps the tenant-wide read.
+   */
+  findAllForUser(tenantId: string, userId: string, role: string) {
+    return this.handle(
+      async () => {
+        if (role === 'PRODUCTOR') {
+          const clientId = await this.clientUserReader.findClientIdByUserId(userId);
+          if (!clientId) {
+            return [];
+          }
+
+          return this.findAllUseCase.executeByClient(clientId);
+        }
+
+        return this.findAllUseCase.execute(tenantId);
+      },
       'fetching farms',
     );
   }

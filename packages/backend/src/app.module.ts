@@ -20,10 +20,12 @@ import { TaskModule } from './entities/task/task.module';
 import { MachineModule } from './entities/machine/machine.module';
 import { MachineUsageModule } from './entities/machine-usage/machine-usage.module';
 import { AuthModule } from './auth/auth.module';
+import { RbacModule } from './auth/rbac.module';
 
 @Module({
   imports: [
     AuthModule,
+    RbacModule,
     CompanyModule,
     ClientModule,
     InputModule,

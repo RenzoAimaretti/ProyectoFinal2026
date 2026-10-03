@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { CreateUserInput, UpdateUserInput } from './application/user.types';
 import { UserService } from './user.service';
 
@@ -21,19 +23,22 @@ type UpdateUserBody = UpdateUserInput & {
 export class UserController {
   constructor(private readonly service: UserService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Get()
   findAll(@Req() req: RequestWithUser) {
     return this.service.findAll(req.user.tenantId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: RequestWithUser) {
     return this.service.findOne(id, req.user.tenantId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post()
   create(@Req() req: RequestWithUser, @Body() data: CreateUserBody) {
     const { tenantId: _tenantId, ...payload } = data;
@@ -41,7 +46,8 @@ export class UserController {
     return this.service.create(req.user.tenantId, payload as Omit<CreateUserInput, 'tenantId'>);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Put(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,

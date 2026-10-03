@@ -5,6 +5,7 @@ export const FARM_READER = Symbol('FARM_READER');
 
 export interface LotRepositoryPort {
   findAllByTenantId(tenantId: string): Promise<LotRecord[]>;
+  findAllByClientId(clientId: string): Promise<LotRecord[]>;
   findByIdForTenant(
     id: string,
     tenantId: string,

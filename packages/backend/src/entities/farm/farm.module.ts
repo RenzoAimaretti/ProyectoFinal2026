@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { ClientModule } from '../client/client.module';
 import {
   CLIENT_READER,
   FARM_REPOSITORY,
@@ -17,7 +18,7 @@ import { FarmController } from './farm.controller';
 import { FarmService } from './farm.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, ClientModule],
   controllers: [FarmController],
   providers: [
     FarmService,

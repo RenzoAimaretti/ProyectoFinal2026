@@ -13,7 +13,12 @@ describe('ClientModule', () => {
       findAllByTenantId: jest.fn().mockResolvedValue([]),
       findByIdForTenant: jest.fn().mockResolvedValue(null),
       findByNameAndTenantId: jest.fn().mockResolvedValue(null),
+      findByUserId: jest.fn().mockResolvedValue(null),
       create: jest.fn(),
+      createWithAccess: jest.fn(),
+      findUserByEmail: jest.fn().mockResolvedValue(null),
+      findProfileByUserId: jest.fn().mockResolvedValue(null),
+      updateProfileForUserId: jest.fn(),
       updateForTenant: jest.fn(),
     };
 

@@ -6,12 +6,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../../auth/guards/roles.guard';
 import {
   ReceptionItemValidation,
   ReceptionRecord,
 } from '../../application/reception.types';
 import { CreateReceptionUseCase } from '../../application/use-cases/create-reception.use-case';
 import { FindReceptionByTenantUseCase } from '../../application/use-cases/find-reception-by-tenant.use-case';
+import { FindReceptionsByClientUseCase } from '../../application/use-cases/find-receptions-by-client.use-case';
 import { FindReceptionsByTenantUseCase } from '../../application/use-cases/find-receptions-by-tenant.use-case';
 import { RejectReceptionUseCase } from '../../application/use-cases/reject-reception.use-case';
 import { ValidateReceptionUseCase } from '../../application/use-cases/validate-reception.use-case';
@@ -63,27 +65,33 @@ describe('ReceptionController', () => {
   let controller: ReceptionController;
   let createReception: jest.Mocked<CreateReceptionUseCase>;
   let findByTenant: jest.Mocked<FindReceptionsByTenantUseCase>;
+  let findByClient: jest.Mocked<FindReceptionsByClientUseCase>;
   let findOneByTenant: jest.Mocked<FindReceptionByTenantUseCase>;
   let validateReception: jest.Mocked<ValidateReceptionUseCase>;
   let rejectReception: jest.Mocked<RejectReceptionUseCase>;
+  let clientUserReader: { findClientIdByUserId: jest.Mock };
 
   beforeEach(() => {
     createReception = { execute: jest.fn() } as unknown as jest.Mocked<CreateReceptionUseCase>;
     findByTenant = { execute: jest.fn() } as unknown as jest.Mocked<FindReceptionsByTenantUseCase>;
+    findByClient = { execute: jest.fn() } as unknown as jest.Mocked<FindReceptionsByClientUseCase>;
     findOneByTenant = { execute: jest.fn() } as unknown as jest.Mocked<FindReceptionByTenantUseCase>;
     validateReception = { execute: jest.fn() } as unknown as jest.Mocked<ValidateReceptionUseCase>;
     rejectReception = { execute: jest.fn() } as unknown as jest.Mocked<RejectReceptionUseCase>;
+    clientUserReader = { findClientIdByUserId: jest.fn() };
 
     controller = new ReceptionController(
       createReception,
       findByTenant,
+      findByClient,
       findOneByTenant,
       validateReception,
       rejectReception,
+      clientUserReader as never,
     );
   });
 
-  it('protects every route with JwtAuthGuard', () => {
+  it('protects every route with JwtAuthGuard and RolesGuard', () => {
     const methods = ['findAll', 'findOne', 'create', 'validate', 'reject'] as const;
 
     for (const method of methods) {
@@ -93,6 +101,7 @@ describe('ReceptionController', () => {
       ) as Array<new (...args: never[]) => unknown> | undefined;
 
       expect(guards).toContain(JwtAuthGuard);
+      expect(guards).toContain(RolesGuard);
     }
   });
 
@@ -105,6 +114,22 @@ describe('ReceptionController', () => {
       ).resolves.toEqual([mockReception]);
 
       expect(findByTenant.execute).toHaveBeenCalledWith('tenant-1');
+      expect(findByClient.execute).not.toHaveBeenCalled();
+    });
+
+    it('scopes a productor list to their own client', async () => {
+      clientUserReader.findClientIdByUserId.mockResolvedValue('client-own');
+      findByClient.execute.mockResolvedValue([mockReception]);
+
+      await expect(
+        controller.findAll({
+          user: { ...mockUser, role: 'PRODUCTOR' },
+        } as never),
+      ).resolves.toEqual([mockReception]);
+
+      expect(clientUserReader.findClientIdByUserId).toHaveBeenCalledWith('admin-1');
+      expect(findByClient.execute).toHaveBeenCalledWith('client-own');
+      expect(findByTenant.execute).not.toHaveBeenCalled();
     });
 
     it('translates InvalidInputError to 400', async () => {
@@ -184,6 +209,27 @@ describe('ReceptionController', () => {
       ).resolves.toEqual(mockReception);
 
       expect(validateReception.execute).not.toHaveBeenCalled();
+    });
+
+    it('forces a productor to create against their own client', async () => {
+      clientUserReader.findClientIdByUserId.mockResolvedValue('client-own');
+      createReception.execute.mockResolvedValue(mockReception);
+
+      await expect(
+        controller.create(
+          { user: { ...mockUser, role: 'PRODUCTOR' } } as never,
+          {
+            clientId: 'client-other',
+            date: '2026-04-01T00:00:00.000Z',
+            items: [{ inputId: 'input-1', quantity: 10 }],
+          },
+        ),
+      ).resolves.toEqual(mockReception);
+
+      expect(createReception.execute).toHaveBeenCalledWith('client-own', {
+        date: '2026-04-01T00:00:00.000Z',
+        items: [{ inputId: 'input-1', quantity: 10 }],
+      });
     });
 
     it('surfaces the validation error after the admin creation', async () => {

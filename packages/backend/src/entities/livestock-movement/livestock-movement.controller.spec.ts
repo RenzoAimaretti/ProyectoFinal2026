@@ -2,6 +2,8 @@ import 'reflect-metadata';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { ROLES_KEY } from '../../auth/decorators/roles.decorator';
 import { LivestockMovementController } from './livestock-movement.controller';
 import { LivestockMovementService } from './livestock-movement.service';
 
@@ -25,6 +27,23 @@ describe('LivestockMovementController', () => {
       ) as Array<new (...args: never[]) => unknown> | undefined;
 
       expect(guards).toContain(JwtAuthGuard);
+    }
+  });
+
+  it('restricts reads to ADMIN, SUPERVISOR and OPERARIO so PRODUCTOR gets 403', () => {
+    for (const method of ['findAll', 'findOne'] as const) {
+      const guards = Reflect.getMetadata(
+        GUARDS_METADATA,
+        LivestockMovementController.prototype[method],
+      ) as Array<new (...args: never[]) => unknown> | undefined;
+      expect(guards).toContain(RolesGuard);
+
+      const roles = Reflect.getMetadata(
+        ROLES_KEY,
+        LivestockMovementController.prototype[method],
+      ) as string[] | undefined;
+      expect(roles).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO']);
+      expect(roles).not.toContain('PRODUCTOR');
     }
   });
 

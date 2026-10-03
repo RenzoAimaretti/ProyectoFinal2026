@@ -80,6 +80,7 @@ export class ValidateUserCredentialsUseCase {
       role: user.role,
       tenantId: user.tenantId,
       firmaId: user.firmaId,
+      mustChangePassword: user.mustChangePassword ?? false,
     };
   }
 }

@@ -35,7 +35,12 @@ function createRepository(): jest.Mocked<ClientRepositoryPort> {
     findAllByTenantId: jest.fn(),
     findByIdForTenant: jest.fn(),
     findByNameAndTenantId: jest.fn(),
+    findByUserId: jest.fn(),
     create: jest.fn(),
+    createWithAccess: jest.fn(),
+    findUserByEmail: jest.fn(),
+    findProfileByUserId: jest.fn(),
+    updateProfileForUserId: jest.fn(),
     updateForTenant: jest.fn(),
   };
 }

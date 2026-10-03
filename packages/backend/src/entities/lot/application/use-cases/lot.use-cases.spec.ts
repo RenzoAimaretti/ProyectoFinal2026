@@ -29,6 +29,7 @@ const baseLot = {
 function createPorts() {
   const repository: jest.Mocked<LotRepositoryPort> = {
     findAllByTenantId: jest.fn(),
+    findAllByClientId: jest.fn(),
     findByIdForTenant: jest.fn(),
     findByNameAndFarmId: jest.fn(),
     create: jest.fn(),

@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { CompanyService } from './company.service';
 
 type RequestWithUser = {
@@ -30,19 +32,22 @@ type AddModuleBody = {
 export class CompanyController {
   constructor(private readonly service: CompanyService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Get()
   findAll(@Req() req: RequestWithUser) {
     return this.service.findAll(req.user.tenantId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.service.findOne(id, req.user.tenantId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post()
   create(@Req() req: RequestWithUser, @Body() data: CreateCompanyBody) {
     return this.service.create({
@@ -52,7 +57,8 @@ export class CompanyController {
     });
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Put(':id')
   update(
     @Param('id') id: string,
@@ -77,7 +83,8 @@ export class CompanyController {
     });
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post('/add-module')
   addModule(@Req() req: RequestWithUser, @Body() data: AddModuleBody) {
     return this.service.addModule(

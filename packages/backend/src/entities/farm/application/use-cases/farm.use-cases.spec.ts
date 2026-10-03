@@ -28,6 +28,7 @@ const baseFarm = {
 function createPorts() {
   const repository: jest.Mocked<FarmRepositoryPort> = {
     findAllByTenantId: jest.fn(),
+    findAllByClientId: jest.fn(),
     findByIdForTenant: jest.fn(),
     findByNameAndClientId: jest.fn(),
     create: jest.fn(),

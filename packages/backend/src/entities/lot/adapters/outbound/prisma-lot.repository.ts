@@ -17,6 +17,12 @@ export class PrismaLotRepository implements LotRepositoryPort {
     });
   }
 
+  findAllByClientId(clientId: string): Promise<LotRecord[]> {
+    return this.prisma.lot.findMany({
+      where: { farm: { clientId } },
+    });
+  }
+
   findByIdForTenant(id: string, tenantId: string): Promise<LotRecord | null> {
     return this.prisma.lot.findFirst({
       where: { id, farm: { client: { tenantId } } },

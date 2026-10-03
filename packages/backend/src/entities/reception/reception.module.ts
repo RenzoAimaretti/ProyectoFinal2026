@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { ClientModule } from '../client/client.module';
 import {
   RECEPTION_CLIENT_READER,
   RECEPTION_CLOCK,
@@ -27,7 +28,7 @@ import { PrismaReceptionValidationAdapter } from './adapters/outbound/prisma-rec
 import { ReceptionSystemClock } from './adapters/outbound/system-clock';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, ClientModule],
   controllers: [ReceptionController],
   providers: [
     PrismaReceptionRepository,

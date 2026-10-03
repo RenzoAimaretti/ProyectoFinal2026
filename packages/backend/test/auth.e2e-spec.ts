@@ -42,6 +42,7 @@ describe('AuthController (e2e)', () => {
     deleted: boolean;
     failedLoginAttempts: number;
     lockedUntil: Date | null;
+    mustChangePassword: boolean;
     companyMemberships: { companyId: string; role: UserRole }[];
   };
 
@@ -63,6 +64,7 @@ describe('AuthController (e2e)', () => {
       deleted: false,
       failedLoginAttempts: 0,
       lockedUntil: null,
+      mustChangePassword: false,
       companyMemberships: [{ companyId: testCompany.id, role: testUser.role }],
     };
 
@@ -148,6 +150,7 @@ describe('AuthController (e2e)', () => {
         role: testUser.role,
         tenantId: testUser.tenantId,
         firmaId: testUser.companyId,
+        mustChangePassword: false,
       });
 
       refreshToken = res.body.refreshToken;

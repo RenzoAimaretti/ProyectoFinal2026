@@ -11,6 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../../auth/guards/roles.guard';
+import { Roles } from '../../../../auth/decorators/roles.decorator';
 import { ListEntityPhotosUseCase } from '../../../photo/application/use-cases/list-entity-photos.use-case';
 import {
   CreateDailyReportInput,
@@ -51,6 +53,8 @@ type RejectDailyReportBody = {
 };
 
 @Controller('daily-reports')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
 export class DailyReportController {
   constructor(
     private readonly createDailyReport: CreateDailyReportUseCase,
@@ -127,6 +131,7 @@ export class DailyReportController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post(':id/approve')
   async approve(@Param('id') id: string, @Req() req: RequestWithUser) {
     const companyId = req.user.firmaId;
@@ -140,6 +145,7 @@ export class DailyReportController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post(':id/reject')
   async reject(
     @Param('id') id: string,

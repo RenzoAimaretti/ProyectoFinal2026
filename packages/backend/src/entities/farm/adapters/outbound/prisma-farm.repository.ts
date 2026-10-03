@@ -17,6 +17,12 @@ export class PrismaFarmRepository implements FarmRepositoryPort {
     });
   }
 
+  findAllByClientId(clientId: string): Promise<FarmRecord[]> {
+    return this.prisma.farm.findMany({
+      where: { clientId },
+    });
+  }
+
   findByIdForTenant(id: string, tenantId: string): Promise<FarmRecord | null> {
     return this.prisma.farm.findFirst({
       where: { id, client: { tenantId } },

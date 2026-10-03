@@ -10,6 +10,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../../auth/guards/roles.guard';
+import { Roles } from '../../../../auth/decorators/roles.decorator';
 import { RegisterMachineActivityInput } from '../../application/machine-activity.types';
 import { FindAllMachineActivitiesUseCase } from '../../application/use-cases/find-all-machine-activities.use-case';
 import { FindMachineActivityUseCase } from '../../application/use-cases/find-machine-activity.use-case';
@@ -39,7 +41,8 @@ export class MachineActivityController {
     private readonly registerMachineActivity: RegisterMachineActivityUseCase,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Get()
   async findAll(@Req() req: RequestWithUser) {
     try {
@@ -49,7 +52,8 @@ export class MachineActivityController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
     try {
@@ -59,7 +63,8 @@ export class MachineActivityController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post()
   async create(
     @Req() req: RequestWithUser,
