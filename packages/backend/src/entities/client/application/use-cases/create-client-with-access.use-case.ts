@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { DuplicateEntityError, InvalidInputError } from '../../domain/errors';
 import {
   ClientPasswordHasherPort,
@@ -7,7 +8,6 @@ import {
   ClientAccessResult,
   CreateClientWithAccessInput,
 } from '../client.types';
-import { DEFAULT_CLIENT_PASSWORD } from '../client.types';
 import {
   assertPositiveNumber,
   assertRequiredString,
@@ -47,10 +47,7 @@ export class CreateClientWithAccessUseCase {
       coords: normalizeNullableString(lot.coords, `lots[${index}].coords`) ?? null,
     }));
 
-    const password =
-      typeof input.password === 'string' && input.password.trim().length > 0
-        ? input.password
-        : DEFAULT_CLIENT_PASSWORD;
+    const password = resolveInitialPassword(input.password);
 
     const phone = normalizeNullableString(input.phone, 'phone') ?? null;
     const address = normalizeNullableString(input.address, 'address') ?? null;
@@ -77,4 +74,23 @@ export class CreateClientWithAccessUseCase {
 
     return { ...result, password };
   }
+}
+
+/**
+ * Resolves the initial password without ever hardcoding a secret: an explicit
+ * value wins, then the optional `CLIENT_DEFAULT_PASSWORD` env var, otherwise a
+ * unique random password is generated and returned once so the admin can share
+ * it. The client is forced to change it on first login.
+ */
+function resolveInitialPassword(provided?: string): string {
+  if (typeof provided === 'string' && provided.trim().length > 0) {
+    return provided;
+  }
+
+  const configured = process.env.CLIENT_DEFAULT_PASSWORD?.trim();
+  if (configured) {
+    return configured;
+  }
+
+  return randomBytes(12).toString('base64url');
 }

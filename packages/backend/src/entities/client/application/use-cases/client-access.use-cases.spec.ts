@@ -4,7 +4,6 @@ import {
   InvalidInputError,
 } from '../../domain/errors';
 import { ClientRepositoryPort } from '../client.ports';
-import { DEFAULT_CLIENT_PASSWORD } from '../client.types';
 import { CreateClientWithAccessUseCase } from './create-client-with-access.use-case';
 import { FindClientProfileUseCase } from './find-client-profile.use-case';
 import { UpdateClientProfileUseCase } from './update-client-profile.use-case';
@@ -50,17 +49,19 @@ describe('Client access use cases', () => {
 
       const useCase = new CreateClientWithAccessUseCase(repository as never, hasher);
 
-      await expect(
-        useCase.execute('tenant-1', 'company-1', {
-          email: 'Juan@Campo.com',
-          firstName: 'Juan',
-          lastName: 'Perez',
-          farmName: 'El Ombu',
-          lots: [{ name: 'Lote 1', area: 10 }],
-        }),
-      ).resolves.toEqual({ ...mockAccess, password: DEFAULT_CLIENT_PASSWORD });
+      const result = await useCase.execute('tenant-1', 'company-1', {
+        email: 'Juan@Campo.com',
+        firstName: 'Juan',
+        lastName: 'Perez',
+        farmName: 'El Ombu',
+        lots: [{ name: 'Lote 1', area: 10 }],
+      });
 
-      expect(hasher.hash).toHaveBeenCalledWith(DEFAULT_CLIENT_PASSWORD);
+      expect(result).toMatchObject(mockAccess);
+      // No hardcoded default: a non-empty password is generated and hashed.
+      expect(typeof result.password).toBe('string');
+      expect(result.password.length).toBeGreaterThanOrEqual(8);
+      expect(hasher.hash).toHaveBeenCalledWith(result.password);
       expect(repository.createWithAccess).toHaveBeenCalledWith(
         expect.objectContaining({
           tenantId: 'tenant-1',

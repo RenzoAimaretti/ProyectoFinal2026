@@ -112,7 +112,7 @@ describe('ClientController', () => {
       address: null,
       farms: [],
       lots: [],
-      password: 'Cliente2026!',
+      password: 'unit-test-password',
     });
 
     await expect(
@@ -123,7 +123,7 @@ describe('ClientController', () => {
         farmName: 'El Ombu',
         lots: [{ name: 'Lote 1', area: 10 }],
       }),
-    ).resolves.toMatchObject({ id: 'client-2', password: 'Cliente2026!' });
+    ).resolves.toMatchObject({ id: 'client-2', password: 'unit-test-password' });
 
     expect(createClientWithAccess.execute).toHaveBeenCalledWith(
       'tenant-1',

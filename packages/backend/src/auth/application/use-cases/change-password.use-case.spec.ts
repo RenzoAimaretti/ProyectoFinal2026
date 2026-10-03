@@ -45,11 +45,11 @@ describe('ChangePasswordUseCase', () => {
     const useCase = new ChangePasswordUseCase(repository, passwordHasher);
 
     await expect(
-      useCase.execute('user-1', 'Cliente2026!', 'NuevaClave123!'),
+      useCase.execute('user-1', 'unit-test-password', 'NuevaClave123!'),
     ).resolves.toBeUndefined();
 
     expect(passwordHasher.verify).toHaveBeenCalledWith(
-      'Cliente2026!',
+      'unit-test-password',
       baseUser.passwordHash,
     );
     expect(repository.updateSecurityState).toHaveBeenCalledWith('user-1', {
@@ -78,7 +78,7 @@ describe('ChangePasswordUseCase', () => {
     const useCase = new ChangePasswordUseCase(repository, passwordHasher);
 
     await expect(
-      useCase.execute('user-1', 'Cliente2026!', 'short'),
+      useCase.execute('user-1', 'unit-test-password', 'short'),
     ).rejects.toBeInstanceOf(InvalidInputError);
     expect(passwordHasher.verify).not.toHaveBeenCalled();
   });
@@ -90,7 +90,7 @@ describe('ChangePasswordUseCase', () => {
     const useCase = new ChangePasswordUseCase(repository, passwordHasher);
 
     await expect(
-      useCase.execute('user-9', 'Cliente2026!', 'NuevaClave123!'),
+      useCase.execute('user-9', 'unit-test-password', 'NuevaClave123!'),
     ).rejects.toBeInstanceOf(AuthenticationFailedError);
   });
 });

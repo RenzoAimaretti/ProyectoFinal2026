@@ -108,5 +108,3 @@ export type UpdateClientProfileInput = {
   phone?: string | null;
   address?: string | null;
 };
-
-export const DEFAULT_CLIENT_PASSWORD = 'Cliente2026!';

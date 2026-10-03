@@ -21,7 +21,7 @@ is forced to change it and complete their profile, then gets a restricted view
 - `User` gains `mustChangePassword`.
 - A client user is provisioned with a `UserCompany` membership (role
   `PRODUCTOR`) in the admin's firma, so existing auth resolves `firmaId` unchanged.
-- Generic password default `Cliente2026!`, editable by the admin in the form;
+- Initial password: random per client (or `CLIENT_DEFAULT_PASSWORD` env), editable by the admin in the form;
   `mustChangePassword=true`, cleared on change.
 - Server-side scoping for `PRODUCTOR` + `RolesGuard` on admin-only endpoints.
 - `PRODUCTOR` modules = Mi Campo + Insumos.

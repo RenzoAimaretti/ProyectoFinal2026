@@ -455,7 +455,8 @@ export function listClients(): Promise<ClientDTO[]> {
 /* Client onboarding (POST /clients, /clients/me)                      */
 /* ------------------------------------------------------------------ */
 
-export const DEFAULT_CLIENT_PASSWORD = "Cliente2026!";
+// No hardcoded default client password: the backend generates one per client
+// (or reads CLIENT_DEFAULT_PASSWORD) and returns it from POST /clients.
 
 export type ClientProfileLotDTO = {
   id: string;
