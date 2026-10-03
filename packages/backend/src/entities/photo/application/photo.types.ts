@@ -25,3 +25,21 @@ export type AttachPhotoData = {
   localPath: string;
   orderIndex: number;
 };
+
+/**
+ * Input of an attach coming from an inbound adapter that carries the image
+ * itself as a base64 data URL instead of an already-stored path.
+ */
+export type AttachPhotoFromDataUrlInput = {
+  dataUrl: string;
+  orderIndex?: number;
+};
+
+/**
+ * The decoded payload handed to the storage capability after the data URL has
+ * been validated. `base64` is the raw payload without the `data:` prefix.
+ */
+export type StorePhotoInput = {
+  extension: string;
+  base64: string;
+};

@@ -43,6 +43,7 @@ describe('Photo use cases', () => {
       'application/photo.ports.ts',
       'application/photo.types.ts',
       'application/use-cases/attach-photo.use-case.ts',
+      'application/use-cases/attach-photo-from-data-url.use-case.ts',
       'application/use-cases/list-entity-photos.use-case.ts',
       'application/use-cases/remove-photo.use-case.ts',
     ];

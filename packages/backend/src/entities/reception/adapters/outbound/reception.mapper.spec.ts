@@ -64,4 +64,31 @@ describe('toReceptionRecord', () => {
     expect(record.items[0].id).toBe('item-1');
     expect(record.items[0].quantity).toBe(10);
   });
+
+  it('maps the attached photos to their public URL and order', () => {
+    const record = toReceptionRecord({
+      ...baseRow,
+      photos: [
+        {
+          id: 'photo-1',
+          localPath: '/uploads/receptions/a.png',
+          orderIndex: 0,
+        },
+        {
+          id: 'photo-2',
+          localPath: '/uploads/receptions/b.png',
+          orderIndex: 1,
+        },
+      ],
+    });
+
+    expect(record.photos).toEqual([
+      { id: 'photo-1', url: '/uploads/receptions/a.png', orderIndex: 0 },
+      { id: 'photo-2', url: '/uploads/receptions/b.png', orderIndex: 1 },
+    ]);
+  });
+
+  it('exposes an empty album when the photos are not loaded', () => {
+    expect(toReceptionRecord(baseRow).photos).toEqual([]);
+  });
 });

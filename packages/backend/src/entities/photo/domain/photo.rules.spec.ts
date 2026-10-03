@@ -1,11 +1,13 @@
 import { InvalidInputError, PhotoLimitExceededError } from './errors';
 import {
+  MAX_PHOTO_BYTES,
   MAX_PHOTOS_PER_ENTITY,
   assertOrderIndex,
   assertPhotoEntityType,
   assertPhotoLimit,
   assertRequiredText,
   isPhotoEntityType,
+  parsePhotoDataUrl,
 } from './photo.rules';
 
 describe('Photo domain rules', () => {
@@ -103,6 +105,51 @@ describe('Photo domain rules', () => {
       expect(() => assertPhotoLimit('RECEPCION', 'reception-9', 5)).toThrow(
         'RECEPCION reception-9',
       );
+    });
+  });
+
+  describe('parsePhotoDataUrl', () => {
+    it.each([
+      ['image/png', 'png'],
+      ['image/jpeg', 'jpg'],
+      ['image/jpg', 'jpg'],
+      ['image/webp', 'webp'],
+    ])('accepts %s and maps it to .%s', (mimeType, extension) => {
+      const parsed = parsePhotoDataUrl(`data:${mimeType};base64,AA==`);
+
+      expect(parsed.mimeType).toBe(mimeType);
+      expect(parsed.extension).toBe(extension);
+      expect(parsed.base64).toBe('AA==');
+      expect(parsed.byteLength).toBe(1);
+    });
+
+    it('accepts a decoded payload exactly at the 6 MB limit', () => {
+      const base64 = Buffer.alloc(MAX_PHOTO_BYTES).toString('base64');
+
+      expect(() =>
+        parsePhotoDataUrl(`data:image/png;base64,${base64}`),
+      ).not.toThrow();
+    });
+
+    it('rejects a decoded payload above the 6 MB limit', () => {
+      const base64 = Buffer.alloc(MAX_PHOTO_BYTES + 1).toString('base64');
+
+      expect(() =>
+        parsePhotoDataUrl(`data:image/png;base64,${base64}`),
+      ).toThrow(InvalidInputError);
+    });
+
+    it.each([
+      ['a missing value', undefined],
+      ['an empty string', ''],
+      ['a non-image data URL', 'data:text/plain;base64,AA=='],
+      ['an unsupported image type', 'data:image/gif;base64,AA=='],
+      ['a data URL without the base64 marker', 'data:image/png,AA=='],
+      ['a raw URL', 'https://cdn.example.com/photo.png'],
+      ['base64 with invalid characters', 'data:image/png;base64,AAAA$'],
+      ['base64 whose length is not a multiple of four', 'data:image/png;base64,AAA'],
+    ])('rejects %s', (_label, value) => {
+      expect(() => parsePhotoDataUrl(value)).toThrow(InvalidInputError);
     });
   });
 });

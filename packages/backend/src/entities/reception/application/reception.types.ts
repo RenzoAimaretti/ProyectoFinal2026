@@ -21,6 +21,13 @@ export type ReceptionItemRecord = {
   unit: string;
 };
 
+export type ReceptionPhotoRecord = {
+  id: string;
+  /** Public path the photo is served from; the client prefixes the API base. */
+  url: string;
+  orderIndex: number;
+};
+
 export type ReceptionRecord = {
   id: string;
   clientId: string;
@@ -33,6 +40,11 @@ export type ReceptionRecord = {
   updatedAt: Date;
   /** Additive read enrichment: name of the client that owns the reception. */
   clientName?: string;
+  /**
+   * Additive read enrichment: photos attached to the reception, ordered by
+   * their stored position. It is empty when the reception has no photo.
+   */
+  photos?: ReceptionPhotoRecord[];
   items: ReceptionItemRecord[];
 };
 

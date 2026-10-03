@@ -44,6 +44,7 @@ const expectedRecord: ReceptionRecord = {
   validatedAt: null,
   createdAt: new Date('2026-04-01T10:00:00.000Z'),
   updatedAt: new Date('2026-04-01T10:00:00.000Z'),
+  photos: [],
   items: [
     {
       id: 'item-1',
@@ -81,12 +82,16 @@ describe('PrismaReceptionRepository', () => {
       findFirst: jest.fn(),
       findMany: jest.fn(),
     },
+    photo: {
+      findMany: jest.fn(),
+    },
   };
 
   const repository = new PrismaReceptionRepository(prisma as never);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    prisma.photo.findMany.mockResolvedValue([]);
   });
 
   it('persists the reception header and its items as pending, without a validated quantity', async () => {
@@ -138,6 +143,46 @@ describe('PrismaReceptionRepository', () => {
     await expect(
       repository.findByIdForClient('reception-1', 'client-2'),
     ).resolves.toBeNull();
+  });
+
+  it('enriches a single reception with its photos mapped to URL and order', async () => {
+    prisma.reception.findFirst.mockResolvedValue(persistedReception);
+    prisma.photo.findMany.mockResolvedValue([
+      {
+        id: 'photo-1',
+        entityType: 'RECEPCION',
+        entityId: 'reception-1',
+        localPath: '/uploads/receptions/a.png',
+        orderIndex: 0,
+        createdAt: new Date('2026-04-01T11:00:00.000Z'),
+      },
+      {
+        id: 'photo-2',
+        entityType: 'RECEPCION',
+        entityId: 'reception-1',
+        localPath: '/uploads/receptions/b.png',
+        orderIndex: 1,
+        createdAt: new Date('2026-04-01T11:05:00.000Z'),
+      },
+    ]);
+
+    await expect(
+      repository.findByIdForClient('reception-1', 'client-1'),
+    ).resolves.toEqual({
+      ...expectedRecord,
+      photos: [
+        { id: 'photo-1', url: '/uploads/receptions/a.png', orderIndex: 0 },
+        { id: 'photo-2', url: '/uploads/receptions/b.png', orderIndex: 1 },
+      ],
+    });
+
+    expect(prisma.photo.findMany).toHaveBeenCalledWith({
+      where: {
+        entityType: 'RECEPCION',
+        entityId: { in: ['reception-1'] },
+      },
+      orderBy: [{ orderIndex: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+    });
   });
 
   it('lists the receptions of a client with a deterministic order', async () => {

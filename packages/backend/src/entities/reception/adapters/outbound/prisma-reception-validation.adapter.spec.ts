@@ -60,6 +60,7 @@ const storedValidatedReception = {
 const expectedValidatedRecord: ReceptionRecord = {
   ...storedValidatedReception,
   status: 'VALIDADA',
+  photos: [],
   items: [
     {
       ...storedValidatedReception.items[0],
@@ -341,6 +342,7 @@ describe('PrismaReceptionValidationAdapter', () => {
         ...pendingReception,
         status: 'RECHAZADA',
         rejectionReason: 'cantidad distinta',
+        photos: [],
         items: pendingReception.items.map((item) => ({
           ...item,
           quantityVariance: null,

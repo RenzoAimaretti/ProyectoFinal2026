@@ -1,8 +1,9 @@
 import { PhotoEntityType } from '../domain/photo-entity-type';
-import { AttachPhotoData, PhotoRecord } from './photo.types';
+import { AttachPhotoData, PhotoRecord, StorePhotoInput } from './photo.types';
 
 export const PHOTO_REPOSITORY = Symbol('PHOTO_REPOSITORY');
 export const PHOTO_ATTACHMENT = Symbol('PHOTO_ATTACHMENT');
+export const PHOTO_STORAGE = Symbol('PHOTO_STORAGE');
 
 /**
  * Reads and removes photos. Every operation is scoped by the
@@ -38,4 +39,14 @@ export interface PhotoRepositoryPort {
  */
 export interface PhotoAttachmentPort {
   attachWithLimit(data: AttachPhotoData): Promise<PhotoRecord>;
+}
+
+/**
+ * Capability: persist the bytes of one image and return the public path the API
+ * serves it from. Keeping the filesystem behind a port lets the attach use case
+ * stay free of Node file APIs and makes the size/mime behavior testable with a
+ * fake storage.
+ */
+export interface PhotoStoragePort {
+  store(input: StorePhotoInput): Promise<string>;
 }

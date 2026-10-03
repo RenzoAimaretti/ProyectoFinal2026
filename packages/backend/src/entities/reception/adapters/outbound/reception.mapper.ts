@@ -1,5 +1,6 @@
 import {
   ReceptionItemRecord,
+  ReceptionPhotoRecord,
   ReceptionRecord,
 } from '../../application/reception.types';
 import { itemQuantityVariance } from '../../domain/reception.rules';
@@ -34,6 +35,12 @@ export type ReceptionItemRow = {
   input?: { name: string } | null;
 };
 
+export type ReceptionPhotoRow = {
+  id: string;
+  localPath: string;
+  orderIndex: number;
+};
+
 export type ReceptionRow = {
   id: string;
   clientId: string;
@@ -45,6 +52,7 @@ export type ReceptionRow = {
   createdAt: Date;
   updatedAt: Date;
   client?: { name: string } | null;
+  photos?: ReceptionPhotoRow[];
   items: ReceptionItemRow[];
 };
 
@@ -60,6 +68,13 @@ export function toReceptionRecord(reception: ReceptionRow): ReceptionRecord {
     createdAt: reception.createdAt,
     updatedAt: reception.updatedAt,
     clientName: reception.client?.name,
+    photos: (reception.photos ?? []).map(
+      (photo): ReceptionPhotoRecord => ({
+        id: photo.id,
+        url: photo.localPath,
+        orderIndex: photo.orderIndex,
+      }),
+    ),
     items: reception.items.map((item): ReceptionItemRecord => {
       const quantityVariance = itemQuantityVariance({
         quantity: item.quantity,

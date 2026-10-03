@@ -4,6 +4,7 @@ import {
   PHOTO_ATTACHMENT,
   PHOTO_REPOSITORY,
 } from './application/photo.ports';
+import { AttachPhotoFromDataUrlUseCase } from './application/use-cases/attach-photo-from-data-url.use-case';
 import { AttachPhotoUseCase } from './application/use-cases/attach-photo.use-case';
 import { ListEntityPhotosUseCase } from './application/use-cases/list-entity-photos.use-case';
 import { RemovePhotoUseCase } from './application/use-cases/remove-photo.use-case';
@@ -47,6 +48,9 @@ describe('PhotoModule', () => {
     );
     expect(moduleRef.get(RemovePhotoUseCase)).toBeInstanceOf(
       RemovePhotoUseCase,
+    );
+    expect(moduleRef.get(AttachPhotoFromDataUrlUseCase)).toBeInstanceOf(
+      AttachPhotoFromDataUrlUseCase,
     );
 
     const listPhotos = moduleRef.get(ListEntityPhotosUseCase);
