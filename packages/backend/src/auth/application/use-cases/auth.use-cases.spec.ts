@@ -25,7 +25,8 @@ const baseUser: AuthUserCredentials = {
   email: 'admin@firma.com',
   passwordHash: 'argon2-hash',
   role: 'ADMIN',
-  companyId: 'company-1',
+  tenantId: 'tenant-1',
+  firmaId: 'company-1',
   active: true,
   deleted: false,
   failedLoginAttempts: 0,
@@ -35,6 +36,7 @@ const baseUser: AuthUserCredentials = {
 function createPorts() {
   const userRepository: jest.Mocked<UserCredentialsRepositoryPort> = {
     findByEmail: jest.fn(),
+    findById: jest.fn(),
     updateSecurityState: jest.fn(),
   };
 
@@ -83,7 +85,9 @@ describe('Auth use cases', () => {
         id: baseUser.id,
         email: baseUser.email,
         role: baseUser.role,
-        firmaId: baseUser.companyId,
+        tenantId: baseUser.tenantId,
+        firmaId: baseUser.firmaId as string,
+        mustChangePassword: false,
       });
 
       expect(userRepository.updateSecurityState).toHaveBeenCalledWith(baseUser.id, {
@@ -141,14 +145,17 @@ describe('Auth use cases', () => {
           id: baseUser.id,
           email: baseUser.email,
           role: baseUser.role,
-          firmaId: baseUser.companyId,
+          tenantId: baseUser.tenantId,
+          firmaId: baseUser.firmaId,
+          mustChangePassword: false,
         },
       });
 
       expect(tokenSigner.signAccessToken).toHaveBeenCalledWith({
         sub: baseUser.id,
         role: baseUser.role,
-        firmaId: baseUser.companyId,
+        tenantId: baseUser.tenantId,
+        firmaId: baseUser.firmaId,
         email: baseUser.email,
       });
       expect(refreshTokenRepository.create).toHaveBeenCalledWith({

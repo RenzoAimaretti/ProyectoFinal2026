@@ -4,7 +4,7 @@ import { LivestockRecord } from '../livestock.types';
 export class FindAllLivestockUseCase {
   constructor(private readonly repository: LivestockRepositoryPort) {}
 
-  execute(): Promise<LivestockRecord[]> {
-    return this.repository.findAll();
+  execute(companyId: string): Promise<LivestockRecord[]> {
+    return this.repository.findAllByCompanyId(companyId);
   }
 }

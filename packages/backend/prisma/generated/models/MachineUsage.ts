@@ -525,14 +525,6 @@ export type MachineUsageUncheckedUpdateManyWithoutMachineNestedInput = {
   deleteMany?: Prisma.MachineUsageScalarWhereInput | Prisma.MachineUsageScalarWhereInput[]
 }
 
-export type NullableFloatFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type MachineUsageCreateWithoutTaskInput = {
   id?: string
   initialFuel?: number | null

@@ -6,7 +6,11 @@ import { assertRequiredString } from '../company.validation';
 export class UpdateCompanyUseCase {
   constructor(private readonly repository: CompanyRepositoryPort) {}
 
-  async execute(id: string, data?: UpdateCompanyInput): Promise<CompanyRecord> {
+  async execute(
+    id: string,
+    tenantId: string,
+    data?: UpdateCompanyInput,
+  ): Promise<CompanyRecord> {
     if (!data || Object.values(data).every((value) => value === undefined)) {
       throw new InvalidInputError('No data provided for update');
     }
@@ -29,11 +33,11 @@ export class UpdateCompanyUseCase {
       throw new InvalidInputError('No data provided for update');
     }
 
-    const company = await this.repository.findById(id);
+    const company = await this.repository.findByIdForTenant(id, tenantId);
     if (!company) {
       throw new EntityNotFoundError(`Company with id ${id} not found`);
     }
 
-    return this.repository.update(id, updateData);
+    return this.repository.updateForTenant(id, tenantId, updateData);
   }
 }

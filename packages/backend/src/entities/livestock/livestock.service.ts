@@ -31,37 +31,37 @@ export class LivestockService {
     private readonly removeUseCase: RemoveLivestockUseCase,
   ) {}
 
-  findAll() {
+  findAll(companyId: string) {
     return this.handle(
-      () => this.findAllUseCase.execute(),
+      () => this.findAllUseCase.execute(companyId),
       'fetching livestock',
     );
   }
 
-  findOne(id: string) {
+  findOne(id: string, companyId: string) {
     return this.handle(
-      () => this.findOneUseCase.execute(id),
+      () => this.findOneUseCase.execute(id, companyId),
       'fetching livestock',
     );
   }
 
-  create(data: CreateLivestockInput) {
+  create(companyId: string, data: CreateLivestockInput) {
     return this.handle(
-      () => this.createUseCase.execute(data),
+      () => this.createUseCase.execute(companyId, data),
       'creating livestock',
     );
   }
 
-  update(id: string, data: UpdateLivestockInput) {
+  update(id: string, companyId: string, data: UpdateLivestockInput) {
     return this.handle(
-      () => this.updateUseCase.execute(id, data),
+      () => this.updateUseCase.execute(id, companyId, data),
       'updating livestock',
     );
   }
 
-  remove(id: string) {
+  remove(id: string, companyId: string) {
     return this.handle(
-      () => this.removeUseCase.execute(id),
+      () => this.removeUseCase.execute(id, companyId),
       'deleting livestock',
     );
   }

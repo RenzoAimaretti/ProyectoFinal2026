@@ -1,0 +1,20 @@
+change: sprint1-flutter-ui-persistencia-local
+status: active
+artifact_store: openspec
+updated_at: 2026-08-26
+mode: auto
+branch: UI-PersistenciaLocal
+scope:
+  mobile:
+    casos_de_uso:
+      - CUU00
+      - CUU05
+      - CUU06
+      - CUU08
+    stack: drift (SQLite) + hexagonal
+constraints:
+  no_build: true
+  state_management: setState
+verification:
+  command: flutter test
+  result: pending

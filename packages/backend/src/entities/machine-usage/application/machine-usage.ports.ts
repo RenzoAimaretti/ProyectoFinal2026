@@ -12,20 +12,30 @@ export const TASK_READER = Symbol('MACHINE_USAGE_TASK_READER');
 export const USER_READER = Symbol('MACHINE_USAGE_USER_READER');
 
 export interface MachineUsageRepositoryPort {
-  findAll(): Promise<MachineUsageRecord[]>;
-  findById(id: string): Promise<MachineUsageRecord | null>;
+  findAllByCompanyId(companyId: string): Promise<MachineUsageRecord[]>;
+  findByIdForCompany(id: string, companyId: string): Promise<MachineUsageRecord | null>;
   create(data: CreateMachineUsageData): Promise<MachineUsageRecord>;
-  update(id: string, data: UpdateMachineUsageData): Promise<MachineUsageRecord>;
+  updateForCompany(
+    id: string,
+    companyId: string,
+    data: UpdateMachineUsageData,
+  ): Promise<MachineUsageRecord>;
 }
 
 export interface MachineReaderPort {
   findById(id: string): Promise<MachineLookupRecord | null>;
+  findByIdForCompany(id: string, companyId: string): Promise<MachineLookupRecord | null>;
 }
 
 export interface TaskReaderPort {
   findByIdWithOperators(id: string): Promise<TaskWithOperatorsLookupRecord | null>;
+  findByIdWithOperatorsForCompany(
+    id: string,
+    companyId: string,
+  ): Promise<TaskWithOperatorsLookupRecord | null>;
 }
 
 export interface UserReaderPort {
   findById(id: string): Promise<{ id: string } | null>;
+  findByIdForCompany(id: string, companyId: string): Promise<{ id: string } | null>;
 }

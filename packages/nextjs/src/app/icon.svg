@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Agro Trazabilidad">
+  <defs>
+    <linearGradient id="tile" x1="4" y1="2" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#24402c"/>
+      <stop offset="1" stop-color="#1a3323"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="14" y1="32" x2="34" y2="10" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6b8f4e"/>
+      <stop offset="1" stop-color="#cfa43c"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="46" height="46" rx="13" fill="url(#tile)"/>
+  <rect x="1" y="1" width="46" height="46" rx="13" fill="none" stroke="#ffffff" stroke-opacity="0.16"/>
+  <path d="M10 34h9M10 39h15" stroke="#ffffff" stroke-opacity="0.24" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M24 8.5c6.6 3.4 10.2 7.9 10.2 13.1C34.2 28 29.6 32 24 32s-10.2-4-10.2-10.4C13.8 16.4 17.4 11.9 24 8.5z" fill="url(#leaf)"/>
+  <path d="M24 31.5V11" stroke="#101a12" stroke-opacity="0.4" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M24 17.5l5.4-3.2M24 22.5l-5.4-3.2M24 27l4.2-2.4" stroke="#101a12" stroke-opacity="0.32" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

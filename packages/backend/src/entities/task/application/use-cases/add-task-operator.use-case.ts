@@ -1,4 +1,4 @@
-import { DuplicateEntityError, EntityNotFoundError } from '../../domain/errors';
+import { DuplicateEntityError, EntityNotFoundError, InvalidRelationError } from '../../domain/errors';
 import { TaskRepositoryPort, UserReaderPort } from '../task.ports';
 import { AddTaskOperatorOutput, TaskWithOperatorsRecord } from '../task.types';
 
@@ -8,16 +8,16 @@ export class AddTaskOperatorUseCase {
     private readonly userReader: UserReaderPort,
   ) {}
 
-  async execute(taskId: string, operatorId: string): Promise<AddTaskOperatorOutput> {
-    const task = await this.repository.findByIdWithOperators(taskId);
+  async execute(taskId: string, operatorId: string, tenantId: string): Promise<AddTaskOperatorOutput> {
+    const task = await this.repository.findByIdWithOperatorsForTenant(taskId, tenantId);
 
     if (!task) {
       throw new EntityNotFoundError(`Task with id ${taskId} not found`);
     }
 
-    const user = await this.userReader.findById(operatorId);
+    const user = await this.userReader.findByIdForTenant(operatorId, tenantId);
     if (!user || user.role !== 'OPERARIO') {
-      throw new EntityNotFoundError(`Operator with id ${operatorId} not found`);
+      throw new InvalidRelationError(`Operator with id ${operatorId} does not belong to company ${tenantId}`);
     }
 
     if (task.operators.some((operator) => operator.id === operatorId)) {
@@ -26,7 +26,7 @@ export class AddTaskOperatorUseCase {
       );
     }
 
-    await this.repository.addOperator(taskId, operatorId);
+    await this.repository.addOperatorForTenant(taskId, tenantId, operatorId);
 
     return {
       message: `Operator with id ${operatorId} added to task with id ${taskId} successfully`,

@@ -7,7 +7,12 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { LivestockStatus } from './domain/livestock-status';
 import {
   CreateLivestockInput,
@@ -15,9 +20,18 @@ import {
 } from './application/livestock.types';
 import { LivestockService } from './livestock.service';
 
-type CreateLivestockBody = CreateLivestockInput;
+type RequestWithUser = {
+  user: {
+    firmaId: string;
+  };
+};
 
-type UpdateLivestockBody = UpdateLivestockInput & {
+type CreateLivestockBody = Omit<CreateLivestockInput, 'companyId'> & {
+  companyId?: string;
+};
+
+type UpdateLivestockBody = Omit<UpdateLivestockInput, 'companyId'> & {
+  companyId?: string;
   status?: LivestockStatus;
 };
 
@@ -25,31 +39,46 @@ type UpdateLivestockBody = UpdateLivestockInput & {
 export class LivestockController {
   constructor(private readonly service: LivestockService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Get()
-  findAll() {
-    return this.service.findAll();
+  findAll(@Req() req: RequestWithUser) {
+    return this.service.findAll(req.user.firmaId);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.findOne(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: RequestWithUser) {
+    return this.service.findOne(id, req.user.firmaId);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Post()
-  create(@Body() data: CreateLivestockBody) {
-    return this.service.create(data);
+  create(@Req() req: RequestWithUser, @Body() data: CreateLivestockBody) {
+    const { companyId: _companyId, ...payload } = data;
+
+    return this.service.create(req.user.firmaId, payload as CreateLivestockInput);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Put(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: RequestWithUser,
     @Body() data: UpdateLivestockBody,
   ) {
-    return this.service.update(id, data);
+    const { companyId: _companyId, ...payload } = data;
+
+    return this.service.update(id, req.user.firmaId, payload as UpdateLivestockInput);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.remove(id);
+  remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: RequestWithUser) {
+    return this.service.remove(id, req.user.firmaId);
   }
 }

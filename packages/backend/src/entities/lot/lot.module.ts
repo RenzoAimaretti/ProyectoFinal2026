@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { LotService } from './lot.service';
 import { LotController } from './lot.controller';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { ClientModule } from '../client/client.module';
 import { PrismaLotRepository } from './adapters/outbound/prisma-lot.repository';
 import { PrismaFarmReader } from './adapters/outbound/prisma-farm.reader';
 import {
@@ -16,10 +18,11 @@ import { CreateLotUseCase } from './application/use-cases/create-lot.use-case';
 import { UpdateLotUseCase } from './application/use-cases/update-lot.use-case';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, ClientModule],
   controllers: [LotController],
   providers: [
     LotService,
+    JwtAuthGuard,
     PrismaLotRepository,
     PrismaFarmReader,
     {

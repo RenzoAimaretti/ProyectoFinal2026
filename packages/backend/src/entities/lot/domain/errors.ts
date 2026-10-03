@@ -12,6 +12,13 @@ export class DuplicateEntityError extends Error {
   }
 }
 
+export class InvalidRelationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidRelationError';
+  }
+}
+
 export class EntityNotFoundError extends Error {
   constructor(message: string) {
     super(message);

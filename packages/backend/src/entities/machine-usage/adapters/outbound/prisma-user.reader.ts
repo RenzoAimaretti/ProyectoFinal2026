@@ -9,4 +9,11 @@ export class PrismaUserReader implements UserReaderPort {
   findById(id: string) {
     return this.prisma.user.findUnique({ where: { id }, select: { id: true } });
   }
+
+  findByIdForCompany(id: string, companyId: string) {
+    return this.prisma.user.findFirst({
+      where: { id, companyMemberships: { some: { companyId } } },
+      select: { id: true },
+    });
+  }
 }

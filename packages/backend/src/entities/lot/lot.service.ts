@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -8,12 +9,17 @@ import {
   DuplicateEntityError,
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
 } from './domain/errors';
 import { CreateLotUseCase } from './application/use-cases/create-lot.use-case';
 import { FindAllLotsUseCase } from './application/use-cases/find-all-lots.use-case';
 import { FindLotUseCase } from './application/use-cases/find-lot.use-case';
 import { UpdateLotUseCase } from './application/use-cases/update-lot.use-case';
 import { CreateLotInput, UpdateLotInput } from './application/lot.types';
+import {
+  CLIENT_USER_READER,
+  ClientUserReaderPort,
+} from '../client/application/client.ports';
 
 @Injectable()
 export class LotService {
@@ -22,35 +28,58 @@ export class LotService {
     private readonly findLotUseCase: FindLotUseCase,
     private readonly createLotUseCase: CreateLotUseCase,
     private readonly updateLotUseCase: UpdateLotUseCase,
+    @Inject(CLIENT_USER_READER)
+    private readonly clientUserReader: ClientUserReaderPort,
   ) {}
 
-  async findAll() {
+  async findAll(tenantId: string) {
     try {
-      return await this.findAllLotsUseCase.execute();
+      return await this.findAllLotsUseCase.execute(tenantId);
     } catch (error) {
       this.handleUnexpectedError('Error fetching lots', error);
     }
   }
 
-  async findOne(id: string) {
+  /**
+   * Server-side scoping: a PRODUCTOR only sees the lots that belong to the
+   * client linked to their own user id. Other roles keep the tenant-wide read.
+   */
+  async findAllForUser(tenantId: string, userId: string, role: string) {
     try {
-      return await this.findLotUseCase.execute(id);
+      if (role === 'PRODUCTOR') {
+        const clientId = await this.clientUserReader.findClientIdByUserId(userId);
+        if (!clientId) {
+          return [];
+        }
+
+        return await this.findAllLotsUseCase.executeByClient(clientId);
+      }
+
+      return await this.findAllLotsUseCase.execute(tenantId);
+    } catch (error) {
+      this.handleUnexpectedError('Error fetching lots', error);
+    }
+  }
+
+  async findOne(id: string, tenantId: string) {
+    try {
+      return await this.findLotUseCase.execute(id, tenantId);
     } catch (error) {
       this.handleLotReadError('Error fetching lot', error);
     }
   }
 
-  async create(data: CreateLotInput) {
+  async create(tenantId: string, data: CreateLotInput) {
     try {
-      return await this.createLotUseCase.execute(data);
+      return await this.createLotUseCase.execute(tenantId, data);
     } catch (error) {
       this.handleCreateError(error);
     }
   }
 
-  async update(id: string, data: UpdateLotInput) {
+  async update(id: string, tenantId: string, data: UpdateLotInput) {
     try {
-      return await this.updateLotUseCase.execute(id, data);
+      return await this.updateLotUseCase.execute(id, tenantId, data);
     } catch (error) {
       this.handleUpdateError(id, error);
     }
@@ -61,6 +90,10 @@ export class LotService {
       throw new BadRequestException(
         'Missing required fields: name, farmId, coords, and area',
       );
+    }
+
+    if (error instanceof InvalidRelationError) {
+      throw new BadRequestException(error.message);
     }
 
     if (
@@ -85,6 +118,10 @@ export class LotService {
 
   private handleUpdateError(id: string, error: unknown): never {
     if (error instanceof InvalidInputError) {
+      throw new BadRequestException(error.message);
+    }
+
+    if (error instanceof InvalidRelationError) {
       throw new BadRequestException(error.message);
     }
 

@@ -24,37 +24,24 @@ export class UpdateLivestockUseCase {
 
   async execute(
     id: string,
+    companyId: string,
     data?: UpdateLivestockInput,
   ): Promise<LivestockRecord> {
     if (!data || Object.values(data).every((value) => value === undefined)) {
       throw new InvalidInputError('No data provided for update');
     }
 
-    const livestock = await this.repository.findById(id);
+    const livestock = await this.repository.findByIdForCompany(id, companyId);
     if (!livestock) {
       throw new EntityNotFoundError(`Livestock with id ${id} not found`);
     }
 
-    const nextCompanyId = data.companyId ?? livestock.companyId;
     const nextLotId = data.lotId !== undefined ? data.lotId : livestock.lotId;
 
-    if (data.companyId) {
-      const company = await this.companyReader.findById(data.companyId);
-      if (!company) {
-        throw new EntityNotFoundError(
-          `Company with id ${data.companyId} not found`,
-        );
-      }
-    }
-
     if (nextLotId) {
-      const lot = await this.lotReader.findById(nextLotId);
+      const lot = await this.lotReader.findByIdForCompany(nextLotId, companyId);
 
       if (!lot) {
-        throw new EntityNotFoundError(`Lot with id ${nextLotId} not found`);
-      }
-
-      if (lot.companyId !== nextCompanyId) {
         throw new InvalidRelationError(
           'Lot must belong to the same company as the livestock',
         );
@@ -64,7 +51,10 @@ export class UpdateLivestockUseCase {
     if (data.tagNumber !== undefined) {
       assertRequiredString(data.tagNumber, 'tagNumber');
 
-      const duplicate = await this.repository.findByTagNumber(data.tagNumber);
+      const duplicate = await this.repository.findByTagNumberAndCompanyId(
+        data.tagNumber,
+        companyId,
+      );
       if (duplicate && duplicate.id !== id) {
         throw new DuplicateEntityError(
           'Livestock with this tagNumber already exists',
@@ -83,7 +73,6 @@ export class UpdateLivestockUseCase {
     const birthDate = normalizeOptionalDate(data.birthDate, 'birthDate');
 
     const updateData: UpdateLivestockInput = {
-      ...(data.companyId !== undefined ? { companyId: data.companyId } : {}),
       ...(data.lotId !== undefined ? { lotId: data.lotId } : {}),
       ...(data.tagNumber !== undefined ? { tagNumber: data.tagNumber } : {}),
       ...(data.breed !== undefined ? { breed: data.breed } : {}),
@@ -93,6 +82,6 @@ export class UpdateLivestockUseCase {
       ...(data.status !== undefined ? { status: data.status } : {}),
     };
 
-    return this.repository.update(id, updateData);
+    return this.repository.updateForCompany(id, companyId, updateData);
   }
 }

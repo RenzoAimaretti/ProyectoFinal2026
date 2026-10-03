@@ -13,8 +13,18 @@ export class PrismaUserRepository implements UserRepositoryPort {
     return this.prisma.user.findMany() as unknown as Promise<UserRecord[]>;
   }
 
+  findAllByTenantId(tenantId: string): Promise<UserRecord[]> {
+    return this.prisma.user.findMany({ where: { tenantId } }) as unknown as Promise<UserRecord[]>;
+  }
+
   findById(id: string): Promise<UserRecord | null> {
     return this.prisma.user.findUnique({ where: { id } }) as unknown as Promise<UserRecord | null>;
+  }
+
+  findByIdForTenant(id: string, tenantId: string): Promise<UserRecord | null> {
+    return this.prisma.user.findFirst({ where: { id, tenantId } }) as unknown as Promise<
+      UserRecord | null
+    >;
   }
 
   findByEmail(email: string): Promise<UserRecord | null> {
@@ -31,7 +41,13 @@ export class PrismaUserRepository implements UserRepositoryPort {
     try {
       return (await this.prisma.user.create({
         data: {
-          companyId: data.companyId,
+          tenantId: data.tenantId,
+          companyMemberships: {
+            create: {
+              companyId: data.companyId,
+              role: data.role,
+            },
+          },
           email: data.email,
           ...(data.username ? { username: data.username } : {}),
           passwordHash: data.passwordHash,
@@ -52,6 +68,35 @@ export class PrismaUserRepository implements UserRepositoryPort {
     try {
       return (await this.prisma.user.update({
         where: { id },
+        data: {
+          ...(data.username !== undefined ? { username: data.username } : {}),
+          ...(data.passwordHash !== undefined ? { passwordHash: data.passwordHash } : {}),
+          ...(data.role !== undefined ? { role: data.role } : {}),
+          ...(data.active !== undefined ? { active: data.active } : {}),
+        },
+      })) as UserRecord;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new DuplicateEntityError('User with this username already exists');
+      }
+
+      throw error;
+    }
+  }
+
+  async updateForTenant(id: string, tenantId: string, data: UpdateUserData): Promise<UserRecord> {
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: { id, tenantId },
+        select: { id: true },
+      });
+
+      if (!user) {
+        throw new Error(`User with id ${id} not found for tenant ${tenantId}`);
+      }
+
+      return (await this.prisma.user.update({
+        where: { id: user.id },
         data: {
           ...(data.username !== undefined ? { username: data.username } : {}),
           ...(data.passwordHash !== undefined ? { passwordHash: data.passwordHash } : {}),

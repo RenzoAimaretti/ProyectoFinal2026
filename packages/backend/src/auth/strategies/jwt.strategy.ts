@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { requireJwtSecret } from '../jwt-secret';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -9,12 +10,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'super-secret-jwt-key-2026',
+      secretOrKey: requireJwtSecret(),
     });
   }
 
   async validate(payload: JwtPayload) {
-    if (!payload || !payload.sub) {
+    if (!payload || !payload.sub || !payload.tenantId) {
       throw new UnauthorizedException('Token payload inválido');
     }
 
@@ -22,6 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       id: payload.sub,
       email: payload.email,
       role: payload.role,
+      tenantId: payload.tenantId,
       firmaId: payload.firmaId,
     };
   }

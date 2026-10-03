@@ -4,7 +4,11 @@ import { LotRecord } from '../lot.types';
 export class FindAllLotsUseCase {
   constructor(private readonly repository: LotRepositoryPort) {}
 
-  async execute(): Promise<LotRecord[]> {
-    return this.repository.findAll();
+  async execute(tenantId: string): Promise<LotRecord[]> {
+    return this.repository.findAllByTenantId(tenantId);
+  }
+
+  async executeByClient(clientId: string): Promise<LotRecord[]> {
+    return this.repository.findAllByClientId(clientId);
   }
 }

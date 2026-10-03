@@ -1,0 +1,1269 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { DashboardLayout } from "@/components/ui/layout";
+import {
+  Badge,
+  Button,
+  Card,
+  CardHeader,
+  Drawer,
+  EmptyState,
+  HeroBand,
+  KpiCard,
+  Modal,
+  StatusBadge,
+  type StatusMap,
+} from "@/components/ui/primitives";
+import { Alert, useToast } from "@/components/ui/feedback";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { DataTable, type DataTableColumn } from "@/components/ui/table";
+import { SelectField, TextField, TextareaField } from "@/components/ui/form";
+import { isAdminRole, isClientRole, navItems } from "@/components/ui/nav";
+import { useAuth } from "@/components/ui/auth";
+import {
+  CameraIcon,
+  CheckIcon,
+  InboxIcon,
+  InputsIcon,
+  PeopleIcon,
+  PlusIcon,
+  RefreshIcon,
+  XIcon,
+} from "@/components/ui/icons";
+import {
+  ApiError,
+  assetUrl,
+  createReception,
+  getMyClient,
+  listClients,
+  listInputs,
+  listReceptionPhotos,
+  listReceptions,
+  listStock,
+  rejectReception,
+  uploadReceptionPhoto,
+  validateReception,
+  RECEPTION_STATUS_LABELS,
+  type ClientDTO,
+  type InputDTO,
+  type ReceptionDTO,
+  type ReceptionItemDTO,
+  type ReceptionPhotoDTO,
+  type ReceptionStatus,
+  type StockDTO,
+} from "@/api/client";
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                             */
+/* ------------------------------------------------------------------ */
+
+const dateFmt = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+const numberFmt = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 2 });
+
+function fmtDate(value: string): string {
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? value.slice(0, 10) : dateFmt.format(d);
+}
+
+const RECEPTION_BADGE: StatusMap<ReceptionStatus> = {
+  PENDIENTE_VALIDACION: { label: RECEPTION_STATUS_LABELS.PENDIENTE_VALIDACION, tone: "wheat" },
+  VALIDADA: { label: RECEPTION_STATUS_LABELS.VALIDADA, tone: "green" },
+  RECHAZADA: { label: RECEPTION_STATUS_LABELS.RECHAZADA, tone: "earth" },
+};
+
+/** Semantic text tone for a shortage (negative) / surplus (positive) variance. */
+function varianceTone(variance: number): string {
+  return variance < 0 ? "text-danger" : variance > 0 ? "text-success" : "text-ink-soft";
+}
+
+function describeError(err: unknown): string {
+  if (err instanceof ApiError) {
+    const body = err.body as { message?: string } | string | null;
+    const apiMessage =
+      body && typeof body === "object" && typeof body.message === "string"
+        ? body.message
+        : null;
+    if (err.status === 400) {
+      return apiMessage ?? "Los datos enviados no son válidos.";
+    }
+    if (err.status === 404) {
+      return "La recepción ya no existe o fue eliminada.";
+    }
+    if (err.status === 409) {
+      return "La recepción ya fue resuelta por otra persona.";
+    }
+    if (err.status === 401) {
+      return "Tu sesión expiró. Volvé a iniciar sesión.";
+    }
+    return `No se pudo completar la acción (código ${err.status}).`;
+  }
+  return "Ocurrió un error inesperado. Intentá nuevamente.";
+}
+
+/* ------------------------------------------------------------------ */
+/* Photo attachment (client-side downscale, no dependencies)           */
+/* ------------------------------------------------------------------ */
+
+const PHOTO_MAX_SIDE = 1600;
+const PHOTO_JPEG_QUALITY = 0.8;
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("read-failed"));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("read-failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("decode-failed"));
+    image.src = src;
+  });
+}
+
+/**
+ * Reads an image file and returns a JPEG data URL downscaled so its longest
+ * side is at most `maxSide` px. Keeps the upload payload small with no new
+ * dependencies (canvas only).
+ */
+async function downscaleImage(
+  file: File,
+  maxSide = PHOTO_MAX_SIDE,
+  quality = PHOTO_JPEG_QUALITY,
+): Promise<string> {
+  const original = await readFileAsDataUrl(file);
+  const image = await loadImage(original);
+  const longest = Math.max(image.naturalWidth, image.naturalHeight);
+  if (longest === 0) return original;
+
+  const scale = Math.min(1, maxSide / longest);
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return original;
+
+  // JPEG has no alpha channel: flatten onto white to avoid black transparency.
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(image, 0, 0, width, height);
+
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
+/** Read-only photo strip used in the delivery detail / validation drawer. */
+function ReceptionPhotoGallery({ photos }: { photos: ReceptionPhotoDTO[] }) {
+  const ordered = [...photos].sort((a, b) => a.orderIndex - b.orderIndex);
+
+  if (ordered.length === 0) {
+    return (
+      <p className="rounded-lg border border-dashed border-agro-border px-3 py-4 text-center text-sm text-ink-soft">
+        Sin fotos adjuntas.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-3">
+      {ordered.map((photo, index) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={photo.id}
+          src={assetUrl(photo.url)}
+          alt={`Foto ${index + 1} del ingreso`}
+          className="h-32 w-44 rounded-lg border border-agro-border object-cover"
+        />
+      ))}
+    </div>
+  );
+}
+
+type DraftItem = { key: string; inputId: string; quantity: string };
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
+
+export default function InsumosPage() {
+  const toast = useToast();
+  const { user, ready } = useAuth();
+  const isAdmin = isAdminRole(user?.role);
+  const isClient = isClientRole(user?.role);
+
+  const [clients, setClients] = useState<ClientDTO[]>([]);
+  const [myClient, setMyClient] = useState<{ id: string; name: string } | null>(null);
+  const [inputs, setInputs] = useState<InputDTO[]>([]);
+  const [receptions, setReceptions] = useState<ReceptionDTO[]>([]);
+  const [stock, setStock] = useState<StockDTO[]>([]);
+
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [stockLoading, setStockLoading] = useState(false);
+  const [stockError, setStockError] = useState<string | null>(null);
+
+  const [selectedClientId, setSelectedClientId] = useState("");
+  const [version, setVersion] = useState(0);
+  const refresh = useCallback(() => {
+    setLoading(true);
+    setLoadError(null);
+    setStockLoading(true);
+    setStockError(null);
+    setVersion((v) => v + 1);
+  }, []);
+
+  // Detail / validation drawer
+  const [selectedReception, setSelectedReception] = useState<ReceptionDTO | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [validatedById, setValidatedById] = useState<Record<string, string>>({});
+  const [validateError, setValidateError] = useState<string | null>(null);
+  const [validating, setValidating] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejectError, setRejectError] = useState<string | null>(null);
+  const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+
+  // Create (registrar ingreso) modal
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createClientId, setCreateClientId] = useState("");
+  const [createDate, setCreateDate] = useState("");
+  const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [createPhoto, setCreatePhoto] = useState<{ dataUrl: string; name: string } | null>(
+    null,
+  );
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [preparingPhoto, setPreparingPhoto] = useState(false);
+  const draftKey = useRef(0);
+  const nextKey = () => `d${draftKey.current++}`;
+
+  /* ----- Catalogues + receptions ----- */
+  useEffect(() => {
+    // Wait until the session (and therefore the role) is known, otherwise a
+    // PRODUCTOR would fire the admin-only `listClients()` and get a 403.
+    if (!ready) return;
+    let alive = true;
+
+    const load = async () => {
+      if (isClient) {
+        // A PRODUCTOR cannot list clients: resolve their own scope instead.
+        const [profile, inputList, receptionList] = await Promise.all([
+          getMyClient(),
+          listInputs(),
+          listReceptions(),
+        ]);
+        if (!alive) return;
+        setMyClient({ id: profile.id, name: profile.name });
+        setClients([]);
+        setInputs(inputList);
+        setReceptions(receptionList);
+        setSelectedClientId(profile.id);
+      } else {
+        const [clientList, inputList, receptionList] = await Promise.all([
+          listClients(),
+          listInputs(),
+          listReceptions(),
+        ]);
+        if (!alive) return;
+        setMyClient(null);
+        setClients(clientList);
+        setInputs(inputList);
+        setReceptions(receptionList);
+        setSelectedClientId((prev) => prev || clientList[0]?.id || "");
+      }
+    };
+
+    load()
+      .catch((err) => {
+        if (alive) setLoadError(describeError(err));
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [version, ready, isClient]);
+
+  /* ----- Stock for the selected client (auto-scoped for a PRODUCTOR) ----- */
+  useEffect(() => {
+    if (!ready) return;
+    if (!isClient && !selectedClientId) return;
+    let alive = true;
+    const request = isClient ? listStock() : listStock(selectedClientId);
+    request
+      .then((data) => {
+        if (alive) setStock(data);
+      })
+      .catch((err) => {
+        if (alive) setStockError(describeError(err));
+      })
+      .finally(() => {
+        if (alive) setStockLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [selectedClientId, version, ready, isClient]);
+
+  const selectedClient = clients.find((c) => c.id === selectedClientId);
+  const scopeClientName = isClient ? myClient?.name ?? "Mi cliente" : selectedClient?.name;
+  const canCreateReception =
+    inputs.length > 0 && (isAdmin ? clients.length > 0 : Boolean(myClient));
+
+  const visibleReceptions = useMemo(
+    () =>
+      isAdmin
+        ? receptions
+        : receptions.filter((r) => r.clientId === selectedClientId),
+    [isAdmin, receptions, selectedClientId],
+  );
+
+  const pendingReceptions = useMemo(
+    () => visibleReceptions.filter((r) => r.status === "PENDIENTE_VALIDACION"),
+    [visibleReceptions],
+  );
+
+  const resolvedReceptions = useMemo(
+    () => visibleReceptions.filter((r) => r.status !== "PENDIENTE_VALIDACION"),
+    [visibleReceptions],
+  );
+
+  const validatedCount = useMemo(
+    () => visibleReceptions.filter((r) => r.status === "VALIDADA").length,
+    [visibleReceptions],
+  );
+
+  const clientOptions = clients.map((c) => ({ value: c.id, label: c.name }));
+  const inputOptions = inputs.map((i) => ({ value: i.id, label: `${i.name} (${i.unit})` }));
+
+  /* ----- Detail drawer ----- */
+  const openDetail = useCallback((reception: ReceptionDTO) => {
+    setSelectedReception(reception);
+    setDetailOpen(true);
+    setValidateError(null);
+    setRejectReason("");
+    setRejectError(null);
+    const initial: Record<string, string> = {};
+    reception.items.forEach((item) => {
+      initial[item.inputId] = String(item.quantity);
+    });
+    setValidatedById(initial);
+
+    // Photos may not be embedded in the list payload yet; fetch them as a
+    // best-effort enrichment without blocking the detail view.
+    if (!reception.photos) {
+      listReceptionPhotos(reception.id)
+        .then((photos) => {
+          setSelectedReception((prev) =>
+            prev && prev.id === reception.id ? { ...prev, photos } : prev,
+          );
+        })
+        .catch(() => {
+          /* Photos are additive: a failure must not block the drawer. */
+        });
+    }
+  }, []);
+
+  const closeDetail = useCallback(() => {
+    setDetailOpen(false);
+    setSelectedReception(null);
+    setValidateError(null);
+    setRejectError(null);
+    setValidating(false);
+    setRejecting(false);
+  }, []);
+
+  const handleValidate = useCallback(async () => {
+    if (!selectedReception || validating) return;
+    const parsed = selectedReception.items.map((item) => ({
+      inputId: item.inputId,
+      quantity: Number(validatedById[item.inputId] ?? ""),
+    }));
+    const invalid = parsed.some((p) => !Number.isFinite(p.quantity) || p.quantity <= 0);
+    if (invalid) {
+      setValidateError("Cada cantidad validada debe ser mayor a cero.");
+      return;
+    }
+    setValidating(true);
+    setValidateError(null);
+    try {
+      await validateReception(
+        selectedReception.id,
+        parsed.map((p) => ({ inputId: p.inputId, validatedQuantity: p.quantity })),
+      );
+      toast.success("Recepción validada", "El stock del cliente se actualizó.");
+      closeDetail();
+      refresh();
+    } catch (err) {
+      const message = describeError(err);
+      setValidateError(message);
+      toast.error(message);
+    } finally {
+      setValidating(false);
+    }
+  }, [selectedReception, validating, validatedById, toast, closeDetail, refresh]);
+
+  const requestReject = useCallback(() => {
+    if (!rejectReason.trim()) {
+      setRejectError("Ingresá un motivo para rechazar la recepción.");
+      return;
+    }
+    setRejectError(null);
+    setRejectConfirmOpen(true);
+  }, [rejectReason]);
+
+  const confirmReject = useCallback(async () => {
+    if (!selectedReception || rejecting) return;
+    setRejectConfirmOpen(false);
+    setRejecting(true);
+    setRejectError(null);
+    try {
+      await rejectReception(selectedReception.id, rejectReason.trim());
+      toast.success("Recepción rechazada", "Se registró el motivo del rechazo.");
+      closeDetail();
+      refresh();
+    } catch (err) {
+      const message = describeError(err);
+      setRejectError(message);
+      toast.error(message);
+    } finally {
+      setRejecting(false);
+    }
+  }, [selectedReception, rejecting, rejectReason, toast, closeDetail, refresh]);
+
+  /* ----- Create modal ----- */
+  const openCreate = useCallback(() => {
+    const defaultClientId = isAdmin
+      ? selectedClientId || clients[0]?.id || ""
+      : myClient?.id ?? "";
+    setCreateClientId(defaultClientId);
+    setCreateDate(new Date().toISOString().slice(0, 10));
+    setDraftItems([
+      { key: nextKey(), inputId: inputs[0]?.id ?? "", quantity: "" },
+    ]);
+    setCreateError(null);
+    setCreatePhoto(null);
+    setPhotoError(null);
+    setCreateOpen(true);
+  }, [isAdmin, selectedClientId, clients, inputs, myClient]);
+
+  const handlePhotoChange = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    // Reset the input so removing and re-selecting the same file works.
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("El archivo debe ser una imagen.");
+      return;
+    }
+    setPreparingPhoto(true);
+    setPhotoError(null);
+    try {
+      const dataUrl = await downscaleImage(file);
+      setCreatePhoto({ dataUrl, name: file.name });
+    } catch {
+      setPhotoError("No se pudo procesar la imagen. Probá con otro archivo.");
+    } finally {
+      setPreparingPhoto(false);
+    }
+  }, []);
+
+  const updateDraftItem = (key: string, patch: Partial<DraftItem>) => {
+    setDraftItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)));
+  };
+
+  const addDraftItem = () => {
+    const used = new Set(draftItems.map((d) => d.inputId));
+    const next = inputs.find((i) => !used.has(i.id));
+    setDraftItems((prev) => [
+      ...prev,
+      { key: nextKey(), inputId: next?.id ?? "", quantity: "" },
+    ]);
+  };
+
+  const removeDraftItem = (key: string) => {
+    setDraftItems((prev) => (prev.length <= 1 ? prev : prev.filter((it) => it.key !== key)));
+  };
+
+  const inputOptionsFor = (currentKey: string) => {
+    const usedElsewhere = new Set(
+      draftItems.filter((d) => d.key !== currentKey).map((d) => d.inputId),
+    );
+    return inputOptions.map((opt) => ({ ...opt, disabled: usedElsewhere.has(opt.value) }));
+  };
+
+  const handleCreate = useCallback(async () => {
+    if (creating) return;
+    if (!createClientId) {
+      setCreateError("Seleccioná un cliente.");
+      return;
+    }
+    if (!createDate) {
+      setCreateError("Indicá una fecha.");
+      return;
+    }
+    const complete = draftItems.filter(
+      (d) => d.inputId && Number(d.quantity) > 0 && Number.isFinite(Number(d.quantity)),
+    );
+    if (draftItems.length === 0 || complete.length !== draftItems.length) {
+      setCreateError("Completá insumo y cantidad mayor a cero en cada fila.");
+      return;
+    }
+    if (new Set(complete.map((d) => d.inputId)).size !== complete.length) {
+      setCreateError(
+        isAdmin
+          ? "No repitas el mismo insumo en una recepción."
+          : "No repitas el mismo insumo en un ingreso.",
+      );
+      return;
+    }
+    setCreating(true);
+    setCreateError(null);
+    try {
+      // An ADMIN registers an already-final ingreso (backend returns VALIDADA);
+      // a client-registered one stays PENDIENTE_VALIDACION. Report the real state
+      // instead of assuming a pending step.
+      const created = await createReception({
+        clientId: createClientId,
+        date: createDate,
+        items: complete.map((d) => ({ inputId: d.inputId, quantity: Number(d.quantity) })),
+      });
+
+      // The reception is already created at this point: a failed photo upload
+      // must warn without discarding it.
+      if (createPhoto) {
+        try {
+          await uploadReceptionPhoto(created.id, createPhoto.dataUrl);
+        } catch (photoErr) {
+          toast.error(
+            `El ingreso quedó registrado, pero no se pudo adjuntar la foto: ${describeError(photoErr)}`,
+          );
+        }
+      }
+
+      if (created.status === "VALIDADA") {
+        toast.success(
+          "Ingreso registrado y validado",
+          "El stock del cliente se actualizó.",
+        );
+      } else {
+        toast.success(
+          "Ingreso registrado",
+          "Queda pendiente de validación por el administrador.",
+        );
+      }
+      setCreateOpen(false);
+      setDraftItems([]);
+      setCreatePhoto(null);
+      setPhotoError(null);
+      refresh();
+    } catch (err) {
+      const message = describeError(err);
+      setCreateError(message);
+      toast.error(message);
+    } finally {
+      setCreating(false);
+    }
+  }, [creating, createClientId, createDate, draftItems, createPhoto, toast, refresh, isAdmin]);
+
+  /* ----- Tables ----- */
+  const stockColumns: DataTableColumn<StockDTO>[] = [
+    {
+      key: "input",
+      header: "Insumo",
+      render: (row) => <span className="font-medium text-ink">{row.inputName}</span>,
+    },
+    {
+      key: "quantity",
+      header: "Disponible",
+      align: "right",
+      render: (row) => (
+        <span className="text-numeric font-semibold text-ink">
+          {numberFmt.format(row.quantity)}
+          <span className="ml-1 text-xs font-medium text-ink-faint">{row.unit}</span>
+        </span>
+      ),
+    },
+  ];
+
+  const receptionColumns: DataTableColumn<ReceptionDTO>[] = [
+    {
+      key: "date",
+      header: "Fecha",
+      render: (row) => <span className="text-ink">{fmtDate(row.date)}</span>,
+    },
+    {
+      key: "client",
+      header: "Cliente",
+      render: (row) => <span className="text-ink-soft">{row.clientName}</span>,
+    },
+    {
+      key: "items",
+      header: "Insumos",
+      align: "center",
+      render: (row) => <Badge tone="slate">{row.items.length}</Badge>,
+    },
+    {
+      key: "status",
+      header: "Estado",
+      align: "right",
+      render: (row) => <StatusBadge status={row.status} map={RECEPTION_BADGE} />,
+    },
+  ];
+
+  const hasItems = selectedReception ? selectedReception.items.length > 0 : false;
+  const isPending = selectedReception?.status === "PENDIENTE_VALIDACION";
+  const canResolve = isAdmin && isPending;
+
+  /* ----- Protagonist metrics (real) ----- */
+  const heroMetric = isAdmin ? pendingReceptions.length : visibleReceptions.length;
+  const heroMetricLabel = isAdmin ? "Ingresos por validar" : "Movimientos registrados";
+  const heroMetricHint = isAdmin
+    ? `${visibleReceptions.length} recepciones en total`
+    : `${validatedCount} validadas`;
+
+  return (
+    <DashboardLayout
+      title="Insumos"
+      sidebarItems={navItems}
+      breadcrumb={
+        isAdmin
+          ? "Recepción de stock y control de partes"
+          : "Ingreso de stock y control de partes"
+      }
+    >
+      <HeroBand
+        kicker={isAdmin ? "Recepción y control de stock" : "Trazabilidad de tus insumos"}
+        title="Insumos"
+        description={
+          isAdmin
+            ? "Stock por cliente, bandeja de ingresos por validar y carga de recepciones."
+            : "Registrá los insumos que dejás en el campo y seguí su estado de validación y stock."
+        }
+        icon={<InputsIcon className="h-6 w-6" />}
+        metric={heroMetric}
+        metricLabel={heroMetricLabel}
+        metricHint={heroMetricHint}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshIcon className="h-4 w-4" />
+              Actualizar
+            </button>
+            <button
+              type="button"
+              onClick={openCreate}
+              disabled={!canCreateReception}
+              title={
+                !canCreateReception
+                  ? isClient
+                    ? "Tu usuario debe estar vinculado a un cliente y necesitás insumos cargados."
+                    : "Necesitás clientes e insumos cargados para registrar una recepción."
+                  : undefined
+              }
+              className="inline-flex items-center gap-2 rounded-lg bg-white/95 px-4 py-2.5 text-sm font-semibold text-agro-green-deep transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Registrar ingreso
+            </button>
+          </div>
+        }
+      />
+
+      {loadError && (
+        <Alert tone="error" title="No se pudieron cargar los datos" className="mb-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span>{loadError}</span>
+            <Button variant="secondary" onClick={refresh}>
+              Reintentar
+            </Button>
+          </div>
+        </Alert>
+      )}
+
+      {!isAdmin && clients.length > 1 && (
+        <Alert tone="info" title="Seleccioná un cliente" className="mb-5">
+          Tu sesión no está asociada a un único cliente, así que elegí el cliente cuyo
+          stock e ingresos querés ver.
+        </Alert>
+      )}
+
+      {/* KPI band (ADMIN only): the client view goes straight to its sections. */}
+      {isAdmin && (
+        <section className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <KpiCard
+            label="Ingresos por validar"
+            value={pendingReceptions.length}
+            delta="Esperando decisión"
+            tone="wheat"
+            icon={<InboxIcon className="h-5 w-5" />}
+          />
+          <KpiCard
+            label="Recepciones registradas"
+            value={visibleReceptions.length}
+            delta="De todos los clientes"
+            tone="slate"
+            icon={<InputsIcon className="h-5 w-5" />}
+          />
+          <KpiCard
+            label="Insumos con stock"
+            value={stock.length}
+            delta={scopeClientName ?? "Seleccioná un cliente"}
+            tone="green"
+            icon={<InputsIcon className="h-5 w-5" />}
+          />
+          <KpiCard
+            label="Clientes"
+            value={clients.length}
+            delta="En la cartera"
+            tone="earth"
+            icon={<PeopleIcon className="h-5 w-5" />}
+          />
+        </section>
+      )}
+
+      {/* Stock */}
+      <Card className="mb-5 overflow-hidden">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-agro-border px-5 py-4">
+          <div>
+            <h3 className="font-display font-semibold text-ink">
+              {isAdmin ? "Stock por cliente" : "Mi stock"}
+            </h3>
+            <p className="text-sm text-ink-soft">
+              {isAdmin
+                ? "Disponible según recepciones validadas."
+                : "Disponible según ingresos validados."}
+            </p>
+          </div>
+          {isAdmin ? (
+            <div className="w-full sm:w-72">
+              <SelectField
+                label="Cliente"
+                value={selectedClientId}
+                onChange={(e) => {
+                  setStockLoading(true);
+                  setStockError(null);
+                  setSelectedClientId(e.target.value);
+                }}
+                options={clientOptions}
+                placeholder="Seleccioná un cliente"
+                disabled={clients.length === 0}
+              />
+            </div>
+          ) : (
+            <Badge tone="green">{scopeClientName ?? "Sin cliente"}</Badge>
+          )}
+        </div>
+
+        {stockError ? (
+          <Alert tone="error" title="No se pudo cargar el stock" className="m-5">
+            {stockError}
+          </Alert>
+        ) : (
+          <DataTable
+            columns={stockColumns}
+            data={stock}
+            rowKey={(row) => row.id}
+            loading={stockLoading}
+            skeletonRows={4}
+            emptyState={
+              <EmptyState
+                icon={<InputsIcon />}
+                title="Sin stock para este cliente"
+                subtitle={
+                  scopeClientName
+                    ? `No hay insumos disponibles para ${scopeClientName}.`
+                    : "Seleccioná un cliente para ver su stock."
+                }
+              />
+            }
+          />
+        )}
+      </Card>
+
+      {/* Validation inbox (ADMIN): only client-registered pendings */}
+      {isAdmin ? (
+        <>
+          <Card className="mb-5 overflow-hidden">
+            <CardHeader
+              title="Bandeja de validación"
+              subtitle="Ingresos declarados por los clientes, pendientes de validar."
+              action={
+                <Badge tone={pendingReceptions.length > 0 ? "wheat" : "green"}>
+                  {pendingReceptions.length} pendientes
+                </Badge>
+              }
+            />
+
+            <DataTable
+              columns={receptionColumns}
+              data={pendingReceptions}
+              rowKey={(row) => row.id}
+              onRowClick={openDetail}
+              loading={loading}
+              skeletonRows={5}
+              emptyState={
+                <EmptyState
+                  icon={<InboxIcon />}
+                  title="Sin ingresos pendientes"
+                  subtitle="No hay recepciones de clientes esperando validación."
+                />
+              }
+            />
+          </Card>
+
+          <Card className="overflow-hidden">
+            <CardHeader
+              title="Recepciones resueltas"
+              subtitle="Ingresos ya validados o rechazados, incluidos los que registra el administrador (se validan al momento)."
+            />
+
+            <DataTable
+              columns={receptionColumns}
+              data={resolvedReceptions}
+              rowKey={(row) => row.id}
+              onRowClick={openDetail}
+              loading={loading}
+              skeletonRows={5}
+              emptyState={
+                <EmptyState
+                  icon={<InboxIcon />}
+                  title="Sin recepciones resueltas"
+                  subtitle="Las recepciones validadas o rechazadas aparecerán acá."
+                />
+              }
+            />
+          </Card>
+        </>
+      ) : (
+        <Card className="overflow-hidden">
+          <CardHeader
+            title="Mis ingresos"
+            subtitle="Estado de cada ingreso que registraste."
+            action={
+              <Badge tone={pendingReceptions.length > 0 ? "wheat" : "green"}>
+                {pendingReceptions.length} pendientes
+              </Badge>
+            }
+          />
+
+          <DataTable
+            columns={receptionColumns}
+            data={visibleReceptions}
+            rowKey={(row) => row.id}
+            onRowClick={openDetail}
+            loading={loading}
+            skeletonRows={5}
+            emptyState={
+              <EmptyState
+                icon={<InboxIcon />}
+                title="Sin ingresos"
+                subtitle="Los ingresos registrados aparecerán acá."
+              />
+            }
+          />
+        </Card>
+      )}
+
+      {/* Detail / resolution drawer */}
+      <Drawer
+        open={detailOpen}
+        onClose={closeDetail}
+        title={
+          selectedReception
+            ? `${isAdmin ? "Recepción" : "Ingreso"} · ${selectedReception.clientName}`
+            : isAdmin
+              ? "Recepción"
+              : "Ingreso"
+        }
+        subtitle={selectedReception ? fmtDate(selectedReception.date) : undefined}
+        widthClass="max-w-2xl"
+        footer={
+          canResolve ? (
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button variant="secondary" onClick={closeDetail} disabled={validating || rejecting}>
+                Cerrar
+              </Button>
+              <Button variant="danger" onClick={requestReject} disabled={validating || rejecting}>
+                <XIcon className="h-4 w-4" />
+                Rechazar
+              </Button>
+              <Button onClick={() => void handleValidate()} disabled={validating || rejecting}>
+                <CheckIcon className="h-4 w-4" />
+                {validating ? "Validando…" : "Validar"}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex justify-end">
+              <Button variant="secondary" onClick={closeDetail}>
+                Cerrar
+              </Button>
+            </div>
+          )
+        }
+      >
+        {selectedReception && (
+          <div className="space-y-5 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-agro-border bg-base-subtle/40 px-4 py-3">
+              <StatusBadge status={selectedReception.status} map={RECEPTION_BADGE} />
+              <span className="text-sm text-ink-soft">
+                {selectedReception.clientName} · {fmtDate(selectedReception.date)}
+              </span>
+            </div>
+
+            {selectedReception.status === "RECHAZADA" && selectedReception.rejectionReason && (
+              <Alert tone="error" title="Motivo de rechazo">
+                {selectedReception.rejectionReason}
+              </Alert>
+            )}
+
+            {validateError && <Alert tone="error">{validateError}</Alert>}
+
+            <div>
+              <h4 className="mb-2 text-sm font-display font-semibold text-ink">
+                Insumos declarados
+              </h4>
+              {!hasItems ? (
+                <p className="rounded-lg border border-dashed border-agro-border px-3 py-4 text-center text-sm text-ink-soft">
+                  {isAdmin ? "Esta recepción" : "Este ingreso"} no tiene insumos.
+                </p>
+              ) : (
+                <ul className="divide-y divide-agro-border rounded-lg border border-agro-border">
+                  {selectedReception.items.map((item: ReceptionItemDTO) => {
+                    const raw = validatedById[item.inputId] ?? "";
+                    const parsed = Number(raw);
+                    const hasValue = raw !== "" && Number.isFinite(parsed);
+                    const variance = hasValue ? parsed - item.quantity : null;
+                    return (
+                      <li key={item.inputId} className="px-4 py-3.5">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-ink">
+                              {item.inputName}
+                            </p>
+                            <p className="mt-0.5 text-xs text-ink-faint">
+                              Declarado:{" "}
+                              <span className="text-numeric font-semibold text-ink-soft">
+                                {numberFmt.format(item.quantity)} {item.unit}
+                              </span>
+                            </p>
+                          </div>
+
+                          {canResolve ? (
+                            <div className="flex items-end gap-3">
+                              <div className="w-36">
+                                <TextField
+                                  label="Validado"
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={raw}
+                                  onChange={(e) =>
+                                    setValidatedById((prev) => ({
+                                      ...prev,
+                                      [item.inputId]: e.target.value,
+                                    }))
+                                  }
+                                />
+                              </div>
+                              <span
+                                className={`pb-2.5 text-xs font-semibold ${
+                                  variance === null
+                                    ? "text-ink-faint"
+                                    : varianceTone(variance)
+                                }`}
+                              >
+                                {variance === null
+                                  ? "—"
+                                  : `${variance > 0 ? "+" : ""}${numberFmt.format(variance)} ${item.unit}`}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="text-right">
+                              {item.validatedQuantity === null ? (
+                                <p className="text-sm text-ink-soft">Sin validar</p>
+                              ) : (
+                                <p className="text-numeric font-display text-title font-semibold text-ink">
+                                  {numberFmt.format(item.validatedQuantity)}
+                                  <span className="ml-1 text-xs font-sans font-medium text-ink-faint">
+                                    {item.unit}
+                                  </span>
+                                </p>
+                              )}
+                              {item.variance !== null && (
+                                <p className={`mt-0.5 text-xs font-semibold ${varianceTone(item.variance)}`}>
+                                  Diferencia {item.variance > 0 ? "+" : ""}
+                                  {numberFmt.format(item.variance)} {item.unit}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            <div>
+              <h4 className="mb-2 text-sm font-display font-semibold text-ink">
+                Fotos
+              </h4>
+              <ReceptionPhotoGallery photos={selectedReception.photos ?? []} />
+            </div>
+
+            {canResolve && (
+              <div className="rounded-lg border border-agro-border bg-base-subtle/40 p-4">
+                <h4 className="text-sm font-display font-semibold text-ink">
+                  Rechazar recepción
+                </h4>
+                <p className="mt-0.5 text-xs text-ink-soft">
+                  El rechazo no modifica el stock y queda registrado con su motivo.
+                </p>
+                {rejectError && (
+                  <Alert tone="error" className="mt-3">
+                    {rejectError}
+                  </Alert>
+                )}
+                <div className="mt-3">
+                  <TextareaField
+                    label="Motivo"
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="Ej: la cantidad declarada no coincide con el remito"
+                    disabled={validating || rejecting}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Drawer>
+
+      {/* Registrar ingreso */}
+      <Modal
+        open={createOpen}
+        onClose={() => (creating ? undefined : setCreateOpen(false))}
+        title="Registrar ingreso de insumos"
+        subtitle={
+          isAdmin
+            ? "Como administrador, el ingreso se registra y valida en un solo paso."
+            : "Queda pendiente de validación por el administrador."
+        }
+        widthClass="max-w-2xl"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setCreateOpen(false)} disabled={creating}>
+              Cancelar
+            </Button>
+            <span
+              className="inline-flex"
+              title={
+                !canCreateReception
+                  ? "Necesitás un cliente y al menos un insumo cargado."
+                  : undefined
+              }
+            >
+              <Button
+                onClick={() => void handleCreate()}
+                disabled={creating || !canCreateReception}
+              >
+                {creating ? "Registrando…" : "Registrar ingreso"}
+              </Button>
+            </span>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          {createError && <Alert tone="error">{createError}</Alert>}
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {isAdmin ? (
+              <SelectField
+                label="Cliente"
+                value={createClientId}
+                onChange={(e) => setCreateClientId(e.target.value)}
+                options={clientOptions}
+                placeholder="Seleccioná un cliente"
+                disabled={creating || clients.length === 0}
+              />
+            ) : (
+              <div>
+                <span className="mb-1.5 block text-xs font-semibold text-ink-faint">
+                  Cliente
+                </span>
+                <p className="rounded-lg border border-agro-border bg-base-subtle/40 px-3 py-2.5 text-sm text-ink">
+                  {scopeClientName ?? "Sin cliente"}
+                </p>
+              </div>
+            )}
+            <TextField
+              label="Fecha"
+              type="date"
+              value={createDate}
+              onChange={(e) => setCreateDate(e.target.value)}
+              disabled={creating}
+            />
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <h4 className="text-sm font-display font-semibold text-ink">Insumos</h4>
+              <span
+                className="inline-flex"
+                title={
+                  draftItems.length >= inputs.length
+                    ? "Ya agregaste todos los insumos disponibles."
+                    : undefined
+                }
+              >
+                <Button
+                  variant="secondary"
+                  onClick={addDraftItem}
+                  disabled={creating || inputs.length === 0 || draftItems.length >= inputs.length}
+                >
+                  <PlusIcon className="h-4 w-4" />
+                  Agregar
+                </Button>
+              </span>
+            </div>
+
+            <ul className="space-y-2">
+              {draftItems.map((draft) => (
+                <li key={draft.key} className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <SelectField
+                      label="Insumo"
+                      value={draft.inputId}
+                      onChange={(e) => updateDraftItem(draft.key, { inputId: e.target.value })}
+                      options={inputOptionsFor(draft.key)}
+                      placeholder="Seleccioná un insumo"
+                      disabled={creating}
+                    />
+                  </div>
+                  <div className="w-32">
+                    <TextField
+                      label="Cantidad"
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={draft.quantity}
+                      onChange={(e) => updateDraftItem(draft.key, { quantity: e.target.value })}
+                      disabled={creating}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeDraftItem(draft.key)}
+                    disabled={creating || draftItems.length <= 1}
+                    title={
+                      draftItems.length <= 1
+                        ? "Debe quedar al menos un insumo."
+                        : "Quitar insumo"
+                    }
+                    className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-agro-border text-ink-soft transition-colors hover:bg-base-subtle hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <span className="mb-1.5 block text-xs font-semibold text-ink-faint">
+              Foto del remito (opcional)
+            </span>
+            {createPhoto ? (
+              <div className="flex items-start gap-3 rounded-lg border border-agro-border bg-base-subtle/40 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={createPhoto.dataUrl}
+                  alt="Vista previa de la foto adjunta"
+                  className="h-24 w-32 shrink-0 rounded-lg border border-agro-border object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-ink">{createPhoto.name}</p>
+                  <p className="mt-0.5 text-xs text-ink-soft">
+                    Se subirá comprimida al registrar el ingreso.
+                  </p>
+                  <div className="mt-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setCreatePhoto(null);
+                        setPhotoError(null);
+                      }}
+                      disabled={creating || preparingPhoto}
+                    >
+                      <XIcon className="h-4 w-4" />
+                      Quitar foto
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-agro-border bg-base-subtle/30 px-4 py-5 text-sm font-medium text-ink-soft transition-colors hover:border-agro-border-strong hover:text-ink">
+                <CameraIcon className="h-5 w-5" />
+                {preparingPhoto ? "Procesando imagen…" : "Adjuntar foto"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(event) => void handlePhotoChange(event)}
+                  disabled={creating || preparingPhoto}
+                />
+              </label>
+            )}
+            {photoError && (
+              <p role="alert" className="mt-1.5 text-xs font-medium text-agro-earth-dark">
+                {photoError}
+              </p>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      <ConfirmDialog
+        open={rejectConfirmOpen}
+        onClose={() => setRejectConfirmOpen(false)}
+        onConfirm={() => void confirmReject()}
+        title="Rechazar recepción"
+        message={
+          <>
+            ¿Confirmás el rechazo de la recepción de{" "}
+            <strong>{selectedReception?.clientName}</strong> del{" "}
+            {selectedReception ? fmtDate(selectedReception.date) : ""}? El motivo
+            quedará registrado.
+          </>
+        }
+        confirmLabel="Rechazar"
+        loading={rejecting}
+        tone="danger"
+      />
+    </DashboardLayout>
+  );
+}

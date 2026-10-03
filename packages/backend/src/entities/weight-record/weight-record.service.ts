@@ -16,6 +16,7 @@ import {
 import {
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
 } from './domain/errors';
 
 @Injectable()
@@ -28,37 +29,44 @@ export class WeightRecordService {
     private readonly deleteUseCase: DeleteWeightRecordUseCase,
   ) {}
 
-  async findAll() {
+  async findAll(companyId?: string) {
     return this.handle(
-      () => this.findAllUseCase.execute(),
+      () => this.findAllUseCase.execute(companyId),
       'fetching weight records',
     );
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, companyId?: string) {
     return this.handle(
-      () => this.findOneUseCase.execute(id),
+      () => this.findOneUseCase.execute(id, companyId),
       'fetching weight record',
     );
   }
 
-  async delete(id: string) {
+  async delete(id: string, companyId?: string) {
     return this.handle(
-      () => this.deleteUseCase.execute(id),
+      () => this.deleteUseCase.execute(id, companyId),
       'deleting weight record',
     );
   }
 
-  async update(id: string, data: UpdateWeightRecordInput) {
+  async update(
+    id: string,
+    companyIdOrData?: string | UpdateWeightRecordInput,
+    maybeData?: UpdateWeightRecordInput,
+  ) {
     return this.handle(
-      () => this.updateUseCase.execute(id, data),
+      () => this.updateUseCase.execute(id, companyIdOrData as never, maybeData),
       'updating weight record',
     );
   }
 
-  async create(data: CreateWeightRecordInput) {
+  async create(
+    companyIdOrData?: string | CreateWeightRecordInput,
+    maybeData?: CreateWeightRecordInput,
+  ) {
     return this.handle(
-      () => this.createUseCase.execute(data),
+      () => this.createUseCase.execute(companyIdOrData as never, maybeData),
       'creating weight record',
     );
   }
@@ -77,6 +85,10 @@ export class WeightRecordService {
     }
 
     if (error instanceof InvalidInputError) {
+      return new BadRequestException(error.message);
+    }
+
+    if (error instanceof InvalidRelationError) {
       return new BadRequestException(error.message);
     }
 

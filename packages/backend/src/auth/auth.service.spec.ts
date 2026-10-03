@@ -6,6 +6,7 @@ import { LoginUseCase } from './application/use-cases/login.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { RefreshTokensUseCase } from './application/use-cases/refresh-tokens.use-case';
 import { ValidateUserCredentialsUseCase } from './application/use-cases/validate-user-credentials.use-case';
+import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -13,6 +14,7 @@ describe('AuthService', () => {
   const loginUseCase = { execute: jest.fn() };
   const refreshUseCase = { execute: jest.fn() };
   const logoutUseCase = { execute: jest.fn() };
+  const changePasswordUseCase = { execute: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -24,6 +26,7 @@ describe('AuthService', () => {
         { provide: LoginUseCase, useValue: loginUseCase },
         { provide: RefreshTokensUseCase, useValue: refreshUseCase },
         { provide: LogoutUseCase, useValue: logoutUseCase },
+        { provide: ChangePasswordUseCase, useValue: changePasswordUseCase },
       ],
     }).compile();
 

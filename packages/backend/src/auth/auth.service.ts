@@ -11,6 +11,7 @@ import { LoginUseCase } from './application/use-cases/login.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { RefreshTokensUseCase } from './application/use-cases/refresh-tokens.use-case';
 import { ValidateUserCredentialsUseCase } from './application/use-cases/validate-user-credentials.use-case';
+import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
     private readonly loginUseCase: LoginUseCase,
     private readonly refreshTokensUseCase: RefreshTokensUseCase,
     private readonly logoutUseCase: LogoutUseCase,
+    private readonly changePasswordUseCase: ChangePasswordUseCase,
   ) {}
 
   async validateUserCredentials(email: string, password: string) {
@@ -35,6 +37,12 @@ export class AuthService {
 
   async logout(refreshTokenRaw: string) {
     return this.handle(() => this.logoutUseCase.execute(refreshTokenRaw));
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    return this.handle(() =>
+      this.changePasswordUseCase.execute(userId, currentPassword, newPassword),
+    );
   }
 
   private async handle<T>(operation: () => Promise<T>): Promise<T> {

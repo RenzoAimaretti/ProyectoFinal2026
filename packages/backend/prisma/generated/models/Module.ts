@@ -404,6 +404,14 @@ export type ModuleUncheckedUpdateManyWithoutCompaniesNestedInput = {
   deleteMany?: Prisma.ModuleScalarWhereInput | Prisma.ModuleScalarWhereInput[]
 }
 
+export type FloatFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type ModuleCreateWithoutCompaniesInput = {
   id?: string
   name: string

@@ -18,6 +18,8 @@ import { LoginUseCase } from './application/use-cases/login.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { RefreshTokensUseCase } from './application/use-cases/refresh-tokens.use-case';
 import { ValidateUserCredentialsUseCase } from './application/use-cases/validate-user-credentials.use-case';
+import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
+import { requireJwtSecret } from './jwt-secret';
 
 @Module({
   imports: [
@@ -25,7 +27,7 @@ import { ValidateUserCredentialsUseCase } from './application/use-cases/validate
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       useFactory: () => ({
-        secret: process.env.JWT_SECRET,
+        secret: requireJwtSecret(),
         signOptions: { expiresIn: '15m' },
       }),
     }),
@@ -80,6 +82,12 @@ import { ValidateUserCredentialsUseCase } from './application/use-cases/validate
       useFactory: (refreshTokenRepository: PrismaRefreshTokenRepository, passwordHasher: AuthPasswordHasher, clock: SystemClock) =>
         new LogoutUseCase(refreshTokenRepository, passwordHasher, clock),
       inject: [REFRESH_TOKEN_REPOSITORY, PASSWORD_HASHER, CLOCK],
+    },
+    {
+      provide: ChangePasswordUseCase,
+      useFactory: (repository: PrismaUserCredentialsRepository, passwordHasher: AuthPasswordHasher) =>
+        new ChangePasswordUseCase(repository, passwordHasher),
+      inject: [USER_CREDENTIALS_REPOSITORY, PASSWORD_HASHER],
     },
   ],
   exports: [AuthService, JwtStrategy, PassportModule, JwtModule],

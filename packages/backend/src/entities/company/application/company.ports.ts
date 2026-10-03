@@ -1,5 +1,4 @@
 import {
-  AddCompanyModuleInput,
   CompanyRecord,
   CompanyWithModules,
   CreateCompanyInput,
@@ -11,12 +10,23 @@ export const COMPANY_REPOSITORY = Symbol('COMPANY_REPOSITORY');
 export const MODULE_READER = Symbol('MODULE_READER');
 
 export interface CompanyRepositoryPort {
-  findAll(): Promise<CompanyRecord[]>;
-  findById(id: string): Promise<CompanyWithModules | null>;
+  findAllByTenantId(tenantId: string): Promise<CompanyRecord[]>;
+  findByIdForTenant(
+    id: string,
+    tenantId: string,
+  ): Promise<CompanyWithModules | null>;
   findByCuit(cuit: string): Promise<CompanyWithModules | null>;
   create(data: CreateCompanyInput): Promise<CompanyRecord>;
-  update(id: string, data: UpdateCompanyInput): Promise<CompanyRecord>;
-  addModule(data: AddCompanyModuleInput): Promise<void>;
+  updateForTenant(
+    id: string,
+    tenantId: string,
+    data: UpdateCompanyInput,
+  ): Promise<CompanyRecord>;
+  addModuleForTenant(
+    companyId: string,
+    tenantId: string,
+    moduleId: string,
+  ): Promise<void>;
 }
 
 export interface ModuleReaderPort {

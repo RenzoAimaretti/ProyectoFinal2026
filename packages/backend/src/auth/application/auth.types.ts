@@ -1,4 +1,4 @@
-export const AUTH_USER_ROLES = ['ADMIN', 'OPERARIO', 'PRODUCTOR', 'CONTRATISTA', 'VETERINARIO'] as const;
+export const AUTH_USER_ROLES = ['ADMIN', 'OPERARIO', 'SUPERVISOR', 'PRODUCTOR', 'CONTRATISTA', 'VETERINARIO'] as const;
 export const REFRESH_TOKEN_EXPIRATION_DAYS = 7;
 export const MAX_FAILED_ATTEMPTS = 5;
 export const LOCKOUT_MINUTES = 15;
@@ -10,23 +10,28 @@ export type AuthUserCredentials = {
   email: string;
   passwordHash: string;
   role: AuthUserRole;
-  companyId: string;
+  tenantId: string;
+  firmaId: string | null;
   active: boolean;
   deleted: boolean;
   failedLoginAttempts: number;
   lockedUntil: Date | null;
+  mustChangePassword?: boolean;
 };
 
 export type AuthUserPrincipal = {
   id: string;
   email: string;
   role: AuthUserRole;
+  tenantId: string;
   firmaId: string;
+  mustChangePassword?: boolean;
 };
 
 export type AuthJwtPayload = {
   sub: string;
   role: AuthUserRole;
+  tenantId: string;
   firmaId: string;
   email?: string;
   iat?: number;
@@ -66,4 +71,5 @@ export type UpdateSecurityStateInput = {
   failedLoginAttempts: number;
   lockedUntil: Date | null;
   passwordHash?: string;
+  mustChangePassword?: boolean;
 };
