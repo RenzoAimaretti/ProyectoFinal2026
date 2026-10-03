@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { DashboardLayout } from "@/components/ui/layout";
 import {
   Badge,
@@ -22,6 +22,7 @@ import { SelectField, TextField, TextareaField } from "@/components/ui/form";
 import { isAdminRole, isClientRole, navItems } from "@/components/ui/nav";
 import { useAuth } from "@/components/ui/auth";
 import {
+  CameraIcon,
   CheckIcon,
   InboxIcon,
   InputsIcon,
@@ -32,19 +33,23 @@ import {
 } from "@/components/ui/icons";
 import {
   ApiError,
+  assetUrl,
   createReception,
   getMyClient,
   listClients,
   listInputs,
+  listReceptionPhotos,
   listReceptions,
   listStock,
   rejectReception,
+  uploadReceptionPhoto,
   validateReception,
   RECEPTION_STATUS_LABELS,
   type ClientDTO,
   type InputDTO,
   type ReceptionDTO,
   type ReceptionItemDTO,
+  type ReceptionPhotoDTO,
   type ReceptionStatus,
   type StockDTO,
 } from "@/api/client";
@@ -101,6 +106,94 @@ function describeError(err: unknown): string {
   return "Ocurrió un error inesperado. Intentá nuevamente.";
 }
 
+/* ------------------------------------------------------------------ */
+/* Photo attachment (client-side downscale, no dependencies)           */
+/* ------------------------------------------------------------------ */
+
+const PHOTO_MAX_SIDE = 1600;
+const PHOTO_JPEG_QUALITY = 0.8;
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("read-failed"));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("read-failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("decode-failed"));
+    image.src = src;
+  });
+}
+
+/**
+ * Reads an image file and returns a JPEG data URL downscaled so its longest
+ * side is at most `maxSide` px. Keeps the upload payload small with no new
+ * dependencies (canvas only).
+ */
+async function downscaleImage(
+  file: File,
+  maxSide = PHOTO_MAX_SIDE,
+  quality = PHOTO_JPEG_QUALITY,
+): Promise<string> {
+  const original = await readFileAsDataUrl(file);
+  const image = await loadImage(original);
+  const longest = Math.max(image.naturalWidth, image.naturalHeight);
+  if (longest === 0) return original;
+
+  const scale = Math.min(1, maxSide / longest);
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return original;
+
+  // JPEG has no alpha channel: flatten onto white to avoid black transparency.
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(image, 0, 0, width, height);
+
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
+/** Read-only photo strip used in the delivery detail / validation drawer. */
+function ReceptionPhotoGallery({ photos }: { photos: ReceptionPhotoDTO[] }) {
+  const ordered = [...photos].sort((a, b) => a.orderIndex - b.orderIndex);
+
+  if (ordered.length === 0) {
+    return (
+      <p className="rounded-lg border border-dashed border-agro-border px-3 py-4 text-center text-sm text-ink-soft">
+        Sin fotos adjuntas.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-3">
+      {ordered.map((photo, index) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={photo.id}
+          src={assetUrl(photo.url)}
+          alt={`Foto ${index + 1} del ingreso`}
+          className="h-32 w-44 rounded-lg border border-agro-border object-cover"
+        />
+      ))}
+    </div>
+  );
+}
+
 type DraftItem = { key: string; inputId: string; quantity: string };
 
 /* ------------------------------------------------------------------ */
@@ -152,6 +245,11 @@ export default function InsumosPage() {
   const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
   const [createError, setCreateError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [createPhoto, setCreatePhoto] = useState<{ dataUrl: string; name: string } | null>(
+    null,
+  );
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [preparingPhoto, setPreparingPhoto] = useState(false);
   const draftKey = useRef(0);
   const nextKey = () => `d${draftKey.current++}`;
 
@@ -267,6 +365,20 @@ export default function InsumosPage() {
       initial[item.inputId] = String(item.quantity);
     });
     setValidatedById(initial);
+
+    // Photos may not be embedded in the list payload yet; fetch them as a
+    // best-effort enrichment without blocking the detail view.
+    if (!reception.photos) {
+      listReceptionPhotos(reception.id)
+        .then((photos) => {
+          setSelectedReception((prev) =>
+            prev && prev.id === reception.id ? { ...prev, photos } : prev,
+          );
+        })
+        .catch(() => {
+          /* Photos are additive: a failure must not block the drawer. */
+        });
+    }
   }, []);
 
   const closeDetail = useCallback(() => {
@@ -347,8 +459,31 @@ export default function InsumosPage() {
       { key: nextKey(), inputId: inputs[0]?.id ?? "", quantity: "" },
     ]);
     setCreateError(null);
+    setCreatePhoto(null);
+    setPhotoError(null);
     setCreateOpen(true);
   }, [isAdmin, selectedClientId, clients, inputs, myClient]);
+
+  const handlePhotoChange = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    // Reset the input so removing and re-selecting the same file works.
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("El archivo debe ser una imagen.");
+      return;
+    }
+    setPreparingPhoto(true);
+    setPhotoError(null);
+    try {
+      const dataUrl = await downscaleImage(file);
+      setCreatePhoto({ dataUrl, name: file.name });
+    } catch {
+      setPhotoError("No se pudo procesar la imagen. Probá con otro archivo.");
+    } finally {
+      setPreparingPhoto(false);
+    }
+  }, []);
 
   const updateDraftItem = (key: string, patch: Partial<DraftItem>) => {
     setDraftItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)));
@@ -392,7 +527,11 @@ export default function InsumosPage() {
       return;
     }
     if (new Set(complete.map((d) => d.inputId)).size !== complete.length) {
-      setCreateError("No repitas el mismo insumo en una recepción.");
+      setCreateError(
+        isAdmin
+          ? "No repitas el mismo insumo en una recepción."
+          : "No repitas el mismo insumo en un ingreso.",
+      );
       return;
     }
     setCreating(true);
@@ -406,6 +545,19 @@ export default function InsumosPage() {
         date: createDate,
         items: complete.map((d) => ({ inputId: d.inputId, quantity: Number(d.quantity) })),
       });
+
+      // The reception is already created at this point: a failed photo upload
+      // must warn without discarding it.
+      if (createPhoto) {
+        try {
+          await uploadReceptionPhoto(created.id, createPhoto.dataUrl);
+        } catch (photoErr) {
+          toast.error(
+            `El ingreso quedó registrado, pero no se pudo adjuntar la foto: ${describeError(photoErr)}`,
+          );
+        }
+      }
+
       if (created.status === "VALIDADA") {
         toast.success(
           "Ingreso registrado y validado",
@@ -419,6 +571,8 @@ export default function InsumosPage() {
       }
       setCreateOpen(false);
       setDraftItems([]);
+      setCreatePhoto(null);
+      setPhotoError(null);
       refresh();
     } catch (err) {
       const message = describeError(err);
@@ -427,7 +581,7 @@ export default function InsumosPage() {
     } finally {
       setCreating(false);
     }
-  }, [creating, createClientId, createDate, draftItems, toast, refresh]);
+  }, [creating, createClientId, createDate, draftItems, createPhoto, toast, refresh, isAdmin]);
 
   /* ----- Tables ----- */
   const stockColumns: DataTableColumn<StockDTO>[] = [
@@ -489,7 +643,11 @@ export default function InsumosPage() {
     <DashboardLayout
       title="Insumos"
       sidebarItems={navItems}
-      breadcrumb="Recepción de stock y control de partes"
+      breadcrumb={
+        isAdmin
+          ? "Recepción de stock y control de partes"
+          : "Ingreso de stock y control de partes"
+      }
     >
       <HeroBand
         kicker={isAdmin ? "Recepción y control de stock" : "Trazabilidad de tus insumos"}
@@ -548,34 +706,34 @@ export default function InsumosPage() {
       {!isAdmin && clients.length > 1 && (
         <Alert tone="info" title="Seleccioná un cliente" className="mb-5">
           Tu sesión no está asociada a un único cliente, así que elegí el cliente cuyo
-          stock y recepciones querés ver.
+          stock e ingresos querés ver.
         </Alert>
       )}
 
-      {/* KPI band */}
-      <section className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <KpiCard
-          label="Ingresos por validar"
-          value={pendingReceptions.length}
-          delta="Esperando decisión"
-          tone="wheat"
-          icon={<InboxIcon className="h-5 w-5" />}
-        />
-        <KpiCard
-          label="Recepciones registradas"
-          value={visibleReceptions.length}
-          delta={isAdmin ? "De todos los clientes" : scopeClientName ?? "Mi cliente"}
-          tone="slate"
-          icon={<InputsIcon className="h-5 w-5" />}
-        />
-        <KpiCard
-          label="Insumos con stock"
-          value={stock.length}
-          delta={scopeClientName ?? "Seleccioná un cliente"}
-          tone="green"
-          icon={<InputsIcon className="h-5 w-5" />}
-        />
-        {isAdmin ? (
+      {/* KPI band (ADMIN only): the client view goes straight to its sections. */}
+      {isAdmin && (
+        <section className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <KpiCard
+            label="Ingresos por validar"
+            value={pendingReceptions.length}
+            delta="Esperando decisión"
+            tone="wheat"
+            icon={<InboxIcon className="h-5 w-5" />}
+          />
+          <KpiCard
+            label="Recepciones registradas"
+            value={visibleReceptions.length}
+            delta="De todos los clientes"
+            tone="slate"
+            icon={<InputsIcon className="h-5 w-5" />}
+          />
+          <KpiCard
+            label="Insumos con stock"
+            value={stock.length}
+            delta={scopeClientName ?? "Seleccioná un cliente"}
+            tone="green"
+            icon={<InputsIcon className="h-5 w-5" />}
+          />
           <KpiCard
             label="Clientes"
             value={clients.length}
@@ -583,16 +741,8 @@ export default function InsumosPage() {
             tone="earth"
             icon={<PeopleIcon className="h-5 w-5" />}
           />
-        ) : (
-          <KpiCard
-            label="Recepciones validadas"
-            value={validatedCount}
-            delta="Con stock acreditado"
-            tone="green"
-            icon={<CheckIcon className="h-5 w-5" />}
-          />
-        )}
-      </section>
+        </section>
+      )}
 
       {/* Stock */}
       <Card className="mb-5 overflow-hidden">
@@ -602,7 +752,9 @@ export default function InsumosPage() {
               {isAdmin ? "Stock por cliente" : "Mi stock"}
             </h3>
             <p className="text-sm text-ink-soft">
-              Disponible según recepciones validadas.
+              {isAdmin
+                ? "Disponible según recepciones validadas."
+                : "Disponible según ingresos validados."}
             </p>
           </div>
           {isAdmin ? (
@@ -708,7 +860,7 @@ export default function InsumosPage() {
       ) : (
         <Card className="overflow-hidden">
           <CardHeader
-            title="Mis recepciones"
+            title="Mis ingresos"
             subtitle="Estado de cada ingreso que registraste."
             action={
               <Badge tone={pendingReceptions.length > 0 ? "wheat" : "green"}>
@@ -727,8 +879,8 @@ export default function InsumosPage() {
             emptyState={
               <EmptyState
                 icon={<InboxIcon />}
-                title="Sin recepciones"
-                subtitle="Las recepciones registradas aparecerán acá."
+                title="Sin ingresos"
+                subtitle="Los ingresos registrados aparecerán acá."
               />
             }
           />
@@ -739,7 +891,13 @@ export default function InsumosPage() {
       <Drawer
         open={detailOpen}
         onClose={closeDetail}
-        title={selectedReception ? `Recepción · ${selectedReception.clientName}` : "Recepción"}
+        title={
+          selectedReception
+            ? `${isAdmin ? "Recepción" : "Ingreso"} · ${selectedReception.clientName}`
+            : isAdmin
+              ? "Recepción"
+              : "Ingreso"
+        }
         subtitle={selectedReception ? fmtDate(selectedReception.date) : undefined}
         widthClass="max-w-2xl"
         footer={
@@ -789,7 +947,7 @@ export default function InsumosPage() {
               </h4>
               {!hasItems ? (
                 <p className="rounded-lg border border-dashed border-agro-border px-3 py-4 text-center text-sm text-ink-soft">
-                  Esta recepción no tiene insumos.
+                  {isAdmin ? "Esta recepción" : "Este ingreso"} no tiene insumos.
                 </p>
               ) : (
                 <ul className="divide-y divide-agro-border rounded-lg border border-agro-border">
@@ -868,6 +1026,13 @@ export default function InsumosPage() {
                   })}
                 </ul>
               )}
+            </div>
+
+            <div>
+              <h4 className="mb-2 text-sm font-display font-semibold text-ink">
+                Fotos
+              </h4>
+              <ReceptionPhotoGallery photos={selectedReception.photos ?? []} />
             </div>
 
             {canResolve && (
@@ -1026,6 +1191,58 @@ export default function InsumosPage() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div>
+            <span className="mb-1.5 block text-xs font-semibold text-ink-faint">
+              Foto del remito (opcional)
+            </span>
+            {createPhoto ? (
+              <div className="flex items-start gap-3 rounded-lg border border-agro-border bg-base-subtle/40 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={createPhoto.dataUrl}
+                  alt="Vista previa de la foto adjunta"
+                  className="h-24 w-32 shrink-0 rounded-lg border border-agro-border object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-ink">{createPhoto.name}</p>
+                  <p className="mt-0.5 text-xs text-ink-soft">
+                    Se subirá comprimida al registrar el ingreso.
+                  </p>
+                  <div className="mt-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setCreatePhoto(null);
+                        setPhotoError(null);
+                      }}
+                      disabled={creating || preparingPhoto}
+                    >
+                      <XIcon className="h-4 w-4" />
+                      Quitar foto
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-agro-border bg-base-subtle/30 px-4 py-5 text-sm font-medium text-ink-soft transition-colors hover:border-agro-border-strong hover:text-ink">
+                <CameraIcon className="h-5 w-5" />
+                {preparingPhoto ? "Procesando imagen…" : "Adjuntar foto"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(event) => void handlePhotoChange(event)}
+                  disabled={creating || preparingPhoto}
+                />
+              </label>
+            )}
+            {photoError && (
+              <p role="alert" className="mt-1.5 text-xs font-medium text-agro-earth-dark">
+                {photoError}
+              </p>
+            )}
           </div>
         </div>
       </Modal>

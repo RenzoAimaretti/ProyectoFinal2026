@@ -1,4 +1,21 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:3001";
+export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:3001";
+
+/**
+ * Resolves a server-relative asset path (e.g. `/uploads/receptions/x.jpg`)
+ * against the API base. Absolute URLs and `data:`/`blob:` URLs are returned
+ * unchanged, so callers can safely render `<img src={assetUrl(photo.url)} />`.
+ */
+export function assetUrl(url: string): string {
+  if (!url) return url;
+  if (
+    /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(url) ||
+    url.startsWith("data:") ||
+    url.startsWith("blob:")
+  ) {
+    return url;
+  }
+  return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+}
 
 /* ------------------------------------------------------------------ */
 /* Auth session (client-side, localStorage)                            */
@@ -563,6 +580,16 @@ export type ReceptionItemDTO = {
   unit: string;
 };
 
+export type ReceptionPhotoDTO = {
+  id: string;
+  /** Server-relative path (e.g. `/uploads/receptions/x.jpg`); use `assetUrl`. */
+  url: string;
+  orderIndex: number;
+  entityType?: string;
+  entityId?: string;
+  createdAt?: string;
+};
+
 export type ReceptionDTO = {
   id: string;
   clientId: string;
@@ -573,6 +600,8 @@ export type ReceptionDTO = {
   validatedAt: string | null;
   createdAt: string;
   items: ReceptionItemDTO[];
+  /** Photos attached to the reception. Optional for backward compatibility. */
+  photos?: ReceptionPhotoDTO[];
 };
 
 export type CreateReceptionBody = {
@@ -607,6 +636,22 @@ export function validateReception(
 
 export function rejectReception(id: string, reason: string): Promise<ReceptionDTO> {
   return apiPost<ReceptionDTO>(`/receptions/${id}/reject`, { reason });
+}
+
+/** Attaches a compressed image (data URL) to a reception. */
+export function uploadReceptionPhoto(
+  id: string,
+  dataUrl: string,
+  orderIndex?: number,
+): Promise<ReceptionPhotoDTO> {
+  return apiPost<ReceptionPhotoDTO>(`/receptions/${id}/photos`, {
+    dataUrl,
+    orderIndex,
+  });
+}
+
+export function listReceptionPhotos(id: string): Promise<ReceptionPhotoDTO[]> {
+  return apiGet<ReceptionPhotoDTO[]>(`/receptions/${id}/photos`);
 }
 
 /* ------------------------------------------------------------------ */
