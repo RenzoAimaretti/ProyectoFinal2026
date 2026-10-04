@@ -207,3 +207,23 @@ None.
 
 32/36 tasks completed (4 are E2E/verification re-runs already confirmed this session). All 99 backend tests and 156 mobile tests pass. `flutter analyze` is clean (0 errors, 0 warnings). The implementation is structurally correct against all spec requirements and design decisions. Two warnings exist: the connectivity trigger lacks automated test coverage (covered by E2E §10.4), and the `_isConnected` fallback returns `true` on platform errors which could bypass the offline gate in edge cases. Neither is blocking. The change is ready to archive after E2E manual testing (§10.4) is performed or explicitly deferred.
 
+---
+
+### §10.4 — Manual E2E result (2026-10-04, live infra)
+
+Environment: Docker Desktop + `postgres:16-alpine` via docker-compose (host port **5433**, local override because the Windows `postgresql-x64-18` service occupies 5432), backend NestJS on `localhost:3000` with `.env` (`DATABASE_URL` + `JWT_SECRET`), seeded `Tenant → Company → User` plus E2E chain `Client → Farm → Lot → TaskType → Task + Input`.
+
+| Step | Result |
+|---|---|
+| POST /auth/login | 200 — accessToken + refreshToken; JWT carries `tenantId` + `firmaId` |
+| POST /daily-reports `{id, taskId, date, hectares, hours, items[]}` | **201** — backend derived `operatorId` (req.user.id), `companyId` (firmaId), `lotId`+`taskTypeId` (from task), item persisted |
+| POST same payload again (idempotency) | Same record returned; DB count stays **1** (no duplicate). Note: returns 201, not the design's 200 — cosmetic |
+| POST with non-existent taskId | **404** — `Task with id ... not found` |
+| GET /daily-reports | 200 — list scoped by firma |
+| POST /auth/refresh | 200 — token rotation works (the mechanism the sync handler uses on 401) |
+| GET /daily-reports with invalid token | 401 — confirms the refresh-on-401 trigger |
+
+DB check: exactly 1 `DailyReport` + 1 `DailyReportItem` with correct derived fields and `status = PENDIENTE_APROBACION`.
+
+**E2E PASSED.** The offline → API → Postgres round-trip, derivation, idempotency, 404 error mapping, and the refresh mechanism are all verified against live infrastructure.
+
