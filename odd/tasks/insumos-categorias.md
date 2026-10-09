@@ -284,7 +284,7 @@ The rename is pure mechanical work on a tree that has no category code yet.
     they pin the behaviour, including that a foreign category leaves the existing
     set untouched because the replace call is never reached.
 
-- [ ] **T05 — Mobile filter**
+- [x] **T05 — Mobile filter**
   - Route: delegated writer.
   - `Inputs.categoryId` column in drift, mapper, DAO query filtering by the
     labour's categories, picker warning for a forced out-of-set value.
@@ -292,6 +292,33 @@ The rename is pure mechanical work on a tree that has no category code yet.
     pull still does not exist, so this task has to settle how the labour-to-
     categories mapping gets offline at all.
   - Check: `flutter test`; regenerated drift code committed.
+  - **Done.** Commit `b2ae81e` on `feat/mobile-input-picker-filter`: 26 files.
+    Drift schema 4 with an explicit upgrade step, a pure-domain compatibility
+    rule, a nullable `inputs.category_id`, the seeder carrying the same eight
+    categories and assignments as the backend, and the picker marking
+    out-of-set choices while keeping them selectable with an amber warning.
+  - Evidence: the mobile suite goes from **156 tests on `dev` to 166 here**, all
+    passing; `flutter analyze` adds no finding beyond the `use_super_parameters`
+    info the repository already carries in eighteen places, older DAOs included;
+    the domain boundary test still passes. The compatibility tests are named for
+    the two product rules, "empty admitted set permits every input" and "unknown
+    input category remains compatible".
+  - **The labour is not chosen in this form.** The form has no labour picker: the
+    labour comes from the task being reported, so the filter keys off
+    `task.laborTypeId`. That is simpler and more faithful than a picker would
+    have been, and it is why the filter could be built at all without touching the
+    form's flow.
+  - **Not covered: the version 3 to 4 upgrade itself.** Reproducing a version 3
+    database faithfully needs drift's schema-verification tooling (`drift_dev
+    schema` plus a `schema_dir` and `SchemaVerifier`), which this project does not
+    configure, and SQLite refuses `ALTER TABLE ... DROP COLUMN` on a column that
+    takes part in a foreign key, so a hand-rolled rollback cannot stand in for it.
+    The new test covers the declared schema and the foreign-key enforcement
+    instead. Setting that tooling up is its own task.
+  - **Still true: the feature cannot work in production yet.** The versioned
+    catalogue pull does not exist, so the categories and the labour-to-category
+    assignments reach a device only through the development seeder. Against real
+    tenant data the filter has nothing to read.
 
 - [x] **T06 — Admin screens for categories and labour types**
   - Route: delegated writer; frontend work.
@@ -411,6 +438,22 @@ The rename is pure mechanical work on a tree that has no category code yet.
   `prisma/seed.ts`. Defaults therefore reach existing tenants through the
   migration backfill and the seeded tenant through the seed. Any future
   provisioning flow has to create them itself.
+- T05 done and committed as `b2ae81e` on `feat/mobile-input-picker-filter`.
+- **Blocker found and fixed before T05 could start: this machine's Flutter was too
+  old for the project.** The committed `pubspec.lock` declares
+  `dart: ">=3.13.0 <4.0.0"` and `flutter: ">=3.44.0"` through `drift_flutter
+  0.3.1` and `sqlite3_flutter_libs 0.6.0+eol`, while the machine had Flutter
+  3.35.4 and Dart 3.9.2. No Flutter command worked at all: not `pub get`, not
+  `test`, not `analyze`, not `build_runner`. `flutter upgrade` moved it to 3.47.7
+  and `pubspec.lock` came back unchanged, which confirms the lock was right and
+  only the SDK was stale. Anyone working on mobile needs Flutter at or above
+  3.44.
+- The delegated writer had reported its work as partial for exactly this reason,
+  with a compile error standing in for a behavioural RED, which is the second time
+  in this sprint that a writer's self-report needed auditing.
+- **Lesson taken:** checking that a tool exists is not checking that it satisfies
+  the project. `flutter --version` was read earlier and taken as readiness without
+  comparing it to the constraint the lockfile already declared.
 - Scoping T04 surfaced that the admin cannot administer any of this: its API
   client exposes only `apiGet` for `/labor-types` and `/inputs`, there is no
   labour-type screen, and there is no input-creation form. T04 was therefore cut

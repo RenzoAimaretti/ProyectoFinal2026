@@ -22,6 +22,7 @@ import 'package:mobile/domain/repositories/company_reader.dart';
 import 'package:mobile/domain/repositories/farm_reader.dart';
 import 'package:mobile/domain/repositories/input_reader.dart';
 import 'package:mobile/domain/repositories/labor_type_reader.dart';
+import 'package:mobile/domain/repositories/labor_type_category_reader.dart';
 import 'package:mobile/domain/repositories/lot_reader.dart';
 import 'package:mobile/domain/repositories/machine_reader.dart';
 import 'package:mobile/domain/repositories/reception_repository.dart';
@@ -35,6 +36,14 @@ import 'package:mobile/domain/repositories/task_reader.dart';
 ///
 /// Cada fake implementa el puerto de dominio con almacenamiento in-memory.
 /// No usan drift ni Flutter — solo Dart puro.
+
+class FakeLaborTypeCategoryReader implements LaborTypeCategoryReader {
+  final Map<String, Set<String>> categories = {};
+
+  @override
+  Stream<Set<String>> watchCategoryIds(String laborTypeId) =>
+      Stream.value(categories[laborTypeId] ?? <String>{});
+}
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 

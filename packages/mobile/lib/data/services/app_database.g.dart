@@ -2611,11 +2611,12 @@ class LaborTypesCompanion extends UpdateCompanion<LaborType> {
   }
 }
 
-class $InputsTable extends Inputs with TableInfo<$InputsTable, Input> {
+class $InputCategoriesTable extends InputCategories
+    with TableInfo<$InputCategoriesTable, InputCategory> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $InputsTable(this.attachedDatabase, [this._alias]);
+  $InputCategoriesTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -2630,15 +2631,6 @@ class $InputsTable extends Inputs with TableInfo<$InputsTable, Input> {
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
     'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
-  @override
-  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
-    'unit',
     aliasedName,
     false,
     type: DriftSqlType.string,
@@ -2712,7 +2704,712 @@ class $InputsTable extends Inputs with TableInfo<$InputsTable, Input> {
   List<GeneratedColumn> get $columns => [
     id,
     name,
+    active,
+    createdAt,
+    updatedAt,
+    version,
+    deleted,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'input_categories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InputCategory> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('active')) {
+      context.handle(
+        _activeMeta,
+        active.isAcceptableOrUnknown(data['active']!, _activeMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  InputCategory map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InputCategory(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      active: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}active'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+    );
+  }
+
+  @override
+  $InputCategoriesTable createAlias(String alias) {
+    return $InputCategoriesTable(attachedDatabase, alias);
+  }
+}
+
+class InputCategory extends DataClass implements Insertable<InputCategory> {
+  final String id;
+  final String name;
+  final bool active;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final int version;
+  final bool deleted;
+  const InputCategory({
+    required this.id,
+    required this.name,
+    required this.active,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.version,
+    required this.deleted,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['active'] = Variable<bool>(active);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['version'] = Variable<int>(version);
+    map['deleted'] = Variable<bool>(deleted);
+    return map;
+  }
+
+  InputCategoriesCompanion toCompanion(bool nullToAbsent) {
+    return InputCategoriesCompanion(
+      id: Value(id),
+      name: Value(name),
+      active: Value(active),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      version: Value(version),
+      deleted: Value(deleted),
+    );
+  }
+
+  factory InputCategory.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InputCategory(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      active: serializer.fromJson<bool>(json['active']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'active': serializer.toJson<bool>(active),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'version': serializer.toJson<int>(version),
+      'deleted': serializer.toJson<bool>(deleted),
+    };
+  }
+
+  InputCategory copyWith({
+    String? id,
+    String? name,
+    bool? active,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    int? version,
+    bool? deleted,
+  }) => InputCategory(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    active: active ?? this.active,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    version: version ?? this.version,
+    deleted: deleted ?? this.deleted,
+  );
+  InputCategory copyWithCompanion(InputCategoriesCompanion data) {
+    return InputCategory(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      active: data.active.present ? data.active.value : this.active,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      version: data.version.present ? data.version.value : this.version,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InputCategory(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('active: $active, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('version: $version, ')
+          ..write('deleted: $deleted')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, active, createdAt, updatedAt, version, deleted);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InputCategory &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.active == this.active &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.version == this.version &&
+          other.deleted == this.deleted);
+}
+
+class InputCategoriesCompanion extends UpdateCompanion<InputCategory> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<bool> active;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> version;
+  final Value<bool> deleted;
+  final Value<int> rowid;
+  const InputCategoriesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.active = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InputCategoriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.active = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<InputCategory> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<bool>? active,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? version,
+    Expression<bool>? deleted,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (active != null) 'active': active,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (version != null) 'version': version,
+      if (deleted != null) 'deleted': deleted,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InputCategoriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<bool>? active,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? version,
+    Value<bool>? deleted,
+    Value<int>? rowid,
+  }) {
+    return InputCategoriesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      active: active ?? this.active,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      version: version ?? this.version,
+      deleted: deleted ?? this.deleted,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (active.present) {
+      map['active'] = Variable<bool>(active.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InputCategoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('active: $active, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('version: $version, ')
+          ..write('deleted: $deleted, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LaborTypeCategoriesTable extends LaborTypeCategories
+    with TableInfo<$LaborTypeCategoriesTable, LaborTypeCategory> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LaborTypeCategoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _laborTypeIdMeta = const VerificationMeta(
+    'laborTypeId',
+  );
+  @override
+  late final GeneratedColumn<String> laborTypeId = GeneratedColumn<String>(
+    'labor_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES labor_types (id)',
+    ),
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<String> categoryId = GeneratedColumn<String>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES input_categories (id)',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [laborTypeId, categoryId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'labor_type_categories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LaborTypeCategory> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('labor_type_id')) {
+      context.handle(
+        _laborTypeIdMeta,
+        laborTypeId.isAcceptableOrUnknown(
+          data['labor_type_id']!,
+          _laborTypeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_laborTypeIdMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {laborTypeId, categoryId};
+  @override
+  LaborTypeCategory map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LaborTypeCategory(
+      laborTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}labor_type_id'],
+      )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_id'],
+      )!,
+    );
+  }
+
+  @override
+  $LaborTypeCategoriesTable createAlias(String alias) {
+    return $LaborTypeCategoriesTable(attachedDatabase, alias);
+  }
+}
+
+class LaborTypeCategory extends DataClass
+    implements Insertable<LaborTypeCategory> {
+  final String laborTypeId;
+  final String categoryId;
+  const LaborTypeCategory({
+    required this.laborTypeId,
+    required this.categoryId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['labor_type_id'] = Variable<String>(laborTypeId);
+    map['category_id'] = Variable<String>(categoryId);
+    return map;
+  }
+
+  LaborTypeCategoriesCompanion toCompanion(bool nullToAbsent) {
+    return LaborTypeCategoriesCompanion(
+      laborTypeId: Value(laborTypeId),
+      categoryId: Value(categoryId),
+    );
+  }
+
+  factory LaborTypeCategory.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LaborTypeCategory(
+      laborTypeId: serializer.fromJson<String>(json['laborTypeId']),
+      categoryId: serializer.fromJson<String>(json['categoryId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'laborTypeId': serializer.toJson<String>(laborTypeId),
+      'categoryId': serializer.toJson<String>(categoryId),
+    };
+  }
+
+  LaborTypeCategory copyWith({String? laborTypeId, String? categoryId}) =>
+      LaborTypeCategory(
+        laborTypeId: laborTypeId ?? this.laborTypeId,
+        categoryId: categoryId ?? this.categoryId,
+      );
+  LaborTypeCategory copyWithCompanion(LaborTypeCategoriesCompanion data) {
+    return LaborTypeCategory(
+      laborTypeId: data.laborTypeId.present
+          ? data.laborTypeId.value
+          : this.laborTypeId,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LaborTypeCategory(')
+          ..write('laborTypeId: $laborTypeId, ')
+          ..write('categoryId: $categoryId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(laborTypeId, categoryId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LaborTypeCategory &&
+          other.laborTypeId == this.laborTypeId &&
+          other.categoryId == this.categoryId);
+}
+
+class LaborTypeCategoriesCompanion extends UpdateCompanion<LaborTypeCategory> {
+  final Value<String> laborTypeId;
+  final Value<String> categoryId;
+  final Value<int> rowid;
+  const LaborTypeCategoriesCompanion({
+    this.laborTypeId = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LaborTypeCategoriesCompanion.insert({
+    required String laborTypeId,
+    required String categoryId,
+    this.rowid = const Value.absent(),
+  }) : laborTypeId = Value(laborTypeId),
+       categoryId = Value(categoryId);
+  static Insertable<LaborTypeCategory> custom({
+    Expression<String>? laborTypeId,
+    Expression<String>? categoryId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (laborTypeId != null) 'labor_type_id': laborTypeId,
+      if (categoryId != null) 'category_id': categoryId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LaborTypeCategoriesCompanion copyWith({
+    Value<String>? laborTypeId,
+    Value<String>? categoryId,
+    Value<int>? rowid,
+  }) {
+    return LaborTypeCategoriesCompanion(
+      laborTypeId: laborTypeId ?? this.laborTypeId,
+      categoryId: categoryId ?? this.categoryId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (laborTypeId.present) {
+      map['labor_type_id'] = Variable<String>(laborTypeId.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<String>(categoryId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LaborTypeCategoriesCompanion(')
+          ..write('laborTypeId: $laborTypeId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $InputsTable extends Inputs with TableInfo<$InputsTable, Input> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InputsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => const Uuid().v4(),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<String> categoryId = GeneratedColumn<String>(
+    'category_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES input_categories (id)',
+    ),
+  );
+  static const VerificationMeta _activeMeta = const VerificationMeta('active');
+  @override
+  late final GeneratedColumn<bool> active = GeneratedColumn<bool>(
+    'active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
     unit,
+    categoryId,
     active,
     createdAt,
     updatedAt,
@@ -2749,6 +3446,12 @@ class $InputsTable extends Inputs with TableInfo<$InputsTable, Input> {
       );
     } else if (isInserting) {
       context.missing(_unitMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
     }
     if (data.containsKey('active')) {
       context.handle(
@@ -2801,6 +3504,10 @@ class $InputsTable extends Inputs with TableInfo<$InputsTable, Input> {
         DriftSqlType.string,
         data['${effectivePrefix}unit'],
       )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_id'],
+      ),
       active: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}active'],
@@ -2834,6 +3541,7 @@ class Input extends DataClass implements Insertable<Input> {
   final String id;
   final String name;
   final String unit;
+  final String? categoryId;
   final bool active;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -2843,6 +3551,7 @@ class Input extends DataClass implements Insertable<Input> {
     required this.id,
     required this.name,
     required this.unit,
+    this.categoryId,
     required this.active,
     required this.createdAt,
     required this.updatedAt,
@@ -2855,6 +3564,9 @@ class Input extends DataClass implements Insertable<Input> {
     map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
     map['unit'] = Variable<String>(unit);
+    if (!nullToAbsent || categoryId != null) {
+      map['category_id'] = Variable<String>(categoryId);
+    }
     map['active'] = Variable<bool>(active);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -2868,6 +3580,9 @@ class Input extends DataClass implements Insertable<Input> {
       id: Value(id),
       name: Value(name),
       unit: Value(unit),
+      categoryId: categoryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryId),
       active: Value(active),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -2885,6 +3600,7 @@ class Input extends DataClass implements Insertable<Input> {
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       unit: serializer.fromJson<String>(json['unit']),
+      categoryId: serializer.fromJson<String?>(json['categoryId']),
       active: serializer.fromJson<bool>(json['active']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -2899,6 +3615,7 @@ class Input extends DataClass implements Insertable<Input> {
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'unit': serializer.toJson<String>(unit),
+      'categoryId': serializer.toJson<String?>(categoryId),
       'active': serializer.toJson<bool>(active),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -2911,6 +3628,7 @@ class Input extends DataClass implements Insertable<Input> {
     String? id,
     String? name,
     String? unit,
+    Value<String?> categoryId = const Value.absent(),
     bool? active,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -2920,6 +3638,7 @@ class Input extends DataClass implements Insertable<Input> {
     id: id ?? this.id,
     name: name ?? this.name,
     unit: unit ?? this.unit,
+    categoryId: categoryId.present ? categoryId.value : this.categoryId,
     active: active ?? this.active,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -2931,6 +3650,9 @@ class Input extends DataClass implements Insertable<Input> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       unit: data.unit.present ? data.unit.value : this.unit,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
       active: data.active.present ? data.active.value : this.active,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -2945,6 +3667,7 @@ class Input extends DataClass implements Insertable<Input> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('unit: $unit, ')
+          ..write('categoryId: $categoryId, ')
           ..write('active: $active, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -2959,6 +3682,7 @@ class Input extends DataClass implements Insertable<Input> {
     id,
     name,
     unit,
+    categoryId,
     active,
     createdAt,
     updatedAt,
@@ -2972,6 +3696,7 @@ class Input extends DataClass implements Insertable<Input> {
           other.id == this.id &&
           other.name == this.name &&
           other.unit == this.unit &&
+          other.categoryId == this.categoryId &&
           other.active == this.active &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -2983,6 +3708,7 @@ class InputsCompanion extends UpdateCompanion<Input> {
   final Value<String> id;
   final Value<String> name;
   final Value<String> unit;
+  final Value<String?> categoryId;
   final Value<bool> active;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -2993,6 +3719,7 @@ class InputsCompanion extends UpdateCompanion<Input> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.unit = const Value.absent(),
+    this.categoryId = const Value.absent(),
     this.active = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -3004,6 +3731,7 @@ class InputsCompanion extends UpdateCompanion<Input> {
     this.id = const Value.absent(),
     required String name,
     required String unit,
+    this.categoryId = const Value.absent(),
     this.active = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -3016,6 +3744,7 @@ class InputsCompanion extends UpdateCompanion<Input> {
     Expression<String>? id,
     Expression<String>? name,
     Expression<String>? unit,
+    Expression<String>? categoryId,
     Expression<bool>? active,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -3027,6 +3756,7 @@ class InputsCompanion extends UpdateCompanion<Input> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (unit != null) 'unit': unit,
+      if (categoryId != null) 'category_id': categoryId,
       if (active != null) 'active': active,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -3040,6 +3770,7 @@ class InputsCompanion extends UpdateCompanion<Input> {
     Value<String>? id,
     Value<String>? name,
     Value<String>? unit,
+    Value<String?>? categoryId,
     Value<bool>? active,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -3051,6 +3782,7 @@ class InputsCompanion extends UpdateCompanion<Input> {
       id: id ?? this.id,
       name: name ?? this.name,
       unit: unit ?? this.unit,
+      categoryId: categoryId ?? this.categoryId,
       active: active ?? this.active,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -3071,6 +3803,9 @@ class InputsCompanion extends UpdateCompanion<Input> {
     }
     if (unit.present) {
       map['unit'] = Variable<String>(unit.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<String>(categoryId.value);
     }
     if (active.present) {
       map['active'] = Variable<bool>(active.value);
@@ -3099,6 +3834,7 @@ class InputsCompanion extends UpdateCompanion<Input> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('unit: $unit, ')
+          ..write('categoryId: $categoryId, ')
           ..write('active: $active, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -10333,6 +11069,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FarmsTable farms = $FarmsTable(this);
   late final $LotsTable lots = $LotsTable(this);
   late final $LaborTypesTable laborTypes = $LaborTypesTable(this);
+  late final $InputCategoriesTable inputCategories = $InputCategoriesTable(
+    this,
+  );
+  late final $LaborTypeCategoriesTable laborTypeCategories =
+      $LaborTypeCategoriesTable(this);
   late final $InputsTable inputs = $InputsTable(this);
   late final $MachinesTable machines = $MachinesTable(this);
   late final $SessionsTable sessions = $SessionsTable(this);
@@ -10358,6 +11099,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxLotsFarmId = Index(
     'idx_lots_farm_id',
     'CREATE INDEX idx_lots_farm_id ON lots (farm_id)',
+  );
+  late final Index idxLaborTypeCategoriesCategoryId = Index(
+    'idx_labor_type_categories_category_id',
+    'CREATE INDEX idx_labor_type_categories_category_id ON labor_type_categories (category_id)',
   );
   late final Index idxMachinesCompanyId = Index(
     'idx_machines_company_id',
@@ -10428,6 +11173,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final FarmsDao farmsDao = FarmsDao(this as AppDatabase);
   late final LotsDao lotsDao = LotsDao(this as AppDatabase);
   late final LaborTypesDao laborTypesDao = LaborTypesDao(this as AppDatabase);
+  late final InputCategoriesDao inputCategoriesDao = InputCategoriesDao(
+    this as AppDatabase,
+  );
+  late final LaborTypeCategoriesDao laborTypeCategoriesDao =
+      LaborTypeCategoriesDao(this as AppDatabase);
   late final InputsDao inputsDao = InputsDao(this as AppDatabase);
   late final MachinesDao machinesDao = MachinesDao(this as AppDatabase);
   late final RecipesDao recipesDao = RecipesDao(this as AppDatabase);
@@ -10452,6 +11202,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     farms,
     lots,
     laborTypes,
+    inputCategories,
+    laborTypeCategories,
     inputs,
     machines,
     sessions,
@@ -10469,6 +11221,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     taskOperators,
     idxFarmsClientId,
     idxLotsFarmId,
+    idxLaborTypeCategoriesCategoryId,
     idxMachinesCompanyId,
     idxRecipesLotId,
     idxRecipeItemsRecipeId,
@@ -12793,6 +13546,27 @@ final class $$LaborTypesTableReferences
     extends BaseReferences<_$AppDatabase, $LaborTypesTable, LaborType> {
   $$LaborTypesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
+  static MultiTypedResultKey<$LaborTypeCategoriesTable, List<LaborTypeCategory>>
+  _laborTypeCategoriesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.laborTypeCategories,
+        aliasName: 'labor_types__id__labor_type_categories__labor_type_id',
+      );
+
+  $$LaborTypeCategoriesTableProcessedTableManager get laborTypeCategoriesRefs {
+    final manager = $$LaborTypeCategoriesTableTableManager(
+      $_db,
+      $_db.laborTypeCategories,
+    ).filter((f) => f.laborTypeId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _laborTypeCategoriesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$TasksTable, List<Task>> _tasksRefsTable(
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
@@ -12874,6 +13648,31 @@ class $$LaborTypesTableFilterComposer
     column: $table.deleted,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> laborTypeCategoriesRefs(
+    Expression<bool> Function($$LaborTypeCategoriesTableFilterComposer f) f,
+  ) {
+    final $$LaborTypeCategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.laborTypeCategories,
+      getReferencedColumn: (t) => t.laborTypeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LaborTypeCategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.laborTypeCategories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 
   Expression<bool> tasksRefs(
     Expression<bool> Function($$TasksTableFilterComposer f) f,
@@ -13003,6 +13802,32 @@ class $$LaborTypesTableAnnotationComposer
   GeneratedColumn<bool> get deleted =>
       $composableBuilder(column: $table.deleted, builder: (column) => column);
 
+  Expression<T> laborTypeCategoriesRefs<T extends Object>(
+    Expression<T> Function($$LaborTypeCategoriesTableAnnotationComposer a) f,
+  ) {
+    final $$LaborTypeCategoriesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.laborTypeCategories,
+          getReferencedColumn: (t) => t.laborTypeId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LaborTypeCategoriesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.laborTypeCategories,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> tasksRefs<T extends Object>(
     Expression<T> Function($$TasksTableAnnotationComposer a) f,
   ) {
@@ -13067,7 +13892,11 @@ class $$LaborTypesTableTableManager
           $$LaborTypesTableUpdateCompanionBuilder,
           (LaborType, $$LaborTypesTableReferences),
           LaborType,
-          PrefetchHooks Function({bool tasksRefs, bool dailyReportsRefs})
+          PrefetchHooks Function({
+            bool laborTypeCategoriesRefs,
+            bool tasksRefs,
+            bool dailyReportsRefs,
+          })
         > {
   $$LaborTypesTableTableManager(_$AppDatabase db, $LaborTypesTable table)
     : super(
@@ -13129,16 +13958,42 @@ class $$LaborTypesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({tasksRefs = false, dailyReportsRefs = false}) {
+              ({
+                laborTypeCategoriesRefs = false,
+                tasksRefs = false,
+                dailyReportsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
+                    if (laborTypeCategoriesRefs) db.laborTypeCategories,
                     if (tasksRefs) db.tasks,
                     if (dailyReportsRefs) db.dailyReports,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
                     return [
+                      if (laborTypeCategoriesRefs)
+                        await $_getPrefetchedData<
+                          LaborType,
+                          $LaborTypesTable,
+                          LaborTypeCategory
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LaborTypesTableReferences
+                              ._laborTypeCategoriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LaborTypesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).laborTypeCategoriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.laborTypeId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (tasksRefs)
                         await $_getPrefetchedData<
                           LaborType,
@@ -13201,13 +14056,835 @@ typedef $$LaborTypesTableProcessedTableManager =
       $$LaborTypesTableUpdateCompanionBuilder,
       (LaborType, $$LaborTypesTableReferences),
       LaborType,
-      PrefetchHooks Function({bool tasksRefs, bool dailyReportsRefs})
+      PrefetchHooks Function({
+        bool laborTypeCategoriesRefs,
+        bool tasksRefs,
+        bool dailyReportsRefs,
+      })
+    >;
+typedef $$InputCategoriesTableCreateCompanionBuilder =
+    InputCategoriesCompanion Function({
+      Value<String> id,
+      required String name,
+      Value<bool> active,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> version,
+      Value<bool> deleted,
+      Value<int> rowid,
+    });
+typedef $$InputCategoriesTableUpdateCompanionBuilder =
+    InputCategoriesCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<bool> active,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> version,
+      Value<bool> deleted,
+      Value<int> rowid,
+    });
+
+final class $$InputCategoriesTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $InputCategoriesTable, InputCategory> {
+  $$InputCategoriesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$LaborTypeCategoriesTable, List<LaborTypeCategory>>
+  _laborTypeCategoriesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.laborTypeCategories,
+        aliasName: 'input_categories__id__labor_type_categories__category_id',
+      );
+
+  $$LaborTypeCategoriesTableProcessedTableManager get laborTypeCategoriesRefs {
+    final manager = $$LaborTypeCategoriesTableTableManager(
+      $_db,
+      $_db.laborTypeCategories,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _laborTypeCategoriesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$InputsTable, List<Input>> _inputsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.inputs,
+    aliasName: 'input_categories__id__inputs__category_id',
+  );
+
+  $$InputsTableProcessedTableManager get inputsRefs {
+    final manager = $$InputsTableTableManager(
+      $_db,
+      $_db.inputs,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_inputsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$InputCategoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $InputCategoriesTable> {
+  $$InputCategoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get active => $composableBuilder(
+    column: $table.active,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> laborTypeCategoriesRefs(
+    Expression<bool> Function($$LaborTypeCategoriesTableFilterComposer f) f,
+  ) {
+    final $$LaborTypeCategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.laborTypeCategories,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LaborTypeCategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.laborTypeCategories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> inputsRefs(
+    Expression<bool> Function($$InputsTableFilterComposer f) f,
+  ) {
+    final $$InputsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.inputs,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InputsTableFilterComposer(
+            $db: $db,
+            $table: $db.inputs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$InputCategoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $InputCategoriesTable> {
+  $$InputCategoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get active => $composableBuilder(
+    column: $table.active,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$InputCategoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $InputCategoriesTable> {
+  $$InputCategoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<bool> get active =>
+      $composableBuilder(column: $table.active, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  Expression<T> laborTypeCategoriesRefs<T extends Object>(
+    Expression<T> Function($$LaborTypeCategoriesTableAnnotationComposer a) f,
+  ) {
+    final $$LaborTypeCategoriesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.laborTypeCategories,
+          getReferencedColumn: (t) => t.categoryId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LaborTypeCategoriesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.laborTypeCategories,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> inputsRefs<T extends Object>(
+    Expression<T> Function($$InputsTableAnnotationComposer a) f,
+  ) {
+    final $$InputsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.inputs,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InputsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.inputs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$InputCategoriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $InputCategoriesTable,
+          InputCategory,
+          $$InputCategoriesTableFilterComposer,
+          $$InputCategoriesTableOrderingComposer,
+          $$InputCategoriesTableAnnotationComposer,
+          $$InputCategoriesTableCreateCompanionBuilder,
+          $$InputCategoriesTableUpdateCompanionBuilder,
+          (InputCategory, $$InputCategoriesTableReferences),
+          InputCategory,
+          PrefetchHooks Function({
+            bool laborTypeCategoriesRefs,
+            bool inputsRefs,
+          })
+        > {
+  $$InputCategoriesTableTableManager(
+    _$AppDatabase db,
+    $InputCategoriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InputCategoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$InputCategoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$InputCategoriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<bool> active = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InputCategoriesCompanion(
+                id: id,
+                name: name,
+                active: active,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                version: version,
+                deleted: deleted,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String name,
+                Value<bool> active = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InputCategoriesCompanion.insert(
+                id: id,
+                name: name,
+                active: active,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                version: version,
+                deleted: deleted,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$InputCategoriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({laborTypeCategoriesRefs = false, inputsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (laborTypeCategoriesRefs) db.laborTypeCategories,
+                    if (inputsRefs) db.inputs,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (laborTypeCategoriesRefs)
+                        await $_getPrefetchedData<
+                          InputCategory,
+                          $InputCategoriesTable,
+                          LaborTypeCategory
+                        >(
+                          currentTable: table,
+                          referencedTable: $$InputCategoriesTableReferences
+                              ._laborTypeCategoriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$InputCategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).laborTypeCategoriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.categoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (inputsRefs)
+                        await $_getPrefetchedData<
+                          InputCategory,
+                          $InputCategoriesTable,
+                          Input
+                        >(
+                          currentTable: table,
+                          referencedTable: $$InputCategoriesTableReferences
+                              ._inputsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$InputCategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).inputsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.categoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$InputCategoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $InputCategoriesTable,
+      InputCategory,
+      $$InputCategoriesTableFilterComposer,
+      $$InputCategoriesTableOrderingComposer,
+      $$InputCategoriesTableAnnotationComposer,
+      $$InputCategoriesTableCreateCompanionBuilder,
+      $$InputCategoriesTableUpdateCompanionBuilder,
+      (InputCategory, $$InputCategoriesTableReferences),
+      InputCategory,
+      PrefetchHooks Function({bool laborTypeCategoriesRefs, bool inputsRefs})
+    >;
+typedef $$LaborTypeCategoriesTableCreateCompanionBuilder =
+    LaborTypeCategoriesCompanion Function({
+      required String laborTypeId,
+      required String categoryId,
+      Value<int> rowid,
+    });
+typedef $$LaborTypeCategoriesTableUpdateCompanionBuilder =
+    LaborTypeCategoriesCompanion Function({
+      Value<String> laborTypeId,
+      Value<String> categoryId,
+      Value<int> rowid,
+    });
+
+final class $$LaborTypeCategoriesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $LaborTypeCategoriesTable,
+          LaborTypeCategory
+        > {
+  $$LaborTypeCategoriesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LaborTypesTable _laborTypeIdTable(_$AppDatabase db) => db.laborTypes
+      .createAlias('labor_type_categories__labor_type_id__labor_types__id');
+
+  $$LaborTypesTableProcessedTableManager get laborTypeId {
+    final $_column = $_itemColumn<String>('labor_type_id')!;
+
+    final manager = $$LaborTypesTableTableManager(
+      $_db,
+      $_db.laborTypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_laborTypeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $InputCategoriesTable _categoryIdTable(_$AppDatabase db) => db
+      .inputCategories
+      .createAlias('labor_type_categories__category_id__input_categories__id');
+
+  $$InputCategoriesTableProcessedTableManager get categoryId {
+    final $_column = $_itemColumn<String>('category_id')!;
+
+    final manager = $$InputCategoriesTableTableManager(
+      $_db,
+      $_db.inputCategories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$LaborTypeCategoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $LaborTypeCategoriesTable> {
+  $$LaborTypeCategoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$LaborTypesTableFilterComposer get laborTypeId {
+    final $$LaborTypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.laborTypeId,
+      referencedTable: $db.laborTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LaborTypesTableFilterComposer(
+            $db: $db,
+            $table: $db.laborTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$InputCategoriesTableFilterComposer get categoryId {
+    final $$InputCategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.inputCategories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InputCategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.inputCategories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LaborTypeCategoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $LaborTypeCategoriesTable> {
+  $$LaborTypeCategoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$LaborTypesTableOrderingComposer get laborTypeId {
+    final $$LaborTypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.laborTypeId,
+      referencedTable: $db.laborTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LaborTypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.laborTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$InputCategoriesTableOrderingComposer get categoryId {
+    final $$InputCategoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.inputCategories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InputCategoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.inputCategories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LaborTypeCategoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LaborTypeCategoriesTable> {
+  $$LaborTypeCategoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$LaborTypesTableAnnotationComposer get laborTypeId {
+    final $$LaborTypesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.laborTypeId,
+      referencedTable: $db.laborTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LaborTypesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.laborTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$InputCategoriesTableAnnotationComposer get categoryId {
+    final $$InputCategoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.inputCategories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InputCategoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.inputCategories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LaborTypeCategoriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LaborTypeCategoriesTable,
+          LaborTypeCategory,
+          $$LaborTypeCategoriesTableFilterComposer,
+          $$LaborTypeCategoriesTableOrderingComposer,
+          $$LaborTypeCategoriesTableAnnotationComposer,
+          $$LaborTypeCategoriesTableCreateCompanionBuilder,
+          $$LaborTypeCategoriesTableUpdateCompanionBuilder,
+          (LaborTypeCategory, $$LaborTypeCategoriesTableReferences),
+          LaborTypeCategory,
+          PrefetchHooks Function({bool laborTypeId, bool categoryId})
+        > {
+  $$LaborTypeCategoriesTableTableManager(
+    _$AppDatabase db,
+    $LaborTypeCategoriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LaborTypeCategoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LaborTypeCategoriesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LaborTypeCategoriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> laborTypeId = const Value.absent(),
+                Value<String> categoryId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LaborTypeCategoriesCompanion(
+                laborTypeId: laborTypeId,
+                categoryId: categoryId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String laborTypeId,
+                required String categoryId,
+                Value<int> rowid = const Value.absent(),
+              }) => LaborTypeCategoriesCompanion.insert(
+                laborTypeId: laborTypeId,
+                categoryId: categoryId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LaborTypeCategoriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({laborTypeId = false, categoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (laborTypeId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.laborTypeId,
+                                referencedTable:
+                                    $$LaborTypeCategoriesTableReferences
+                                        ._laborTypeIdTable(db),
+                                referencedColumn:
+                                    $$LaborTypeCategoriesTableReferences
+                                        ._laborTypeIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (categoryId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.categoryId,
+                                referencedTable:
+                                    $$LaborTypeCategoriesTableReferences
+                                        ._categoryIdTable(db),
+                                referencedColumn:
+                                    $$LaborTypeCategoriesTableReferences
+                                        ._categoryIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$LaborTypeCategoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LaborTypeCategoriesTable,
+      LaborTypeCategory,
+      $$LaborTypeCategoriesTableFilterComposer,
+      $$LaborTypeCategoriesTableOrderingComposer,
+      $$LaborTypeCategoriesTableAnnotationComposer,
+      $$LaborTypeCategoriesTableCreateCompanionBuilder,
+      $$LaborTypeCategoriesTableUpdateCompanionBuilder,
+      (LaborTypeCategory, $$LaborTypeCategoriesTableReferences),
+      LaborTypeCategory,
+      PrefetchHooks Function({bool laborTypeId, bool categoryId})
     >;
 typedef $$InputsTableCreateCompanionBuilder =
     InputsCompanion Function({
       Value<String> id,
       required String name,
       required String unit,
+      Value<String?> categoryId,
       Value<bool> active,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -13220,6 +14897,7 @@ typedef $$InputsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<String> unit,
+      Value<String?> categoryId,
       Value<bool> active,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -13231,6 +14909,24 @@ typedef $$InputsTableUpdateCompanionBuilder =
 final class $$InputsTableReferences
     extends BaseReferences<_$AppDatabase, $InputsTable, Input> {
   $$InputsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $InputCategoriesTable _categoryIdTable(_$AppDatabase db) => db
+      .inputCategories
+      .createAlias('inputs__category_id__input_categories__id');
+
+  $$InputCategoriesTableProcessedTableManager? get categoryId {
+    final $_column = $_itemColumn<String>('category_id');
+    if ($_column == null) return null;
+    final manager = $$InputCategoriesTableTableManager(
+      $_db,
+      $_db.inputCategories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<$RecipeItemsTable, List<RecipeItem>>
   _recipeItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -13356,6 +15052,29 @@ class $$InputsTableFilterComposer
     column: $table.deleted,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$InputCategoriesTableFilterComposer get categoryId {
+    final $$InputCategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.inputCategories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InputCategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.inputCategories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> recipeItemsRefs(
     Expression<bool> Function($$RecipeItemsTableFilterComposer f) f,
@@ -13506,6 +15225,29 @@ class $$InputsTableOrderingComposer
     column: $table.deleted,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$InputCategoriesTableOrderingComposer get categoryId {
+    final $$InputCategoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.inputCategories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InputCategoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.inputCategories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$InputsTableAnnotationComposer
@@ -13540,6 +15282,29 @@ class $$InputsTableAnnotationComposer
 
   GeneratedColumn<bool> get deleted =>
       $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  $$InputCategoriesTableAnnotationComposer get categoryId {
+    final $$InputCategoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.inputCategories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InputCategoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.inputCategories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> recipeItemsRefs<T extends Object>(
     Expression<T> Function($$RecipeItemsTableAnnotationComposer a) f,
@@ -13656,6 +15421,7 @@ class $$InputsTableTableManager
           (Input, $$InputsTableReferences),
           Input,
           PrefetchHooks Function({
+            bool categoryId,
             bool recipeItemsRefs,
             bool dailyReportItemsRefs,
             bool receptionItemsRefs,
@@ -13678,6 +15444,7 @@ class $$InputsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> unit = const Value.absent(),
+                Value<String?> categoryId = const Value.absent(),
                 Value<bool> active = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -13688,6 +15455,7 @@ class $$InputsTableTableManager
                 id: id,
                 name: name,
                 unit: unit,
+                categoryId: categoryId,
                 active: active,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -13700,6 +15468,7 @@ class $$InputsTableTableManager
                 Value<String> id = const Value.absent(),
                 required String name,
                 required String unit,
+                Value<String?> categoryId = const Value.absent(),
                 Value<bool> active = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -13710,6 +15479,7 @@ class $$InputsTableTableManager
                 id: id,
                 name: name,
                 unit: unit,
+                categoryId: categoryId,
                 active: active,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -13725,6 +15495,7 @@ class $$InputsTableTableManager
               .toList(),
           prefetchHooksCallback:
               ({
+                categoryId = false,
                 recipeItemsRefs = false,
                 dailyReportItemsRefs = false,
                 receptionItemsRefs = false,
@@ -13738,7 +15509,38 @@ class $$InputsTableTableManager
                     if (receptionItemsRefs) db.receptionItems,
                     if (stocksRefs) db.stocks,
                   ],
-                  addJoins: null,
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (categoryId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.categoryId,
+                                    referencedTable: $$InputsTableReferences
+                                        ._categoryIdTable(db),
+                                    referencedColumn: $$InputsTableReferences
+                                        ._categoryIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (recipeItemsRefs)
@@ -13838,6 +15640,7 @@ typedef $$InputsTableProcessedTableManager =
       (Input, $$InputsTableReferences),
       Input,
       PrefetchHooks Function({
+        bool categoryId,
         bool recipeItemsRefs,
         bool dailyReportItemsRefs,
         bool receptionItemsRefs,
@@ -20198,6 +22001,10 @@ class $AppDatabaseManager {
   $$LotsTableTableManager get lots => $$LotsTableTableManager(_db, _db.lots);
   $$LaborTypesTableTableManager get laborTypes =>
       $$LaborTypesTableTableManager(_db, _db.laborTypes);
+  $$InputCategoriesTableTableManager get inputCategories =>
+      $$InputCategoriesTableTableManager(_db, _db.inputCategories);
+  $$LaborTypeCategoriesTableTableManager get laborTypeCategories =>
+      $$LaborTypeCategoriesTableTableManager(_db, _db.laborTypeCategories);
   $$InputsTableTableManager get inputs =>
       $$InputsTableTableManager(_db, _db.inputs);
   $$MachinesTableTableManager get machines =>

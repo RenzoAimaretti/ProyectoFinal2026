@@ -7,6 +7,8 @@ import 'daos/companies_dao.dart';
 import 'daos/daily_reports_dao.dart';
 import 'daos/farms_dao.dart';
 import 'daos/inputs_dao.dart';
+import 'daos/input_categories_dao.dart';
+import 'daos/labor_type_categories_dao.dart';
 import 'daos/labor_types_dao.dart';
 import 'daos/lots_dao.dart';
 import 'daos/machine_activities_dao.dart';
@@ -35,6 +37,8 @@ part 'app_database.g.dart';
     Farms,
     Lots,
     LaborTypes,
+    InputCategories,
+    LaborTypeCategories,
     Inputs,
     Machines,
     Sessions,
@@ -57,6 +61,8 @@ part 'app_database.g.dart';
     FarmsDao,
     LotsDao,
     LaborTypesDao,
+    InputCategoriesDao,
+    LaborTypeCategoriesDao,
     InputsDao,
     MachinesDao,
     RecipesDao,
@@ -76,7 +82,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -89,6 +95,11 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 3) {
             await m.addColumn(sessions, sessions.refreshToken);
+          }
+          if (from < 4) {
+            await m.createTable(inputCategories);
+            await m.createTable(laborTypeCategories);
+            await m.addColumn(inputs, inputs.categoryId);
           }
         },
         beforeOpen: (details) async {

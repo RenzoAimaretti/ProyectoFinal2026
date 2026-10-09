@@ -60,6 +60,7 @@ void main() {
       inputReader: inputReader,
       lotReader: lotReader,
       laborTypeReader: laborTypeReader,
+      laborTypeCategoryReader: FakeLaborTypeCategoryReader(),
       addPhotoUseCase: addPhotoUseCase,
       photoPickerService: photoPicker,
     );
