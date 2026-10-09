@@ -454,6 +454,101 @@ The rename is pure mechanical work on a tree that has no category code yet.
 - **Lesson taken:** checking that a tool exists is not checking that it satisfies
   the project. `flutter --version` was read earlier and taken as readiness without
   comparing it to the constraint the lockfile already declared.
+
+## Close
+
+Closed on `dev` at `85e2a09`. **The promotion of `dev` to `main` is deliberately
+NOT done here.** By the maintainer's decision it happens once the whole team's
+sprint concludes, not when this feature slice ends.
+
+### Verification on the merged state
+
+| Check | Result |
+| --- | --- |
+| `pnpm --filter backend test` | 894 tests passing |
+| `pnpm --filter backend exec nest build` | exit 0 |
+| `npx prisma migrate status` | 8 migrations, schema up to date |
+| `prisma migrate diff --exit-code` | "No difference detected", exit 0 |
+| `pnpm --filter nextjs build` | compiled, type checking active, both new routes present |
+| `flutter test` | 166 tests passing |
+| `flutter analyze` | 43 findings, all pre-existing `info`; none introduced |
+| All six task branches | merged into `dev` |
+
+### End-to-end checks run against a live backend
+
+These were executed over HTTP with a seeded admin, not merely unit tested:
+
+- The eight defaults come back with `active`, the five inputs come back with
+  `categoryId`, and the six labour types list.
+- Assigning two categories to a labour returns both; replacing the set removes the
+  dropped one; an empty array clears it.
+- Creating, renaming, and deactivating a category works; a duplicate name answers
+  409 with `Input category already exists`; deleting a category that still has
+  inputs answers 409 with `Input category still has inputs`.
+- **Cross-tenant rejection, the security control.** A category id belonging to a
+  second tenant, created for the test, was refused with 404 and the same message a
+  missing id produces, so the endpoint does not reveal whether an id exists
+  elsewhere. Critically, the labour's existing set was left **untouched** rather
+  than cleared. Creating an input with that category was refused the same way.
+- **The unit guard.** Changing the unit of an input that holds stock answers 400
+  with `Cannot change the unit of input ...: it has a non-zero stock balance`, and
+  the stored unit is unchanged. Because every seeded input carries stock, an input
+  with none was created for the complementary check: its unit changed with HTTP
+  200, so the guard does not over-block. Both were reverted afterwards.
+
+### Acceptance, assessed honestly
+
+| Criterion | State |
+| --- | --- |
+| An admin can create, rename, and deactivate categories | API verified end to end; the screens shipped in T06 but were never clicked through in a browser |
+| Defaults exist for existing and seeded tenants | Met: migration backfill proven on a scratch database with two tenants, and the seed |
+| An input belongs to exactly one category | Met: required foreign key, no drift |
+| A labour type admits a set of categories | Met, and verified end to end including the cross-tenant refusal |
+| An empty set means no restriction | Met in both the mobile rule and its tests |
+| The mobile picker warns without blocking | Implemented and unit tested; never exercised on a device |
+| Changing a unit is refused once it has stock | Met, verified end to end in both directions |
+| No remaining `TaskType` reference | Met |
+| All three suites green | Met |
+
+### Open items carried into the next slice
+
+1. **The versioned catalogue pull does not exist**, so T05's filter is inert
+   against real data. This is the single biggest gap: the mobile feature is
+   correct and unreachable, because nothing carries categories or assignments to
+   a device except the development seeder.
+2. **T06's screens have no automated coverage** and were never rendered in a
+   browser. `packages/nextjs` has no test runner and no browser tooling was
+   available in this environment.
+3. **T05's version 3 to 4 drift upgrade is untested.** Needs drift's
+   schema-verification tooling, which the project does not configure.
+4. **`pnpm --filter backend start:prod` is broken**: the script runs `node
+   dist/main` but the compiled entry point is `dist/src/main.js`.
+5. **The daily report approval path still decrements a stock balance using a
+   client-supplied item unit**, which is the same class of hole T02 closed on the
+   catalogue path.
+6. `ReceptionItem.unit`, `DailyReportItem.unit`, `RecipeItem.unit`, and
+   `Recipe.sprayVolumeUnit` remain free `String`.
+7. `MODULES_BY_ROLE` keys module visibility on the sidebar **label**, so renaming
+   a label silently changes permissions for the non-admin roles.
+8. `InputCategory.findAllByTenantId` does not filter `deleted`, unlike the labour
+   reader. Latent only, because the delete path is a hard delete.
+9. `next dev` writes `packages/nextjs/AGENTS.md` and `CLAUDE.md`, which compete
+   with the root `AGENTS.md` that declares itself the single source of truth.
+   `agentRules: false` disables it.
+10. Working on mobile needs **Flutter at or above 3.44**; this machine was on
+    3.35.4 and no Flutter command ran until it was upgraded to 3.47.7.
+11. Prose describing the removed `/task-types` route survives in
+    `odd/tasks/web-produccion-timeline.md` and the archived OpenSpec specs.
+
+### State of the local development database
+
+The interactive verification of the T06 screens left two visible traces, which
+are themselves evidence those flows worked: the category `Fertilizante` is now
+named `Fertilizantessss` (rename exercised) and `Semilla` is gone (delete
+exercised, allowed because it had no inputs). Re-running the seed restores the two
+missing defaults, since the seed upserts all eight by name, and leaves the renamed
+one as a ninth. The seed is destructive by design, so that costs the demo data and
+rebuilds it.
 - Scoping T04 surfaced that the admin cannot administer any of this: its API
   client exposes only `apiGet` for `/labor-types` and `/inputs`, there is no
   labour-type screen, and there is no input-creation form. T04 was therefore cut
