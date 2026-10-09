@@ -293,7 +293,7 @@ The rename is pure mechanical work on a tree that has no category code yet.
     categories mapping gets offline at all.
   - Check: `flutter test`; regenerated drift code committed.
 
-- [ ] **T06 — Admin screens for categories and labour types**
+- [x] **T06 — Admin screens for categories and labour types**
   - Route: delegated writer; frontend work.
   - Discovered while scoping T04: the admin client exposes only `apiGet` for
     `/labor-types` and `/inputs`. It has no write call for either resource, no
@@ -305,6 +305,31 @@ The rename is pure mechanical work on a tree that has no category code yet.
     `PUT /labor-types/:id/categories`.
   - Check: `pnpm --filter nextjs build` green with type checking active; the flows
     exercised against the local backend.
+  - **Done.** Commit `46f4194` on `feat/admin-catalog-screens`: 6 files, +335.
+    Two screens (`/dashboard/categorias`, `/dashboard/labores`), a reusable
+    `CheckboxGroup` added to the form kit, `catalogErrorMessage` reading Nest's
+    domain message out of the response body, and `InputDTO` extended with the
+    `categoryId` that `GET /inputs` has been returning since T03.
+  - Evidence: `pnpm --filter nextjs build` exit 0 with both new routes
+    prerendered and type checking active; `pnpm --filter nextjs lint` reports
+    seven errors and three warnings, all pre-existing in unrelated files
+    (`scroll`, `ganadero`, `maquinaria`, `mi-campo`, the dashboard index,
+    `personal`, `reveal`), none in a changed file. The API contract the screens
+    assume was read from the controllers rather than executed: `GET /inputs`
+    returns `InputRecord` including `categoryId`, the assigned categories come
+    back as full records including `active`, and the backend sets no global route
+    prefix.
+  - **Open gap, not closed:** the flows were NOT exercised against a running
+    backend. The local database has migrations applied but no seed data, so there
+    is no tenant, no admin user, and no categories; and `SEED_ADMIN_PASSWORD` is
+    not set in either `.env`, which is what the seed requires. Closing this needs
+    that password set, then `pnpm --filter backend db:seed`, then the two screens
+    driven by hand. `packages/nextjs` has no test runner, so nothing else covers
+    rendering or the click paths.
+  - Sidebar visibility relies on `MODULES_BY_ROLE` mapping a role to allowed
+    labels: only ADMIN and SUPERVISOR receive `"all"`, so the two new entries stay
+    hidden from the roles the API forbids from writing. The non-admin allowlists
+    were deliberately left untouched.
 
 ## Acceptance
 
@@ -373,3 +398,10 @@ The rename is pure mechanical work on a tree that has no category code yet.
   labour-type screen, and there is no input-creation form. T04 was therefore cut
   down to the backend, and T06 was added for the admin screens.
 - T04 done and committed as `e5428ff` on `feat/labor-type-categories`.
+- T06 done and committed as `46f4194` on `feat/admin-catalog-screens`. It was
+  taken before T05 because the backend it drives is already merged and stable,
+  while T05 cannot work in production until the versioned catalogue pull exists.
+- The frontend has no automated coverage and no browser tooling was available in
+  the session, so T06 is verified by type checking, lint scoping, and reading the
+  controllers. That is weaker than everything else in this sprint, and the gap is
+  recorded in the task entry rather than glossed over.
