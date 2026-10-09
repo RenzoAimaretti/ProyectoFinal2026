@@ -2739,6 +2739,7 @@ export const StockScalarFieldEnum = {
   clientId: 'clientId',
   inputId: 'inputId',
   quantity: 'quantity',
+  unit: 'unit',
   updatedAt: 'updatedAt'
 } as const
 
@@ -2971,6 +2972,20 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'Float[]'
  */
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
+ * Reference to a field of type 'InputUnit'
+ */
+export type EnumInputUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InputUnit'>
+    
+
+
+/**
+ * Reference to a field of type 'InputUnit[]'
+ */
+export type ListEnumInputUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InputUnit[]'>
     
 
 

@@ -5,14 +5,15 @@ import {
   EntityNotFoundError,
   InvalidInputError,
 } from '../../domain/errors';
-import { InputRepositoryPort } from '../input.ports';
-import { CreateInputInput, UpdateInputInput } from '../input.types';
+import { InputUnit } from '../../domain/input-unit';
+import { InputRepositoryPort, InputStockReaderPort } from '../input.ports';
+import { CreateInputInput, InputRecord, UpdateInputInput } from '../input.types';
 import { CreateInputUseCase } from './create-input.use-case';
 import { FindAllInputsUseCase } from './find-all-inputs.use-case';
 import { FindInputUseCase } from './find-input.use-case';
 import { UpdateInputUseCase } from './update-input.use-case';
 
-const baseInput = {
+const baseInput: InputRecord = {
   id: 'input-1',
   tenantId: 'tenant-1',
   name: 'Glifosato',
@@ -187,11 +188,13 @@ describe('Input use cases', () => {
 
   describe('UpdateInputUseCase', () => {
     let repository: jest.Mocked<InputRepositoryPort>;
+    let stockReader: jest.Mocked<InputStockReaderPort>;
     let useCase: UpdateInputUseCase;
 
     beforeEach(() => {
       repository = createRepository();
-      useCase = new UpdateInputUseCase(repository);
+      stockReader = { hasNonZeroBalance: jest.fn() };
+      useCase = new UpdateInputUseCase(repository, stockReader);
     });
 
     it.each([undefined, {}])(
@@ -216,9 +219,21 @@ describe('Input use cases', () => {
       repository.findByIdForTenant.mockResolvedValue(baseInput);
 
       await expect(
-        useCase.execute('input-1', 'tenant-1', { unit: '' }),
+        useCase.execute('input-1', 'tenant-1', { unit: '' as unknown as InputUnit }),
       ).rejects.toBeInstanceOf(InvalidInputError);
       expect(repository.updateForTenant).not.toHaveBeenCalled();
+    });
+
+    it('rejects a unit outside the locked vocabulary', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseInput);
+
+      await expect(
+        useCase.execute('input-1', 'tenant-1', {
+          unit: 'POUND' as unknown as InputUnit,
+        }),
+      ).rejects.toBeInstanceOf(InvalidInputError);
+      expect(repository.updateForTenant).not.toHaveBeenCalled();
+      expect(stockReader.hasNonZeroBalance).not.toHaveBeenCalled();
     });
 
     it('updates an input within the tenant', async () => {
@@ -245,6 +260,45 @@ describe('Input use cases', () => {
         'tenant-1',
         { name: 'Atrazina', active: false },
       );
+    });
+
+    it('refuses a unit change when the input has a non-zero stock balance', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseInput);
+      stockReader.hasNonZeroBalance.mockResolvedValue(true);
+
+      await expect(
+        useCase.execute('input-1', 'tenant-1', { unit: 'KG' }),
+      ).rejects.toBeInstanceOf(InvalidInputError);
+      expect(repository.updateForTenant).not.toHaveBeenCalled();
+    });
+
+    it('allows a unit change when every balance is zero', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseInput);
+      stockReader.hasNonZeroBalance.mockResolvedValue(false);
+      repository.updateForTenant.mockResolvedValue({ ...baseInput, unit: 'KG' });
+
+      await expect(
+        useCase.execute('input-1', 'tenant-1', { unit: 'KG' }),
+      ).resolves.toEqual({ ...baseInput, unit: 'KG' });
+
+      expect(stockReader.hasNonZeroBalance).toHaveBeenCalledWith('input-1');
+      expect(repository.updateForTenant).toHaveBeenCalledWith(
+        'input-1',
+        'tenant-1',
+        { unit: 'KG' },
+      );
+    });
+
+    it('does not check stock when the incoming unit is unchanged', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseInput);
+      repository.updateForTenant.mockResolvedValue(baseInput);
+
+      await useCase.execute('input-1', 'tenant-1', {
+        name: 'Atrazina',
+        unit: 'L',
+      });
+
+      expect(stockReader.hasNonZeroBalance).not.toHaveBeenCalled();
     });
   });
 });

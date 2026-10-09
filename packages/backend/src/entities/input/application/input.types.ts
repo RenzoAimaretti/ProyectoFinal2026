@@ -1,8 +1,10 @@
+import { InputUnit } from '../domain/input-unit';
+
 export type InputRecord = {
   id: string;
   tenantId: string;
   name: string;
-  unit: string;
+  unit: InputUnit;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -12,17 +14,17 @@ export type InputRecord = {
 
 export type CreateInputInput = {
   name: string;
-  unit: string;
+  unit: InputUnit;
 };
 
 export type CreateInputData = {
   tenantId: string;
   name: string;
-  unit: string;
+  unit: InputUnit;
 };
 
 export type UpdateInputInput = {
   name?: string;
-  unit?: string;
+  unit?: InputUnit;
   active?: boolean;
 };

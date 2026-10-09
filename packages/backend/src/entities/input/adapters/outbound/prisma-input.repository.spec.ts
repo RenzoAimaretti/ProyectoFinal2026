@@ -68,12 +68,12 @@ describe('PrismaInputRepository', () => {
     prisma.input.findFirstOrThrow.mockResolvedValue({ id: 'input-1' });
 
     await expect(
-      repository.updateForTenant('input-1', 'tenant-1', { unit: 'kg' }),
+      repository.updateForTenant('input-1', 'tenant-1', { unit: 'KG' }),
     ).resolves.toEqual({ id: 'input-1' });
 
     expect(prisma.input.updateMany).toHaveBeenCalledWith({
       where: { id: 'input-1', tenantId: 'tenant-1' },
-      data: { unit: 'kg' },
+      data: { unit: 'KG' },
     });
     expect(prisma.input.findFirstOrThrow).toHaveBeenCalledWith({
       where: { id: 'input-1', tenantId: 'tenant-1' },
@@ -85,12 +85,12 @@ describe('PrismaInputRepository', () => {
     prisma.input.updateMany.mockResolvedValue({ count: 0 });
 
     await expect(
-      repository.updateForTenant('input-1', 'tenant-2', { unit: 'kg' }),
+      repository.updateForTenant('input-1', 'tenant-2', { unit: 'KG' }),
     ).rejects.toThrow('Input with id input-1 not found for tenant tenant-2');
 
     expect(prisma.input.updateMany).toHaveBeenCalledWith({
       where: { id: 'input-1', tenantId: 'tenant-2' },
-      data: { unit: 'kg' },
+      data: { unit: 'KG' },
     });
     expect(prisma.input.findFirstOrThrow).not.toHaveBeenCalled();
     expect(prisma.input.update).not.toHaveBeenCalled();

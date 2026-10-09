@@ -1,7 +1,7 @@
 import { DuplicateEntityError } from '../../domain/errors';
 import { InputRepositoryPort } from '../input.ports';
 import { CreateInputInput, InputRecord } from '../input.types';
-import { assertRequiredString } from '../input.validation';
+import { assertInputUnit, assertRequiredString } from '../input.validation';
 
 export class CreateInputUseCase {
   constructor(private readonly repository: InputRepositoryPort) {}
@@ -11,7 +11,7 @@ export class CreateInputUseCase {
     data: CreateInputInput,
   ): Promise<InputRecord> {
     const name = assertRequiredString(data.name, 'name');
-    const unit = assertRequiredString(data.unit, 'unit');
+    const unit = assertInputUnit(data.unit);
     const tenant = assertRequiredString(tenantId, 'tenantId');
 
     const existing = await this.repository.findByNameAndTenantId(name, tenant);

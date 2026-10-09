@@ -71,7 +71,7 @@ const expectedInclude = {
   client: { select: { name: true } },
   items: {
     orderBy: [{ id: 'asc' }],
-    include: { input: { select: { name: true } } },
+    include: { input: { select: { name: true, unit: true } } },
   },
 };
 

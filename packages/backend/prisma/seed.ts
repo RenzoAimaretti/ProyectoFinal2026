@@ -146,13 +146,13 @@ async function main(): Promise<void> {
       data: { id: did(111), tenantId: TENANT_ID, name: '2,4-D', unit: 'L' },
     });
     const inputUrea = await prisma.input.create({
-      data: { id: did(112), tenantId: TENANT_ID, name: 'Urea', unit: 'kg' },
+      data: { id: did(112), tenantId: TENANT_ID, name: 'Urea', unit: 'KG' },
     });
     const inputAtrazina = await prisma.input.create({
       data: { id: did(113), tenantId: TENANT_ID, name: 'Atrazina', unit: 'L' },
     });
     const inputNpk = await prisma.input.create({
-      data: { id: did(114), tenantId: TENANT_ID, name: 'Fertilizante NPK', unit: 'kg' },
+      data: { id: did(114), tenantId: TENANT_ID, name: 'Fertilizante NPK', unit: 'KG' },
     });
 
     const laborTypePulverizacion = await prisma.laborType.create({
@@ -525,16 +525,16 @@ async function main(): Promise<void> {
     // --- Stock por cliente -------------------------------------------------
     await prisma.stock.createMany({
       data: [
-        { id: did(190), clientId: clientEliggi.id, inputId: inputGlifosato.id, quantity: 5000 },
-        { id: did(191), clientId: clientEliggi.id, inputId: input24D.id, quantity: 5000 },
-        { id: did(192), clientId: clientEliggi.id, inputId: inputUrea.id, quantity: 5000 },
-        { id: did(193), clientId: clientEliggi.id, inputId: inputAtrazina.id, quantity: 5000 },
-        { id: did(194), clientId: clientEliggi.id, inputId: inputNpk.id, quantity: 5000 },
-        { id: did(195), clientId: clientSur.id, inputId: inputGlifosato.id, quantity: 5000 },
-        { id: did(196), clientId: clientSur.id, inputId: input24D.id, quantity: 5000 },
-        { id: did(197), clientId: clientSur.id, inputId: inputUrea.id, quantity: 5000 },
-        { id: did(198), clientId: clientSur.id, inputId: inputAtrazina.id, quantity: 5000 },
-        { id: did(199), clientId: clientSur.id, inputId: inputNpk.id, quantity: 5000 },
+        { id: did(190), clientId: clientEliggi.id, inputId: inputGlifosato.id, quantity: 5000, unit: 'L' },
+        { id: did(191), clientId: clientEliggi.id, inputId: input24D.id, quantity: 5000, unit: 'L' },
+        { id: did(192), clientId: clientEliggi.id, inputId: inputUrea.id, quantity: 5000, unit: 'KG' },
+        { id: did(193), clientId: clientEliggi.id, inputId: inputAtrazina.id, quantity: 5000, unit: 'L' },
+        { id: did(194), clientId: clientEliggi.id, inputId: inputNpk.id, quantity: 5000, unit: 'KG' },
+        { id: did(195), clientId: clientSur.id, inputId: inputGlifosato.id, quantity: 5000, unit: 'L' },
+        { id: did(196), clientId: clientSur.id, inputId: input24D.id, quantity: 5000, unit: 'L' },
+        { id: did(197), clientId: clientSur.id, inputId: inputUrea.id, quantity: 5000, unit: 'KG' },
+        { id: did(198), clientId: clientSur.id, inputId: inputAtrazina.id, quantity: 5000, unit: 'L' },
+        { id: did(199), clientId: clientSur.id, inputId: inputNpk.id, quantity: 5000, unit: 'KG' },
       ],
     });
 
