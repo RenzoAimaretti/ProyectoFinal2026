@@ -172,6 +172,7 @@ model InputCategory {
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
   inputs Input[]
+  laborTypeCategories LaborTypeCategory[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -213,9 +214,21 @@ model LaborType {
   tenant       Tenant        @relation(fields: [tenantId], references: [id])
   tasks        Task[]
   dailyReports DailyReport[]
+  categories   LaborTypeCategory[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
+}
+
+model LaborTypeCategory {
+  laborTypeId String
+  categoryId  String
+
+  laborType LaborType     @relation(fields: [laborTypeId], references: [id], onDelete: Cascade)
+  category  InputCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([laborTypeId, categoryId])
+  @@index([categoryId])
 }
 
 // ============================================================================

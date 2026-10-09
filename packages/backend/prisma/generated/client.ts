@@ -90,6 +90,11 @@ export type Input = Prisma.InputModel
  */
 export type LaborType = Prisma.LaborTypeModel
 /**
+ * Model LaborTypeCategory
+ * 
+ */
+export type LaborTypeCategory = Prisma.LaborTypeCategoryModel
+/**
  * Model Farm
  * 
  */
