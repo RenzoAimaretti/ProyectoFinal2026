@@ -17,7 +17,7 @@ datasource db {
 //
 // Regla de scope:
 //   - Tenant-owned roots llevan `tenantId` explicito: Company, User, Client,
-//     Input, TaskType.
+//     Input, LaborType.
 //   - El resto deriva su tenant por la cadena de padres (Farm -> Client,
 //     Lot -> Farm -> Client, Task -> Lot -> ..., Machine -> Company, etc.).
 //   - La firma operativa vive en Company y se referencia donde el negocio la
@@ -33,11 +33,11 @@ model Tenant {
   version   Int      @default(1)
   deleted   Boolean  @default(false)
 
-  companies Company[]
-  users     User[]
-  clients   Client[]
-  inputs    Input[]
-  taskTypes TaskType[]
+  companies  Company[]
+  users      User[]
+  clients    Client[]
+  inputs     Input[]
+  laborTypes LaborType[]
 }
 
 model Company {
@@ -80,31 +80,31 @@ model UserCompany {
 }
 
 model User {
-  id                  String           @id @default(uuid())
+  id                  String    @id @default(uuid())
   tenantId            String
-  username            String?          @unique
-  email               String           @unique
+  username            String?   @unique
+  email               String    @unique
   passwordHash        String
   role                UserRole
-  mustChangePassword  Boolean          @default(false)
-  failedLoginAttempts Int              @default(0)
+  mustChangePassword  Boolean   @default(false)
+  failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
-  active              Boolean          @default(true)
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
-  version             Int              @default(1)
-  deleted             Boolean          @default(false)
+  active              Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  version             Int       @default(1)
+  deleted             Boolean   @default(false)
 
-  tenant            Tenant           @relation(fields: [tenantId], references: [id])
-  companyMemberships UserCompany[]
-  refreshTokens     RefreshToken[]
-  livestockEvents   LivestockEvent[]
-  tasks             Task[]           @relation("TaskOperators")
-  weightRecords     WeightRecord[]
-  dailyReports      DailyReport[]    @relation("DailyReportOperator")
-  approvedReports   DailyReport[]    @relation("DailyReportApprover")
-  validatedReceptions Reception[]    @relation("ReceptionValidator")
-  client            Client?
+  tenant              Tenant           @relation(fields: [tenantId], references: [id])
+  companyMemberships  UserCompany[]
+  refreshTokens       RefreshToken[]
+  livestockEvents     LivestockEvent[]
+  tasks               Task[]           @relation("TaskOperators")
+  weightRecords       WeightRecord[]
+  dailyReports        DailyReport[]    @relation("DailyReportOperator")
+  approvedReports     DailyReport[]    @relation("DailyReportApprover")
+  validatedReceptions Reception[]      @relation("ReceptionValidator")
+  client              Client?
 
   @@index([tenantId])
 }
@@ -122,11 +122,11 @@ model RefreshToken {
 }
 
 model Module {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
   price     Float
   version   String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   companies Company[] @relation()
 }
 
@@ -179,7 +179,7 @@ model Input {
   @@index([tenantId])
 }
 
-model TaskType {
+model LaborType {
   id          String   @id @default(uuid())
   tenantId    String
   name        String
@@ -219,16 +219,16 @@ model Farm {
 }
 
 model Lot {
-  id        String              @id @default(uuid())
+  id        String   @id @default(uuid())
   farmId    String
   name      String
   coords    String?
   area      Float
-  active    Boolean             @default(true)
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-  version   Int                 @default(1)
-  deleted   Boolean             @default(false)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  version   Int      @default(1)
+  deleted   Boolean  @default(false)
 
   farm         Farm                @relation(fields: [farmId], references: [id])
   movements    LivestockMovement[]
@@ -245,26 +245,26 @@ model Lot {
 // ============================================================================
 
 model Task {
-  id            String         @id @default(uuid())
+  id            String     @id @default(uuid())
   lotId         String
-  taskTypeId    String
-  status        TaskStatus     @default(PENDIENTE)
+  laborTypeId   String
+  status        TaskStatus @default(PENDIENTE)
   startedAt     DateTime?
   finishedAt    DateTime?
   updatedTaskAt DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  version       Int            @default(1)
-  deleted       Boolean        @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  version       Int        @default(1)
+  deleted       Boolean    @default(false)
 
   lot          Lot            @relation(fields: [lotId], references: [id])
-  taskType     TaskType       @relation(fields: [taskTypeId], references: [id])
+  laborType    LaborType      @relation(fields: [laborTypeId], references: [id])
   operators    User[]         @relation("TaskOperators")
   machineLogs  MachineUsage[]
   dailyReports DailyReport[]
 
   @@index([lotId])
-  @@index([taskTypeId])
+  @@index([laborTypeId])
   @@index([status])
 }
 
@@ -311,7 +311,7 @@ model DailyReport {
   companyId       String
   taskId          String
   lotId           String
-  taskTypeId      String
+  laborTypeId     String
   date            DateTime
   hectares        Float
   hours           Float
@@ -322,13 +322,13 @@ model DailyReport {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  operator User     @relation("DailyReportOperator", fields: [operatorId], references: [id])
-  approver User?    @relation("DailyReportApprover", fields: [approvedBy], references: [id])
-  company  Company  @relation(fields: [companyId], references: [id])
-  task     Task     @relation(fields: [taskId], references: [id])
-  lot      Lot      @relation(fields: [lotId], references: [id])
-  taskType TaskType @relation(fields: [taskTypeId], references: [id])
-  items    DailyReportItem[]
+  operator  User              @relation("DailyReportOperator", fields: [operatorId], references: [id])
+  approver  User?             @relation("DailyReportApprover", fields: [approvedBy], references: [id])
+  company   Company           @relation(fields: [companyId], references: [id])
+  task      Task              @relation(fields: [taskId], references: [id])
+  lot       Lot               @relation(fields: [lotId], references: [id])
+  laborType LaborType         @relation(fields: [laborTypeId], references: [id])
+  items     DailyReportItem[]
 
   @@index([companyId, date])
   @@index([status, date])
@@ -417,17 +417,17 @@ model Stock {
 // ============================================================================
 
 model Machine {
-  id              String         @id @default(uuid())
+  id              String        @id @default(uuid())
   companyId       String
   name            String
   brand           String?
-  status          MachineStatus  @default(ACTIVA)
+  status          MachineStatus @default(ACTIVA)
   entryDate       DateTime?
   maintenanceDate DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  version         Int            @default(1)
-  deleted         Boolean        @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  version         Int           @default(1)
+  deleted         Boolean       @default(false)
 
   company           Company           @relation(fields: [companyId], references: [id])
   usages            MachineUsage[]
@@ -501,20 +501,20 @@ model Photo {
 // ============================================================================
 
 model Livestock {
-  id        String              @id @default(uuid())
+  id        String          @id @default(uuid())
   companyId String
   lotId     String?
-  tagNumber String              @unique
+  tagNumber String          @unique
   species   String
   breed     String?
   sex       String
   birthDate DateTime?
-  status    LivestockStatus     @default(ACTIVO)
+  status    LivestockStatus @default(ACTIVO)
   entryDate DateTime?
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-  version   Int                 @default(1)
-  deleted   Boolean             @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  version   Int             @default(1)
+  deleted   Boolean         @default(false)
 
   company   Company             @relation(fields: [companyId], references: [id])
   events    LivestockEvent[]
@@ -544,12 +544,12 @@ model LivestockEvent {
 }
 
 model WeightRecord {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   livestockId String
   operatorId  String?
   weight      Float
   measuredAt  DateTime
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
   livestock Livestock @relation(fields: [livestockId], references: [id])
   operator  User?     @relation(fields: [operatorId], references: [id])
@@ -558,12 +558,12 @@ model WeightRecord {
 }
 
 model LivestockMovement {
-  id           String    @id @default(uuid())
+  id           String   @id @default(uuid())
   livestockId  String
   lotId        String
   movementDate DateTime
   observations String?
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime @default(now())
 
   livestock Livestock @relation(fields: [livestockId], references: [id])
   lot       Lot       @relation(fields: [lotId], references: [id])

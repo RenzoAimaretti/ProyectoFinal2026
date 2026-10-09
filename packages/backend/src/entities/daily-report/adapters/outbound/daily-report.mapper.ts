@@ -38,7 +38,7 @@ export type DailyReportRow = {
   companyId: string;
   taskId: string;
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   date: Date;
   hectares: number;
   hours: number;
@@ -51,7 +51,7 @@ export type DailyReportRow = {
   items: DailyReportItemRow[];
   company?: { name: string } | null;
   operator?: DailyReportUserRow | null;
-  taskType?: { name: string } | null;
+  laborType?: { name: string } | null;
   task?: {
     lot?: {
       name: string;
@@ -74,7 +74,7 @@ export function buildDailyReportInclude() {
     items: DAILY_REPORT_ITEM_INCLUDE,
     company: { select: { name: true } },
     operator: { select: { username: true, email: true } },
-    taskType: { select: { name: true } },
+    laborType: { select: { name: true } },
     task: {
       select: {
         lot: {
@@ -111,7 +111,7 @@ export function toDailyReportRecord(
     companyId: report.companyId,
     taskId: report.taskId,
     lotId: report.lotId,
-    taskTypeId: report.taskTypeId,
+    laborTypeId: report.laborTypeId,
     date: report.date,
     hectares: report.hectares,
     hours: report.hours,
@@ -123,7 +123,7 @@ export function toDailyReportRecord(
     updatedAt: report.updatedAt,
     companyName: report.company?.name,
     operatorName: displayName(report.operator),
-    taskTypeName: report.taskType?.name,
+    laborTypeName: report.laborType?.name,
     lotName: report.task?.lot?.name,
     farmName: report.task?.lot?.farm?.name,
     clientName: report.task?.lot?.farm?.client?.name,

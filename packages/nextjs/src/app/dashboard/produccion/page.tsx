@@ -26,13 +26,13 @@ import {
   createTask,
   listFarms,
   listLots,
-  listTaskTypes,
+  listLaborTypes,
   listTasks,
   listUsers,
   type FarmDTO,
   type LotDTO,
   type TaskDTO,
-  type TaskTypeDTO,
+  type LaborTypeDTO,
   type UserDTO,
 } from "@/api/client";
 
@@ -200,7 +200,7 @@ const STATUS_ORDER: TaskStatus[] = [
 
 type TimelineRow = {
   task: TaskDTO;
-  taskTypeName: string;
+  laborTypeName: string;
   farmName: string;
   lotName: string;
   operatorsLabel: string;
@@ -220,7 +220,7 @@ export default function ProduccionPage() {
   const [tasks, setTasks] = useState<TaskDTO[]>([]);
   const [lots, setLots] = useState<LotDTO[]>([]);
   const [farms, setFarms] = useState<FarmDTO[]>([]);
-  const [taskTypes, setTaskTypes] = useState<TaskTypeDTO[]>([]);
+  const [laborTypes, setLaborTypes] = useState<LaborTypeDTO[]>([]);
   const [users, setUsers] = useState<UserDTO[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -240,7 +240,7 @@ export default function ProduccionPage() {
       listTasks(),
       listLots(),
       listFarms(),
-      listTaskTypes(),
+      listLaborTypes(),
       listUsers(),
     ])
       .then(([taskList, lotList, farmList, typeList, userList]) => {
@@ -248,7 +248,7 @@ export default function ProduccionPage() {
         setTasks(Array.isArray(taskList) ? taskList : []);
         setLots(Array.isArray(lotList) ? lotList : []);
         setFarms(Array.isArray(farmList) ? farmList : []);
-        setTaskTypes(Array.isArray(typeList) ? typeList : []);
+        setLaborTypes(Array.isArray(typeList) ? typeList : []);
         setUsers(Array.isArray(userList) ? userList : []);
       })
       .catch((err) => {
@@ -265,8 +265,8 @@ export default function ProduccionPage() {
   const lotById = useMemo(() => new Map(lots.map((lot) => [lot.id, lot])), [lots]);
   const farmById = useMemo(() => new Map(farms.map((farm) => [farm.id, farm])), [farms]);
   const typeById = useMemo(
-    () => new Map(taskTypes.map((type) => [type.id, type])),
-    [taskTypes],
+    () => new Map(laborTypes.map((type) => [type.id, type])),
+    [laborTypes],
   );
 
   /** Tasks of the selected day, ordered by start time ascending. */
@@ -305,8 +305,8 @@ export default function ProduccionPage() {
           "Sin campo";
         return {
           task,
-          taskTypeName:
-            task.taskTypeName ?? typeById.get(task.taskTypeId)?.name ?? "Sin labor",
+          laborTypeName:
+            task.laborTypeName ?? typeById.get(task.laborTypeId)?.name ?? "Sin labor",
           farmName,
           lotName: task.lotName ?? lot?.name ?? "Sin lote",
           operatorsLabel: describeOperators(task),
@@ -321,7 +321,7 @@ export default function ProduccionPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createFarmId, setCreateFarmId] = useState("");
   const [createLotId, setCreateLotId] = useState("");
-  const [createTaskTypeId, setCreateTaskTypeId] = useState("");
+  const [createLaborTypeId, setCreateLaborTypeId] = useState("");
   const [createDate, setCreateDate] = useState(todayKey);
   const [createTime, setCreateTime] = useState(nowTimeKey);
   const [createOperatorId, setCreateOperatorId] = useState("");
@@ -339,9 +339,9 @@ export default function ProduccionPage() {
         .map((lot) => ({ value: lot.id, label: lot.name })),
     [lots, createFarmId],
   );
-  const taskTypeOptions = useMemo(
-    () => taskTypes.map((type) => ({ value: type.id, label: type.name })),
-    [taskTypes],
+  const laborTypeOptions = useMemo(
+    () => laborTypes.map((type) => ({ value: type.id, label: type.name })),
+    [laborTypes],
   );
   const operatorOptions = useMemo(
     () => [
@@ -356,7 +356,7 @@ export default function ProduccionPage() {
   const openCreate = useCallback(() => {
     setCreateFarmId("");
     setCreateLotId("");
-    setCreateTaskTypeId("");
+    setCreateLaborTypeId("");
     // `selectedDate` defaults to today, so the default is "today" in the common case.
     setCreateDate(selectedDate || todayKey());
     setCreateTime(nowTimeKey());
@@ -365,11 +365,11 @@ export default function ProduccionPage() {
     setCreateOpen(true);
   }, [selectedDate]);
 
-  const canCreate = farms.length > 0 && taskTypes.length > 0;
+  const canCreate = farms.length > 0 && laborTypes.length > 0;
   const createBlockedReason =
     farms.length === 0
       ? "Cargá al menos un campo para crear una tarea."
-      : taskTypes.length === 0
+      : laborTypes.length === 0
         ? "Cargá al menos una labor para crear una tarea."
         : undefined;
 
@@ -383,7 +383,7 @@ export default function ProduccionPage() {
       setCreateError("Seleccioná un lote.");
       return;
     }
-    if (!createTaskTypeId) {
+    if (!createLaborTypeId) {
       setCreateError("Seleccioná una labor.");
       return;
     }
@@ -402,7 +402,7 @@ export default function ProduccionPage() {
     try {
       const created = await createTask({
         lotId: createLotId,
-        taskTypeId: createTaskTypeId,
+        laborTypeId: createLaborTypeId,
         startedAt,
       });
 
@@ -439,7 +439,7 @@ export default function ProduccionPage() {
     creating,
     createFarmId,
     createLotId,
-    createTaskTypeId,
+    createLaborTypeId,
     createDate,
     createTime,
     createOperatorId,
@@ -555,7 +555,7 @@ export default function ProduccionPage() {
       ) : (
         <ol className="space-y-0">
           {rows.map((row, index) => {
-            const { task, taskTypeName, farmName, lotName, operatorsLabel, time, duration } =
+            const { task, laborTypeName, farmName, lotName, operatorsLabel, time, duration } =
               row;
             const meta = STATUS_META[task.status];
             const isFirst = index === 0;
@@ -611,7 +611,7 @@ export default function ProduccionPage() {
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="font-display text-base font-semibold text-ink">
-                            {taskTypeName}
+                            {laborTypeName}
                           </h3>
                           <span
                             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${meta.chip}`}
@@ -719,11 +719,11 @@ export default function ProduccionPage() {
 
             <SelectField
               label="Labor"
-              value={createTaskTypeId}
-              onChange={(e) => setCreateTaskTypeId(e.target.value)}
-              options={taskTypeOptions}
+              value={createLaborTypeId}
+              onChange={(e) => setCreateLaborTypeId(e.target.value)}
+              options={laborTypeOptions}
               placeholder="Seleccioná una labor"
-              disabled={creating || taskTypes.length === 0}
+              disabled={creating || laborTypes.length === 0}
               required
             />
 

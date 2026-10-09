@@ -59,7 +59,7 @@ export const ModelName = {
   Module: 'Module',
   Client: 'Client',
   Input: 'Input',
-  TaskType: 'TaskType',
+  LaborType: 'LaborType',
   Farm: 'Farm',
   Lot: 'Lot',
   Task: 'Task',
@@ -215,7 +215,7 @@ export const InputScalarFieldEnum = {
 export type InputScalarFieldEnum = (typeof InputScalarFieldEnum)[keyof typeof InputScalarFieldEnum]
 
 
-export const TaskTypeScalarFieldEnum = {
+export const LaborTypeScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   name: 'name',
@@ -226,7 +226,7 @@ export const TaskTypeScalarFieldEnum = {
   deleted: 'deleted'
 } as const
 
-export type TaskTypeScalarFieldEnum = (typeof TaskTypeScalarFieldEnum)[keyof typeof TaskTypeScalarFieldEnum]
+export type LaborTypeScalarFieldEnum = (typeof LaborTypeScalarFieldEnum)[keyof typeof LaborTypeScalarFieldEnum]
 
 
 export const FarmScalarFieldEnum = {
@@ -263,7 +263,7 @@ export type LotScalarFieldEnum = (typeof LotScalarFieldEnum)[keyof typeof LotSca
 export const TaskScalarFieldEnum = {
   id: 'id',
   lotId: 'lotId',
-  taskTypeId: 'taskTypeId',
+  laborTypeId: 'laborTypeId',
   status: 'status',
   startedAt: 'startedAt',
   finishedAt: 'finishedAt',
@@ -310,7 +310,7 @@ export const DailyReportScalarFieldEnum = {
   companyId: 'companyId',
   taskId: 'taskId',
   lotId: 'lotId',
-  taskTypeId: 'taskTypeId',
+  laborTypeId: 'laborTypeId',
   date: 'date',
   hectares: 'hectares',
   hours: 'hours',

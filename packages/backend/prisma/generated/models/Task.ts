@@ -37,7 +37,7 @@ export type TaskSumAggregateOutputType = {
 export type TaskMinAggregateOutputType = {
   id: string | null
   lotId: string | null
-  taskTypeId: string | null
+  laborTypeId: string | null
   status: $Enums.TaskStatus | null
   startedAt: Date | null
   finishedAt: Date | null
@@ -51,7 +51,7 @@ export type TaskMinAggregateOutputType = {
 export type TaskMaxAggregateOutputType = {
   id: string | null
   lotId: string | null
-  taskTypeId: string | null
+  laborTypeId: string | null
   status: $Enums.TaskStatus | null
   startedAt: Date | null
   finishedAt: Date | null
@@ -65,7 +65,7 @@ export type TaskMaxAggregateOutputType = {
 export type TaskCountAggregateOutputType = {
   id: number
   lotId: number
-  taskTypeId: number
+  laborTypeId: number
   status: number
   startedAt: number
   finishedAt: number
@@ -89,7 +89,7 @@ export type TaskSumAggregateInputType = {
 export type TaskMinAggregateInputType = {
   id?: true
   lotId?: true
-  taskTypeId?: true
+  laborTypeId?: true
   status?: true
   startedAt?: true
   finishedAt?: true
@@ -103,7 +103,7 @@ export type TaskMinAggregateInputType = {
 export type TaskMaxAggregateInputType = {
   id?: true
   lotId?: true
-  taskTypeId?: true
+  laborTypeId?: true
   status?: true
   startedAt?: true
   finishedAt?: true
@@ -117,7 +117,7 @@ export type TaskMaxAggregateInputType = {
 export type TaskCountAggregateInputType = {
   id?: true
   lotId?: true
-  taskTypeId?: true
+  laborTypeId?: true
   status?: true
   startedAt?: true
   finishedAt?: true
@@ -218,7 +218,7 @@ export type TaskGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type TaskGroupByOutputType = {
   id: string
   lotId: string
-  taskTypeId: string
+  laborTypeId: string
   status: $Enums.TaskStatus
   startedAt: Date | null
   finishedAt: Date | null
@@ -255,7 +255,7 @@ export type TaskWhereInput = {
   NOT?: Prisma.TaskWhereInput | Prisma.TaskWhereInput[]
   id?: Prisma.StringFilter<"Task"> | string
   lotId?: Prisma.StringFilter<"Task"> | string
-  taskTypeId?: Prisma.StringFilter<"Task"> | string
+  laborTypeId?: Prisma.StringFilter<"Task"> | string
   status?: Prisma.EnumTaskStatusFilter<"Task"> | $Enums.TaskStatus
   startedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   finishedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
@@ -265,7 +265,7 @@ export type TaskWhereInput = {
   version?: Prisma.IntFilter<"Task"> | number
   deleted?: Prisma.BoolFilter<"Task"> | boolean
   lot?: Prisma.XOR<Prisma.LotScalarRelationFilter, Prisma.LotWhereInput>
-  taskType?: Prisma.XOR<Prisma.TaskTypeScalarRelationFilter, Prisma.TaskTypeWhereInput>
+  laborType?: Prisma.XOR<Prisma.LaborTypeScalarRelationFilter, Prisma.LaborTypeWhereInput>
   operators?: Prisma.UserListRelationFilter
   machineLogs?: Prisma.MachineUsageListRelationFilter
   dailyReports?: Prisma.DailyReportListRelationFilter
@@ -274,7 +274,7 @@ export type TaskWhereInput = {
 export type TaskOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   lotId?: Prisma.SortOrder
-  taskTypeId?: Prisma.SortOrder
+  laborTypeId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   finishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -284,7 +284,7 @@ export type TaskOrderByWithRelationInput = {
   version?: Prisma.SortOrder
   deleted?: Prisma.SortOrder
   lot?: Prisma.LotOrderByWithRelationInput
-  taskType?: Prisma.TaskTypeOrderByWithRelationInput
+  laborType?: Prisma.LaborTypeOrderByWithRelationInput
   operators?: Prisma.UserOrderByRelationAggregateInput
   machineLogs?: Prisma.MachineUsageOrderByRelationAggregateInput
   dailyReports?: Prisma.DailyReportOrderByRelationAggregateInput
@@ -296,7 +296,7 @@ export type TaskWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.TaskWhereInput[]
   NOT?: Prisma.TaskWhereInput | Prisma.TaskWhereInput[]
   lotId?: Prisma.StringFilter<"Task"> | string
-  taskTypeId?: Prisma.StringFilter<"Task"> | string
+  laborTypeId?: Prisma.StringFilter<"Task"> | string
   status?: Prisma.EnumTaskStatusFilter<"Task"> | $Enums.TaskStatus
   startedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   finishedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
@@ -306,7 +306,7 @@ export type TaskWhereUniqueInput = Prisma.AtLeast<{
   version?: Prisma.IntFilter<"Task"> | number
   deleted?: Prisma.BoolFilter<"Task"> | boolean
   lot?: Prisma.XOR<Prisma.LotScalarRelationFilter, Prisma.LotWhereInput>
-  taskType?: Prisma.XOR<Prisma.TaskTypeScalarRelationFilter, Prisma.TaskTypeWhereInput>
+  laborType?: Prisma.XOR<Prisma.LaborTypeScalarRelationFilter, Prisma.LaborTypeWhereInput>
   operators?: Prisma.UserListRelationFilter
   machineLogs?: Prisma.MachineUsageListRelationFilter
   dailyReports?: Prisma.DailyReportListRelationFilter
@@ -315,7 +315,7 @@ export type TaskWhereUniqueInput = Prisma.AtLeast<{
 export type TaskOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   lotId?: Prisma.SortOrder
-  taskTypeId?: Prisma.SortOrder
+  laborTypeId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   finishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -337,7 +337,7 @@ export type TaskScalarWhereWithAggregatesInput = {
   NOT?: Prisma.TaskScalarWhereWithAggregatesInput | Prisma.TaskScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Task"> | string
   lotId?: Prisma.StringWithAggregatesFilter<"Task"> | string
-  taskTypeId?: Prisma.StringWithAggregatesFilter<"Task"> | string
+  laborTypeId?: Prisma.StringWithAggregatesFilter<"Task"> | string
   status?: Prisma.EnumTaskStatusWithAggregatesFilter<"Task"> | $Enums.TaskStatus
   startedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
   finishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Task"> | Date | string | null
@@ -359,7 +359,7 @@ export type TaskCreateInput = {
   version?: number
   deleted?: boolean
   lot: Prisma.LotCreateNestedOneWithoutTasksInput
-  taskType: Prisma.TaskTypeCreateNestedOneWithoutTasksInput
+  laborType: Prisma.LaborTypeCreateNestedOneWithoutTasksInput
   operators?: Prisma.UserCreateNestedManyWithoutTasksInput
   machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
@@ -368,7 +368,7 @@ export type TaskCreateInput = {
 export type TaskUncheckedCreateInput = {
   id?: string
   lotId: string
-  taskTypeId: string
+  laborTypeId: string
   status?: $Enums.TaskStatus
   startedAt?: Date | string | null
   finishedAt?: Date | string | null
@@ -393,7 +393,7 @@ export type TaskUpdateInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lot?: Prisma.LotUpdateOneRequiredWithoutTasksNestedInput
-  taskType?: Prisma.TaskTypeUpdateOneRequiredWithoutTasksNestedInput
+  laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutTasksNestedInput
   operators?: Prisma.UserUpdateManyWithoutTasksNestedInput
   machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
@@ -402,7 +402,7 @@ export type TaskUpdateInput = {
 export type TaskUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
-  taskTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -419,7 +419,7 @@ export type TaskUncheckedUpdateInput = {
 export type TaskCreateManyInput = {
   id?: string
   lotId: string
-  taskTypeId: string
+  laborTypeId: string
   status?: $Enums.TaskStatus
   startedAt?: Date | string | null
   finishedAt?: Date | string | null
@@ -445,7 +445,7 @@ export type TaskUpdateManyMutationInput = {
 export type TaskUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
-  taskTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -469,7 +469,7 @@ export type TaskOrderByRelationAggregateInput = {
 export type TaskCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   lotId?: Prisma.SortOrder
-  taskTypeId?: Prisma.SortOrder
+  laborTypeId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrder
@@ -487,7 +487,7 @@ export type TaskAvgOrderByAggregateInput = {
 export type TaskMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   lotId?: Prisma.SortOrder
-  taskTypeId?: Prisma.SortOrder
+  laborTypeId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrder
@@ -501,7 +501,7 @@ export type TaskMaxOrderByAggregateInput = {
 export type TaskMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   lotId?: Prisma.SortOrder
-  taskTypeId?: Prisma.SortOrder
+  laborTypeId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrder
@@ -559,45 +559,45 @@ export type TaskUncheckedUpdateManyWithoutOperatorsNestedInput = {
   deleteMany?: Prisma.TaskScalarWhereInput | Prisma.TaskScalarWhereInput[]
 }
 
-export type TaskCreateNestedManyWithoutTaskTypeInput = {
-  create?: Prisma.XOR<Prisma.TaskCreateWithoutTaskTypeInput, Prisma.TaskUncheckedCreateWithoutTaskTypeInput> | Prisma.TaskCreateWithoutTaskTypeInput[] | Prisma.TaskUncheckedCreateWithoutTaskTypeInput[]
-  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutTaskTypeInput | Prisma.TaskCreateOrConnectWithoutTaskTypeInput[]
-  createMany?: Prisma.TaskCreateManyTaskTypeInputEnvelope
+export type TaskCreateNestedManyWithoutLaborTypeInput = {
+  create?: Prisma.XOR<Prisma.TaskCreateWithoutLaborTypeInput, Prisma.TaskUncheckedCreateWithoutLaborTypeInput> | Prisma.TaskCreateWithoutLaborTypeInput[] | Prisma.TaskUncheckedCreateWithoutLaborTypeInput[]
+  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutLaborTypeInput | Prisma.TaskCreateOrConnectWithoutLaborTypeInput[]
+  createMany?: Prisma.TaskCreateManyLaborTypeInputEnvelope
   connect?: Prisma.TaskWhereUniqueInput | Prisma.TaskWhereUniqueInput[]
 }
 
-export type TaskUncheckedCreateNestedManyWithoutTaskTypeInput = {
-  create?: Prisma.XOR<Prisma.TaskCreateWithoutTaskTypeInput, Prisma.TaskUncheckedCreateWithoutTaskTypeInput> | Prisma.TaskCreateWithoutTaskTypeInput[] | Prisma.TaskUncheckedCreateWithoutTaskTypeInput[]
-  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutTaskTypeInput | Prisma.TaskCreateOrConnectWithoutTaskTypeInput[]
-  createMany?: Prisma.TaskCreateManyTaskTypeInputEnvelope
+export type TaskUncheckedCreateNestedManyWithoutLaborTypeInput = {
+  create?: Prisma.XOR<Prisma.TaskCreateWithoutLaborTypeInput, Prisma.TaskUncheckedCreateWithoutLaborTypeInput> | Prisma.TaskCreateWithoutLaborTypeInput[] | Prisma.TaskUncheckedCreateWithoutLaborTypeInput[]
+  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutLaborTypeInput | Prisma.TaskCreateOrConnectWithoutLaborTypeInput[]
+  createMany?: Prisma.TaskCreateManyLaborTypeInputEnvelope
   connect?: Prisma.TaskWhereUniqueInput | Prisma.TaskWhereUniqueInput[]
 }
 
-export type TaskUpdateManyWithoutTaskTypeNestedInput = {
-  create?: Prisma.XOR<Prisma.TaskCreateWithoutTaskTypeInput, Prisma.TaskUncheckedCreateWithoutTaskTypeInput> | Prisma.TaskCreateWithoutTaskTypeInput[] | Prisma.TaskUncheckedCreateWithoutTaskTypeInput[]
-  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutTaskTypeInput | Prisma.TaskCreateOrConnectWithoutTaskTypeInput[]
-  upsert?: Prisma.TaskUpsertWithWhereUniqueWithoutTaskTypeInput | Prisma.TaskUpsertWithWhereUniqueWithoutTaskTypeInput[]
-  createMany?: Prisma.TaskCreateManyTaskTypeInputEnvelope
+export type TaskUpdateManyWithoutLaborTypeNestedInput = {
+  create?: Prisma.XOR<Prisma.TaskCreateWithoutLaborTypeInput, Prisma.TaskUncheckedCreateWithoutLaborTypeInput> | Prisma.TaskCreateWithoutLaborTypeInput[] | Prisma.TaskUncheckedCreateWithoutLaborTypeInput[]
+  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutLaborTypeInput | Prisma.TaskCreateOrConnectWithoutLaborTypeInput[]
+  upsert?: Prisma.TaskUpsertWithWhereUniqueWithoutLaborTypeInput | Prisma.TaskUpsertWithWhereUniqueWithoutLaborTypeInput[]
+  createMany?: Prisma.TaskCreateManyLaborTypeInputEnvelope
   set?: Prisma.TaskWhereUniqueInput | Prisma.TaskWhereUniqueInput[]
   disconnect?: Prisma.TaskWhereUniqueInput | Prisma.TaskWhereUniqueInput[]
   delete?: Prisma.TaskWhereUniqueInput | Prisma.TaskWhereUniqueInput[]
   connect?: Prisma.TaskWhereUniqueInput | Prisma.TaskWhereUniqueInput[]
-  update?: Prisma.TaskUpdateWithWhereUniqueWithoutTaskTypeInput | Prisma.TaskUpdateWithWhereUniqueWithoutTaskTypeInput[]
-  updateMany?: Prisma.TaskUpdateManyWithWhereWithoutTaskTypeInput | Prisma.TaskUpdateManyWithWhereWithoutTaskTypeInput[]
+  update?: Prisma.TaskUpdateWithWhereUniqueWithoutLaborTypeInput | Prisma.TaskUpdateWithWhereUniqueWithoutLaborTypeInput[]
+  updateMany?: Prisma.TaskUpdateManyWithWhereWithoutLaborTypeInput | Prisma.TaskUpdateManyWithWhereWithoutLaborTypeInput[]
   deleteMany?: Prisma.TaskScalarWhereInput | Prisma.TaskScalarWhereInput[]
 }
 
-export type TaskUncheckedUpdateManyWithoutTaskTypeNestedInput = {
-  create?: Prisma.XOR<Prisma.TaskCreateWithoutTaskTypeInput, Prisma.TaskUncheckedCreateWithoutTaskTypeInput> | Prisma.TaskCreateWithoutTaskTypeInput[] | Prisma.TaskUncheckedCreateWithoutTaskTypeInput[]
-  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutTaskTypeInput | Prisma.TaskCreateOrConnectWithoutTaskTypeInput[]
-  upsert?: Prisma.TaskUpsertWithWhereUniqueWithoutTaskTypeInput | Prisma.TaskUpsertWithWhereUniqueWithoutTaskTypeInput[]
-  createMany?: Prisma.TaskCreateManyTaskTypeInputEnvelope
+export type TaskUncheckedUpdateManyWithoutLaborTypeNestedInput = {
+  create?: Prisma.XOR<Prisma.TaskCreateWithoutLaborTypeInput, Prisma.TaskUncheckedCreateWithoutLaborTypeInput> | Prisma.TaskCreateWithoutLaborTypeInput[] | Prisma.TaskUncheckedCreateWithoutLaborTypeInput[]
+  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutLaborTypeInput | Prisma.TaskCreateOrConnectWithoutLaborTypeInput[]
+  upsert?: Prisma.TaskUpsertWithWhereUniqueWithoutLaborTypeInput | Prisma.TaskUpsertWithWhereUniqueWithoutLaborTypeInput[]
+  createMany?: Prisma.TaskCreateManyLaborTypeInputEnvelope
   set?: Prisma.TaskWhereUniqueInput | Prisma.TaskWhereUniqueInput[]
   disconnect?: Prisma.TaskWhereUniqueInput | Prisma.TaskWhereUniqueInput[]
   delete?: Prisma.TaskWhereUniqueInput | Prisma.TaskWhereUniqueInput[]
   connect?: Prisma.TaskWhereUniqueInput | Prisma.TaskWhereUniqueInput[]
-  update?: Prisma.TaskUpdateWithWhereUniqueWithoutTaskTypeInput | Prisma.TaskUpdateWithWhereUniqueWithoutTaskTypeInput[]
-  updateMany?: Prisma.TaskUpdateManyWithWhereWithoutTaskTypeInput | Prisma.TaskUpdateManyWithWhereWithoutTaskTypeInput[]
+  update?: Prisma.TaskUpdateWithWhereUniqueWithoutLaborTypeInput | Prisma.TaskUpdateWithWhereUniqueWithoutLaborTypeInput[]
+  updateMany?: Prisma.TaskUpdateManyWithWhereWithoutLaborTypeInput | Prisma.TaskUpdateManyWithWhereWithoutLaborTypeInput[]
   deleteMany?: Prisma.TaskScalarWhereInput | Prisma.TaskScalarWhereInput[]
 }
 
@@ -686,7 +686,7 @@ export type TaskCreateWithoutOperatorsInput = {
   version?: number
   deleted?: boolean
   lot: Prisma.LotCreateNestedOneWithoutTasksInput
-  taskType: Prisma.TaskTypeCreateNestedOneWithoutTasksInput
+  laborType: Prisma.LaborTypeCreateNestedOneWithoutTasksInput
   machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
 }
@@ -694,7 +694,7 @@ export type TaskCreateWithoutOperatorsInput = {
 export type TaskUncheckedCreateWithoutOperatorsInput = {
   id?: string
   lotId: string
-  taskTypeId: string
+  laborTypeId: string
   status?: $Enums.TaskStatus
   startedAt?: Date | string | null
   finishedAt?: Date | string | null
@@ -734,7 +734,7 @@ export type TaskScalarWhereInput = {
   NOT?: Prisma.TaskScalarWhereInput | Prisma.TaskScalarWhereInput[]
   id?: Prisma.StringFilter<"Task"> | string
   lotId?: Prisma.StringFilter<"Task"> | string
-  taskTypeId?: Prisma.StringFilter<"Task"> | string
+  laborTypeId?: Prisma.StringFilter<"Task"> | string
   status?: Prisma.EnumTaskStatusFilter<"Task"> | $Enums.TaskStatus
   startedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
   finishedAt?: Prisma.DateTimeNullableFilter<"Task"> | Date | string | null
@@ -745,7 +745,7 @@ export type TaskScalarWhereInput = {
   deleted?: Prisma.BoolFilter<"Task"> | boolean
 }
 
-export type TaskCreateWithoutTaskTypeInput = {
+export type TaskCreateWithoutLaborTypeInput = {
   id?: string
   status?: $Enums.TaskStatus
   startedAt?: Date | string | null
@@ -761,7 +761,7 @@ export type TaskCreateWithoutTaskTypeInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
 }
 
-export type TaskUncheckedCreateWithoutTaskTypeInput = {
+export type TaskUncheckedCreateWithoutLaborTypeInput = {
   id?: string
   lotId: string
   status?: $Enums.TaskStatus
@@ -777,30 +777,30 @@ export type TaskUncheckedCreateWithoutTaskTypeInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutTaskInput
 }
 
-export type TaskCreateOrConnectWithoutTaskTypeInput = {
+export type TaskCreateOrConnectWithoutLaborTypeInput = {
   where: Prisma.TaskWhereUniqueInput
-  create: Prisma.XOR<Prisma.TaskCreateWithoutTaskTypeInput, Prisma.TaskUncheckedCreateWithoutTaskTypeInput>
+  create: Prisma.XOR<Prisma.TaskCreateWithoutLaborTypeInput, Prisma.TaskUncheckedCreateWithoutLaborTypeInput>
 }
 
-export type TaskCreateManyTaskTypeInputEnvelope = {
-  data: Prisma.TaskCreateManyTaskTypeInput | Prisma.TaskCreateManyTaskTypeInput[]
+export type TaskCreateManyLaborTypeInputEnvelope = {
+  data: Prisma.TaskCreateManyLaborTypeInput | Prisma.TaskCreateManyLaborTypeInput[]
   skipDuplicates?: boolean
 }
 
-export type TaskUpsertWithWhereUniqueWithoutTaskTypeInput = {
+export type TaskUpsertWithWhereUniqueWithoutLaborTypeInput = {
   where: Prisma.TaskWhereUniqueInput
-  update: Prisma.XOR<Prisma.TaskUpdateWithoutTaskTypeInput, Prisma.TaskUncheckedUpdateWithoutTaskTypeInput>
-  create: Prisma.XOR<Prisma.TaskCreateWithoutTaskTypeInput, Prisma.TaskUncheckedCreateWithoutTaskTypeInput>
+  update: Prisma.XOR<Prisma.TaskUpdateWithoutLaborTypeInput, Prisma.TaskUncheckedUpdateWithoutLaborTypeInput>
+  create: Prisma.XOR<Prisma.TaskCreateWithoutLaborTypeInput, Prisma.TaskUncheckedCreateWithoutLaborTypeInput>
 }
 
-export type TaskUpdateWithWhereUniqueWithoutTaskTypeInput = {
+export type TaskUpdateWithWhereUniqueWithoutLaborTypeInput = {
   where: Prisma.TaskWhereUniqueInput
-  data: Prisma.XOR<Prisma.TaskUpdateWithoutTaskTypeInput, Prisma.TaskUncheckedUpdateWithoutTaskTypeInput>
+  data: Prisma.XOR<Prisma.TaskUpdateWithoutLaborTypeInput, Prisma.TaskUncheckedUpdateWithoutLaborTypeInput>
 }
 
-export type TaskUpdateManyWithWhereWithoutTaskTypeInput = {
+export type TaskUpdateManyWithWhereWithoutLaborTypeInput = {
   where: Prisma.TaskScalarWhereInput
-  data: Prisma.XOR<Prisma.TaskUpdateManyMutationInput, Prisma.TaskUncheckedUpdateManyWithoutTaskTypeInput>
+  data: Prisma.XOR<Prisma.TaskUpdateManyMutationInput, Prisma.TaskUncheckedUpdateManyWithoutLaborTypeInput>
 }
 
 export type TaskCreateWithoutLotInput = {
@@ -813,7 +813,7 @@ export type TaskCreateWithoutLotInput = {
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
-  taskType: Prisma.TaskTypeCreateNestedOneWithoutTasksInput
+  laborType: Prisma.LaborTypeCreateNestedOneWithoutTasksInput
   operators?: Prisma.UserCreateNestedManyWithoutTasksInput
   machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
@@ -821,7 +821,7 @@ export type TaskCreateWithoutLotInput = {
 
 export type TaskUncheckedCreateWithoutLotInput = {
   id?: string
-  taskTypeId: string
+  laborTypeId: string
   status?: $Enums.TaskStatus
   startedAt?: Date | string | null
   finishedAt?: Date | string | null
@@ -872,7 +872,7 @@ export type TaskCreateWithoutDailyReportsInput = {
   version?: number
   deleted?: boolean
   lot: Prisma.LotCreateNestedOneWithoutTasksInput
-  taskType: Prisma.TaskTypeCreateNestedOneWithoutTasksInput
+  laborType: Prisma.LaborTypeCreateNestedOneWithoutTasksInput
   operators?: Prisma.UserCreateNestedManyWithoutTasksInput
   machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
 }
@@ -880,7 +880,7 @@ export type TaskCreateWithoutDailyReportsInput = {
 export type TaskUncheckedCreateWithoutDailyReportsInput = {
   id?: string
   lotId: string
-  taskTypeId: string
+  laborTypeId: string
   status?: $Enums.TaskStatus
   startedAt?: Date | string | null
   finishedAt?: Date | string | null
@@ -920,7 +920,7 @@ export type TaskUpdateWithoutDailyReportsInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lot?: Prisma.LotUpdateOneRequiredWithoutTasksNestedInput
-  taskType?: Prisma.TaskTypeUpdateOneRequiredWithoutTasksNestedInput
+  laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutTasksNestedInput
   operators?: Prisma.UserUpdateManyWithoutTasksNestedInput
   machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
 }
@@ -928,7 +928,7 @@ export type TaskUpdateWithoutDailyReportsInput = {
 export type TaskUncheckedUpdateWithoutDailyReportsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
-  taskTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -952,7 +952,7 @@ export type TaskCreateWithoutMachineLogsInput = {
   version?: number
   deleted?: boolean
   lot: Prisma.LotCreateNestedOneWithoutTasksInput
-  taskType: Prisma.TaskTypeCreateNestedOneWithoutTasksInput
+  laborType: Prisma.LaborTypeCreateNestedOneWithoutTasksInput
   operators?: Prisma.UserCreateNestedManyWithoutTasksInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
 }
@@ -960,7 +960,7 @@ export type TaskCreateWithoutMachineLogsInput = {
 export type TaskUncheckedCreateWithoutMachineLogsInput = {
   id?: string
   lotId: string
-  taskTypeId: string
+  laborTypeId: string
   status?: $Enums.TaskStatus
   startedAt?: Date | string | null
   finishedAt?: Date | string | null
@@ -1000,7 +1000,7 @@ export type TaskUpdateWithoutMachineLogsInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lot?: Prisma.LotUpdateOneRequiredWithoutTasksNestedInput
-  taskType?: Prisma.TaskTypeUpdateOneRequiredWithoutTasksNestedInput
+  laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutTasksNestedInput
   operators?: Prisma.UserUpdateManyWithoutTasksNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
 }
@@ -1008,7 +1008,7 @@ export type TaskUpdateWithoutMachineLogsInput = {
 export type TaskUncheckedUpdateWithoutMachineLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
-  taskTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1032,7 +1032,7 @@ export type TaskUpdateWithoutOperatorsInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lot?: Prisma.LotUpdateOneRequiredWithoutTasksNestedInput
-  taskType?: Prisma.TaskTypeUpdateOneRequiredWithoutTasksNestedInput
+  laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutTasksNestedInput
   machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
 }
@@ -1040,7 +1040,7 @@ export type TaskUpdateWithoutOperatorsInput = {
 export type TaskUncheckedUpdateWithoutOperatorsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
-  taskTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1056,7 +1056,7 @@ export type TaskUncheckedUpdateWithoutOperatorsInput = {
 export type TaskUncheckedUpdateManyWithoutOperatorsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
-  taskTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1067,7 +1067,7 @@ export type TaskUncheckedUpdateManyWithoutOperatorsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
-export type TaskCreateManyTaskTypeInput = {
+export type TaskCreateManyLaborTypeInput = {
   id?: string
   lotId: string
   status?: $Enums.TaskStatus
@@ -1080,7 +1080,7 @@ export type TaskCreateManyTaskTypeInput = {
   deleted?: boolean
 }
 
-export type TaskUpdateWithoutTaskTypeInput = {
+export type TaskUpdateWithoutLaborTypeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1096,7 +1096,7 @@ export type TaskUpdateWithoutTaskTypeInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
 }
 
-export type TaskUncheckedUpdateWithoutTaskTypeInput = {
+export type TaskUncheckedUpdateWithoutLaborTypeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
@@ -1112,7 +1112,7 @@ export type TaskUncheckedUpdateWithoutTaskTypeInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutTaskNestedInput
 }
 
-export type TaskUncheckedUpdateManyWithoutTaskTypeInput = {
+export type TaskUncheckedUpdateManyWithoutLaborTypeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
@@ -1127,7 +1127,7 @@ export type TaskUncheckedUpdateManyWithoutTaskTypeInput = {
 
 export type TaskCreateManyLotInput = {
   id?: string
-  taskTypeId: string
+  laborTypeId: string
   status?: $Enums.TaskStatus
   startedAt?: Date | string | null
   finishedAt?: Date | string | null
@@ -1148,7 +1148,7 @@ export type TaskUpdateWithoutLotInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  taskType?: Prisma.TaskTypeUpdateOneRequiredWithoutTasksNestedInput
+  laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutTasksNestedInput
   operators?: Prisma.UserUpdateManyWithoutTasksNestedInput
   machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
@@ -1156,7 +1156,7 @@ export type TaskUpdateWithoutLotInput = {
 
 export type TaskUncheckedUpdateWithoutLotInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  taskTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1172,7 +1172,7 @@ export type TaskUncheckedUpdateWithoutLotInput = {
 
 export type TaskUncheckedUpdateManyWithoutLotInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  taskTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1235,7 +1235,7 @@ export type TaskCountOutputTypeCountDailyReportsArgs<ExtArgs extends runtime.Typ
 export type TaskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   lotId?: boolean
-  taskTypeId?: boolean
+  laborTypeId?: boolean
   status?: boolean
   startedAt?: boolean
   finishedAt?: boolean
@@ -1245,7 +1245,7 @@ export type TaskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   version?: boolean
   deleted?: boolean
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
-  taskType?: boolean | Prisma.TaskTypeDefaultArgs<ExtArgs>
+  laborType?: boolean | Prisma.LaborTypeDefaultArgs<ExtArgs>
   operators?: boolean | Prisma.Task$operatorsArgs<ExtArgs>
   machineLogs?: boolean | Prisma.Task$machineLogsArgs<ExtArgs>
   dailyReports?: boolean | Prisma.Task$dailyReportsArgs<ExtArgs>
@@ -1255,7 +1255,7 @@ export type TaskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 export type TaskSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   lotId?: boolean
-  taskTypeId?: boolean
+  laborTypeId?: boolean
   status?: boolean
   startedAt?: boolean
   finishedAt?: boolean
@@ -1265,13 +1265,13 @@ export type TaskSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   version?: boolean
   deleted?: boolean
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
-  taskType?: boolean | Prisma.TaskTypeDefaultArgs<ExtArgs>
+  laborType?: boolean | Prisma.LaborTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["task"]>
 
 export type TaskSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   lotId?: boolean
-  taskTypeId?: boolean
+  laborTypeId?: boolean
   status?: boolean
   startedAt?: boolean
   finishedAt?: boolean
@@ -1281,13 +1281,13 @@ export type TaskSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   version?: boolean
   deleted?: boolean
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
-  taskType?: boolean | Prisma.TaskTypeDefaultArgs<ExtArgs>
+  laborType?: boolean | Prisma.LaborTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["task"]>
 
 export type TaskSelectScalar = {
   id?: boolean
   lotId?: boolean
-  taskTypeId?: boolean
+  laborTypeId?: boolean
   status?: boolean
   startedAt?: boolean
   finishedAt?: boolean
@@ -1298,10 +1298,10 @@ export type TaskSelectScalar = {
   deleted?: boolean
 }
 
-export type TaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "lotId" | "taskTypeId" | "status" | "startedAt" | "finishedAt" | "updatedTaskAt" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["task"]>
+export type TaskOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "lotId" | "laborTypeId" | "status" | "startedAt" | "finishedAt" | "updatedTaskAt" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["task"]>
 export type TaskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
-  taskType?: boolean | Prisma.TaskTypeDefaultArgs<ExtArgs>
+  laborType?: boolean | Prisma.LaborTypeDefaultArgs<ExtArgs>
   operators?: boolean | Prisma.Task$operatorsArgs<ExtArgs>
   machineLogs?: boolean | Prisma.Task$machineLogsArgs<ExtArgs>
   dailyReports?: boolean | Prisma.Task$dailyReportsArgs<ExtArgs>
@@ -1309,18 +1309,18 @@ export type TaskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 }
 export type TaskIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
-  taskType?: boolean | Prisma.TaskTypeDefaultArgs<ExtArgs>
+  laborType?: boolean | Prisma.LaborTypeDefaultArgs<ExtArgs>
 }
 export type TaskIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
-  taskType?: boolean | Prisma.TaskTypeDefaultArgs<ExtArgs>
+  laborType?: boolean | Prisma.LaborTypeDefaultArgs<ExtArgs>
 }
 
 export type $TaskPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Task"
   objects: {
     lot: Prisma.$LotPayload<ExtArgs>
-    taskType: Prisma.$TaskTypePayload<ExtArgs>
+    laborType: Prisma.$LaborTypePayload<ExtArgs>
     operators: Prisma.$UserPayload<ExtArgs>[]
     machineLogs: Prisma.$MachineUsagePayload<ExtArgs>[]
     dailyReports: Prisma.$DailyReportPayload<ExtArgs>[]
@@ -1328,7 +1328,7 @@ export type $TaskPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     lotId: string
-    taskTypeId: string
+    laborTypeId: string
     status: $Enums.TaskStatus
     startedAt: Date | null
     finishedAt: Date | null
@@ -1732,7 +1732,7 @@ readonly fields: TaskFieldRefs;
 export interface Prisma__TaskClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   lot<T extends Prisma.LotDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LotDefaultArgs<ExtArgs>>): Prisma.Prisma__LotClient<runtime.Types.Result.GetResult<Prisma.$LotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  taskType<T extends Prisma.TaskTypeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TaskTypeDefaultArgs<ExtArgs>>): Prisma.Prisma__TaskTypeClient<runtime.Types.Result.GetResult<Prisma.$TaskTypePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  laborType<T extends Prisma.LaborTypeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LaborTypeDefaultArgs<ExtArgs>>): Prisma.Prisma__LaborTypeClient<runtime.Types.Result.GetResult<Prisma.$LaborTypePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   operators<T extends Prisma.Task$operatorsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$operatorsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   machineLogs<T extends Prisma.Task$machineLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$machineLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MachineUsagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dailyReports<T extends Prisma.Task$dailyReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$dailyReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1767,7 +1767,7 @@ export interface Prisma__TaskClient<T, Null = never, ExtArgs extends runtime.Typ
 export interface TaskFieldRefs {
   readonly id: Prisma.FieldRef<"Task", 'String'>
   readonly lotId: Prisma.FieldRef<"Task", 'String'>
-  readonly taskTypeId: Prisma.FieldRef<"Task", 'String'>
+  readonly laborTypeId: Prisma.FieldRef<"Task", 'String'>
   readonly status: Prisma.FieldRef<"Task", 'TaskStatus'>
   readonly startedAt: Prisma.FieldRef<"Task", 'DateTime'>
   readonly finishedAt: Prisma.FieldRef<"Task", 'DateTime'>

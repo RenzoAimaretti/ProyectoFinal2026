@@ -58,10 +58,10 @@ export type Client = Prisma.ClientModel
  */
 export type Input = Prisma.InputModel
 /**
- * Model TaskType
+ * Model LaborType
  * 
  */
-export type TaskType = Prisma.TaskTypeModel
+export type LaborType = Prisma.LaborTypeModel
 /**
  * Model Farm
  * 

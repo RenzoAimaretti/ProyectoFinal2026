@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { TaskTypeReaderPort } from '../../application/task.ports';
+import { LaborTypeReaderPort } from '../../application/task.ports';
 
 @Injectable()
-export class PrismaTaskTypeReader implements TaskTypeReaderPort {
+export class PrismaLaborTypeReader implements LaborTypeReaderPort {
   constructor(private readonly prisma: PrismaService) {}
 
   findByIdForTenant(id: string, tenantId: string) {
-    return this.prisma.taskType.findFirst({
+    return this.prisma.laborType.findFirst({
       where: { id, tenantId },
       select: { id: true },
     });

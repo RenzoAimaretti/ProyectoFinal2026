@@ -1,12 +1,12 @@
 import { DuplicateEntityError } from '../../domain/errors';
-import { TaskTypeRepositoryPort } from '../task-type.ports';
-import { CreateTaskTypeInput, TaskTypeRecord } from '../task-type.types';
-import { assertRequiredString, normalizeOptionalString } from '../task-type.validation';
+import { LaborTypeRepositoryPort } from '../labor-type.ports';
+import { CreateLaborTypeInput, LaborTypeRecord } from '../labor-type.types';
+import { assertRequiredString, normalizeOptionalString } from '../labor-type.validation';
 
-export class CreateTaskTypeUseCase {
-  constructor(private readonly repository: TaskTypeRepositoryPort) {}
+export class CreateLaborTypeUseCase {
+  constructor(private readonly repository: LaborTypeRepositoryPort) {}
 
-  async execute(tenantId: string, input: CreateTaskTypeInput): Promise<TaskTypeRecord> {
+  async execute(tenantId: string, input: CreateLaborTypeInput): Promise<LaborTypeRecord> {
     const validatedTenantId = assertRequiredString(tenantId, 'companyId');
     const name = assertRequiredString(input?.name, 'name');
     const description = normalizeOptionalString(input?.description, 'description');
@@ -14,7 +14,7 @@ export class CreateTaskTypeUseCase {
     const existing = await this.repository.findByNameAndTenantId(name, validatedTenantId);
     if (existing) {
       throw new DuplicateEntityError(
-        `Task type with name ${name} already exists for company ${validatedTenantId}`,
+        `Labor type with name ${name} already exists for company ${validatedTenantId}`,
       );
     }
 

@@ -35,7 +35,7 @@ export class TaskController {
   create(@Req() req: RequestWithUser, @Body() data: CreateTaskInput) {
     return this.service.create(req.user.tenantId, {
       lotId: data.lotId,
-      taskTypeId: data.taskTypeId,
+      laborTypeId: data.laborTypeId,
       startedAt: data.startedAt,
     });
   }

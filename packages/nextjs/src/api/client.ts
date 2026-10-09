@@ -243,8 +243,8 @@ export type DailyReportDTO = {
   operatorId: string;
   operatorName: string;
   taskId: string;
-  taskTypeId: string;
-  taskTypeName: string;
+  laborTypeId: string;
+  laborTypeName: string;
   lotId: string;
   lotName: string;
   farmName: string;
@@ -312,7 +312,7 @@ export type LotDTO = {
   active: boolean;
 };
 
-export type TaskTypeDTO = { id: string; name: string; description: string | null };
+export type LaborTypeDTO = { id: string; name: string; description: string | null };
 
 export type TaskOperatorDTO = {
   id: string;
@@ -322,17 +322,17 @@ export type TaskOperatorDTO = {
 export type TaskDTO = {
   id: string;
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   status: "PENDIENTE" | "EN_PROGRESO" | "FINALIZADA" | "CANCELADA";
   startedAt: string | null;
   finishedAt: string | null;
   /**
    * Enriched by `GET /tasks`. Optional so the UI keeps working against an
-   * older backend and can fall back to the lot/farm/task-type catalogues.
+   * older backend and can fall back to the lot/farm/labor-type catalogues.
    */
   lotName?: string | null;
   farmName?: string | null;
-  taskTypeName?: string | null;
+  laborTypeName?: string | null;
   operators?: TaskOperatorDTO[] | null;
 };
 
@@ -342,7 +342,7 @@ export type TaskDTO = {
 
 export type CreateTaskBody = {
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   /** ISO timestamp built from the chosen date + time. */
   startedAt: string;
 };
@@ -370,8 +370,8 @@ export function assignTaskOperator(
 /* Task types, farms and lots                                          */
 /* ------------------------------------------------------------------ */
 
-export function listTaskTypes(): Promise<TaskTypeDTO[]> {
-  return apiGet<TaskTypeDTO[]>("/task-types");
+export function listLaborTypes(): Promise<LaborTypeDTO[]> {
+  return apiGet<LaborTypeDTO[]>("/labor-types");
 }
 
 export function listFarms(): Promise<FarmDTO[]> {

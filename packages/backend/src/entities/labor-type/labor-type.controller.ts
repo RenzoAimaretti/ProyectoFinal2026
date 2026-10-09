@@ -2,8 +2,8 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from 
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { CreateTaskTypeInput, UpdateTaskTypeInput } from './application/task-type.types';
-import { TaskTypeService } from './task-type.service';
+import { CreateLaborTypeInput, UpdateLaborTypeInput } from './application/labor-type.types';
+import { LaborTypeService } from './labor-type.service';
 
 type RequestWithUser = {
   user: {
@@ -11,9 +11,9 @@ type RequestWithUser = {
   };
 };
 
-@Controller('task-types')
-export class TaskTypeController {
-  constructor(private readonly service: TaskTypeService) {}
+@Controller('labor-types')
+export class LaborTypeController {
+  constructor(private readonly service: LaborTypeService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
@@ -32,7 +32,7 @@ export class TaskTypeController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPERVISOR')
   @Post()
-  create(@Req() req: RequestWithUser, @Body() data: CreateTaskTypeInput) {
+  create(@Req() req: RequestWithUser, @Body() data: CreateLaborTypeInput) {
     return this.service.create(req.user.tenantId, {
       name: data.name,
       ...(data.description !== undefined ? { description: data.description } : {}),
@@ -42,7 +42,7 @@ export class TaskTypeController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPERVISOR')
   @Put(':id')
-  update(@Param('id') id: string, @Req() req: RequestWithUser, @Body() data: UpdateTaskTypeInput) {
+  update(@Param('id') id: string, @Req() req: RequestWithUser, @Body() data: UpdateLaborTypeInput) {
     return this.service.update(id, req.user.tenantId, {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.description !== undefined ? { description: data.description } : {}),
