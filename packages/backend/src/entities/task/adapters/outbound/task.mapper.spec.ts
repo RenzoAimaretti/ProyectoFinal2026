@@ -4,7 +4,7 @@ import { TaskReadRow, toTaskReadOutput } from './task.mapper';
 const baseRow: TaskReadRow = {
   id: 'task-1',
   lotId: 'lot-1',
-  taskTypeId: 'task-type-1',
+  laborTypeId: 'labor-type-1',
   status: 'PENDIENTE' as TaskStatusValue,
   startedAt: new Date('2026-01-10T00:00:00.000Z'),
   finishedAt: null,
@@ -16,11 +16,11 @@ const baseRow: TaskReadRow = {
 };
 
 describe('toTaskReadOutput', () => {
-  it('maps lot, farm, task type and operator display names', () => {
+  it('maps lot, farm, labor type and operator display names', () => {
     const output = toTaskReadOutput({
       ...baseRow,
       lot: { name: 'Lote N°1', farm: { name: 'Agro-Sur' } },
-      taskType: { name: 'Pulverización' },
+      laborType: { name: 'Pulverización' },
       operators: [
         { id: 'user-1', username: 'juan', email: 'juan@agrolify.local' },
         { id: 'user-2', username: null, email: 'operario@agrolify.local' },
@@ -31,14 +31,14 @@ describe('toTaskReadOutput', () => {
       id: 'task-1',
       lotName: 'Lote N°1',
       farmName: 'Agro-Sur',
-      taskTypeName: 'Pulverización',
+      laborTypeName: 'Pulverización',
       operators: [
         { id: 'user-1', name: 'juan' },
         { id: 'user-2', name: 'operario@agrolify.local' },
       ],
     });
     expect(output).not.toHaveProperty('lot');
-    expect(output).not.toHaveProperty('taskType');
+    expect(output).not.toHaveProperty('laborType');
   });
 
   it('keeps the enrichment optional when relations are not loaded', () => {
@@ -47,7 +47,7 @@ describe('toTaskReadOutput', () => {
     expect(output).toEqual(baseRow);
     expect(output.lotName).toBeUndefined();
     expect(output.farmName).toBeUndefined();
-    expect(output.taskTypeName).toBeUndefined();
+    expect(output.laborTypeName).toBeUndefined();
     expect(output.operators).toBeUndefined();
   });
 });

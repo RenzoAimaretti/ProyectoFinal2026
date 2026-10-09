@@ -4,11 +4,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { ROLES_KEY } from '../../auth/decorators/roles.decorator';
-import { TaskTypeController } from './task-type.controller';
-import { TaskTypeService } from './task-type.service';
+import { LaborTypeController } from './labor-type.controller';
+import { LaborTypeService } from './labor-type.service';
 
-describe('TaskTypeController', () => {
-  let controller: TaskTypeController;
+describe('LaborTypeController', () => {
+  let controller: LaborTypeController;
   let service: {
     findAll: jest.Mock;
     findOne: jest.Mock;
@@ -27,11 +27,11 @@ describe('TaskTypeController', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [TaskTypeController],
-      providers: [{ provide: TaskTypeService, useValue: service }],
+      controllers: [LaborTypeController],
+      providers: [{ provide: LaborTypeService, useValue: service }],
     }).compile();
 
-    controller = module.get(TaskTypeController);
+    controller = module.get(LaborTypeController);
   });
 
   it('protects every route with JwtAuthGuard', () => {
@@ -40,7 +40,7 @@ describe('TaskTypeController', () => {
     for (const method of methods) {
       const guards = Reflect.getMetadata(
         GUARDS_METADATA,
-        TaskTypeController.prototype[method],
+        LaborTypeController.prototype[method],
       ) as Array<new (...args: never[]) => unknown> | undefined;
 
       expect(guards).toContain(JwtAuthGuard);
@@ -51,13 +51,13 @@ describe('TaskTypeController', () => {
     for (const method of ['findAll', 'findOne'] as const) {
       const guards = Reflect.getMetadata(
         GUARDS_METADATA,
-        TaskTypeController.prototype[method],
+        LaborTypeController.prototype[method],
       ) as Array<new (...args: never[]) => unknown> | undefined;
       expect(guards).toContain(RolesGuard);
 
       const roles = Reflect.getMetadata(
         ROLES_KEY,
-        TaskTypeController.prototype[method],
+        LaborTypeController.prototype[method],
       ) as string[] | undefined;
       expect(roles).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO']);
       expect(roles).not.toContain('PRODUCTOR');
@@ -65,40 +65,40 @@ describe('TaskTypeController', () => {
   });
 
   it('delegates tenant-scoped requests using req.user.tenantId', async () => {
-    service.findAll.mockResolvedValue([{ id: 'task-type-1' }]);
-    service.findOne.mockResolvedValue({ id: 'task-type-1' });
-    service.create.mockResolvedValue({ id: 'task-type-2' });
-    service.update.mockResolvedValue({ id: 'task-type-1', name: 'Nuevo nombre' });
+    service.findAll.mockResolvedValue([{ id: 'labor-type-1' }]);
+    service.findOne.mockResolvedValue({ id: 'labor-type-1' });
+    service.create.mockResolvedValue({ id: 'labor-type-2' });
+    service.update.mockResolvedValue({ id: 'labor-type-1', name: 'Nuevo nombre' });
     service.delete.mockResolvedValue({ message: 'deleted' });
 
     const req = { user: { tenantId: 'tenant-1' } };
 
-    await expect(controller.findAll(req)).resolves.toEqual([{ id: 'task-type-1' }]);
-    await expect(controller.findOne('task-type-1', req)).resolves.toEqual({
-      id: 'task-type-1',
+    await expect(controller.findAll(req)).resolves.toEqual([{ id: 'labor-type-1' }]);
+    await expect(controller.findOne('labor-type-1', req)).resolves.toEqual({
+      id: 'labor-type-1',
     });
     await expect(
       controller.create(req, ({ name: 'Nuevo tipo', companyId: 'company-2' } as never)),
-    ).resolves.toEqual({ id: 'task-type-2' });
+    ).resolves.toEqual({ id: 'labor-type-2' });
     await expect(
-      controller.update('task-type-1', req, {
+      controller.update('labor-type-1', req, {
         name: 'Nuevo nombre',
         companyId: 'company-2' as never,
       } as never),
     ).resolves.toEqual({
-      id: 'task-type-1',
+      id: 'labor-type-1',
       name: 'Nuevo nombre',
     });
-    await expect(controller.delete('task-type-1', req)).resolves.toEqual({
+    await expect(controller.delete('labor-type-1', req)).resolves.toEqual({
       message: 'deleted',
     });
 
     expect(service.findAll).toHaveBeenCalledWith('tenant-1');
-    expect(service.findOne).toHaveBeenCalledWith('task-type-1', 'tenant-1');
+    expect(service.findOne).toHaveBeenCalledWith('labor-type-1', 'tenant-1');
     expect(service.create).toHaveBeenCalledWith('tenant-1', { name: 'Nuevo tipo' });
-    expect(service.update).toHaveBeenCalledWith('task-type-1', 'tenant-1', {
+    expect(service.update).toHaveBeenCalledWith('labor-type-1', 'tenant-1', {
       name: 'Nuevo nombre',
     });
-    expect(service.delete).toHaveBeenCalledWith('task-type-1', 'tenant-1');
+    expect(service.delete).toHaveBeenCalledWith('labor-type-1', 'tenant-1');
   });
 });

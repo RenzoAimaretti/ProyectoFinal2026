@@ -1,23 +1,23 @@
 import { DuplicateEntityError, EntityNotFoundError } from '../../domain/errors';
-import { TaskReaderPort, TaskTypeRepositoryPort } from '../task-type.ports';
-import { TaskTypeRecord, UpdateTaskTypeInput } from '../task-type.types';
-import { assertNonEmptyObject, normalizeOptionalString } from '../task-type.validation';
+import { TaskReaderPort, LaborTypeRepositoryPort } from '../labor-type.ports';
+import { LaborTypeRecord, UpdateLaborTypeInput } from '../labor-type.types';
+import { assertNonEmptyObject, normalizeOptionalString } from '../labor-type.validation';
 
-export class UpdateTaskTypeUseCase {
+export class UpdateLaborTypeUseCase {
   constructor(
-    private readonly repository: TaskTypeRepositoryPort,
+    private readonly repository: LaborTypeRepositoryPort,
     private readonly taskReader: TaskReaderPort,
   ) {}
 
-  async execute(id: string, tenantId: string, input: UpdateTaskTypeInput): Promise<TaskTypeRecord> {
+  async execute(id: string, tenantId: string, input: UpdateLaborTypeInput): Promise<LaborTypeRecord> {
     const payload = assertNonEmptyObject(input);
     const existing = await this.repository.findByIdForTenant(id, tenantId);
 
     if (!existing) {
-      throw new EntityNotFoundError(`Task type with id ${id} not found`);
+      throw new EntityNotFoundError(`Labor type with id ${id} not found`);
     }
 
-    const data: UpdateTaskTypeInput = {};
+    const data: UpdateLaborTypeInput = {};
 
     if ('name' in payload) {
       data.name = normalizeOptionalString(payload.name, 'name');
@@ -48,7 +48,7 @@ export class UpdateTaskTypeUseCase {
 
       if (duplicate && duplicate.id !== id) {
         throw new DuplicateEntityError(
-          `Task type with name ${data.name} already exists for company ${tenantId}`,
+          `Labor type with name ${data.name} already exists for company ${tenantId}`,
         );
       }
     }

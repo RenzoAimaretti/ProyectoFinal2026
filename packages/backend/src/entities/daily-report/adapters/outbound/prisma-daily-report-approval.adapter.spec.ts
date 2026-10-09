@@ -12,7 +12,7 @@ const enrichedInclude = {
   items: { orderBy: [{ id: 'asc' }], include: { input: { select: { name: true } } } },
   company: { select: { name: true } },
   operator: { select: { username: true, email: true } },
-  taskType: { select: { name: true } },
+  laborType: { select: { name: true } },
   task: {
     select: {
       lot: {
@@ -37,7 +37,7 @@ const pendingReport = {
   companyId: 'company-1',
   taskId: 'task-1',
   lotId: 'lot-1',
-  taskTypeId: 'task-type-1',
+  laborTypeId: 'labor-type-1',
   date: new Date('2026-05-03T00:00:00.000Z'),
   hectares: 12.5,
   hours: 6,
@@ -268,7 +268,7 @@ describe('PrismaDailyReportApprovalAdapter', () => {
       approvedAt: approvalDate,
       company: { name: 'Firma SA' },
       operator: { username: null, email: 'operador@agro.com' },
-      taskType: { name: 'Pulverizacion' },
+      laborType: { name: 'Pulverizacion' },
       task: {
         lot: {
           name: 'Lote 1',
@@ -287,7 +287,7 @@ describe('PrismaDailyReportApprovalAdapter', () => {
     expect(record).toMatchObject({
       companyName: 'Firma SA',
       operatorName: 'operador@agro.com',
-      taskTypeName: 'Pulverizacion',
+      laborTypeName: 'Pulverizacion',
       lotName: 'Lote 1',
       farmName: 'Campo Norte',
       clientName: 'Cliente X',

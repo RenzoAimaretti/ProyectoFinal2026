@@ -28,7 +28,7 @@ const baseReport: DailyReportRecord = {
   companyId: 'company-1',
   taskId: 'task-1',
   lotId: 'lot-1',
-  taskTypeId: 'task-type-1',
+  laborTypeId: 'labor-type-1',
   date: new Date('2026-03-01T00:00:00.000Z'),
   hectares: 12.5,
   hours: 6,
@@ -134,7 +134,7 @@ describe('Daily report use cases', () => {
       taskReader.findByIdWithScope.mockResolvedValue({
         id: 'task-1',
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         tenantId: 'tenant-1',
       });
       inputReader.findExistingIdsForTenant.mockResolvedValue([
@@ -291,7 +291,7 @@ describe('Daily report use cases', () => {
       taskReader.findByIdWithScope.mockResolvedValue({
         id: 'task-1',
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         tenantId: 'tenant-2',
       });
 
@@ -317,7 +317,7 @@ describe('Daily report use cases', () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
-    it('inherits the lot and the task type from the referenced task and starts pending approval', async () => {
+    it('inherits the lot and the labor type from the referenced task and starts pending approval', async () => {
       repository.create.mockResolvedValue(baseReport);
 
       await expect(
@@ -329,7 +329,7 @@ describe('Daily report use cases', () => {
         companyId: 'company-1',
         taskId: 'task-1',
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         date: new Date('2026-03-01T00:00:00.000Z'),
         hectares: 12.5,
         hours: 6,
@@ -357,7 +357,7 @@ describe('Daily report use cases', () => {
         expect.objectContaining({
           id: 'client-uuid-1',
           lotId: 'lot-1',
-          taskTypeId: 'task-type-1',
+          laborTypeId: 'labor-type-1',
           status: 'PENDIENTE_APROBACION',
         }),
       );
@@ -372,7 +372,7 @@ describe('Daily report use cases', () => {
         expect.objectContaining({
           id: undefined,
           lotId: 'lot-1',
-          taskTypeId: 'task-type-1',
+          laborTypeId: 'labor-type-1',
         }),
       );
     });

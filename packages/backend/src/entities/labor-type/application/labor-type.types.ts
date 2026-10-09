@@ -1,34 +1,34 @@
-export type TaskTypeRecord = {
+export type LaborTypeRecord = {
   id: string;
   tenantId: string;
   name: string;
   description: string | null;
 };
 
-export type CreateTaskTypeInput = {
+export type CreateLaborTypeInput = {
   name: string;
   description?: string;
 };
 
-export type UpdateTaskTypeInput = {
+export type UpdateLaborTypeInput = {
   name?: string;
   description?: string;
   taskIds?: string[];
 };
 
-export type CreateTaskTypeData = {
+export type CreateLaborTypeData = {
   tenantId: string;
   name: string;
   description?: string;
 };
 
-export type UpdateTaskTypeData = {
+export type UpdateLaborTypeData = {
   name?: string;
   description?: string;
   taskIds?: string[];
 };
 
-export type RemoveTaskTypeOutput = {
+export type RemoveLaborTypeOutput = {
   message: string;
 };
 

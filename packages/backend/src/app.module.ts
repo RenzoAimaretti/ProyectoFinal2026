@@ -15,7 +15,7 @@ import { LivestockModule } from './entities/livestock/livestock.module';
 import { UserModule } from './entities/user/user.module';
 import { LivestockEventModule } from './entities/livestock-event/livestock-event.module';
 import { WeightRecordModule } from './entities/weight-record/weight-record.module';
-import { TaskTypeModule } from './entities/task-type/task-type.module';
+import { LaborTypeModule } from './entities/labor-type/labor-type.module';
 import { TaskModule } from './entities/task/task.module';
 import { MachineModule } from './entities/machine/machine.module';
 import { MachineUsageModule } from './entities/machine-usage/machine-usage.module';
@@ -42,7 +42,7 @@ import { RbacModule } from './auth/rbac.module';
     UserModule,
     LivestockEventModule,
     WeightRecordModule,
-    TaskTypeModule,
+    LaborTypeModule,
     TaskModule,
     MachineModule,
     MachineUsageModule

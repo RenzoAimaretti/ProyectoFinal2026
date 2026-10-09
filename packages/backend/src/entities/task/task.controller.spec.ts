@@ -88,7 +88,7 @@ describe('TaskController', () => {
     await expect(
       (controller as any).create(req, {
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         startedAt: '2026-01-10',
         companyId: 'company-2',
       } as never),
@@ -111,7 +111,7 @@ describe('TaskController', () => {
     expect(service.findOne).toHaveBeenCalledWith('task-1', 'tenant-1');
     expect(service.create).toHaveBeenCalledWith('tenant-1', {
       lotId: 'lot-1',
-      taskTypeId: 'task-type-1',
+      laborTypeId: 'labor-type-1',
       startedAt: '2026-01-10',
     });
     expect(service.update).toHaveBeenCalledWith('task-1', 'tenant-1', {

@@ -21,7 +21,7 @@ export type UserRoleValue = (typeof USER_ROLE_VALUES)[number];
 export type TaskRecord = {
   id: string;
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   status: TaskStatusValue;
   startedAt: Date | null;
   finishedAt: Date | null;
@@ -54,13 +54,13 @@ export type TaskWithOperatorsRecord = TaskRecord & {
 export type TaskReadOutput = TaskRecord & {
   lotName?: string;
   farmName?: string;
-  taskTypeName?: string;
+  laborTypeName?: string;
   operators?: TaskOperatorSummary[];
 };
 
 export type CreateTaskInput = {
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   startedAt: string;
 };
 
@@ -72,7 +72,7 @@ export type UpdateTaskInput = {
 
 export type CreateTaskData = {
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   startedAt: Date;
 };
 

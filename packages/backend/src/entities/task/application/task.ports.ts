@@ -12,7 +12,7 @@ import {
 } from './task.types';
 
 export const TASK_REPOSITORY = Symbol('TASK_REPOSITORY');
-export const TASK_TYPE_READER = Symbol('TASK_TYPE_READER');
+export const LABOR_TYPE_READER = Symbol('LABOR_TYPE_READER');
 export const LOT_READER = Symbol('TASK_LOT_READER');
 export const USER_READER = Symbol('TASK_USER_READER');
 
@@ -34,7 +34,7 @@ export interface TaskRepositoryPort {
   deleteForTenant(id: string, tenantId: string): Promise<void>;
 }
 
-export interface TaskTypeReaderPort {
+export interface LaborTypeReaderPort {
   findByIdForTenant(id: string, tenantId: string): Promise<{ id: string } | null>;
 }
 
