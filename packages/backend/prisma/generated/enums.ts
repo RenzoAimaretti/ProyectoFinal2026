@@ -105,3 +105,12 @@ export const RecipeStatus = {
 } as const
 
 export type RecipeStatus = (typeof RecipeStatus)[keyof typeof RecipeStatus]
+
+
+export const InputUnit = {
+  L: 'L',
+  KG: 'KG',
+  UNIT: 'UNIT'
+} as const
+
+export type InputUnit = (typeof InputUnit)[keyof typeof InputUnit]

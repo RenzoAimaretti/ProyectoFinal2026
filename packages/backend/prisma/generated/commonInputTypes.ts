@@ -219,6 +219,23 @@ export type FloatWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedFloatFilter<$PrismaModel>
 }
 
+export type EnumInputUnitFilter<$PrismaModel = never> = {
+  equals?: $Enums.InputUnit | Prisma.EnumInputUnitFieldRefInput<$PrismaModel>
+  in?: $Enums.InputUnit[] | Prisma.ListEnumInputUnitFieldRefInput<$PrismaModel>
+  notIn?: $Enums.InputUnit[] | Prisma.ListEnumInputUnitFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumInputUnitFilter<$PrismaModel> | $Enums.InputUnit
+}
+
+export type EnumInputUnitWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.InputUnit | Prisma.EnumInputUnitFieldRefInput<$PrismaModel>
+  in?: $Enums.InputUnit[] | Prisma.ListEnumInputUnitFieldRefInput<$PrismaModel>
+  notIn?: $Enums.InputUnit[] | Prisma.ListEnumInputUnitFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumInputUnitWithAggregatesFilter<$PrismaModel> | $Enums.InputUnit
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumInputUnitFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumInputUnitFilter<$PrismaModel>
+}
+
 export type EnumTaskStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.TaskStatus | Prisma.EnumTaskStatusFieldRefInput<$PrismaModel>
   in?: $Enums.TaskStatus[] | Prisma.ListEnumTaskStatusFieldRefInput<$PrismaModel>
@@ -604,6 +621,23 @@ export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedFloatFilter<$PrismaModel>
   _min?: Prisma.NestedFloatFilter<$PrismaModel>
   _max?: Prisma.NestedFloatFilter<$PrismaModel>
+}
+
+export type NestedEnumInputUnitFilter<$PrismaModel = never> = {
+  equals?: $Enums.InputUnit | Prisma.EnumInputUnitFieldRefInput<$PrismaModel>
+  in?: $Enums.InputUnit[] | Prisma.ListEnumInputUnitFieldRefInput<$PrismaModel>
+  notIn?: $Enums.InputUnit[] | Prisma.ListEnumInputUnitFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumInputUnitFilter<$PrismaModel> | $Enums.InputUnit
+}
+
+export type NestedEnumInputUnitWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.InputUnit | Prisma.EnumInputUnitFieldRefInput<$PrismaModel>
+  in?: $Enums.InputUnit[] | Prisma.ListEnumInputUnitFieldRefInput<$PrismaModel>
+  notIn?: $Enums.InputUnit[] | Prisma.ListEnumInputUnitFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumInputUnitWithAggregatesFilter<$PrismaModel> | $Enums.InputUnit
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumInputUnitFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumInputUnitFilter<$PrismaModel>
 }
 
 export type NestedEnumTaskStatusFilter<$PrismaModel = never> = {

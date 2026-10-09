@@ -10,6 +10,7 @@ import { CreateInputUseCase } from '../../application/use-cases/create-input.use
 import { FindAllInputsUseCase } from '../../application/use-cases/find-all-inputs.use-case';
 import { FindInputUseCase } from '../../application/use-cases/find-input.use-case';
 import { UpdateInputUseCase } from '../../application/use-cases/update-input.use-case';
+import { InputRecord } from '../../application/input.types';
 import {
   DuplicateEntityError,
   EntityNotFoundError,
@@ -17,7 +18,7 @@ import {
 } from '../../domain/errors';
 import { InputController } from './input.controller';
 
-const mockInput = {
+const mockInput: InputRecord = {
   id: 'input-1',
   tenantId: 'tenant-1',
   name: 'Glifosato',
@@ -94,10 +95,10 @@ describe('InputController', () => {
   it('drops undefined update fields instead of forwarding them', async () => {
     updateInput.execute.mockResolvedValue(mockInput);
 
-    await controller.update('input-1', req as never, { unit: 'kg' });
+    await controller.update('input-1', req as never, { unit: 'KG' });
 
     expect(updateInput.execute).toHaveBeenCalledWith('input-1', 'tenant-1', {
-      unit: 'kg',
+      unit: 'KG',
     });
   });
 

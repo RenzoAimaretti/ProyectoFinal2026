@@ -89,8 +89,16 @@ export class PrismaReceptionValidationAdapter
             clientId: reception.clientId,
             inputId: item.inputId,
             quantity: validatedQuantity,
+            // Snapshot the catalogue unit into the new balance. The input
+            // unit-change guard keeps a non-zero balance's unit equal to the
+            // catalogue, so this write can never relabel a non-zero balance,
+            // and on a stale zero row it repairs the snapshot.
+            unit: item.input!.unit,
           },
-          update: { quantity: { increment: validatedQuantity } },
+          update: {
+            quantity: { increment: validatedQuantity },
+            unit: item.input!.unit,
+          },
         });
       }
 

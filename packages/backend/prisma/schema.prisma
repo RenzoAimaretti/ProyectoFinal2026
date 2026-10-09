@@ -163,7 +163,7 @@ model Input {
   id        String   @id @default(uuid())
   tenantId  String
   name      String
-  unit      String
+  unit      InputUnit
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -403,6 +403,7 @@ model Stock {
   clientId  String
   inputId   String
   quantity  Float
+  unit      InputUnit
   updatedAt DateTime @updatedAt
 
   client Client @relation(fields: [clientId], references: [id])
@@ -642,4 +643,10 @@ enum PhotoEntityType {
 enum RecipeStatus {
   ACTIVA
   ARCHIVADA
+}
+
+enum InputUnit {
+  L
+  KG
+  UNIT
 }
