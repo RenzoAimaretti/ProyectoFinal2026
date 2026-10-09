@@ -153,20 +153,96 @@ The rename is pure mechanical work on a tree that has no category code yet.
     unchanged) followed by `pnpm --filter nextjs build` completes green across
     all 17 routes, with type checking active (`next.config.ts` sets neither
     `ignoreBuildErrors` nor `ignoreDuringBuilds`).
+  - Merged into `dev` as `2bc3028` (pull request #3).
 
-- [ ] **T02 — Unit integrity**
-  - Route: delegated writer.
-  - `enum InputUnit`; `Input.unit` typed by it; `Stock.unit` snapshot column;
-    guard blocking a unit change when stock exists.
-  - Migration normalising existing values to the enum members before the type change.
-  - Check: focused tests for the guard and the snapshot; observed RED first.
+- [x] **T02 — Unit integrity**
+  - Route: delegated writer; strict TDD for the guard and the stock snapshot.
+  - `enum InputUnit` with members `L`, `KG`, `UNIT` — the exact vocabulary the
+    mobile unit dropdown already hardcodes (`_unitsDummy`) and the only values
+    the seeds use. Adding a member later is `ALTER TYPE ... ADD VALUE`, which is
+    non-destructive and needs no data migration, so no speculative members.
+  - `Input.unit` becomes `InputUnit`; `Stock` gains a required `unit` snapshot
+    column backfilled from the catalogue at migration time.
+  - Guard: `PUT /inputs/:id` refuses a unit change while the input has a stock
+    balance with a non-zero quantity. A zero balance carries no unit-denominated
+    value and may be corrected, so the reception upsert writes `unit` on both the
+    create and the increment, which repairs a stale zero row and cannot relabel a
+    non-zero one because the guard keeps them equal.
+  - Migration must normalise before the cast and fail loudly on any value outside
+    the vocabulary rather than silently mislabelling it. Today the repository
+    spells the same concept two ways: `'kg'` in `packages/backend/prisma/seed.ts`
+    and `'KG'` in the mobile seeder.
+  - Domain type follows the existing per-module pattern of
+    `entities/reception/domain/reception-status.ts`: the domain must not import
+    generated Prisma types. Cross-entity read goes in a narrow reader port
+    following the existing `*input.reader.ts` convention.
+  - Stock responses must return the row's own `unit` instead of joining the
+    catalogue, otherwise the snapshot is pointless on reads.
+  - Out of scope, recorded as follow-ups: `ReceptionItem.unit`,
+    `DailyReportItem.unit`, `RecipeItem.unit`, and `Recipe.sprayVolumeUnit`
+    remain free `String`, and the daily-report approval path still decrements a
+    balance using a client-supplied item unit.
+  - Check: observed RED for the guard and the snapshot before GREEN; focused
+    tests; migration verified by the same empty-database chain and drift check
+    used for T01.
+  - **Done.** Commit `9c80310` on `fix/input-unit-integrity`: 30 files,
+    +464/-103. Migration `20261009160000_add_input_unit_enum_and_stock_unit`.
+    Evidence: backend suite 92 suites / 875 tests before and 93 / 882 after;
+    `nest build` exit 0; chain of 5 migrations applied from an empty database
+    with `prisma migrate diff` reporting "No difference detected"; a scratch
+    database holding `'L'` and `'kg'` catalogue rows plus their balances kept
+    every row, turned `'kg'` into `KG`, and matched each `Stock.unit` to its
+    input; a scratch database holding `'POUND'` failed the migration naming that
+    value. Merged into `dev` as `8e7d1eb` (pull request #4).
 
-- [ ] **T03 — Tenant input categories**
-  - Route: delegated writer; multi-file.
-  - `InputCategory` model, backend hexagonal module (ports, use cases, adapters,
-    composition root), `Input.categoryId` required FK.
-  - Per-tenant default seeding plus a migration backfill for existing tenants.
-  - Check: focused module tests; backfill verified against the local database.
+- [x] **T03 — Tenant input categories**
+  - Route: delegated writer; multi-file; test-first for tenant isolation.
+  - `InputCategory` is a tenant-owned catalogue and must mirror the
+    `entities/labor-type/` module, the closest sibling: `domain/errors.ts`,
+    `application/{ports,types,validation,use-cases}`, a Prisma repository under
+    `adapters/outbound/`, and the controller and composition root at the module
+    root. Route `/input-categories`, registered in `app.module.ts`.
+  - Fields `id`, `tenantId`, `name`, `active`, `createdAt`, `updatedAt`,
+    `version`, `deleted`, with `@@unique([tenantId, name])` and
+    `@@index([tenantId])`. The `version`/`deleted` pair exists for the versioned
+    catalogue pull, which is still unbuilt, so it is carried for consistency with
+    the other catalogues rather than used.
+  - No stable `code` or `key` column. Nothing in the agreed scope needs to
+    identify a category programmatically, and the tenant may rename any of them.
+  - `Input.categoryId` is a required FK. Create AND update must verify the
+    referenced category belongs to the same tenant, otherwise the endpoint
+    becomes a cross-tenant reference oracle.
+  - The eight defaults, named in Spanish to match the seeded domain data
+    (`'Glifosato 48%'`, `'Cosecha'`): Semilla, Fertilizante, Herbicida,
+    Insecticida, Fungicida, Coadyuvante, Inoculante, Otro.
+  - Generation path: `prisma migrate dev --create-only` works again now that the
+    local drift is resolved. Generate the DDL so that table, index, and foreign
+    key names match Prisma's expectations, then HAND-EDIT only the
+    `Input.categoryId` part: Prisma emits `ADD COLUMN ... NOT NULL`, which fails
+    on existing rows, so it must become nullable, be backfilled, and only then
+    be set `NOT NULL`. Append the defaults backfill: one row per existing tenant
+    per default name, and every existing input assigned to that tenant's `Otro`.
+  - The default names therefore exist twice, in the migration SQL and in the
+    seed. Keep them in one exported constant used by the seed and cross-reference
+    it in a migration comment, because the migration cannot import TypeScript.
+  - Delete policy: a category that still has inputs must not be removable.
+  - Out of scope: labour-category assignment (T04) and the mobile filter (T05).
+  - Check: focused module tests including the cross-tenant rejection; the
+    migration chain from an empty database; `migrate diff` reporting no drift;
+    and the backfill proven on a scratch database holding a tenant with inputs.
+  - **Done.** Commit `447681b` on `feat/tenant-input-categories`: 38 files,
+    +2547/-29. Migration `20261009152647_add_input_categories`. Evidence:
+    backend suite 93 suites / 882 tests before and 94 / 888 after; `nest build`
+    exit 0; all 7 migrations applied from an empty database with
+    `prisma migrate diff` reporting "No difference detected", which is what
+    proves the hand-edited SQL matches the Prisma schema; on a scratch database
+    holding two tenants and three inputs, each tenant received exactly its own
+    eight defaults and every input was assigned to its own tenant's `Otro`, with
+    zero cross-tenant assignments.
+  - The delegated writer could not run the scratch-database proofs because its
+    safety boundary forbids reading the database password from `.env`, so those
+    two proofs were executed by the parent. Everything else was delivered and
+    verified.
 
 - [ ] **T04 — Labour-category assignment**
   - Route: delegated writer.
@@ -182,8 +258,10 @@ The rename is pure mechanical work on a tree that has no category code yet.
 
 ## Acceptance
 
-- An admin can create, rename, and delete categories per tenant, and the defaults
-  exist after provisioning.
+- An admin can create, rename, and deactivate categories per tenant. Defaults
+  are created by the migration for tenants that already exist and by the seed for
+  the seeded tenant; the repository has no runtime tenant-provisioning path, so
+  any future provisioning flow must create them itself.
 - An input belongs to exactly one category.
 - A labour type admits a set of categories, assigned manually by the admin.
 - The mobile picker filters inputs by the selected labour's categories and shows a
@@ -196,7 +274,8 @@ The rename is pure mechanical work on a tree that has no category code yet.
 ## Progress log
 
 - Plan written; no implementation started.
-- T01 done and committed as `1d2f513` on `refactor/labor-type-rename`.
+- T01 done and committed as `1d2f513` on `refactor/labor-type-rename`, plus
+  `d3f2506` for this document. Opened as pull request #3 against `dev`.
   Independent verification closed four of six risk areas: backend suite and
   build green, commit hygiene clean, no leftover live consumer.
 - Known residue after T01: prose describing the old route survives in
@@ -209,3 +288,30 @@ The rename is pure mechanical work on a tree that has no category code yet.
 - Recorded on this branch: `c5e1f70` adds this plan document, `1d2f513` is the
   rename itself. `pnpm install` was run, so `packages/nextjs/node_modules` now
   exists; `pnpm-lock.yaml` was not modified.
+- T02 done and committed as `9c80310` on `fix/input-unit-integrity`.
+- Merging #3 then #4 conflicted, as predicted, on five files: the tracked Prisma
+  client plus `schema.prisma` and `seed.ts`. `schema.prisma` and `seed.ts`
+  auto-merged with both sets of edits intact, which was verified by inspecting the
+  merged result rather than trusting the auto-merge. The generated client cannot
+  be reconciled by hand resolving one file, because it has to reflect both
+  changes at once, so the merge was completed locally and the client regenerated
+  with `prisma generate` from the merged schema.
+- The local database drift is gone. After both merges the local database reports
+  6 migrations, up to date, and `prisma migrate diff` reports no difference
+  against the merged schema, which also means `prisma migrate dev` works again.
+  This is why T03 can generate its migration instead of hand-writing it.
+- T03 done and committed as `447681b` on `feat/tenant-input-categories`.
+- The migration was generated with `prisma migrate dev --create-only`, which only
+  became possible once the drift was gone, so the DDL names are Prisma's own. Only
+  the `Input.categoryId` part was hand-edited, into nullable, backfill, and
+  `SET NOT NULL`, because Prisma emits a single `NOT NULL` add that fails on
+  existing rows.
+- Default category names live in `prisma/input-category-defaults.ts`, imported by
+  the seed, and are referenced by name in a migration comment. The migration
+  cannot import TypeScript, so the list is necessarily written twice; the
+  deliberate choice was to keep one authoritative constant and point the SQL at it
+  rather than let two silent copies drift.
+- The repository has no runtime tenant-provisioning path, only
+  `prisma/seed.ts`. Defaults therefore reach existing tenants through the
+  migration backfill and the seeded tenant through the seed. Any future
+  provisioning flow has to create them itself.
