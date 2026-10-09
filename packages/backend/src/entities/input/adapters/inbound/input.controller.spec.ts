@@ -21,6 +21,7 @@ import { InputController } from './input.controller';
 const mockInput: InputRecord = {
   id: 'input-1',
   tenantId: 'tenant-1',
+  categoryId: 'category-1',
   name: 'Glifosato',
   unit: 'L',
   active: true,
@@ -75,7 +76,7 @@ describe('InputController', () => {
       mockInput,
     );
     await expect(
-      controller.create(req as never, { name: 'Glifosato', unit: 'L' }),
+      controller.create(req as never, { name: 'Glifosato', unit: 'L', categoryId: 'category-1' }),
     ).resolves.toEqual(mockInput);
     await expect(
       controller.update('input-1', req as never, { name: 'Atrazina' }),
@@ -86,6 +87,7 @@ describe('InputController', () => {
     expect(createInput.execute).toHaveBeenCalledWith('tenant-1', {
       name: 'Glifosato',
       unit: 'L',
+      categoryId: 'category-1',
     });
     expect(updateInput.execute).toHaveBeenCalledWith('input-1', 'tenant-1', {
       name: 'Atrazina',
@@ -112,7 +114,7 @@ describe('InputController', () => {
       new DuplicateEntityError('An input with this name already exists'),
     );
     await expect(
-      controller.create(req as never, { name: 'Glifosato', unit: 'L' }),
+      controller.create(req as never, { name: 'Glifosato', unit: 'L', categoryId: 'category-1' }),
     ).rejects.toThrow(ConflictException);
 
     findInput.execute.mockRejectedValue(

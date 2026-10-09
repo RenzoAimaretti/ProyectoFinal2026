@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
 import {
+  INPUT_CATEGORY_READER,
+  InputCategoryReaderPort,
   INPUT_REPOSITORY,
   INPUT_STOCK_READER,
   InputRepositoryPort,
@@ -13,6 +15,7 @@ import { UpdateInputUseCase } from './application/use-cases/update-input.use-cas
 import { InputController } from './adapters/inbound/input.controller';
 import { PrismaInputRepository } from './adapters/outbound/prisma-input.repository';
 import { PrismaInputStockReader } from './adapters/outbound/prisma-input-stock.reader';
+import { PrismaInputCategoryReader } from './adapters/outbound/prisma-input-category.reader';
 
 @Module({
   imports: [PrismaModule],
@@ -21,6 +24,8 @@ import { PrismaInputStockReader } from './adapters/outbound/prisma-input-stock.r
     PrismaInputRepository,
     { provide: INPUT_REPOSITORY, useExisting: PrismaInputRepository },
     PrismaInputStockReader,
+    PrismaInputCategoryReader,
+    { provide: INPUT_CATEGORY_READER, useExisting: PrismaInputCategoryReader },
     { provide: INPUT_STOCK_READER, useExisting: PrismaInputStockReader },
     {
       provide: FindAllInputsUseCase,
@@ -36,17 +41,18 @@ import { PrismaInputStockReader } from './adapters/outbound/prisma-input-stock.r
     },
     {
       provide: CreateInputUseCase,
-      useFactory: (repository: InputRepositoryPort) =>
-        new CreateInputUseCase(repository),
-      inject: [INPUT_REPOSITORY],
+      useFactory: (repository: InputRepositoryPort, categories: InputCategoryReaderPort) =>
+        new CreateInputUseCase(repository, categories),
+      inject: [INPUT_REPOSITORY, INPUT_CATEGORY_READER],
     },
     {
       provide: UpdateInputUseCase,
       useFactory: (
         repository: InputRepositoryPort,
         stockReader: InputStockReaderPort,
-      ) => new UpdateInputUseCase(repository, stockReader),
-      inject: [INPUT_REPOSITORY, INPUT_STOCK_READER],
+        categories: InputCategoryReaderPort,
+      ) => new UpdateInputUseCase(repository, stockReader, categories),
+      inject: [INPUT_REPOSITORY, INPUT_STOCK_READER, INPUT_CATEGORY_READER],
     },
   ],
   exports: [

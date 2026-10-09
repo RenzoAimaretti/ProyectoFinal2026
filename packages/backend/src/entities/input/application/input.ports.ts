@@ -2,6 +2,11 @@ import { CreateInputData, InputRecord, UpdateInputInput } from './input.types';
 
 export const INPUT_REPOSITORY = Symbol('INPUT_REPOSITORY');
 export const INPUT_STOCK_READER = Symbol('INPUT_STOCK_READER');
+export const INPUT_CATEGORY_READER = Symbol('INPUT_CATEGORY_READER');
+
+export interface InputCategoryReaderPort {
+  findByIdForTenant(id: string, tenantId: string): Promise<{ id: string } | null>;
+}
 
 export interface InputRepositoryPort {
   findAllByTenantId(tenantId: string): Promise<InputRecord[]>;

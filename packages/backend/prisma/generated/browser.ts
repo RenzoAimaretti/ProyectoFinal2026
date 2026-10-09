@@ -53,6 +53,11 @@ export type Module = Prisma.ModuleModel
  */
 export type Client = Prisma.ClientModel
 /**
+ * Model InputCategory
+ * 
+ */
+export type InputCategory = Prisma.InputCategoryModel
+/**
  * Model Input
  * 
  */

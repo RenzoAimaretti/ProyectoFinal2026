@@ -16,6 +16,7 @@ import 'dotenv/config';
 import * as argon2 from 'argon2';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/client';
+import { INPUT_CATEGORY_DEFAULTS } from './input-category-defaults';
 
 const TENANT_ID = '00000000-0000-4000-8000-000000000001';
 const COMPANY_ID = '00000000-0000-4000-8000-000000000002';
@@ -139,20 +140,34 @@ async function main(): Promise<void> {
       },
     });
 
+    for (const name of INPUT_CATEGORY_DEFAULTS) {
+      await prisma.inputCategory.upsert({
+        where: { tenantId_name: { tenantId: TENANT_ID, name } },
+        update: {},
+        create: { tenantId: TENANT_ID, name },
+      });
+    }
+    const categories = await prisma.inputCategory.findMany({ where: { tenantId: TENANT_ID } });
+    const categoryId = (name: (typeof INPUT_CATEGORY_DEFAULTS)[number]): string => {
+      const category = categories.find((candidate) => candidate.name === name);
+      if (!category) throw new Error(`Missing input category ${name}`);
+      return category.id;
+    };
+
     const inputGlifosato = await prisma.input.create({
-      data: { id: did(110), tenantId: TENANT_ID, name: 'Glifosato 48%', unit: 'L' },
+      data: { id: did(110), tenantId: TENANT_ID, name: 'Glifosato 48%', unit: 'L', categoryId: categoryId('Herbicida') },
     });
     const input24D = await prisma.input.create({
-      data: { id: did(111), tenantId: TENANT_ID, name: '2,4-D', unit: 'L' },
+      data: { id: did(111), tenantId: TENANT_ID, name: '2,4-D', unit: 'L', categoryId: categoryId('Herbicida') },
     });
     const inputUrea = await prisma.input.create({
-      data: { id: did(112), tenantId: TENANT_ID, name: 'Urea', unit: 'KG' },
+      data: { id: did(112), tenantId: TENANT_ID, name: 'Urea', unit: 'KG', categoryId: categoryId('Fertilizante') },
     });
     const inputAtrazina = await prisma.input.create({
-      data: { id: did(113), tenantId: TENANT_ID, name: 'Atrazina', unit: 'L' },
+      data: { id: did(113), tenantId: TENANT_ID, name: 'Atrazina', unit: 'L', categoryId: categoryId('Herbicida') },
     });
     const inputNpk = await prisma.input.create({
-      data: { id: did(114), tenantId: TENANT_ID, name: 'Fertilizante NPK', unit: 'KG' },
+      data: { id: did(114), tenantId: TENANT_ID, name: 'Fertilizante NPK', unit: 'KG', categoryId: categoryId('Fertilizante') },
     });
 
     const laborTypePulverizacion = await prisma.laborType.create({

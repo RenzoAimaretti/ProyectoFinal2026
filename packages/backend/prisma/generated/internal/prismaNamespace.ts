@@ -391,6 +391,7 @@ export const ModelName = {
   RefreshToken: 'RefreshToken',
   Module: 'Module',
   Client: 'Client',
+  InputCategory: 'InputCategory',
   Input: 'Input',
   LaborType: 'LaborType',
   Farm: 'Farm',
@@ -426,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "tenant" | "company" | "userCompany" | "user" | "refreshToken" | "module" | "client" | "input" | "laborType" | "farm" | "lot" | "task" | "recipe" | "recipeItem" | "dailyReport" | "dailyReportItem" | "reception" | "receptionItem" | "stock" | "machine" | "machineUsage" | "machineActivity" | "photo" | "livestock" | "livestockEvent" | "weightRecord" | "livestockMovement"
+    modelProps: "tenant" | "company" | "userCompany" | "user" | "refreshToken" | "module" | "client" | "inputCategory" | "input" | "laborType" | "farm" | "lot" | "task" | "recipe" | "recipeItem" | "dailyReport" | "dailyReportItem" | "reception" | "receptionItem" | "stock" | "machine" | "machineUsage" | "machineActivity" | "photo" | "livestock" | "livestockEvent" | "weightRecord" | "livestockMovement"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -945,6 +946,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClientCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClientCountAggregateOutputType> | number
+        }
+      }
+    }
+    InputCategory: {
+      payload: Prisma.$InputCategoryPayload<ExtArgs>
+      fields: Prisma.InputCategoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.InputCategoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.InputCategoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload>
+        }
+        findFirst: {
+          args: Prisma.InputCategoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.InputCategoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload>
+        }
+        findMany: {
+          args: Prisma.InputCategoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload>[]
+        }
+        create: {
+          args: Prisma.InputCategoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload>
+        }
+        createMany: {
+          args: Prisma.InputCategoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.InputCategoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload>[]
+        }
+        delete: {
+          args: Prisma.InputCategoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload>
+        }
+        update: {
+          args: Prisma.InputCategoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.InputCategoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.InputCategoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.InputCategoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.InputCategoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$InputCategoryPayload>
+        }
+        aggregate: {
+          args: Prisma.InputCategoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateInputCategory>
+        }
+        groupBy: {
+          args: Prisma.InputCategoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InputCategoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.InputCategoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.InputCategoryCountAggregateOutputType> | number
         }
       }
     }
@@ -2571,9 +2646,24 @@ export const ClientScalarFieldEnum = {
 export type ClientScalarFieldEnum = (typeof ClientScalarFieldEnum)[keyof typeof ClientScalarFieldEnum]
 
 
+export const InputCategoryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  version: 'version',
+  deleted: 'deleted'
+} as const
+
+export type InputCategoryScalarFieldEnum = (typeof InputCategoryScalarFieldEnum)[keyof typeof InputCategoryScalarFieldEnum]
+
+
 export const InputScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
+  categoryId: 'categoryId',
   name: 'name',
   unit: 'unit',
   active: 'active',
@@ -3231,6 +3321,7 @@ export type GlobalOmitConfig = {
   refreshToken?: Prisma.RefreshTokenOmit
   module?: Prisma.ModuleOmit
   client?: Prisma.ClientOmit
+  inputCategory?: Prisma.InputCategoryOmit
   input?: Prisma.InputOmit
   laborType?: Prisma.LaborTypeOmit
   farm?: Prisma.FarmOmit

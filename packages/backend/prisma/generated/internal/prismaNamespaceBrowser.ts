@@ -58,6 +58,7 @@ export const ModelName = {
   RefreshToken: 'RefreshToken',
   Module: 'Module',
   Client: 'Client',
+  InputCategory: 'InputCategory',
   Input: 'Input',
   LaborType: 'LaborType',
   Farm: 'Farm',
@@ -200,9 +201,24 @@ export const ClientScalarFieldEnum = {
 export type ClientScalarFieldEnum = (typeof ClientScalarFieldEnum)[keyof typeof ClientScalarFieldEnum]
 
 
+export const InputCategoryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  version: 'version',
+  deleted: 'deleted'
+} as const
+
+export type InputCategoryScalarFieldEnum = (typeof InputCategoryScalarFieldEnum)[keyof typeof InputCategoryScalarFieldEnum]
+
+
 export const InputScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
+  categoryId: 'categoryId',
   name: 'name',
   unit: 'unit',
   active: 'active',

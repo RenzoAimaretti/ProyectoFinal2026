@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CompanyModule } from './entities/company/company.module';
 import { ClientModule } from './entities/client/client.module';
 import { InputModule } from './entities/input/input.module';
+import { InputCategoryModule } from './entities/input-category/input-category.module';
 import { RecipeModule } from './entities/recipe/recipe.module';
 import { DailyReportModule } from './entities/daily-report/daily-report.module';
 import { ReceptionModule } from './entities/reception/reception.module';
@@ -29,6 +30,7 @@ import { RbacModule } from './auth/rbac.module';
     CompanyModule,
     ClientModule,
     InputModule,
+    InputCategoryModule,
     RecipeModule,
     DailyReportModule,
     ReceptionModule,
