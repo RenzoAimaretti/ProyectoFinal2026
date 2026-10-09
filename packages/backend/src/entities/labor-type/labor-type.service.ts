@@ -11,6 +11,8 @@ import { FindAllLaborTypesUseCase } from './application/use-cases/find-all-labor
 import { FindLaborTypeUseCase } from './application/use-cases/find-labor-type.use-case';
 import { UpdateLaborTypeUseCase } from './application/use-cases/update-labor-type.use-case';
 import { CreateLaborTypeInput, UpdateLaborTypeInput } from './application/labor-type.types';
+import { FindLaborTypeCategoriesUseCase } from './application/use-cases/find-labor-type-categories.use-case';
+import { ReplaceLaborTypeCategoriesUseCase } from './application/use-cases/replace-labor-type-categories.use-case';
 import { DuplicateEntityError, EntityNotFoundError, InvalidInputError } from './domain/errors';
 
 @Injectable()
@@ -21,6 +23,8 @@ export class LaborTypeService {
     private readonly createUseCase: CreateLaborTypeUseCase,
     private readonly updateUseCase: UpdateLaborTypeUseCase,
     private readonly deleteUseCase: DeleteLaborTypeUseCase,
+    private readonly findCategoriesUseCase: FindLaborTypeCategoriesUseCase,
+    private readonly replaceCategoriesUseCase: ReplaceLaborTypeCategoriesUseCase,
   ) {}
 
   async findAll(tenantId: string) {
@@ -41,6 +45,14 @@ export class LaborTypeService {
 
   async delete(id: string, tenantId: string) {
     return this.handle(() => this.deleteUseCase.execute(id, tenantId), 'deleting labor type');
+  }
+
+  async findCategories(id: string, tenantId: string) {
+    return this.handle(() => this.findCategoriesUseCase.execute(id, tenantId), 'fetching labor type categories');
+  }
+
+  async replaceCategories(id: string, tenantId: string, data: { categoryIds: string[] }) {
+    return this.handle(() => this.replaceCategoriesUseCase.execute(id, tenantId, data), 'replacing labor type categories');
   }
 
   private async handle<T>(operation: () => Promise<T>, action: string) {

@@ -111,9 +111,9 @@ The rename is pure mechanical work on a tree that has no category code yet.
 
 ## Delivery
 
-- Forecast: approximately 1,500 authored changed lines across five work units,
+- Forecast: approximately 2,000 authored changed lines across six work units,
   excluding regenerated Prisma client and drift artifacts.
-- Strategy: five task branches off `dev`, each one pull request into `dev`.
+- Strategy: six task branches off `dev`, each one pull request into `dev`.
 - Each task ends with a focused verification record and one Conventional Commit.
 
 ## TDD and checks
@@ -244,26 +244,79 @@ The rename is pure mechanical work on a tree that has no category code yet.
     two proofs were executed by the parent. Everything else was delivered and
     verified.
 
-- [ ] **T04 — Labour-category assignment**
-  - Route: delegated writer.
-  - `LaborTypeCategory` join table with `@@id([laborTypeId, categoryId])`; admin
-    assignment in the labour-type form and the nextjs screens.
-  - Check: focused tests; assignment round-trip through the API.
+- [x] **T04 — Labour-category assignment (backend only)**
+  - Route: delegated writer; test-first for tenant isolation and replace
+    semantics.
+  - `LaborTypeCategory` join table with `@@id([laborTypeId, categoryId])` and
+    `onDelete: Cascade` on both foreign keys, matching how `RecipeItem` and
+    `DailyReportItem` cascade from their parent. `LaborType` and `InputCategory`
+    each gain the back-relation.
+  - `GET /labor-types/:id/categories` returns the assigned categories in the same
+    shape the input-category list endpoint returns.
+    `PUT /labor-types/:id/categories` replaces the whole set, which keeps it
+    idempotent: the body is the complete desired set, not a delta.
+  - Both endpoints resolve the labour type inside the caller's tenant, and every
+    `categoryId` in the body must belong to that same tenant. Otherwise the
+    endpoint becomes a cross-tenant reference oracle, exactly as in T03.
+  - An empty set means the labour has NO configured restriction, so the picker
+    shows every input. This is deliberate: every labour type that already exists
+    starts with no assignments, and the opposite reading would silently block
+    every existing labour.
+  - The admin screens are NOT in this work unit. The admin has no labour-type form
+    and no input-creation form, so there is nowhere to put the selector; that work
+    moved to T06.
+  - Out of scope: the mobile filter (T05) and the admin screens (T06).
+  - Check: focused tests for the cross-tenant rejection, the replace semantics,
+    and the empty-set case; the migration chain from an empty database;
+    `migrate diff` reporting no drift; the join table proven on a scratch
+    database holding two tenants.
+  - **Done.** Commit `e5428ff` on `feat/labor-type-categories`: 23 files,
+    +2025/-7. Migration `20261009154422_add_labor_type_categories`. Evidence:
+    backend suite 94 suites / 888 tests before and 97 / 894 after; `nest build`
+    exit 0; all 8 migrations applied from an empty database with
+    `prisma migrate diff` reporting "No difference detected"; on a scratch
+    database a duplicate assignment was rejected by
+    `LaborTypeCategory_pkey`, and deleting either the labour type or the
+    category removed the join rows through the cascade.
+  - The delegated writer reported a compile error (`TS2307: Cannot find module`)
+    as its RED evidence, which is not a behavioural RED: the test never ran to
+    fail on an assertion. The parent read the assertions instead and confirmed
+    they pin the behaviour, including that a foreign category leaves the existing
+    set untouched because the replace call is never reached.
 
 - [ ] **T05 — Mobile filter**
   - Route: delegated writer.
   - `Inputs.categoryId` column in drift, mapper, DAO query filtering by the
     labour's categories, picker warning for a forced out-of-set value.
+  - Depends on T04's assignments reaching the device, and the versioned catalogue
+    pull still does not exist, so this task has to settle how the labour-to-
+    categories mapping gets offline at all.
   - Check: `flutter test`; regenerated drift code committed.
+
+- [ ] **T06 — Admin screens for categories and labour types**
+  - Route: delegated writer; frontend work.
+  - Discovered while scoping T04: the admin client exposes only `apiGet` for
+    `/labor-types` and `/inputs`. It has no write call for either resource, no
+    labour-type screen, and no input-creation form, so both T03 and T04 are
+    unreachable from the UI as merged.
+  - Needs a categories screen over the `input-categories` endpoints (list, create,
+    rename, deactivate), a labour-type screen (list, create, edit) over the
+    labour-type endpoints, and a category multi-select wired to
+    `PUT /labor-types/:id/categories`.
+  - Check: `pnpm --filter nextjs build` green with type checking active; the flows
+    exercised against the local backend.
 
 ## Acceptance
 
 - An admin can create, rename, and deactivate categories per tenant. Defaults
   are created by the migration for tenants that already exist and by the seed for
   the seeded tenant; the repository has no runtime tenant-provisioning path, so
-  any future provisioning flow must create them itself.
+  any future provisioning flow must create them itself. The API for this landed in
+  T03, but it is only reachable from the UI once T06 ships.
 - An input belongs to exactly one category.
-- A labour type admits a set of categories, assigned manually by the admin.
+- A labour type admits a set of categories, assigned manually by the admin through
+  `PUT /labor-types/:id/categories` (T04). The admin screen for that assignment is
+  T06. An empty set means no restriction, not no inputs.
 - The mobile picker filters inputs by the selected labour's categories and shows a
   warning — but does not block — when an out-of-set category is forced.
 - Changing an input's unit is refused once it has stock; existing balances keep
@@ -315,3 +368,8 @@ The rename is pure mechanical work on a tree that has no category code yet.
   `prisma/seed.ts`. Defaults therefore reach existing tenants through the
   migration backfill and the seeded tenant through the seed. Any future
   provisioning flow has to create them itself.
+- Scoping T04 surfaced that the admin cannot administer any of this: its API
+  client exposes only `apiGet` for `/labor-types` and `/inputs`, there is no
+  labour-type screen, and there is no input-creation form. T04 was therefore cut
+  down to the backend, and T06 was added for the admin screens.
+- T04 done and committed as `e5428ff` on `feat/labor-type-categories`.

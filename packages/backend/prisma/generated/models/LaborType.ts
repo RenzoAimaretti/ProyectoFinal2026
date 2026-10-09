@@ -243,6 +243,7 @@ export type LaborTypeWhereInput = {
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   tasks?: Prisma.TaskListRelationFilter
   dailyReports?: Prisma.DailyReportListRelationFilter
+  categories?: Prisma.LaborTypeCategoryListRelationFilter
 }
 
 export type LaborTypeOrderByWithRelationInput = {
@@ -257,6 +258,7 @@ export type LaborTypeOrderByWithRelationInput = {
   tenant?: Prisma.TenantOrderByWithRelationInput
   tasks?: Prisma.TaskOrderByRelationAggregateInput
   dailyReports?: Prisma.DailyReportOrderByRelationAggregateInput
+  categories?: Prisma.LaborTypeCategoryOrderByRelationAggregateInput
 }
 
 export type LaborTypeWhereUniqueInput = Prisma.AtLeast<{
@@ -275,6 +277,7 @@ export type LaborTypeWhereUniqueInput = Prisma.AtLeast<{
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   tasks?: Prisma.TaskListRelationFilter
   dailyReports?: Prisma.DailyReportListRelationFilter
+  categories?: Prisma.LaborTypeCategoryListRelationFilter
 }, "id" | "tenantId_name">
 
 export type LaborTypeOrderByWithAggregationInput = {
@@ -318,6 +321,7 @@ export type LaborTypeCreateInput = {
   tenant: Prisma.TenantCreateNestedOneWithoutLaborTypesInput
   tasks?: Prisma.TaskCreateNestedManyWithoutLaborTypeInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLaborTypeInput
+  categories?: Prisma.LaborTypeCategoryCreateNestedManyWithoutLaborTypeInput
 }
 
 export type LaborTypeUncheckedCreateInput = {
@@ -331,6 +335,7 @@ export type LaborTypeUncheckedCreateInput = {
   deleted?: boolean
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutLaborTypeInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLaborTypeInput
+  categories?: Prisma.LaborTypeCategoryUncheckedCreateNestedManyWithoutLaborTypeInput
 }
 
 export type LaborTypeUpdateInput = {
@@ -344,6 +349,7 @@ export type LaborTypeUpdateInput = {
   tenant?: Prisma.TenantUpdateOneRequiredWithoutLaborTypesNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutLaborTypeNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutLaborTypeNestedInput
+  categories?: Prisma.LaborTypeCategoryUpdateManyWithoutLaborTypeNestedInput
 }
 
 export type LaborTypeUncheckedUpdateInput = {
@@ -357,6 +363,7 @@ export type LaborTypeUncheckedUpdateInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutLaborTypeNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutLaborTypeNestedInput
+  categories?: Prisma.LaborTypeCategoryUncheckedUpdateManyWithoutLaborTypeNestedInput
 }
 
 export type LaborTypeCreateManyInput = {
@@ -494,6 +501,20 @@ export type LaborTypeUncheckedUpdateManyWithoutTenantNestedInput = {
   deleteMany?: Prisma.LaborTypeScalarWhereInput | Prisma.LaborTypeScalarWhereInput[]
 }
 
+export type LaborTypeCreateNestedOneWithoutCategoriesInput = {
+  create?: Prisma.XOR<Prisma.LaborTypeCreateWithoutCategoriesInput, Prisma.LaborTypeUncheckedCreateWithoutCategoriesInput>
+  connectOrCreate?: Prisma.LaborTypeCreateOrConnectWithoutCategoriesInput
+  connect?: Prisma.LaborTypeWhereUniqueInput
+}
+
+export type LaborTypeUpdateOneRequiredWithoutCategoriesNestedInput = {
+  create?: Prisma.XOR<Prisma.LaborTypeCreateWithoutCategoriesInput, Prisma.LaborTypeUncheckedCreateWithoutCategoriesInput>
+  connectOrCreate?: Prisma.LaborTypeCreateOrConnectWithoutCategoriesInput
+  upsert?: Prisma.LaborTypeUpsertWithoutCategoriesInput
+  connect?: Prisma.LaborTypeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LaborTypeUpdateToOneWithWhereWithoutCategoriesInput, Prisma.LaborTypeUpdateWithoutCategoriesInput>, Prisma.LaborTypeUncheckedUpdateWithoutCategoriesInput>
+}
+
 export type LaborTypeCreateNestedOneWithoutTasksInput = {
   create?: Prisma.XOR<Prisma.LaborTypeCreateWithoutTasksInput, Prisma.LaborTypeUncheckedCreateWithoutTasksInput>
   connectOrCreate?: Prisma.LaborTypeCreateOrConnectWithoutTasksInput
@@ -532,6 +553,7 @@ export type LaborTypeCreateWithoutTenantInput = {
   deleted?: boolean
   tasks?: Prisma.TaskCreateNestedManyWithoutLaborTypeInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLaborTypeInput
+  categories?: Prisma.LaborTypeCategoryCreateNestedManyWithoutLaborTypeInput
 }
 
 export type LaborTypeUncheckedCreateWithoutTenantInput = {
@@ -544,6 +566,7 @@ export type LaborTypeUncheckedCreateWithoutTenantInput = {
   deleted?: boolean
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutLaborTypeInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLaborTypeInput
+  categories?: Prisma.LaborTypeCategoryUncheckedCreateNestedManyWithoutLaborTypeInput
 }
 
 export type LaborTypeCreateOrConnectWithoutTenantInput = {
@@ -586,6 +609,74 @@ export type LaborTypeScalarWhereInput = {
   deleted?: Prisma.BoolFilter<"LaborType"> | boolean
 }
 
+export type LaborTypeCreateWithoutCategoriesInput = {
+  id?: string
+  name: string
+  description?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  tenant: Prisma.TenantCreateNestedOneWithoutLaborTypesInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutLaborTypeInput
+  dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLaborTypeInput
+}
+
+export type LaborTypeUncheckedCreateWithoutCategoriesInput = {
+  id?: string
+  tenantId: string
+  name: string
+  description?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutLaborTypeInput
+  dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLaborTypeInput
+}
+
+export type LaborTypeCreateOrConnectWithoutCategoriesInput = {
+  where: Prisma.LaborTypeWhereUniqueInput
+  create: Prisma.XOR<Prisma.LaborTypeCreateWithoutCategoriesInput, Prisma.LaborTypeUncheckedCreateWithoutCategoriesInput>
+}
+
+export type LaborTypeUpsertWithoutCategoriesInput = {
+  update: Prisma.XOR<Prisma.LaborTypeUpdateWithoutCategoriesInput, Prisma.LaborTypeUncheckedUpdateWithoutCategoriesInput>
+  create: Prisma.XOR<Prisma.LaborTypeCreateWithoutCategoriesInput, Prisma.LaborTypeUncheckedCreateWithoutCategoriesInput>
+  where?: Prisma.LaborTypeWhereInput
+}
+
+export type LaborTypeUpdateToOneWithWhereWithoutCategoriesInput = {
+  where?: Prisma.LaborTypeWhereInput
+  data: Prisma.XOR<Prisma.LaborTypeUpdateWithoutCategoriesInput, Prisma.LaborTypeUncheckedUpdateWithoutCategoriesInput>
+}
+
+export type LaborTypeUpdateWithoutCategoriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutLaborTypesNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutLaborTypeNestedInput
+  dailyReports?: Prisma.DailyReportUpdateManyWithoutLaborTypeNestedInput
+}
+
+export type LaborTypeUncheckedUpdateWithoutCategoriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutLaborTypeNestedInput
+  dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutLaborTypeNestedInput
+}
+
 export type LaborTypeCreateWithoutTasksInput = {
   id?: string
   name: string
@@ -596,6 +687,7 @@ export type LaborTypeCreateWithoutTasksInput = {
   deleted?: boolean
   tenant: Prisma.TenantCreateNestedOneWithoutLaborTypesInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLaborTypeInput
+  categories?: Prisma.LaborTypeCategoryCreateNestedManyWithoutLaborTypeInput
 }
 
 export type LaborTypeUncheckedCreateWithoutTasksInput = {
@@ -608,6 +700,7 @@ export type LaborTypeUncheckedCreateWithoutTasksInput = {
   version?: number
   deleted?: boolean
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLaborTypeInput
+  categories?: Prisma.LaborTypeCategoryUncheckedCreateNestedManyWithoutLaborTypeInput
 }
 
 export type LaborTypeCreateOrConnectWithoutTasksInput = {
@@ -636,6 +729,7 @@ export type LaborTypeUpdateWithoutTasksInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tenant?: Prisma.TenantUpdateOneRequiredWithoutLaborTypesNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutLaborTypeNestedInput
+  categories?: Prisma.LaborTypeCategoryUpdateManyWithoutLaborTypeNestedInput
 }
 
 export type LaborTypeUncheckedUpdateWithoutTasksInput = {
@@ -648,6 +742,7 @@ export type LaborTypeUncheckedUpdateWithoutTasksInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutLaborTypeNestedInput
+  categories?: Prisma.LaborTypeCategoryUncheckedUpdateManyWithoutLaborTypeNestedInput
 }
 
 export type LaborTypeCreateWithoutDailyReportsInput = {
@@ -660,6 +755,7 @@ export type LaborTypeCreateWithoutDailyReportsInput = {
   deleted?: boolean
   tenant: Prisma.TenantCreateNestedOneWithoutLaborTypesInput
   tasks?: Prisma.TaskCreateNestedManyWithoutLaborTypeInput
+  categories?: Prisma.LaborTypeCategoryCreateNestedManyWithoutLaborTypeInput
 }
 
 export type LaborTypeUncheckedCreateWithoutDailyReportsInput = {
@@ -672,6 +768,7 @@ export type LaborTypeUncheckedCreateWithoutDailyReportsInput = {
   version?: number
   deleted?: boolean
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutLaborTypeInput
+  categories?: Prisma.LaborTypeCategoryUncheckedCreateNestedManyWithoutLaborTypeInput
 }
 
 export type LaborTypeCreateOrConnectWithoutDailyReportsInput = {
@@ -700,6 +797,7 @@ export type LaborTypeUpdateWithoutDailyReportsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tenant?: Prisma.TenantUpdateOneRequiredWithoutLaborTypesNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutLaborTypeNestedInput
+  categories?: Prisma.LaborTypeCategoryUpdateManyWithoutLaborTypeNestedInput
 }
 
 export type LaborTypeUncheckedUpdateWithoutDailyReportsInput = {
@@ -712,6 +810,7 @@ export type LaborTypeUncheckedUpdateWithoutDailyReportsInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutLaborTypeNestedInput
+  categories?: Prisma.LaborTypeCategoryUncheckedUpdateManyWithoutLaborTypeNestedInput
 }
 
 export type LaborTypeCreateManyTenantInput = {
@@ -734,6 +833,7 @@ export type LaborTypeUpdateWithoutTenantInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tasks?: Prisma.TaskUpdateManyWithoutLaborTypeNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutLaborTypeNestedInput
+  categories?: Prisma.LaborTypeCategoryUpdateManyWithoutLaborTypeNestedInput
 }
 
 export type LaborTypeUncheckedUpdateWithoutTenantInput = {
@@ -746,6 +846,7 @@ export type LaborTypeUncheckedUpdateWithoutTenantInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutLaborTypeNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutLaborTypeNestedInput
+  categories?: Prisma.LaborTypeCategoryUncheckedUpdateManyWithoutLaborTypeNestedInput
 }
 
 export type LaborTypeUncheckedUpdateManyWithoutTenantInput = {
@@ -766,11 +867,13 @@ export type LaborTypeUncheckedUpdateManyWithoutTenantInput = {
 export type LaborTypeCountOutputType = {
   tasks: number
   dailyReports: number
+  categories: number
 }
 
 export type LaborTypeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tasks?: boolean | LaborTypeCountOutputTypeCountTasksArgs
   dailyReports?: boolean | LaborTypeCountOutputTypeCountDailyReportsArgs
+  categories?: boolean | LaborTypeCountOutputTypeCountCategoriesArgs
 }
 
 /**
@@ -797,6 +900,13 @@ export type LaborTypeCountOutputTypeCountDailyReportsArgs<ExtArgs extends runtim
   where?: Prisma.DailyReportWhereInput
 }
 
+/**
+ * LaborTypeCountOutputType without action
+ */
+export type LaborTypeCountOutputTypeCountCategoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LaborTypeCategoryWhereInput
+}
+
 
 export type LaborTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -810,6 +920,7 @@ export type LaborTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   tasks?: boolean | Prisma.LaborType$tasksArgs<ExtArgs>
   dailyReports?: boolean | Prisma.LaborType$dailyReportsArgs<ExtArgs>
+  categories?: boolean | Prisma.LaborType$categoriesArgs<ExtArgs>
   _count?: boolean | Prisma.LaborTypeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["laborType"]>
 
@@ -853,6 +964,7 @@ export type LaborTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   tasks?: boolean | Prisma.LaborType$tasksArgs<ExtArgs>
   dailyReports?: boolean | Prisma.LaborType$dailyReportsArgs<ExtArgs>
+  categories?: boolean | Prisma.LaborType$categoriesArgs<ExtArgs>
   _count?: boolean | Prisma.LaborTypeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type LaborTypeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -868,6 +980,7 @@ export type $LaborTypePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     tenant: Prisma.$TenantPayload<ExtArgs>
     tasks: Prisma.$TaskPayload<ExtArgs>[]
     dailyReports: Prisma.$DailyReportPayload<ExtArgs>[]
+    categories: Prisma.$LaborTypeCategoryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1275,6 +1388,7 @@ export interface Prisma__LaborTypeClient<T, Null = never, ExtArgs extends runtim
   tenant<T extends Prisma.TenantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TenantDefaultArgs<ExtArgs>>): Prisma.Prisma__TenantClient<runtime.Types.Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   tasks<T extends Prisma.LaborType$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LaborType$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dailyReports<T extends Prisma.LaborType$dailyReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LaborType$dailyReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  categories<T extends Prisma.LaborType$categoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LaborType$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LaborTypeCategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1758,6 +1872,30 @@ export type LaborType$dailyReportsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.DailyReportScalarFieldEnum | Prisma.DailyReportScalarFieldEnum[]
+}
+
+/**
+ * LaborType.categories
+ */
+export type LaborType$categoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LaborTypeCategory
+   */
+  select?: Prisma.LaborTypeCategorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LaborTypeCategory
+   */
+  omit?: Prisma.LaborTypeCategoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LaborTypeCategoryInclude<ExtArgs> | null
+  where?: Prisma.LaborTypeCategoryWhereInput
+  orderBy?: Prisma.LaborTypeCategoryOrderByWithRelationInput | Prisma.LaborTypeCategoryOrderByWithRelationInput[]
+  cursor?: Prisma.LaborTypeCategoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LaborTypeCategoryScalarFieldEnum | Prisma.LaborTypeCategoryScalarFieldEnum[]
 }
 
 /**

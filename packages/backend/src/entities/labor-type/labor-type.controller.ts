@@ -30,6 +30,20 @@ export class LaborTypeController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
+  @Get(':id/categories')
+  findCategories(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.service.findCategories(id, req.user.tenantId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
+  @Put(':id/categories')
+  replaceCategories(@Param('id') id: string, @Req() req: RequestWithUser, @Body() data: { categoryIds: string[] }) {
+    return this.service.replaceCategories(id, req.user.tenantId, data);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPERVISOR')
   @Post()
   create(@Req() req: RequestWithUser, @Body() data: CreateLaborTypeInput) {

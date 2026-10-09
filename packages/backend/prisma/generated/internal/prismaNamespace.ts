@@ -394,6 +394,7 @@ export const ModelName = {
   InputCategory: 'InputCategory',
   Input: 'Input',
   LaborType: 'LaborType',
+  LaborTypeCategory: 'LaborTypeCategory',
   Farm: 'Farm',
   Lot: 'Lot',
   Task: 'Task',
@@ -427,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "tenant" | "company" | "userCompany" | "user" | "refreshToken" | "module" | "client" | "inputCategory" | "input" | "laborType" | "farm" | "lot" | "task" | "recipe" | "recipeItem" | "dailyReport" | "dailyReportItem" | "reception" | "receptionItem" | "stock" | "machine" | "machineUsage" | "machineActivity" | "photo" | "livestock" | "livestockEvent" | "weightRecord" | "livestockMovement"
+    modelProps: "tenant" | "company" | "userCompany" | "user" | "refreshToken" | "module" | "client" | "inputCategory" | "input" | "laborType" | "laborTypeCategory" | "farm" | "lot" | "task" | "recipe" | "recipeItem" | "dailyReport" | "dailyReportItem" | "reception" | "receptionItem" | "stock" | "machine" | "machineUsage" | "machineActivity" | "photo" | "livestock" | "livestockEvent" | "weightRecord" | "livestockMovement"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1168,6 +1169,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.LaborTypeCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.LaborTypeCountAggregateOutputType> | number
+        }
+      }
+    }
+    LaborTypeCategory: {
+      payload: Prisma.$LaborTypeCategoryPayload<ExtArgs>
+      fields: Prisma.LaborTypeCategoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LaborTypeCategoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LaborTypeCategoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload>
+        }
+        findFirst: {
+          args: Prisma.LaborTypeCategoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LaborTypeCategoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload>
+        }
+        findMany: {
+          args: Prisma.LaborTypeCategoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload>[]
+        }
+        create: {
+          args: Prisma.LaborTypeCategoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload>
+        }
+        createMany: {
+          args: Prisma.LaborTypeCategoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LaborTypeCategoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload>[]
+        }
+        delete: {
+          args: Prisma.LaborTypeCategoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload>
+        }
+        update: {
+          args: Prisma.LaborTypeCategoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.LaborTypeCategoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LaborTypeCategoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LaborTypeCategoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.LaborTypeCategoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LaborTypeCategoryPayload>
+        }
+        aggregate: {
+          args: Prisma.LaborTypeCategoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLaborTypeCategory>
+        }
+        groupBy: {
+          args: Prisma.LaborTypeCategoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LaborTypeCategoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LaborTypeCategoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LaborTypeCategoryCountAggregateOutputType> | number
         }
       }
     }
@@ -2690,6 +2765,14 @@ export const LaborTypeScalarFieldEnum = {
 export type LaborTypeScalarFieldEnum = (typeof LaborTypeScalarFieldEnum)[keyof typeof LaborTypeScalarFieldEnum]
 
 
+export const LaborTypeCategoryScalarFieldEnum = {
+  laborTypeId: 'laborTypeId',
+  categoryId: 'categoryId'
+} as const
+
+export type LaborTypeCategoryScalarFieldEnum = (typeof LaborTypeCategoryScalarFieldEnum)[keyof typeof LaborTypeCategoryScalarFieldEnum]
+
+
 export const FarmScalarFieldEnum = {
   id: 'id',
   clientId: 'clientId',
@@ -3324,6 +3407,7 @@ export type GlobalOmitConfig = {
   inputCategory?: Prisma.InputCategoryOmit
   input?: Prisma.InputOmit
   laborType?: Prisma.LaborTypeOmit
+  laborTypeCategory?: Prisma.LaborTypeCategoryOmit
   farm?: Prisma.FarmOmit
   lot?: Prisma.LotOmit
   task?: Prisma.TaskOmit

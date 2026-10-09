@@ -61,6 +61,7 @@ export const ModelName = {
   InputCategory: 'InputCategory',
   Input: 'Input',
   LaborType: 'LaborType',
+  LaborTypeCategory: 'LaborTypeCategory',
   Farm: 'Farm',
   Lot: 'Lot',
   Task: 'Task',
@@ -243,6 +244,14 @@ export const LaborTypeScalarFieldEnum = {
 } as const
 
 export type LaborTypeScalarFieldEnum = (typeof LaborTypeScalarFieldEnum)[keyof typeof LaborTypeScalarFieldEnum]
+
+
+export const LaborTypeCategoryScalarFieldEnum = {
+  laborTypeId: 'laborTypeId',
+  categoryId: 'categoryId'
+} as const
+
+export type LaborTypeCategoryScalarFieldEnum = (typeof LaborTypeCategoryScalarFieldEnum)[keyof typeof LaborTypeCategoryScalarFieldEnum]
 
 
 export const FarmScalarFieldEnum = {

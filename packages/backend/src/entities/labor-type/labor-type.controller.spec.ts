@@ -15,6 +15,8 @@ describe('LaborTypeController', () => {
     create: jest.Mock;
     update: jest.Mock;
     delete: jest.Mock;
+    findCategories: jest.Mock;
+    replaceCategories: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -24,6 +26,8 @@ describe('LaborTypeController', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      findCategories: jest.fn(),
+      replaceCategories: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -35,7 +39,7 @@ describe('LaborTypeController', () => {
   });
 
   it('protects every route with JwtAuthGuard', () => {
-    const methods = ['findAll', 'findOne', 'create', 'update', 'delete'] as const;
+    const methods = ['findAll', 'findOne', 'findCategories', 'replaceCategories', 'create', 'update', 'delete'] as const;
 
     for (const method of methods) {
       const guards = Reflect.getMetadata(
@@ -48,7 +52,7 @@ describe('LaborTypeController', () => {
   });
 
   it('restricts reads to ADMIN, SUPERVISOR and OPERARIO so PRODUCTOR gets 403', () => {
-    for (const method of ['findAll', 'findOne'] as const) {
+    for (const method of ['findAll', 'findOne', 'findCategories'] as const) {
       const guards = Reflect.getMetadata(
         GUARDS_METADATA,
         LaborTypeController.prototype[method],
@@ -62,6 +66,17 @@ describe('LaborTypeController', () => {
       expect(roles).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO']);
       expect(roles).not.toContain('PRODUCTOR');
     }
+  });
+
+  it('scopes category routes to caller tenant and limits replacement to admin or supervisor', async () => {
+    const req = { user: { tenantId: 'tenant-1' } };
+    service.findCategories.mockResolvedValue([]);
+    service.replaceCategories.mockResolvedValue([]);
+    await expect(controller.findCategories('labor-1', req)).resolves.toEqual([]);
+    await expect(controller.replaceCategories('labor-1', req, { categoryIds: [] })).resolves.toEqual([]);
+    expect(service.findCategories).toHaveBeenCalledWith('labor-1', 'tenant-1');
+    expect(service.replaceCategories).toHaveBeenCalledWith('labor-1', 'tenant-1', { categoryIds: [] });
+    expect(Reflect.getMetadata(ROLES_KEY, LaborTypeController.prototype.replaceCategories)).toEqual(['ADMIN', 'SUPERVISOR']);
   });
 
   it('delegates tenant-scoped requests using req.user.tenantId', async () => {

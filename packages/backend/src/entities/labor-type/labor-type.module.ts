@@ -15,6 +15,11 @@ import { UpdateLaborTypeUseCase } from './application/use-cases/update-labor-typ
 import { PrismaTaskReader } from './adapters/outbound/prisma-task.reader';
 import { PrismaLaborTypeRepository } from './adapters/outbound/prisma-labor-type.repository';
 import { LaborTypeService } from './labor-type.service';
+import { LABOR_TYPE_CATEGORY_REPOSITORY, LABOR_TYPE_INPUT_CATEGORY_READER, LaborTypeCategoryRepositoryPort, LaborTypeInputCategoryReaderPort } from './application/labor-type-category.ports';
+import { FindLaborTypeCategoriesUseCase } from './application/use-cases/find-labor-type-categories.use-case';
+import { ReplaceLaborTypeCategoriesUseCase } from './application/use-cases/replace-labor-type-categories.use-case';
+import { PrismaLaborTypeCategoryRepository } from './adapters/outbound/prisma-labor-type-category.repository';
+import { PrismaLaborTypeInputCategoryReader } from './adapters/outbound/prisma-labor-type-input-category.reader';
 
 @Module({
   imports: [PrismaModule],
@@ -23,6 +28,19 @@ import { LaborTypeService } from './labor-type.service';
     LaborTypeService,
     { provide: LABOR_TYPE_REPOSITORY, useClass: PrismaLaborTypeRepository },
     { provide: TASK_READER, useClass: PrismaTaskReader },
+    { provide: LABOR_TYPE_CATEGORY_REPOSITORY, useClass: PrismaLaborTypeCategoryRepository },
+    { provide: LABOR_TYPE_INPUT_CATEGORY_READER, useClass: PrismaLaborTypeInputCategoryReader },
+    {
+      provide: FindLaborTypeCategoriesUseCase,
+      useFactory: (repository: LaborTypeCategoryRepositoryPort) => new FindLaborTypeCategoriesUseCase(repository),
+      inject: [LABOR_TYPE_CATEGORY_REPOSITORY],
+    },
+    {
+      provide: ReplaceLaborTypeCategoriesUseCase,
+      useFactory: (repository: LaborTypeCategoryRepositoryPort, reader: LaborTypeInputCategoryReaderPort) =>
+        new ReplaceLaborTypeCategoriesUseCase(repository, reader),
+      inject: [LABOR_TYPE_CATEGORY_REPOSITORY, LABOR_TYPE_INPUT_CATEGORY_READER],
+    },
     {
       provide: FindAllLaborTypesUseCase,
       useFactory: (repository: LaborTypeRepositoryPort) => new FindAllLaborTypesUseCase(repository),
