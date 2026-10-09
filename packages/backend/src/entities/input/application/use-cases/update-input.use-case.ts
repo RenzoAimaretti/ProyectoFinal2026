@@ -1,5 +1,5 @@
 import { EntityNotFoundError, InvalidInputError } from '../../domain/errors';
-import { InputRepositoryPort, InputStockReaderPort } from '../input.ports';
+import { InputCategoryReaderPort, InputRepositoryPort, InputStockReaderPort } from '../input.ports';
 import { InputRecord, UpdateInputInput } from '../input.types';
 import {
   assertInputUnit,
@@ -12,6 +12,7 @@ export class UpdateInputUseCase {
   constructor(
     private readonly repository: InputRepositoryPort,
     private readonly stockReader: InputStockReaderPort,
+    private readonly categories: InputCategoryReaderPort,
   ) {}
 
   async execute(
@@ -27,6 +28,14 @@ export class UpdateInputUseCase {
     }
 
     const updateData: UpdateInputInput = {};
+
+    if (input.categoryId !== undefined) {
+      const categoryId = assertRequiredString(input.categoryId, 'categoryId');
+      if (!await this.categories.findByIdForTenant(categoryId, tenantId)) {
+        throw new EntityNotFoundError(`Input category with id ${categoryId} not found`);
+      }
+      updateData.categoryId = categoryId;
+    }
 
     if (input.name !== undefined) {
       updateData.name = assertRequiredString(input.name, 'name');

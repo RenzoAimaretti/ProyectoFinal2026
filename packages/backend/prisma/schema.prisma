@@ -37,6 +37,7 @@ model Tenant {
   users      User[]
   clients    Client[]
   inputs     Input[]
+  inputCategories InputCategory[]
   laborTypes LaborType[]
 }
 
@@ -159,9 +160,27 @@ model Client {
   @@index([tenantId])
 }
 
+model InputCategory {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  version   Int      @default(1)
+  deleted   Boolean  @default(false)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  inputs Input[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
 model Input {
   id        String   @id @default(uuid())
   tenantId  String
+  categoryId String
   name      String
   unit      InputUnit
   active    Boolean  @default(true)
@@ -171,12 +190,14 @@ model Input {
   deleted   Boolean  @default(false)
 
   tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  category         InputCategory      @relation(fields: [categoryId], references: [id])
   recipeItems      RecipeItem[]
   dailyReportItems DailyReportItem[]
   receptionItems   ReceptionItem[]
   stocks           Stock[]
 
   @@index([tenantId])
+  @@index([tenantId, categoryId])
 }
 
 model LaborType {

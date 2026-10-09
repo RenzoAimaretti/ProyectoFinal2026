@@ -49,6 +49,7 @@ describe('PrismaInputRepository', () => {
     await expect(
       repository.create({
         tenantId: 'tenant-1',
+        categoryId: 'category-1',
         name: 'Glifosato',
         unit: 'L',
       }),
@@ -57,6 +58,7 @@ describe('PrismaInputRepository', () => {
     expect(prisma.input.create).toHaveBeenCalledWith({
       data: {
         tenantId: 'tenant-1',
+        categoryId: 'category-1',
         name: 'Glifosato',
         unit: 'L',
       },

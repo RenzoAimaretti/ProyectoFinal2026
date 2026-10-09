@@ -236,6 +236,7 @@ export type TenantWhereInput = {
   users?: Prisma.UserListRelationFilter
   clients?: Prisma.ClientListRelationFilter
   inputs?: Prisma.InputListRelationFilter
+  inputCategories?: Prisma.InputCategoryListRelationFilter
   laborTypes?: Prisma.LaborTypeListRelationFilter
 }
 
@@ -251,6 +252,7 @@ export type TenantOrderByWithRelationInput = {
   users?: Prisma.UserOrderByRelationAggregateInput
   clients?: Prisma.ClientOrderByRelationAggregateInput
   inputs?: Prisma.InputOrderByRelationAggregateInput
+  inputCategories?: Prisma.InputCategoryOrderByRelationAggregateInput
   laborTypes?: Prisma.LaborTypeOrderByRelationAggregateInput
 }
 
@@ -269,6 +271,7 @@ export type TenantWhereUniqueInput = Prisma.AtLeast<{
   users?: Prisma.UserListRelationFilter
   clients?: Prisma.ClientListRelationFilter
   inputs?: Prisma.InputListRelationFilter
+  inputCategories?: Prisma.InputCategoryListRelationFilter
   laborTypes?: Prisma.LaborTypeListRelationFilter
 }, "id">
 
@@ -312,6 +315,7 @@ export type TenantCreateInput = {
   users?: Prisma.UserCreateNestedManyWithoutTenantInput
   clients?: Prisma.ClientCreateNestedManyWithoutTenantInput
   inputs?: Prisma.InputCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryCreateNestedManyWithoutTenantInput
   laborTypes?: Prisma.LaborTypeCreateNestedManyWithoutTenantInput
 }
 
@@ -327,6 +331,7 @@ export type TenantUncheckedCreateInput = {
   users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
   clients?: Prisma.ClientUncheckedCreateNestedManyWithoutTenantInput
   inputs?: Prisma.InputUncheckedCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryUncheckedCreateNestedManyWithoutTenantInput
   laborTypes?: Prisma.LaborTypeUncheckedCreateNestedManyWithoutTenantInput
 }
 
@@ -342,6 +347,7 @@ export type TenantUpdateInput = {
   users?: Prisma.UserUpdateManyWithoutTenantNestedInput
   clients?: Prisma.ClientUpdateManyWithoutTenantNestedInput
   inputs?: Prisma.InputUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUpdateManyWithoutTenantNestedInput
   laborTypes?: Prisma.LaborTypeUpdateManyWithoutTenantNestedInput
 }
 
@@ -357,6 +363,7 @@ export type TenantUncheckedUpdateInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
   clients?: Prisma.ClientUncheckedUpdateManyWithoutTenantNestedInput
   inputs?: Prisma.InputUncheckedUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUncheckedUpdateManyWithoutTenantNestedInput
   laborTypes?: Prisma.LaborTypeUncheckedUpdateManyWithoutTenantNestedInput
 }
 
@@ -495,6 +502,20 @@ export type TenantUpdateOneRequiredWithoutClientsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutClientsInput, Prisma.TenantUpdateWithoutClientsInput>, Prisma.TenantUncheckedUpdateWithoutClientsInput>
 }
 
+export type TenantCreateNestedOneWithoutInputCategoriesInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutInputCategoriesInput, Prisma.TenantUncheckedCreateWithoutInputCategoriesInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutInputCategoriesInput
+  connect?: Prisma.TenantWhereUniqueInput
+}
+
+export type TenantUpdateOneRequiredWithoutInputCategoriesNestedInput = {
+  create?: Prisma.XOR<Prisma.TenantCreateWithoutInputCategoriesInput, Prisma.TenantUncheckedCreateWithoutInputCategoriesInput>
+  connectOrCreate?: Prisma.TenantCreateOrConnectWithoutInputCategoriesInput
+  upsert?: Prisma.TenantUpsertWithoutInputCategoriesInput
+  connect?: Prisma.TenantWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TenantUpdateToOneWithWhereWithoutInputCategoriesInput, Prisma.TenantUpdateWithoutInputCategoriesInput>, Prisma.TenantUncheckedUpdateWithoutInputCategoriesInput>
+}
+
 export type TenantCreateNestedOneWithoutInputsInput = {
   create?: Prisma.XOR<Prisma.TenantCreateWithoutInputsInput, Prisma.TenantUncheckedCreateWithoutInputsInput>
   connectOrCreate?: Prisma.TenantCreateOrConnectWithoutInputsInput
@@ -534,6 +555,7 @@ export type TenantCreateWithoutCompaniesInput = {
   users?: Prisma.UserCreateNestedManyWithoutTenantInput
   clients?: Prisma.ClientCreateNestedManyWithoutTenantInput
   inputs?: Prisma.InputCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryCreateNestedManyWithoutTenantInput
   laborTypes?: Prisma.LaborTypeCreateNestedManyWithoutTenantInput
 }
 
@@ -548,6 +570,7 @@ export type TenantUncheckedCreateWithoutCompaniesInput = {
   users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
   clients?: Prisma.ClientUncheckedCreateNestedManyWithoutTenantInput
   inputs?: Prisma.InputUncheckedCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryUncheckedCreateNestedManyWithoutTenantInput
   laborTypes?: Prisma.LaborTypeUncheckedCreateNestedManyWithoutTenantInput
 }
 
@@ -578,6 +601,7 @@ export type TenantUpdateWithoutCompaniesInput = {
   users?: Prisma.UserUpdateManyWithoutTenantNestedInput
   clients?: Prisma.ClientUpdateManyWithoutTenantNestedInput
   inputs?: Prisma.InputUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUpdateManyWithoutTenantNestedInput
   laborTypes?: Prisma.LaborTypeUpdateManyWithoutTenantNestedInput
 }
 
@@ -592,6 +616,7 @@ export type TenantUncheckedUpdateWithoutCompaniesInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
   clients?: Prisma.ClientUncheckedUpdateManyWithoutTenantNestedInput
   inputs?: Prisma.InputUncheckedUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUncheckedUpdateManyWithoutTenantNestedInput
   laborTypes?: Prisma.LaborTypeUncheckedUpdateManyWithoutTenantNestedInput
 }
 
@@ -606,6 +631,7 @@ export type TenantCreateWithoutUsersInput = {
   companies?: Prisma.CompanyCreateNestedManyWithoutTenantInput
   clients?: Prisma.ClientCreateNestedManyWithoutTenantInput
   inputs?: Prisma.InputCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryCreateNestedManyWithoutTenantInput
   laborTypes?: Prisma.LaborTypeCreateNestedManyWithoutTenantInput
 }
 
@@ -620,6 +646,7 @@ export type TenantUncheckedCreateWithoutUsersInput = {
   companies?: Prisma.CompanyUncheckedCreateNestedManyWithoutTenantInput
   clients?: Prisma.ClientUncheckedCreateNestedManyWithoutTenantInput
   inputs?: Prisma.InputUncheckedCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryUncheckedCreateNestedManyWithoutTenantInput
   laborTypes?: Prisma.LaborTypeUncheckedCreateNestedManyWithoutTenantInput
 }
 
@@ -650,6 +677,7 @@ export type TenantUpdateWithoutUsersInput = {
   companies?: Prisma.CompanyUpdateManyWithoutTenantNestedInput
   clients?: Prisma.ClientUpdateManyWithoutTenantNestedInput
   inputs?: Prisma.InputUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUpdateManyWithoutTenantNestedInput
   laborTypes?: Prisma.LaborTypeUpdateManyWithoutTenantNestedInput
 }
 
@@ -664,6 +692,7 @@ export type TenantUncheckedUpdateWithoutUsersInput = {
   companies?: Prisma.CompanyUncheckedUpdateManyWithoutTenantNestedInput
   clients?: Prisma.ClientUncheckedUpdateManyWithoutTenantNestedInput
   inputs?: Prisma.InputUncheckedUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUncheckedUpdateManyWithoutTenantNestedInput
   laborTypes?: Prisma.LaborTypeUncheckedUpdateManyWithoutTenantNestedInput
 }
 
@@ -678,6 +707,7 @@ export type TenantCreateWithoutClientsInput = {
   companies?: Prisma.CompanyCreateNestedManyWithoutTenantInput
   users?: Prisma.UserCreateNestedManyWithoutTenantInput
   inputs?: Prisma.InputCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryCreateNestedManyWithoutTenantInput
   laborTypes?: Prisma.LaborTypeCreateNestedManyWithoutTenantInput
 }
 
@@ -692,6 +722,7 @@ export type TenantUncheckedCreateWithoutClientsInput = {
   companies?: Prisma.CompanyUncheckedCreateNestedManyWithoutTenantInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
   inputs?: Prisma.InputUncheckedCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryUncheckedCreateNestedManyWithoutTenantInput
   laborTypes?: Prisma.LaborTypeUncheckedCreateNestedManyWithoutTenantInput
 }
 
@@ -722,6 +753,7 @@ export type TenantUpdateWithoutClientsInput = {
   companies?: Prisma.CompanyUpdateManyWithoutTenantNestedInput
   users?: Prisma.UserUpdateManyWithoutTenantNestedInput
   inputs?: Prisma.InputUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUpdateManyWithoutTenantNestedInput
   laborTypes?: Prisma.LaborTypeUpdateManyWithoutTenantNestedInput
 }
 
@@ -735,6 +767,83 @@ export type TenantUncheckedUpdateWithoutClientsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   companies?: Prisma.CompanyUncheckedUpdateManyWithoutTenantNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  inputs?: Prisma.InputUncheckedUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUncheckedUpdateManyWithoutTenantNestedInput
+  laborTypes?: Prisma.LaborTypeUncheckedUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantCreateWithoutInputCategoriesInput = {
+  id?: string
+  name: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  companies?: Prisma.CompanyCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserCreateNestedManyWithoutTenantInput
+  clients?: Prisma.ClientCreateNestedManyWithoutTenantInput
+  inputs?: Prisma.InputCreateNestedManyWithoutTenantInput
+  laborTypes?: Prisma.LaborTypeCreateNestedManyWithoutTenantInput
+}
+
+export type TenantUncheckedCreateWithoutInputCategoriesInput = {
+  id?: string
+  name: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  companies?: Prisma.CompanyUncheckedCreateNestedManyWithoutTenantInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
+  clients?: Prisma.ClientUncheckedCreateNestedManyWithoutTenantInput
+  inputs?: Prisma.InputUncheckedCreateNestedManyWithoutTenantInput
+  laborTypes?: Prisma.LaborTypeUncheckedCreateNestedManyWithoutTenantInput
+}
+
+export type TenantCreateOrConnectWithoutInputCategoriesInput = {
+  where: Prisma.TenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.TenantCreateWithoutInputCategoriesInput, Prisma.TenantUncheckedCreateWithoutInputCategoriesInput>
+}
+
+export type TenantUpsertWithoutInputCategoriesInput = {
+  update: Prisma.XOR<Prisma.TenantUpdateWithoutInputCategoriesInput, Prisma.TenantUncheckedUpdateWithoutInputCategoriesInput>
+  create: Prisma.XOR<Prisma.TenantCreateWithoutInputCategoriesInput, Prisma.TenantUncheckedCreateWithoutInputCategoriesInput>
+  where?: Prisma.TenantWhereInput
+}
+
+export type TenantUpdateToOneWithWhereWithoutInputCategoriesInput = {
+  where?: Prisma.TenantWhereInput
+  data: Prisma.XOR<Prisma.TenantUpdateWithoutInputCategoriesInput, Prisma.TenantUncheckedUpdateWithoutInputCategoriesInput>
+}
+
+export type TenantUpdateWithoutInputCategoriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companies?: Prisma.CompanyUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUpdateManyWithoutTenantNestedInput
+  clients?: Prisma.ClientUpdateManyWithoutTenantNestedInput
+  inputs?: Prisma.InputUpdateManyWithoutTenantNestedInput
+  laborTypes?: Prisma.LaborTypeUpdateManyWithoutTenantNestedInput
+}
+
+export type TenantUncheckedUpdateWithoutInputCategoriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  companies?: Prisma.CompanyUncheckedUpdateManyWithoutTenantNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
+  clients?: Prisma.ClientUncheckedUpdateManyWithoutTenantNestedInput
   inputs?: Prisma.InputUncheckedUpdateManyWithoutTenantNestedInput
   laborTypes?: Prisma.LaborTypeUncheckedUpdateManyWithoutTenantNestedInput
 }
@@ -750,6 +859,7 @@ export type TenantCreateWithoutInputsInput = {
   companies?: Prisma.CompanyCreateNestedManyWithoutTenantInput
   users?: Prisma.UserCreateNestedManyWithoutTenantInput
   clients?: Prisma.ClientCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryCreateNestedManyWithoutTenantInput
   laborTypes?: Prisma.LaborTypeCreateNestedManyWithoutTenantInput
 }
 
@@ -764,6 +874,7 @@ export type TenantUncheckedCreateWithoutInputsInput = {
   companies?: Prisma.CompanyUncheckedCreateNestedManyWithoutTenantInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
   clients?: Prisma.ClientUncheckedCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryUncheckedCreateNestedManyWithoutTenantInput
   laborTypes?: Prisma.LaborTypeUncheckedCreateNestedManyWithoutTenantInput
 }
 
@@ -794,6 +905,7 @@ export type TenantUpdateWithoutInputsInput = {
   companies?: Prisma.CompanyUpdateManyWithoutTenantNestedInput
   users?: Prisma.UserUpdateManyWithoutTenantNestedInput
   clients?: Prisma.ClientUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUpdateManyWithoutTenantNestedInput
   laborTypes?: Prisma.LaborTypeUpdateManyWithoutTenantNestedInput
 }
 
@@ -808,6 +920,7 @@ export type TenantUncheckedUpdateWithoutInputsInput = {
   companies?: Prisma.CompanyUncheckedUpdateManyWithoutTenantNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
   clients?: Prisma.ClientUncheckedUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUncheckedUpdateManyWithoutTenantNestedInput
   laborTypes?: Prisma.LaborTypeUncheckedUpdateManyWithoutTenantNestedInput
 }
 
@@ -823,6 +936,7 @@ export type TenantCreateWithoutLaborTypesInput = {
   users?: Prisma.UserCreateNestedManyWithoutTenantInput
   clients?: Prisma.ClientCreateNestedManyWithoutTenantInput
   inputs?: Prisma.InputCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryCreateNestedManyWithoutTenantInput
 }
 
 export type TenantUncheckedCreateWithoutLaborTypesInput = {
@@ -837,6 +951,7 @@ export type TenantUncheckedCreateWithoutLaborTypesInput = {
   users?: Prisma.UserUncheckedCreateNestedManyWithoutTenantInput
   clients?: Prisma.ClientUncheckedCreateNestedManyWithoutTenantInput
   inputs?: Prisma.InputUncheckedCreateNestedManyWithoutTenantInput
+  inputCategories?: Prisma.InputCategoryUncheckedCreateNestedManyWithoutTenantInput
 }
 
 export type TenantCreateOrConnectWithoutLaborTypesInput = {
@@ -867,6 +982,7 @@ export type TenantUpdateWithoutLaborTypesInput = {
   users?: Prisma.UserUpdateManyWithoutTenantNestedInput
   clients?: Prisma.ClientUpdateManyWithoutTenantNestedInput
   inputs?: Prisma.InputUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUpdateManyWithoutTenantNestedInput
 }
 
 export type TenantUncheckedUpdateWithoutLaborTypesInput = {
@@ -881,6 +997,7 @@ export type TenantUncheckedUpdateWithoutLaborTypesInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutTenantNestedInput
   clients?: Prisma.ClientUncheckedUpdateManyWithoutTenantNestedInput
   inputs?: Prisma.InputUncheckedUpdateManyWithoutTenantNestedInput
+  inputCategories?: Prisma.InputCategoryUncheckedUpdateManyWithoutTenantNestedInput
 }
 
 
@@ -893,6 +1010,7 @@ export type TenantCountOutputType = {
   users: number
   clients: number
   inputs: number
+  inputCategories: number
   laborTypes: number
 }
 
@@ -901,6 +1019,7 @@ export type TenantCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   users?: boolean | TenantCountOutputTypeCountUsersArgs
   clients?: boolean | TenantCountOutputTypeCountClientsArgs
   inputs?: boolean | TenantCountOutputTypeCountInputsArgs
+  inputCategories?: boolean | TenantCountOutputTypeCountInputCategoriesArgs
   laborTypes?: boolean | TenantCountOutputTypeCountLaborTypesArgs
 }
 
@@ -945,6 +1064,13 @@ export type TenantCountOutputTypeCountInputsArgs<ExtArgs extends runtime.Types.E
 /**
  * TenantCountOutputType without action
  */
+export type TenantCountOutputTypeCountInputCategoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.InputCategoryWhereInput
+}
+
+/**
+ * TenantCountOutputType without action
+ */
 export type TenantCountOutputTypeCountLaborTypesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.LaborTypeWhereInput
 }
@@ -962,6 +1088,7 @@ export type TenantSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   users?: boolean | Prisma.Tenant$usersArgs<ExtArgs>
   clients?: boolean | Prisma.Tenant$clientsArgs<ExtArgs>
   inputs?: boolean | Prisma.Tenant$inputsArgs<ExtArgs>
+  inputCategories?: boolean | Prisma.Tenant$inputCategoriesArgs<ExtArgs>
   laborTypes?: boolean | Prisma.Tenant$laborTypesArgs<ExtArgs>
   _count?: boolean | Prisma.TenantCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["tenant"]>
@@ -1002,6 +1129,7 @@ export type TenantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   users?: boolean | Prisma.Tenant$usersArgs<ExtArgs>
   clients?: boolean | Prisma.Tenant$clientsArgs<ExtArgs>
   inputs?: boolean | Prisma.Tenant$inputsArgs<ExtArgs>
+  inputCategories?: boolean | Prisma.Tenant$inputCategoriesArgs<ExtArgs>
   laborTypes?: boolean | Prisma.Tenant$laborTypesArgs<ExtArgs>
   _count?: boolean | Prisma.TenantCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1015,6 +1143,7 @@ export type $TenantPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     users: Prisma.$UserPayload<ExtArgs>[]
     clients: Prisma.$ClientPayload<ExtArgs>[]
     inputs: Prisma.$InputPayload<ExtArgs>[]
+    inputCategories: Prisma.$InputCategoryPayload<ExtArgs>[]
     laborTypes: Prisma.$LaborTypePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1423,6 +1552,7 @@ export interface Prisma__TenantClient<T, Null = never, ExtArgs extends runtime.T
   users<T extends Prisma.Tenant$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   clients<T extends Prisma.Tenant$clientsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$clientsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClientPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   inputs<T extends Prisma.Tenant$inputsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$inputsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InputPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  inputCategories<T extends Prisma.Tenant$inputCategoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$inputCategoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InputCategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   laborTypes<T extends Prisma.Tenant$laborTypesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tenant$laborTypesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LaborTypePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1946,6 +2076,30 @@ export type Tenant$inputsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.InputScalarFieldEnum | Prisma.InputScalarFieldEnum[]
+}
+
+/**
+ * Tenant.inputCategories
+ */
+export type Tenant$inputCategoriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the InputCategory
+   */
+  select?: Prisma.InputCategorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the InputCategory
+   */
+  omit?: Prisma.InputCategoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.InputCategoryInclude<ExtArgs> | null
+  where?: Prisma.InputCategoryWhereInput
+  orderBy?: Prisma.InputCategoryOrderByWithRelationInput | Prisma.InputCategoryOrderByWithRelationInput[]
+  cursor?: Prisma.InputCategoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.InputCategoryScalarFieldEnum | Prisma.InputCategoryScalarFieldEnum[]
 }
 
 /**
