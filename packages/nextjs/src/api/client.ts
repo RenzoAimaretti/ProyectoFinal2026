@@ -374,6 +374,22 @@ export function listLaborTypes(): Promise<LaborTypeDTO[]> {
   return apiGet<LaborTypeDTO[]>("/labor-types");
 }
 
+export function createLaborType(body: { name: string; description?: string }): Promise<LaborTypeDTO> {
+  return apiPost<LaborTypeDTO>("/labor-types", body);
+}
+
+export function updateLaborType(id: string, body: { name?: string; description?: string }): Promise<LaborTypeDTO> {
+  return apiPut<LaborTypeDTO>(`/labor-types/${encodeURIComponent(id)}`, body);
+}
+
+export function listLaborTypeCategories(id: string): Promise<InputCategoryDTO[]> {
+  return apiGet<InputCategoryDTO[]>(`/labor-types/${encodeURIComponent(id)}/categories`);
+}
+
+export function replaceLaborTypeCategories(id: string, categoryIds: string[]): Promise<InputCategoryDTO[]> {
+  return apiPut<InputCategoryDTO[]>(`/labor-types/${encodeURIComponent(id)}/categories`, { categoryIds });
+}
+
 export function listFarms(): Promise<FarmDTO[]> {
   return apiGet<FarmDTO[]>("/farms");
 }
@@ -425,10 +441,29 @@ export type InputDTO = {
   id: string;
   name: string;
   unit: string;
+  categoryId: string;
 };
 
 export function listInputs(): Promise<InputDTO[]> {
   return apiGet<InputDTO[]>("/inputs");
+}
+
+export type InputCategoryDTO = { id: string; name: string; active: boolean };
+
+export function listInputCategories(): Promise<InputCategoryDTO[]> {
+  return apiGet<InputCategoryDTO[]>("/input-categories");
+}
+
+export function createInputCategory(body: { name: string }): Promise<InputCategoryDTO> {
+  return apiPost<InputCategoryDTO>("/input-categories", body);
+}
+
+export function updateInputCategory(id: string, body: { name?: string; active?: boolean }): Promise<InputCategoryDTO> {
+  return apiPut<InputCategoryDTO>(`/input-categories/${encodeURIComponent(id)}`, body);
+}
+
+export function deleteInputCategory(id: string): Promise<{ message: string }> {
+  return apiDelete<{ message: string }>(`/input-categories/${encodeURIComponent(id)}`);
 }
 
 /* ------------------------------------------------------------------ */
