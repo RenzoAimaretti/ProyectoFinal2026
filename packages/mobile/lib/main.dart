@@ -169,6 +169,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final lotReader = DriftLotReader(_database);
     final laborTypeReader = DriftLaborTypeReader(_database);
     final inputReader = DriftInputReader(_database);
+    final laborTypeCategoryReader = DriftLaborTypeCategoryReader(_database);
     final recipeReader = DriftRecipeReader(_database);
     final machineReader = DriftMachineReader(_database);
 
@@ -196,6 +197,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       inputReader: inputReader,
       lotReader: lotReader,
       laborTypeReader: laborTypeReader,
+      laborTypeCategoryReader: laborTypeCategoryReader,
       addPhotoUseCase: addPhotoUseCase,
       photoPickerService: photoPickerService,
     );

@@ -11,6 +11,7 @@ mixin _$DailyReportsDaoMixin on DatabaseAccessor<AppDatabase> {
   $LaborTypesTable get laborTypes => attachedDatabase.laborTypes;
   $TasksTable get tasks => attachedDatabase.tasks;
   $DailyReportsTable get dailyReports => attachedDatabase.dailyReports;
+  $InputCategoriesTable get inputCategories => attachedDatabase.inputCategories;
   $InputsTable get inputs => attachedDatabase.inputs;
   $DailyReportItemsTable get dailyReportItems =>
       attachedDatabase.dailyReportItems;
@@ -34,6 +35,11 @@ class DailyReportsDaoManager {
       $$TasksTableTableManager(_db.attachedDatabase, _db.tasks);
   $$DailyReportsTableTableManager get dailyReports =>
       $$DailyReportsTableTableManager(_db.attachedDatabase, _db.dailyReports);
+  $$InputCategoriesTableTableManager get inputCategories =>
+      $$InputCategoriesTableTableManager(
+        _db.attachedDatabase,
+        _db.inputCategories,
+      );
   $$InputsTableTableManager get inputs =>
       $$InputsTableTableManager(_db.attachedDatabase, _db.inputs);
   $$DailyReportItemsTableTableManager get dailyReportItems =>
