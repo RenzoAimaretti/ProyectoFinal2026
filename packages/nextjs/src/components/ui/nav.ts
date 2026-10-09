@@ -68,6 +68,8 @@ export const navItems: NavItem[] = [
     icon: "inbox",
   },
   { label: "Clientes", href: "/dashboard/clientes", icon: "people" },
+  { label: "Categorías", href: "/dashboard/categorias", icon: "inputs" },
+  { label: "Labores", href: "/dashboard/labores", icon: "production" },
 ];
 
 /* ------------------------------------------------------------------ */

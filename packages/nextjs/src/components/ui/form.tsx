@@ -144,6 +144,43 @@ export function SelectField({
   );
 }
 
+export type CheckboxGroupProps = {
+  label: string;
+  hint?: string;
+  options: SelectOption[];
+  values: string[];
+  onChange: (values: string[]) => void;
+  disabled?: boolean;
+};
+
+/** Controlled multi-selection with one accessible label per checkbox. */
+export function CheckboxGroup({ label, hint, options, values, onChange, disabled = false }: CheckboxGroupProps) {
+  const hintId = useId();
+  return (
+    <fieldset className="space-y-2" aria-describedby={hint ? hintId : undefined} disabled={disabled}>
+      <legend className="text-xs font-semibold text-ink-faint">{label}</legend>
+      {hint && <p id={hintId} className="text-xs text-ink-soft">{hint}</p>}
+      <div className="grid gap-2 sm:grid-cols-2">
+        {options.map((option) => (
+          <label key={option.value} className="flex items-center gap-2 rounded-lg border border-agro-border bg-card px-3 py-2.5 text-sm text-ink cursor-pointer focus-within:ring-2 focus-within:ring-agro-green/40">
+            <input
+              type="checkbox"
+              value={option.value}
+              checked={values.includes(option.value)}
+              disabled={option.disabled}
+              onChange={(event) => onChange(event.target.checked
+                ? [...values, option.value]
+                : values.filter((value) => value !== option.value))}
+              className="h-4 w-4 accent-agro-green"
+            />
+            {option.label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
 export type TextareaFieldProps = SharedFieldProps &
   Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "className">;
 
