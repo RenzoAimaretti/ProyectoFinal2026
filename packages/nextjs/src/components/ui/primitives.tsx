@@ -3,20 +3,21 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import type { DailyReportStatus } from "@/api/client";
+import { useWorldClassName } from "./world";
 
 export type Tone = "green" | "earth" | "wheat" | "slate";
 
 export const toneBox: Record<Tone, string> = {
-  green: "bg-agro-green/10 text-agro-green-dark ring-1 ring-inset ring-agro-green/15",
-  earth: "bg-agro-earth/12 text-agro-earth-dark ring-1 ring-inset ring-agro-earth/15",
-  wheat: "bg-agro-wheat/18 text-agro-wheat-dark ring-1 ring-inset ring-agro-wheat/25",
+  green: "bg-agro-green/10 text-agro-green-text ring-1 ring-inset ring-agro-green/15",
+  earth: "bg-agro-earth/12 text-agro-earth-text ring-1 ring-inset ring-agro-earth/15",
+  wheat: "bg-agro-wheat/18 text-agro-wheat-text ring-1 ring-inset ring-agro-wheat/25",
   slate: "bg-base-subtle text-ink-soft ring-1 ring-inset ring-agro-border",
 };
 
 export const toneBadge: Record<Tone, string> = {
-  green: "bg-agro-green/10 text-agro-green-dark ring-1 ring-inset ring-agro-green/15",
-  earth: "bg-agro-earth/12 text-agro-earth-dark ring-1 ring-inset ring-agro-earth/15",
-  wheat: "bg-agro-wheat/18 text-agro-wheat-dark ring-1 ring-inset ring-agro-wheat/25",
+  green: "bg-agro-green/10 text-agro-green-text ring-1 ring-inset ring-agro-green/15",
+  earth: "bg-agro-earth/12 text-agro-earth-text ring-1 ring-inset ring-agro-earth/15",
+  wheat: "bg-agro-wheat/18 text-agro-wheat-text ring-1 ring-inset ring-agro-wheat/25",
   slate: "bg-base-subtle text-ink-soft ring-1 ring-inset ring-agro-border",
 };
 
@@ -66,7 +67,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`card-surface rounded-card-lg border border-agro-border bg-card shadow-card transition-all hover:shadow-card-hover ${className}`}
+      className={`card-surface rounded-card-lg border border-agro-border bg-card shadow-card transition-[transform,box-shadow] hover:shadow-card-hover ${className}`}
     >
       {children}
     </div>
@@ -90,27 +91,6 @@ export function CardHeader({
         {subtitle && <p className="mt-0.5 text-sm text-ink-soft">{subtitle}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
-    </div>
-  );
-}
-
-/** PageHeader: encabezado superior de una pagina de modulo. */
-export function PageHeader({
-  title,
-  subtitle,
-  action,
-}: {
-  title: string;
-  subtitle?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <h2 className="font-display text-display font-semibold text-ink">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm text-ink-soft">{subtitle}</p>}
-      </div>
-      {action}
     </div>
   );
 }
@@ -222,6 +202,13 @@ function Overlay({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  // The active world travels through the React context chain even though the
+  // portal mounts on document.body. Stamping it on the portal root carries the
+  // world's tokens and scoped styles into the drawer/modal without hardcoding
+  // the class into this shared primitive. Default "" keeps every surface
+  // outside the dashboard unchanged.
+  const worldClassName = useWorldClassName();
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -237,7 +224,16 @@ function Overlay({
   }, [open, onClose]);
 
   if (!open || typeof document === "undefined") return null;
-  return createPortal(<>{children}</>, document.body);
+  return createPortal(
+    worldClassName ? (
+      <div className={worldClassName} style={{ display: "contents" }}>
+        {children}
+      </div>
+    ) : (
+      <>{children}</>
+    ),
+    document.body,
+  );
 }
 
 function CloseButton({ onClose }: { onClose: () => void }) {
@@ -246,7 +242,7 @@ function CloseButton({ onClose }: { onClose: () => void }) {
       type="button"
       onClick={onClose}
       aria-label="Cerrar"
-      className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-soft transition-colors hover:bg-base-subtle hover:text-ink"
+      className="-m-1 flex h-11 w-11 items-center justify-center rounded-lg text-ink-soft transition-colors hover:bg-base-subtle hover:text-ink"
     >
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -381,10 +377,13 @@ export function ProgressBar({
   value,
   tone = "green",
   className = "",
+  label,
 }: {
   value: number;
   tone?: Tone;
   className?: string;
+  /** Accessible name for the progress bar. */
+  label?: string;
 }) {
   const bar: Record<Tone, string> = {
     green: "bg-agro-green",
@@ -392,11 +391,19 @@ export function ProgressBar({
     wheat: "bg-agro-wheat",
     slate: "bg-ink-faint",
   };
+  const clamped = Math.min(100, Math.max(0, value));
   return (
-    <div className={`h-2 w-full overflow-hidden rounded-full bg-base-subtle ${className}`}>
+    <div
+      className={`h-2 w-full overflow-hidden rounded-full bg-base-subtle ${className}`}
+      role="progressbar"
+      aria-valuenow={Math.round(clamped)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={label}
+    >
       <div
         className={`h-full rounded-full ${bar[tone]}`}
-        style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+        style={{ width: `${clamped}%` }}
       />
     </div>
   );
@@ -448,71 +455,11 @@ export function EmptyState({
   );
 }
 
-/** HeroBand: banner superior de un modulo con color de marca.
- *  Rompe el patron "todo cards" dandole peso visual y jerarquia a la pagina.
- *  El bloque `metric` opcional monta el numero protagonista del modulo. */
-export function HeroBand({
-  kicker,
-  title,
-  description,
-  actions,
-  icon,
-  metric,
-  metricLabel,
-  metricHint,
-}: {
-  kicker: string;
-  title: string;
-  description: string;
-  actions?: React.ReactNode;
-  icon?: React.ReactNode;
-  /** Protagonist value rendered with display typography. */
-  metric?: React.ReactNode;
-  metricLabel?: string;
-  metricHint?: string;
-}) {
-  return (
-    <div className="hero-band mb-6 flex flex-wrap items-center justify-between gap-5 px-6 py-6 lg:px-8">
-      <div className="flex items-start gap-4">
-        {icon && (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.25)] ring-1 ring-white/30">
-            {icon}
-          </div>
-        )}
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-white/70">{kicker}</p>
-          <h2 className="mt-0.5 font-display text-display-lg font-semibold text-white">{title}</h2>
-          <p className="mt-1 max-w-xl text-sm text-white/80">{description}</p>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-5">
-        {metric !== undefined && (
-          <div className="flex items-center rounded-xl bg-white/10 px-4 py-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.18)] ring-1 ring-inset ring-white/20">
-            <div className="text-right">
-              {metricLabel && (
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-white/70">
-                  {metricLabel}
-                </p>
-              )}
-              <p className="text-numeric font-display text-display-xl font-semibold leading-none text-white">
-                {metric}
-              </p>
-              {metricHint && <p className="mt-1 text-xs text-white/75">{metricHint}</p>}
-            </div>
-          </div>
-        )}
-        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
-      </div>
-    </div>
-  );
-}
-
 export type KpiDeltaDirection = "up" | "down" | "flat";
 
 const kpiDeltaTone: Record<KpiDeltaDirection, string> = {
-  up: "text-agro-green-dark",
-  down: "text-agro-earth-dark",
+  up: "text-agro-green-text",
+  down: "text-agro-earth-text",
   flat: "text-ink-soft",
 };
 

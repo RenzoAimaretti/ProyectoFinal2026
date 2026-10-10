@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   EmptyState,
-  HeroBand,
   Modal,
 } from "@/components/ui/primitives";
 import { Alert, useToast } from "@/components/ui/feedback";
@@ -145,17 +144,16 @@ function describeError(err: unknown): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* Status colours (semantic tokens from globals.css)                   */
+/* Status signals (operate plan legend: field green = done, signal =  */
+/* in progress, empty = not started, clay = cancelled)                */
 /* ------------------------------------------------------------------ */
+
+type OpStatus = "pendiente" | "aprobado" | "rechazado" | "vacio";
 
 type StatusMeta = {
   label: string;
-  /** Badge pill classes. */
-  chip: string;
-  /** Solid dot colour shared by the rail node and the legend. */
-  dot: string;
-  /** Left accent border of the task card. */
-  border: string;
+  /** Operate plan/legend status driving the swatch. */
+  dataStatus: OpStatus;
   /** Live pulse for in-progress tasks. */
   pulse: boolean;
 };
@@ -163,30 +161,22 @@ type StatusMeta = {
 const STATUS_META: Record<TaskStatus, StatusMeta> = {
   PENDIENTE: {
     label: "No iniciada",
-    chip: "bg-warning-soft text-warning ring-1 ring-inset ring-warning/25",
-    dot: "bg-warning",
-    border: "border-l-warning",
+    dataStatus: "vacio",
     pulse: false,
   },
   EN_PROGRESO: {
     label: "En progreso",
-    chip: "bg-info-soft text-info ring-1 ring-inset ring-info/25",
-    dot: "bg-info",
-    border: "border-l-info",
+    dataStatus: "pendiente",
     pulse: true,
   },
   FINALIZADA: {
     label: "Finalizada",
-    chip: "bg-success-soft text-success ring-1 ring-inset ring-success/25",
-    dot: "bg-success",
-    border: "border-l-success",
+    dataStatus: "aprobado",
     pulse: false,
   },
   CANCELADA: {
     label: "Cancelada",
-    chip: "bg-danger-soft text-danger ring-1 ring-inset ring-danger/20",
-    dot: "bg-danger/50",
-    border: "border-l-danger/40",
+    dataStatus: "rechazado",
     pulse: false,
   },
 };
@@ -455,24 +445,38 @@ export default function ProduccionPage() {
       sidebarItems={navItems}
       breadcrumb="Línea de tiempo diaria de labores por campo y lote"
     >
-      <HeroBand
-        kicker="Línea de tiempo del día"
-        title="Tareas del día"
-        description="Tareas iniciadas en la fecha seleccionada, ordenadas por hora de inicio y coloreadas por estado."
-        icon={<ProductionIcon className="h-6 w-6" />}
-        metric={dayTasks.length}
-        metricLabel="Tareas del día"
-        metricHint={`${counts.FINALIZADA} finalizadas`}
-        actions={
+      {/* Command header */}
+      <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
+        <div className="min-w-0">
+          <p className="op-label">Línea de tiempo del día</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Tareas del día</h2>
+          <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+            Tareas iniciadas en la fecha seleccionada, ordenadas por hora de inicio y coloreadas
+            por estado.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="text-right">
+            {loading ? (
+              <div className="skeleton ml-auto h-8 w-14" aria-hidden="true" />
+            ) : (
+              <p className="op-num text-3xl font-bold leading-none text-ink">{dayTasks.length}</p>
+            )}
+            <p className="op-label mt-1">Tareas del día</p>
+            {!loading && (
+              <p className="op-caption mt-0.5">{counts.FINALIZADA} finalizadas</p>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={refresh}
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60"
+              className="op-btn"
+              aria-busy={loading}
             >
               <RefreshIcon className="h-4 w-4" />
-              Actualizar
+              {loading ? "Actualizando…" : "Actualizar"}
             </button>
             {isAdmin && (
               <button
@@ -480,18 +484,18 @@ export default function ProduccionPage() {
                 onClick={openCreate}
                 disabled={!canCreate}
                 title={createBlockedReason}
-                className="inline-flex items-center gap-2 rounded-lg bg-white/95 px-4 py-2.5 text-sm font-semibold text-agro-green-deep transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="op-btn op-btn--primary"
               >
                 <PlusIcon className="h-4 w-4" />
                 Nueva tarea
               </button>
             )}
           </div>
-        }
-      />
+        </div>
+      </section>
 
       {/* Day selector + status legend */}
-      <div className="mb-5 rounded-card-lg border border-agro-border bg-card px-5 py-4 shadow-card">
+      <div className="op-plate mb-5 px-5 py-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="w-full sm:w-56">
             <TextField
@@ -501,7 +505,7 @@ export default function ProduccionPage() {
               onChange={(e) => setSelectedDate(e.target.value)}
             />
           </div>
-          <p className="text-xs text-ink-faint">
+          <p className="op-caption">
             {selectedDate ? dayLabel : "Elegí una fecha para ver sus tareas."}
           </p>
         </div>
@@ -512,13 +516,13 @@ export default function ProduccionPage() {
             return (
               <div
                 key={status}
-                className="flex items-center gap-2 rounded-lg border border-agro-border bg-base-subtle/40 px-3 py-2"
+                className="flex items-center gap-2 border border-agro-border bg-base-subtle/40 px-3 py-2"
               >
-                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${meta.dot}`} />
+                <span className="op-swatch" data-status={meta.dataStatus} aria-hidden="true" />
                 <span className="truncate text-xs font-medium text-ink-soft">
                   {meta.label}
                 </span>
-                <span className="text-numeric ml-auto text-sm font-semibold text-ink">
+                <span className="op-num ml-auto text-sm font-semibold text-ink">
                   {counts[status]}
                 </span>
               </div>
@@ -567,7 +571,7 @@ export default function ProduccionPage() {
               >
                 {/* Hour rail (desktop) */}
                 <div className="hidden pt-4 text-right sm:block">
-                  <time className="text-numeric text-sm font-semibold text-ink-soft">
+                  <time className="op-num text-sm font-semibold text-ink-soft">
                     {time ?? "—"}
                   </time>
                 </div>
@@ -582,22 +586,18 @@ export default function ProduccionPage() {
                   )}
                   <span className="absolute left-1/2 top-4 -translate-x-1/2">
                     {meta.pulse && (
-                      <span
-                        className={`animate-pulse-soft absolute -inset-1.5 rounded-full ${meta.dot} opacity-20`}
-                      />
+                      <span className="animate-pulse-soft absolute -inset-1.5 rounded-full bg-[var(--op-signal)] opacity-20" />
                     )}
-                    <span
-                      className={`relative block h-3 w-3 rounded-full ring-4 ring-card ${meta.dot}`}
-                    />
+                    <span className="op-swatch relative" data-status={meta.dataStatus} />
                   </span>
                 </div>
 
                 {/* Task card */}
                 <div className="pb-4">
-                  <Card className={`overflow-hidden border-l-4 ${meta.border} p-4`}>
+                  <Card className="overflow-hidden p-4">
                     {/* Time inline (mobile) */}
                     <div className="mb-2 flex items-center gap-2 sm:hidden">
-                      <span className="text-numeric inline-flex items-center rounded-md bg-base-subtle px-2 py-0.5 text-xs font-semibold text-ink-soft">
+                      <span className="op-num inline-flex items-center rounded-md bg-base-subtle px-2 py-0.5 text-xs font-semibold text-ink-soft">
                         {time ?? "Sin horario"}
                       </span>
                       {duration && (
@@ -610,15 +610,11 @@ export default function ProduccionPage() {
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-display text-base font-semibold text-ink">
+                          <span className="op-swatch" data-status={meta.dataStatus} aria-hidden="true" />
+                          <h3 className="text-base font-semibold text-ink">
                             {taskTypeName}
                           </h3>
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${meta.chip}`}
-                          >
-                            <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
-                            {meta.label}
-                          </span>
+                          <span className="op-label">{meta.label}</span>
                         </div>
 
                         <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-sm">
@@ -635,7 +631,7 @@ export default function ProduccionPage() {
 
                       {/* Time + duration (desktop) */}
                       <div className="hidden shrink-0 text-right sm:block">
-                        <time className="text-numeric text-sm font-semibold text-ink">
+                        <time className="op-num text-sm font-semibold text-ink">
                           {time ?? "Sin horario"}
                         </time>
                         {duration && (

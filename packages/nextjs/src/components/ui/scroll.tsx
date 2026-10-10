@@ -6,8 +6,31 @@
 // re-render the page tree (parallax) write transforms straight to the DOM via
 // refs; stateful hooks only update when their derived value actually changes.
 
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import { useInView, usePrefersReducedMotion } from "./reveal";
+
+/**
+ * Reactive `(pointer: fine)` capability check — true for a mouse/trackpad and
+ * false for touch-first devices. Used to gate expensive scroll effects (large
+ * blurred parallax layers) so they only run where the pointer and GPU budget
+ * justify them; the static composition is kept everywhere else.
+ */
+export function useFinePointer(): boolean {
+  const [fine, setFine] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
+    const query = window.matchMedia("(pointer: fine)");
+    const update = () => setFine(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  return fine;
+}
 
 /* ------------------------------------------------------------------ */
 /* Page scroll position                                                */
@@ -187,10 +210,7 @@ export function CountUp({
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
-    if (reduced) {
-      setDisplay(value);
-      return;
-    }
+    if (reduced) return;
     if (!inView) return;
 
     let frame = 0;
@@ -212,10 +232,14 @@ export function CountUp({
     return () => window.cancelAnimationFrame(frame);
   }, [inView, reduced, value, duration]);
 
+  // Derived, not stored: under reduced motion the final value is rendered
+  // directly instead of writing it to state from inside the effect.
+  const shown = reduced ? value : display;
+
   return (
     <span ref={ref} className={className}>
       {prefix}
-      {Math.round(display)}
+      {Math.round(shown)}
       {suffix}
     </span>
   );

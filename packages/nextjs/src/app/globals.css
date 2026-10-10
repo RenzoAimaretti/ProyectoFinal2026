@@ -43,6 +43,12 @@
   --color-ink-soft: var(--text-secondary);
   --color-ink-faint: var(--text-muted);
 
+  /* Acento usable como texto: resuelve light/dark.
+     Las variantes -dark quedan reservadas a fondos y gradientes. */
+  --color-agro-green-text: var(--accent-green-text);
+  --color-agro-wheat-text: var(--accent-wheat-text);
+  --color-agro-earth-text: var(--accent-earth-text);
+
   /* Bordes */
   --color-agro-border: var(--border);
   --color-agro-border-strong: var(--border-strong);
@@ -78,14 +84,22 @@
 
   --text: #151a20;            /* tinta casi negra */
   --text-secondary: #545f6b;
-  --text-muted: #8b95a0;
+  --text-muted: #616c78;      /* ≥4.5:1 sobre base, card y subtle */
+
+  /* Acento como texto (light) */
+  --accent-green-text: #2f6b38;
+  --accent-wheat-text: #7d5f10;
+  --accent-earth-text: #9c4f2f;
+
+  /* Anillo de foco: verde de marca legible sobre claro */
+  --focus-ring: var(--color-agro-green);
 
   --border: #e3e7e0;
   --border-strong: #ced6cb;
 
   /* Semánticos light */
-  --semantic-success: #2f7d43;
-  --semantic-success-soft: color-mix(in srgb, #2f7d43 12%, transparent);
+  --semantic-success: #2b7239;
+  --semantic-success-soft: color-mix(in srgb, #2b7239 12%, transparent);
   --semantic-warning: #b07d12;
   --semantic-warning-soft: color-mix(in srgb, #cfa43c 18%, transparent);
   --semantic-danger: #b4472a;
@@ -125,7 +139,15 @@
 
     --text: #e8ebee;
     --text-secondary: #9aa4b0;
-    --text-muted: #6a7480;
+    --text-muted: #8b95a0;    /* ≥4.5:1 sobre card y base oscuras */
+
+    /* Acento como texto (dark) */
+    --accent-green-text: #7cc48d;
+    --accent-wheat-text: #e0b24d;
+    --accent-earth-text: #e08a63;
+
+    /* Anillo de foco: acento claro, ≥3:1 sobre el canvas oscuro */
+    --focus-ring: color-mix(in srgb, var(--accent-green-text) 90%, transparent);
 
     --border: #28313d;
     --border-strong: #38424f;
@@ -393,7 +415,7 @@ body {
 
 /* Focus accesible refinado (var corregida: --color-agro-green) */
 :focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--color-agro-green) 70%, transparent);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: 0.35rem;
 }
@@ -515,35 +537,1142 @@ body {
   animation: aurora-drift 20s ease-in-out infinite;
 }
 
-/* Marquesina de conceptos reales (nombres de módulos), sin logos falsos */
-@keyframes marquee-drift {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-50%, 0, 0); }
-}
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee-drift 38s linear infinite;
-}
-.marquee-track:hover {
-  animation-play-state: paused;
-}
-
-/* Accesibilidad: neutraliza motion cuando el usuario lo pide */
+/* Accesibilidad: neutraliza el motion decorativo cuando el usuario lo pide.
+   Solo se detienen las animaciones de entrada/fondo (keyframes decorativos).
+   Las transiciones cortas de estado (hover, focus, disclosure) se conservan
+   porque comunican interacción, y los componentes que ya optan por salir
+   (reveal.tsx, scroll.tsx) siguen manejando su propio motion. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
+  .animate-fade-in-up,
+  .animate-fade-in,
+  .animate-drawer-in,
+  .animate-sidebar-in,
+  .animate-aurora,
+  .animate-pulse-soft,
+  .stagger-item,
+  .skeleton::after {
+    animation: none !important;
   }
-  .marquee-track,
-  .animate-aurora {
-    animation: none;
+}
+
+/* =========================================================
+   "El Almanaque de la Campaña" — scoped visual world (landing only)
+   ---------------------------------------------------------
+   Cool ruled paper white (NOT cream); green-cast near-black ink;
+   a red-pencil annotation accent + one deep field green. Ledger /
+   register grammar: ruled entries, red-pencil marks, stamped states.
+   Everything is scoped under .almanac-world so the incumbent
+   dashboard design system (--color-agro-*, .btn-primary, .hero-band,
+   Card/Badge/IconTile …) is never touched.
+   ========================================================= */
+
+.almanac-world {
+  /* Palette — light: cool paper, green-cast ink, pencil red, field green */
+  --almanac-paper: #f1f3f1;
+  --almanac-paper-2: #e6eae7;
+  --almanac-card: #f8faf8;
+  --almanac-margin-rule: #d2d8d3;
+  --almanac-rule: #c1c9c3;
+  --almanac-rule-soft: #dce1dc;
+  --almanac-ink: #16211b;
+  --almanac-ink-soft: #47534b;
+  --almanac-ink-faint: #606c64;
+  --almanac-red: #b23a20;
+  --almanac-red-strong: #8c2c17;
+  --almanac-red-soft: #f0dbd4;
+  --almanac-green: #2c5f43;
+  --almanac-green-strong: #234b36;
+  --almanac-green-soft: #d9e5dd;
+
+  --alm-serif: var(--font-almanac-serif), "Spectral", Georgia, "Times New Roman", serif;
+  --alm-sans: var(--font-almanac-sans), "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --alm-line: 30px;
+
+  position: relative;
+  min-height: 100vh;
+  color: var(--almanac-ink);
+  background-color: var(--almanac-paper);
+  font-family: var(--alm-sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  color-scheme: light;
+  caret-color: var(--almanac-red);
+}
+
+/* Dark: a coherent dark paper (deep, green-cast), same grammar, legible ink */
+@media (prefers-color-scheme: dark) {
+  .almanac-world {
+    --almanac-paper: #0f1512;
+    --almanac-paper-2: #0a0f0c;
+    --almanac-card: #151c17;
+    --almanac-margin-rule: #263029;
+    --almanac-rule: #35423a;
+    --almanac-rule-soft: #222d26;
+    --almanac-ink: #e9eee9;
+    --almanac-ink-soft: #a9b5ad;
+    --almanac-ink-faint: #8c9890;
+    --almanac-red: #e5765c;
+    --almanac-red-strong: #f0856b;
+    --almanac-red-soft: #33201a;
+    --almanac-green: #8cc09f;
+    --almanac-green-strong: #a6d3b6;
+    --almanac-green-soft: #17281d;
+    color-scheme: dark;
+  }
+}
+
+/* Typography inside the world — Spectral for headings + the ledger,
+   Archivo for UI labels. Overrides the global Fraunces heading rule. */
+.almanac-world h1,
+.almanac-world h2,
+.almanac-world h3,
+.almanac-world .alm-serif {
+  font-family: var(--alm-serif);
+  font-optical-sizing: auto;
+}
+
+.alm-display {
+  font-family: var(--alm-serif);
+  font-weight: 600;
+  font-size: clamp(2.15rem, 5.2vw, 3.4rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.alm-h2 {
+  font-family: var(--alm-serif);
+  font-weight: 600;
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  line-height: 1.09;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.alm-h3 {
+  font-family: var(--alm-serif);
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+/* Small-caps ledger label (uppercase + tracking — robust across faces) */
+.alm-label {
+  font-family: var(--alm-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--almanac-ink-faint);
+}
+.alm-body {
+  color: var(--almanac-ink-soft);
+  font-size: 1rem;
+  line-height: 1.62;
+}
+.alm-lead {
+  color: var(--almanac-ink-soft);
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+.alm-num {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+.alm-faint {
+  color: var(--almanac-ink-faint);
+}
+.alm-ico {
+  display: inline-flex;
+  color: var(--almanac-green);
+}
+.alm-skip {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+}
+.alm-skip:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  padding: 0.5rem 0.9rem;
+  background: var(--almanac-paper);
+  border: 1px solid var(--almanac-red);
+  color: var(--almanac-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Browser surfaces themed from the palette (craft floor) */
+.almanac-world ::selection {
+  background: color-mix(in srgb, var(--almanac-red) 22%, transparent);
+  color: var(--almanac-ink);
+}
+.almanac-world :focus-visible {
+  outline: 2px solid var(--almanac-green);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+
+/* --- Signature motion: the register rules draw in once, left → right,
+   top → bottom. One authored moment, transform-only, cheap. --- */
+@keyframes alm-draw-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.alm-draw-rule {
+  transform-origin: left center;
+  animation: alm-draw-x 620ms var(--ease-out-soft) both;
+}
+@keyframes alm-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.alm-draw-fade {
+  animation: alm-fade 460ms var(--ease-out-soft) both;
+}
+
+/* --- Masthead (letterhead, not a pill nav) --- */
+.alm-masthead {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--almanac-paper);
+  border-bottom: 1px solid var(--almanac-rule);
+}
+.alm-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-decoration: none;
+  color: var(--almanac-ink);
+}
+.alm-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.alm-brand-name {
+  font-family: var(--alm-serif);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+.alm-brand-reg {
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--almanac-ink-faint);
+}
+.alm-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.1rem;
+  font-family: var(--alm-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--almanac-ink-soft);
+  text-decoration: none;
+  transition: color 160ms var(--ease-out-soft);
+}
+.alm-nav-link::after,
+.alm-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.55rem;
+  height: 1.5px;
+  background: var(--almanac-red);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 200ms var(--ease-out-soft);
+}
+.alm-nav-link:hover,
+.alm-nav-link:focus-visible {
+  color: var(--almanac-ink);
+}
+.alm-nav-link:hover::after,
+.alm-nav-link:focus-visible::after,
+.alm-link:hover::after,
+.alm-link:focus-visible::after {
+  transform: scaleX(1);
+}
+.alm-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 0.1rem;
+  font-family: var(--alm-sans);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--almanac-ink);
+  text-decoration: none;
+}
+.alm-hamburger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--almanac-rule);
+  border-radius: 2px;
+  background: var(--almanac-card);
+  color: var(--almanac-ink);
+  cursor: pointer;
+}
+
+/* --- Primary action as a register line (NOT a floating pill) --- */
+.alm-cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 58px;
+  padding: 0.7rem 0.35rem;
+  border-top: 1.5px solid var(--almanac-ink);
+  border-bottom: 1.5px solid var(--almanac-ink);
+  background: transparent;
+  color: var(--almanac-ink);
+  text-decoration: none;
+  transition: background-color 180ms var(--ease-out-soft);
+}
+.alm-cta::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1.5px;
+  height: 3px;
+  background: var(--almanac-red);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 240ms var(--ease-out-soft);
+}
+.alm-cta:hover,
+.alm-cta:focus-visible {
+  background: var(--almanac-red-soft);
+}
+.alm-cta:hover::after,
+.alm-cta:focus-visible::after {
+  transform: scaleX(1);
+}
+.alm-cta-mark {
+  font-family: var(--alm-serif);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--almanac-red);
+}
+.alm-cta-label {
+  flex: 1 1 auto;
+  font-family: var(--alm-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.alm-cta-hint {
+  font-family: var(--alm-sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--almanac-ink-faint);
+}
+.alm-cta-arrow {
+  transition: transform 200ms var(--ease-out-soft);
+}
+.alm-cta:hover .alm-cta-arrow {
+  transform: translateX(6px);
+}
+
+/* --- Ledger / register --- */
+.alm-ledger {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--almanac-ink);
+}
+.alm-entry {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--almanac-rule-soft);
+}
+@media (min-width: 640px) {
+  .alm-entry {
+    grid-template-columns: 5.25rem 1fr;
+    gap: 0 1.25rem;
+  }
+}
+.alm-entry-date {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--almanac-ink-faint);
+  padding-top: 0.15rem;
+}
+.alm-entry-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+.alm-entry-title {
+  font-family: var(--alm-serif);
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+.alm-entry-detail {
+  margin-top: 0.2rem;
+  font-size: 0.875rem;
+  color: var(--almanac-ink-soft);
+}
+.alm-note {
+  position: relative;
+  margin-top: 0.45rem;
+  padding-left: 1.15rem;
+  font-size: 0.8125rem;
+  color: var(--almanac-ink-soft);
+}
+.alm-note::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  width: 0.8rem;
+  height: 1.5px;
+  background: var(--almanac-red);
+  transform: rotate(-30deg);
+}
+
+/* Stamped state — a rotated, outlined seal */
+.alm-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.5rem;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  font-family: var(--alm-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transform: rotate(-2.5deg);
+  white-space: nowrap;
+}
+.alm-stamp--red { color: var(--almanac-red); }
+.alm-stamp--green { color: var(--almanac-green); }
+
+/* --- Plate (field photograph mounted as a print) --- */
+.alm-plate {
+  margin: 0;
+  padding: 0.75rem;
+  background: var(--almanac-card);
+  border: 1px solid var(--almanac-rule);
+  border-radius: 2px;
+  box-shadow:
+    0 1px 0 var(--almanac-rule),
+    0 16px 32px -20px color-mix(in srgb, var(--almanac-ink) 55%, transparent);
+}
+.alm-plate img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background-color: var(--almanac-paper-2);
+  background-image: repeating-linear-gradient(
+      45deg,
+      transparent 0,
+      transparent 9px,
+      color-mix(in srgb, var(--almanac-ink) 5%, transparent) 9px,
+      color-mix(in srgb, var(--almanac-ink) 5%, transparent) 10px
+    );
+}
+.alm-plate figcaption {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--almanac-rule);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--almanac-ink-faint);
+}
+.alm-plate-idx {
+  font-family: var(--alm-sans);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--almanac-red);
+  white-space: nowrap;
+}
+
+/* --- Sheet (ruled paper block) + margin rule --- */
+.alm-sheet {
+  position: relative;
+  background-color: var(--almanac-card);
+  border: 1px solid var(--almanac-rule);
+  border-radius: 2px;
+}
+@media (min-width: 1024px) {
+  .alm-sheet--margin {
+    padding-left: 3.25rem;
+  }
+  .alm-sheet--margin::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 2.5rem;
+    width: 1px;
+    background: color-mix(in srgb, var(--almanac-red) 40%, transparent);
+  }
+}
+
+/* --- Data list (tabular register block) --- */
+.alm-datalist {
+  margin: 0;
+  border-top: 1px solid var(--almanac-rule);
+}
+.alm-datarow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--almanac-rule-soft);
+}
+.alm-datarow dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--almanac-ink-faint);
+}
+.alm-datarow dd {
+  margin: 0;
+  text-align: right;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--almanac-ink);
+}
+
+/* --- Ledger table (module index) --- */
+.alm-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.alm-table th,
+.alm-table td {
+  vertical-align: top;
+  padding: 0.85rem 0.6rem;
+  border-bottom: 1px solid var(--almanac-rule-soft);
+}
+.alm-table thead th {
+  border-bottom: 1px solid var(--almanac-rule);
+  font-family: var(--alm-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--almanac-ink-faint);
+}
+.alm-table tbody th {
+  font-family: var(--alm-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--almanac-ink);
+}
+.alm-table tbody td {
+  font-size: 0.9rem;
+  color: var(--almanac-ink-soft);
+}
+.alm-table .alm-marker-cell {
+  width: 2.25rem;
+  padding-right: 0;
+  color: var(--almanac-red);
+}
+.alm-table tbody tr:last-child th,
+.alm-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.alm-soon td,
+.alm-soon th {
+  color: var(--almanac-ink-faint);
+}
+.alm-soon th {
+  text-decoration: line-through;
+  text-decoration-color: var(--almanac-red);
+}
+
+/* --- Field sheet (offline capture scene) --- */
+.alm-fieldgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem 0.9rem;
+}
+.alm-field {
+  border-bottom: 1px solid var(--almanac-rule-soft);
+  padding-bottom: 0.4rem;
+}
+.alm-field dt {
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--almanac-ink-faint);
+}
+.alm-field dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--almanac-ink);
+}
+.alm-save {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 48px;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.25rem;
+  border-top: 1.5px solid var(--almanac-ink);
+  border-bottom: 1.5px solid var(--almanac-ink);
+  font-family: var(--alm-serif);
+  font-weight: 600;
+  color: var(--almanac-ink);
+}
+
+/* --- Disclosure (FAQ as ledger entries) --- */
+.alm-query {
+  border-bottom: 1px solid var(--almanac-rule);
+}
+.alm-query > summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 56px;
+  padding: 1rem 0.1rem;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--alm-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--almanac-ink);
+}
+.alm-query > summary::-webkit-details-marker {
+  display: none;
+}
+.alm-query > summary .alm-qmark {
+  font-family: var(--alm-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--almanac-red);
+  transition: transform 200ms var(--ease-out-soft);
+}
+.alm-query[open] > summary .alm-qmark {
+  transform: rotate(45deg);
+}
+.alm-query p {
+  margin: 0;
+  padding: 0 0.1rem 1.1rem;
+  max-width: 68ch;
+  color: var(--almanac-ink-soft);
+  font-size: 0.9375rem;
+}
+
+/* --- Section header (rule + editorial split, NO eyebrow) --- */
+.alm-section {
+  border-top: 1.5px solid var(--almanac-ink);
+  padding-top: 1.4rem;
+}
+
+/* --- Footer colophon --- */
+.alm-colophon {
+  background: var(--almanac-paper-2);
+  border-top: 1.5px solid var(--almanac-ink);
+}
+
+/* Reduced motion: stop the one authored moment; keep state transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .alm-draw-rule,
+  .alm-draw-fade {
+    animation: none !important;
+  }
+}
+
+/* =========================================================
+   "La Carta de Suelos" — scoped Operate world (dashboard only)
+   ---------------------------------------------------------
+   A surveyor's plate: deep ink line-work on a bone ground with a
+   single measurement signal (survey red). Scoped under
+   `.operate-world` so the incumbent tokens/classes, the landing's
+   `.almanac-world`, and /demo + /login + /onboarding are never
+   touched. The world lends type, palette, density and one
+   signature move only — the shell, navigation and controls stay
+   standard web components.
+   ========================================================= */
+
+.operate-world {
+  /* Palette — light: bone ground, deep ink, one measurement signal */
+  --op-ground: #efeae0;        /* bone ground */
+  --op-paper: #f8f5ed;         /* plate / card paper */
+  --op-paper-2: #e7e0d0;       /* ruled band */
+  --op-ink: #211f1a;           /* deep ink line-work */
+  --op-ink-soft: #514c42;
+  --op-ink-faint: #6b6459;
+  --op-line: #d9d2c1;
+  --op-line-strong: #b7ae97;
+  --op-signal: #a8381d;        /* survey red — the ONE measurement signal */
+  --op-signal-strong: #7f2913;
+  --op-signal-soft: #f0dcd3;
+  --op-field: #33513f;         /* field green — carries "aprobado" meaning */
+  --op-field-soft: #dde6dd;
+  --op-clay: #9c5a3c;          /* rejected clay */
+  --op-clay-soft: #efe0d6;
+  --op-rail: #1c1b16;          /* the legend bar */
+  --op-rail-2: #26241f;
+
+  --op-sans: var(--font-operate-sans), "Public Sans", system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+
+  /* Re-map the runtime aliases consumed by the shared dashboard components.
+     Custom properties are substituted where they are declared, so the
+     --color-* aliases emitted by @theme must be re-declared here (not only
+     the raw --bg-* / --text / --border they point at). */
+  --bg-base: var(--op-ground);
+  --bg-subtle: var(--op-paper-2);
+  --bg-card: var(--op-paper);
+  --bg-card-hover: #fcfaf4;
+  --text: var(--op-ink);
+  --text-secondary: var(--op-ink-soft);
+  --text-muted: var(--op-ink-faint);
+  --border: var(--op-line);
+  --border-strong: var(--op-line-strong);
+  --focus-ring: var(--op-signal);
+
+  /* Semantic states re-pointed to the world, so Alert and semantic tones read
+     as the plate instead of the incumbent palette (the @theme --color-* aliases
+     are declared on :root, so they must be re-declared here too). */
+  --semantic-success: var(--op-field);
+  --semantic-success-soft: var(--op-field-soft);
+  --semantic-warning: var(--op-signal-strong);
+  --semantic-warning-soft: var(--op-signal-soft);
+  --semantic-danger: var(--op-clay);
+  --semantic-danger-soft: var(--op-clay-soft);
+  --semantic-info: var(--op-rail);
+  --semantic-info-soft: color-mix(in srgb, var(--op-rail) 12%, transparent);
+  --color-success: var(--op-field);
+  --color-success-soft: var(--op-field-soft);
+  --color-warning: var(--op-signal-strong);
+  --color-warning-soft: var(--op-signal-soft);
+  --color-danger: var(--op-clay);
+  --color-danger-soft: var(--op-clay-soft);
+  --color-info: var(--op-rail);
+  --color-info-soft: color-mix(in srgb, var(--op-rail) 12%, transparent);
+
+  --color-base: var(--op-ground);
+  --color-base-subtle: var(--op-paper-2);
+  --color-card: var(--op-paper);
+  --color-card-hover: #fcfaf4;
+  --color-ink: var(--op-ink);
+  --color-ink-soft: var(--op-ink-soft);
+  --color-ink-faint: var(--op-ink-faint);
+  --color-agro-border: var(--op-line);
+  --color-agro-border-strong: var(--op-line-strong);
+
+  /* Brand tones re-pointed to the survey palette inside the plate. Meaning is
+     preserved so the shared Badge / StatusBadge / IconTile / KpiCard /
+     ProgressBar / TabButton tones read as the world instead of the incumbent
+     forest/terracotta palette:
+       green*           → field green     (aprobado / validado)
+       earth*           → clay            (rechazado / negativo)
+       wheat/ochre/mustard → signal red   (pendiente)
+       sand/sidebar*    → survey neutrals / rail ink
+     The raw tokens flip with prefers-color-scheme; the -dark/-deep variants
+     blend toward ink or the rail so they stay usable as backgrounds and text. */
+  --color-agro-green: var(--op-field);
+  --color-agro-green-dark: color-mix(in srgb, var(--op-field) 75%, var(--op-ink));
+  --color-agro-green-deep: color-mix(in srgb, var(--op-field) 55%, var(--op-ink));
+  --color-agro-olive: color-mix(in srgb, var(--op-field) 62%, var(--op-ground));
+  --color-agro-forest: color-mix(in srgb, var(--op-field) 48%, var(--op-ink));
+  --color-agro-green-soft: var(--op-field-soft);
+  --color-agro-green-text: var(--op-field);
+
+  --color-agro-earth: var(--op-clay);
+  --color-agro-earth-dark: color-mix(in srgb, var(--op-clay) 60%, var(--op-rail));
+  --color-agro-earth-text: var(--op-clay);
+
+  --color-agro-wheat: var(--op-signal);
+  --color-agro-wheat-dark: var(--op-signal-strong);
+  --color-agro-wheat-text: var(--op-signal-strong);
+  --color-agro-ochre: var(--op-signal);
+  --color-agro-mustard: var(--op-signal-strong);
+
+  --color-agro-sand: var(--op-paper-2);
+  --color-agro-sidebar: var(--op-rail);
+  --color-agro-sidebar-deep: var(--op-rail-2);
+
+  position: relative;
+  min-height: 100vh;
+  font-family: var(--op-sans);
+  color: var(--op-ink);
+  background-color: var(--op-ground);
+  color-scheme: light;
+  caret-color: var(--op-signal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  .operate-world {
+    --op-ground: #15140f;
+    --op-paper: #1d1b15;
+    --op-paper-2: #262320;
+    --op-ink: #ece6d8;
+    --op-ink-soft: #b3ac9c;
+    --op-ink-faint: #948c7c;
+    --op-line: #322f28;
+    --op-line-strong: #474336;
+    --op-signal: #e5765c;
+    --op-signal-strong: #f0856b;
+    --op-signal-soft: #35221a;
+    --op-field: #8cc09f;
+    --op-field-soft: #17281d;
+    --op-clay: #d99a76;
+    --op-clay-soft: #2f211a;
+    --op-rail: #100f0c;
+    --op-rail-2: #191712;
+    --bg-card-hover: #24211a;
+    --color-card-hover: #24211a;
+    color-scheme: dark;
+  }
+}
+
+/* Type: the world's grotesk replaces Fraunces inside the plate. */
+.operate-world h1,
+.operate-world h2,
+.operate-world h3,
+.operate-world .font-display {
+  font-family: var(--op-sans);
+  font-optical-sizing: auto;
+}
+
+/* Browser surfaces themed from the operate palette (craft floor). */
+.operate-world ::selection {
+  background: color-mix(in srgb, var(--op-signal) 24%, transparent);
+  color: var(--op-ink);
+}
+.operate-world :focus-visible {
+  outline: 2px solid var(--op-signal);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+.operate-world {
+  scrollbar-color: color-mix(in srgb, var(--op-ink) 30%, transparent) transparent;
+}
+.operate-world ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.operate-world ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.operate-world ::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--op-ink) 26%, transparent);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+.operate-world ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--op-ink) 44%, transparent);
+  background-clip: content-box;
+}
+
+/* --- Density / plate utilities --- */
+.op-canvas {
+  background-color: var(--op-ground);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--op-ink) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--op-ink) 4%, transparent) 1px, transparent 1px);
+  background-size: 46px 46px;
+}
+.op-label {
+  font-family: var(--op-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--op-ink-faint);
+}
+.op-caption {
+  font-family: var(--op-sans);
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  color: var(--op-ink-faint);
+}
+.op-signal-text {
+  color: var(--op-signal-strong);
+}
+.op-field-text {
+  color: var(--op-field);
+}
+.op-num {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+.op-plate {
+  background-color: var(--op-paper);
+  border: 1px solid var(--op-line);
+}
+.op-rule {
+  height: 1px;
+  background: var(--op-line);
+}
+.op-skip {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+}
+.op-skip:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  padding: 0.5rem 0.9rem;
+  background: var(--op-paper);
+  border: 1px solid var(--op-signal);
+  color: var(--op-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* --- Legend rail --- */
+.op-rail {
+  background: var(--op-rail);
+  color: color-mix(in srgb, #ece6d8 92%, transparent);
+}
+.op-rail .op-label {
+  color: color-mix(in srgb, #ece6d8 44%, transparent);
+}
+.op-rail-sub {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, #ece6d8 55%, transparent);
+}
+.op-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.45rem 0.7rem;
+  border-left: 2px solid transparent;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: color-mix(in srgb, #ece6d8 60%, transparent);
+  transition:
+    background-color 160ms var(--ease-out-soft),
+    color 160ms var(--ease-out-soft);
+}
+.op-nav-link:hover,
+.op-nav-link:focus-visible {
+  background: rgb(255 255 255 / 0.05);
+  color: #fff;
+}
+.op-nav-link[aria-current="page"] {
+  color: #fff;
+  background: rgb(168 56 29 / 0.17);
+  border-left-color: var(--op-signal);
+}
+.op-nav-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--op-signal);
+}
+
+/* --- Standard controls, restyled from the palette (still web components) --- */
+.op-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  font-family: var(--op-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid var(--op-line-strong);
+  background: var(--op-paper);
+  color: var(--op-ink);
+  transition:
+    background-color 160ms var(--ease-out-soft),
+    border-color 160ms var(--ease-out-soft);
+}
+.op-btn:hover:not(:disabled) {
+  background: var(--op-paper-2);
+}
+.op-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.op-btn--primary {
+  background: var(--op-ink);
+  color: var(--op-ground);
+  border-color: var(--op-ink);
+}
+.op-btn--primary:hover:not(:disabled) {
+  background: #000;
+}
+.op-btn--reject {
+  background: transparent;
+  color: var(--op-signal-strong);
+  border-color: color-mix(in srgb, var(--op-signal) 42%, transparent);
+}
+.op-btn--reject:hover:not(:disabled) {
+  background: var(--op-signal-soft);
+}
+.op-btn--quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--op-ink-soft);
+}
+.op-btn--quiet:hover:not(:disabled) {
+  background: var(--op-paper-2);
+  color: var(--op-ink);
+}
+.op-input {
+  min-height: 44px;
+  padding: 0.45rem 0.65rem;
+  font-family: var(--op-sans);
+  font-size: 0.8125rem;
+  color: var(--op-ink);
+  background: var(--op-paper);
+  border: 1px solid var(--op-line-strong);
+}
+.op-input::placeholder {
+  color: var(--op-ink-faint);
+}
+.op-input:focus-visible {
+  outline: 2px solid var(--op-signal);
+  outline-offset: 1px;
+}
+
+/* --- Signature move: the cadastral parcel plan + status legend --- */
+.op-plan {
+  background-color: var(--op-paper);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--op-ink) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--op-ink) 7%, transparent) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.op-parcel {
+  --p-fill: var(--op-paper-2);
+  --p-stroke: var(--op-line-strong);
+  background: var(--p-fill);
+  border: 1px solid var(--p-stroke);
+  color: var(--op-ink);
+  transition:
+    background-color 200ms var(--ease-out-soft),
+    border-color 200ms var(--ease-out-soft),
+    box-shadow 200ms var(--ease-out-soft);
+}
+.op-parcel[data-status="pendiente"] {
+  --p-fill: color-mix(in srgb, var(--op-signal) 20%, var(--op-paper));
+  --p-stroke: var(--op-signal);
+}
+.op-parcel[data-status="aprobado"] {
+  --p-fill: var(--op-field-soft);
+  --p-stroke: color-mix(in srgb, var(--op-field) 55%, var(--op-line));
+}
+.op-parcel[data-status="rechazado"] {
+  --p-fill: var(--op-clay-soft);
+  --p-stroke: color-mix(in srgb, var(--op-clay) 60%, var(--op-line));
+}
+.op-parcel[data-status="vacio"] {
+  --p-fill: var(--op-paper-2);
+  --p-stroke: var(--op-line);
+}
+.op-parcel[data-active="true"] {
+  box-shadow:
+    0 0 0 2px var(--op-signal),
+    0 6px 14px -8px color-mix(in srgb, var(--op-ink) 55%, transparent);
+}
+.op-swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 1px solid var(--op-line-strong);
+  flex: none;
+}
+.op-swatch[data-status="pendiente"] {
+  background: color-mix(in srgb, var(--op-signal) 20%, var(--op-paper));
+  border-color: var(--op-signal);
+}
+.op-swatch[data-status="aprobado"] {
+  background: var(--op-field-soft);
+  border-color: color-mix(in srgb, var(--op-field) 55%, var(--op-line));
+}
+.op-swatch[data-status="rechazado"] {
+  background: var(--op-clay-soft);
+  border-color: color-mix(in srgb, var(--op-clay) 60%, var(--op-line));
+}
+.op-swatch[data-status="vacio"] {
+  background: var(--op-paper-2);
+}
+
+/* --- Queue rows --- */
+.op-queue-row {
+  border-bottom: 1px solid var(--op-line);
+  transition: background-color 160ms var(--ease-out-soft);
+}
+.op-queue-row:hover,
+.op-queue-row:focus-within {
+  background: color-mix(in srgb, var(--op-ink) 3.5%, transparent);
+}
+.op-queue-row[data-active="true"] {
+  background: color-mix(in srgb, var(--op-signal) 7%, transparent);
+}
+
+/* --- Shared dashboard components, re-skinned inside the world --- */
+.operate-world .card-surface {
+  background-image: none;
+}
+.operate-world .edge-glow::after {
+  display: none;
+}
+.operate-world .btn-primary {
+  background-image: none;
+  background-color: var(--op-ink);
+  color: var(--op-ground);
+  box-shadow: none;
+}
+.operate-world .btn-primary:hover:not(:disabled) {
+  background-image: none;
+  background-color: color-mix(in srgb, var(--op-ink) 84%, var(--op-rail));
+}
+.operate-world .hero-band {
+  background: var(--op-rail);
+  border-color: var(--op-line-strong);
+  color: var(--op-ground);
+  box-shadow: none;
+}
+.operate-world .hero-band::before,
+.operate-world .hero-band::after {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operate-world .op-parcel,
+  .operate-world .op-queue-row,
+  .operate-world .op-nav-link,
+  .operate-world .op-btn {
+    transition: none !important;
   }
 }

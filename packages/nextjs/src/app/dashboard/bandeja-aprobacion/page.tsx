@@ -9,7 +9,6 @@ import {
   Drawer,
   EmptyState,
   IconTile,
-  PageHeader,
   StatusBadge,
   TabButton,
   type Tone,
@@ -167,7 +166,7 @@ function ClipboardIcon() {
 function NotebookRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">{label}</p>
       <p className="mt-0.5 text-sm font-medium text-ink">{value || "—"}</p>
     </div>
   );
@@ -211,7 +210,7 @@ function PhotoStrip({ photos }: { photos: PhotoDTO[] }) {
             <span className="text-ink-faint">
               <CameraIcon />
             </span>
-            <span className="w-full truncate text-[11px] font-medium text-ink-soft">{fileName}</span>
+            <span className="w-full truncate text-xs font-medium text-ink-soft">{fileName}</span>
           </div>
         );
       })}
@@ -244,10 +243,10 @@ function DailyReportNotebook({
       <div className="paper-page border-b border-agro-border px-6 py-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-faint">
+            <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">
               Parte de trabajo · cuaderno digital
             </p>
-            <h3 className="mt-1 text-xl font-bold tracking-tight text-ink">{report.taskTypeName}</h3>
+            <h3 className="mt-1 text-xl font-semibold tracking-tight text-ink">{report.taskTypeName}</h3>
             <p className="text-sm text-ink-soft">
               {report.farmName} · {report.lotName} · {report.clientName}
             </p>
@@ -268,19 +267,19 @@ function DailyReportNotebook({
       {/* Work amounts */}
       <div className="grid grid-cols-2 gap-4 border-b border-agro-border px-6 py-5">
         <div className="rounded-card-lg border border-agro-border bg-card p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
             Hectáreas trabajadas
           </p>
-          <p className="mt-1 text-3xl font-bold tracking-tight text-ink">
+          <p className="op-num mt-1 text-3xl font-bold tracking-tight text-ink">
             {fmtNumber(report.hectares)}
             <span className="ml-1 text-sm font-semibold text-ink-faint">ha</span>
           </p>
         </div>
         <div className="rounded-card-lg border border-agro-border bg-card p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
             Horas de labor
           </p>
-          <p className="mt-1 text-3xl font-bold tracking-tight text-ink">
+          <p className="op-num mt-1 text-3xl font-bold tracking-tight text-ink">
             {fmtNumber(report.hours)}
             <span className="ml-1 text-sm font-semibold text-ink-faint">hs</span>
           </p>
@@ -300,7 +299,7 @@ function DailyReportNotebook({
         ) : (
           <div className="overflow-hidden rounded-lg border border-agro-border">
             <table className="w-full text-left text-sm">
-              <thead className="bg-base-subtle/60 text-[11px] uppercase tracking-wider text-ink-faint">
+              <thead className="bg-base-subtle/60 text-xs uppercase tracking-wider text-ink-faint">
                 <tr>
                   <th className="px-3 py-2 font-semibold">Insumo</th>
                   <th className="px-3 py-2 text-right font-semibold">Cantidad</th>
@@ -311,7 +310,7 @@ function DailyReportNotebook({
                 {report.items.map((item) => (
                   <tr key={item.id}>
                     <td className="px-3 py-2 font-medium text-ink">{item.inputName}</td>
-                    <td className="px-3 py-2 text-right text-ink">{fmtNumber(item.quantity)}</td>
+                    <td className="op-num px-3 py-2 text-right text-ink">{fmtNumber(item.quantity)}</td>
                     <td className="px-3 py-2 text-ink-soft">{item.unit}</td>
                   </tr>
                 ))}
@@ -621,10 +620,32 @@ export default function BandejaAprobacionPage() {
       sidebarItems={navItems}
       breadcrumb="Revisión y aprobación de partes de trabajo"
     >
-      <PageHeader
-        title="Bandeja de Aprobación"
-        subtitle="Partes de labor cargados desde el móvil, listos para revisar y resolver."
-      />
+      {/* Command header */}
+      <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
+        <div className="min-w-0">
+          <p className="op-label">Revisión de partes</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">
+            Bandeja de Aprobación
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+            Partes de labor cargados desde el móvil, listos para revisar y resolver.
+          </p>
+        </div>
+        <div className="text-right">
+          {loading ? (
+            <div className="skeleton ml-auto h-8 w-12" aria-hidden="true" />
+          ) : (
+            <p
+              className={`op-num text-3xl font-bold leading-none ${
+                counts.PENDIENTE_APROBACION > 0 ? "op-signal-text" : "text-ink"
+              }`}
+            >
+              {counts.PENDIENTE_APROBACION}
+            </p>
+          )}
+          <p className="op-label mt-1">Pendientes</p>
+        </div>
+      </section>
 
       {/* Filters */}
       <Card className="mb-5 p-4">
@@ -638,9 +659,9 @@ export default function BandejaAprobacionPage() {
               >
                 {tab.label}
                 <span
-                  className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                  className={`op-num ml-1.5 rounded-full px-1.5 py-0.5 text-xs font-bold ${
                     statusFilter === tab.id
-                      ? "bg-agro-green text-white"
+                      ? "bg-ink text-card"
                       : "bg-card text-ink-faint ring-1 ring-inset ring-agro-border"
                   }`}
                 >
@@ -656,7 +677,7 @@ export default function BandejaAprobacionPage() {
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
               aria-label="Filtrar por fecha"
-              className="rounded-lg border border-agro-border bg-card px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-agro-green/40"
+              className="op-input"
             />
             <input
               type="search"
@@ -664,7 +685,7 @@ export default function BandejaAprobacionPage() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar operario, lote, labor…"
               aria-label="Buscar partes"
-              className="w-56 rounded-lg border border-agro-border bg-card px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-agro-green/40"
+              className="op-input w-56"
             />
             <Button variant="secondary" onClick={() => void load()} disabled={loading}>
               {loading ? "Actualizando…" : "Actualizar"}

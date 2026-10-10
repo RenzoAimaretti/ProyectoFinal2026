@@ -1,1129 +1,850 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Badge, Card, IconTile, type Tone } from "@/components/ui/primitives";
-import { LogoWordmark } from "@/components/ui/logo";
-import { TrendChart, type ChartSeries } from "@/components/ui/charts";
-import { Reveal, usePrefersReducedMotion } from "@/components/ui/reveal";
-import {
-  CountUp,
-  ScrollProgress,
-  useParallax,
-  useScrolled,
-} from "@/components/ui/scroll";
+import { WHATSAPP_URL } from "@/lib/contact";
+import { LogoMark } from "@/components/ui/logo";
 import {
   ArrowRightIcon,
-  ChartIcon,
-  CheckIcon,
   ClipboardIcon,
   CloudOfflineIcon,
   DashboardIcon,
   FieldIcon,
-  FinanceIcon,
-  InputsIcon,
   LivestockIcon,
   MachineIcon,
-  MapZoomIcon,
   PeopleIcon,
-  ProductionIcon,
   ShieldIcon,
 } from "@/components/ui/icons";
 
-/* ------------------------------------------------------------------ */
-/* Static content (Spanish UI copy)                                    */
-/* ------------------------------------------------------------------ */
+/* ==================================================================== */
+/* Content — real product truth, re-expressed in the almanac register.    */
+/* No invented customers, metrics or pricing. Firm names are intentionally */
+/* omitted (PRODUCT.md leaves that undecided) and the multi-firm capability */
+/* is stated as a capability, never as the lead.                          */
+/* ==================================================================== */
 
 const NAV_ANCHORS = [
-  { label: "Producto", href: "#producto" },
+  { label: "Campaña", href: "#campania" },
+  { label: "Recorrido", href: "#recorrido" },
   { label: "Módulos", href: "#modulos" },
-  { label: "Móvil", href: "#movil" },
-  { label: "Cómo funciona", href: "#como-funciona" },
+  { label: "Campo", href: "#movil" },
+  { label: "Consultas", href: "#consultas" },
 ];
 
-const VALUE_PROPS: {
-  icon: React.ReactNode;
-  tone: Tone;
+type TraceEntry = {
+  date: string;
+  stage: string;
   title: string;
-  description: string;
-}[] = [
+  detail: string;
+  stamp: string;
+  tone: "red" | "green";
+  note?: string;
+};
+
+/** Demonstration ledger: how one work part travels field → office → client.
+ *  Values are the synthetic demo scenario, clearly marked as an example. */
+const TRACE: TraceEntry[] = [
   {
-    icon: <ShieldIcon className="h-5 w-5" />,
-    tone: "green",
-    title: "Varias firmas, una plataforma",
-    description:
-      "Eliggi, Eliggi Tufoni y Eliggi Néstor operan con sus datos separados bajo el mismo techo.",
+    date: "06/10",
+    stage: "Campo",
+    title: "Parte diario PD-0001 — Pulverización",
+    detail: "Lote 4 · Norte · 48,5 ha · 6,5 h",
+    stamp: "Sin señal",
+    tone: "red",
+    note: "Anotado en el móvil sin conexión y guardado en el dispositivo.",
   },
   {
-    icon: <CloudOfflineIcon className="h-5 w-5" />,
-    tone: "wheat",
+    date: "06/10",
+    stage: "Oficina",
+    title: "Revisión del parte y validación de insumos",
+    detail: "Glifosato 66,2 % (L-2291) · Coadyuvante siliconado (L-2310)",
+    stamp: "Aprobado",
+    tone: "green",
+  },
+  {
+    date: "07/10",
+    stage: "Cliente",
+    title: "Auditoría del productor sobre el lote",
+    detail: "Lote 4 · Norte · Soja",
+    stamp: "CERT-2026-0042",
+    tone: "green",
+    note: "Cadena trazable: firma → campo → lote → insumo.",
+  },
+];
+
+const TRACE_DATA: { label: string; value: string }[] = [
+  { label: "Labor", value: "Pulverización" },
+  { label: "Lote", value: "4 · Norte (Soja)" },
+  { label: "Superficie", value: "48,5 ha" },
+  { label: "Horas", value: "6,5 h" },
+  { label: "Insumos", value: "2 · L-2291 · L-2310" },
+  { label: "Certificado", value: "CERT-2026-0042" },
+];
+
+const VALUE_PROPS: { title: string; text: string }[] = [
+  {
     title: "Offline-first de verdad",
-    description:
-      "El operario carga en el lote sin señal y la app sincroniza sola al recuperar cobertura.",
+    text: "El operario carga en el lote sin señal y la app sincroniza sola al recuperar cobertura.",
   },
   {
-    icon: <FieldIcon className="h-5 w-5" />,
-    tone: "green",
     title: "Trazabilidad por lote",
-    description:
-      "Cada labor, insumo y parte queda atado al campo y al lote que lo generó.",
+    text: "Cada labor, insumo y parte queda atado al campo y al lote que lo generó.",
   },
   {
-    icon: <ChartIcon className="h-5 w-5" />,
-    tone: "earth",
-    title: "Datos para decidir",
-    description:
-      "Partes, recepciones y estado de insumos en tableros listos para rendir.",
+    title: "Varias firmas, datos aislados",
+    text: "Cada razón social opera con sus datos separados y su propio alcance, sobre la misma plataforma.",
+  },
+  {
+    title: "Datos para decidir y rendir",
+    text: "Partes, recepciones y estado de insumos en tableros listos para rendir.",
   },
 ];
 
-const MODULES: {
-  icon: React.ReactNode;
-  tone: Tone;
-  title: string;
-  description: string;
-  soon?: boolean;
-}[] = [
+const MODULES: { title: string; text: string }[] = [
   {
-    icon: <MapZoomIcon className="h-5 w-5" />,
-    tone: "green",
     title: "Mi Campo & Mapeo",
-    description: "Lotes y polígonos por estado, con color sobre el visor de la campaña.",
+    text: "Lotes y polígonos por estado, con color sobre el visor de la campaña.",
   },
   {
-    icon: <ProductionIcon className="h-5 w-5" />,
-    tone: "green",
     title: "Producción",
-    description: "Tareas del día ordenadas por campo, lote y estado de avance.",
+    text: "Tareas del día ordenadas por campo, lote y estado de avance.",
   },
   {
-    icon: <ClipboardIcon className="h-5 w-5" />,
-    tone: "wheat",
     title: "Partes de trabajo",
-    description: "Bandeja de aprobación con la foto del cuaderno cargada desde el móvil.",
+    text: "Bandeja de aprobación con la foto del cuaderno cargada desde el móvil.",
   },
   {
-    icon: <InputsIcon className="h-5 w-5" />,
-    tone: "earth",
     title: "Insumos por cliente",
-    description: "Ingresado, consumido y sobrante por cliente, con validación de recepciones.",
+    text: "Ingresado, consumido y sobrante por cliente, con validación de recepciones.",
   },
   {
-    icon: <MachineIcon className="h-5 w-5" />,
-    tone: "slate",
     title: "Maquinaria & combustible",
-    description: "Equipos y consumo de combustible atados a cada labor.",
+    text: "Equipos y consumo de combustible atados a cada labor.",
   },
   {
-    icon: <PeopleIcon className="h-5 w-5" />,
-    tone: "green",
     title: "Gestión de personal",
-    description: "Cuadrillas, roles y asignaciones por firma y por campo.",
+    text: "Cuadrillas, roles y asignaciones por firma y por campo.",
   },
   {
-    icon: <LivestockIcon className="h-5 w-5" />,
-    tone: "earth",
     title: "Ganadero de precisión",
-    description: "Eventos sanitarios, pesajes y movimientos; lectura RFID en camino.",
-  },
-  {
-    icon: <FinanceIcon className="h-5 w-5" />,
-    tone: "wheat",
-    title: "Finanzas multi-firma",
-    description: "Facturas, cheques y rentabilidad por razón social.",
-    soon: true,
+    text: "Eventos sanitarios, pesajes y movimientos; lectura RFID en camino.",
   },
 ];
 
-const ROLES: { icon: React.ReactNode; title: string; description: string }[] = [
+const SOON = {
+  title: "Finanzas multi-firma",
+  text: "Facturas, cheques y rentabilidad por razón social.",
+};
+
+const ROLES: { icon: ReactNode; title: string; access: string; text: string }[] = [
   {
-    icon: <DashboardIcon className="h-5 w-5" />,
+    icon: <DashboardIcon className="h-4 w-4" />,
     title: "Administrador / dueño",
-    description:
-      "Visión total de la operación: finanzas, asignación de tareas, aprobaciones y márgenes por firma.",
+    access: "Consolidado",
+    text: "Visión total de la operación: finanzas, asignación de tareas, aprobaciones y márgenes por firma.",
   },
   {
-    icon: <ClipboardIcon className="h-5 w-5" />,
+    icon: <ClipboardIcon className="h-4 w-4" />,
     title: "Operativo administrativo",
-    description:
-      "Carga rápida de facturas, recibos y remitos, con conciliación de comprobantes y cheques.",
+    access: "Oficina",
+    text: "Carga rápida de facturas, recibos y remitos, con conciliación de comprobantes y cheques.",
   },
   {
-    icon: <MachineIcon className="h-5 w-5" />,
+    icon: <MachineIcon className="h-4 w-4" />,
     title: "Operario a campo",
-    description:
-      "Partes diarios, fotos de respaldo y consumo de combustible desde el móvil.",
+    access: "Móvil",
+    text: "Partes diarios, fotos de respaldo y consumo de combustible desde el móvil.",
   },
   {
-    icon: <FieldIcon className="h-5 w-5" />,
+    icon: <FieldIcon className="h-4 w-4" />,
     title: "Ingeniero agrónomo",
-    description:
-      "Recetas fitosanitarias, dosis por hectárea y planificación de rotaciones.",
+    access: "Técnico",
+    text: "Recetas fitosanitarias, dosis por hectárea y planificación de rotaciones.",
   },
   {
-    icon: <ShieldIcon className="h-5 w-5" />,
+    icon: <ShieldIcon className="h-4 w-4" />,
     title: "Cliente / productor",
-    description:
-      "Panel exclusivo de auditoría para seguir labores, insumos y certificaciones sobre sus lotes.",
+    access: "Auditoría",
+    text: "Panel exclusivo de auditoría para seguir labores, insumos y certificaciones sobre sus lotes.",
   },
   {
-    icon: <PeopleIcon className="h-5 w-5" />,
+    icon: <PeopleIcon className="h-4 w-4" />,
     title: "Permisos por rol",
-    description:
-      "Cada perfil accede solo a los módulos y datos que le corresponden.",
+    access: "Acceso",
+    text: "Cada perfil accede solo a los módulos y datos que le corresponden.",
   },
 ];
 
-const STEPS: {
-  icon: React.ReactNode;
-  step: string;
-  title: string;
-  description: string;
-}[] = [
+const STEPS: { stage: string; title: string; text: string }[] = [
   {
-    icon: <MachineIcon className="h-5 w-5" />,
-    step: "01",
-    title: "Cargar en campo",
-    description:
-      "El operario registra el parte diario desde el móvil, con la foto del cuaderno, aunque esté sin señal.",
+    stage: "Campo",
+    title: "Cargar en el lote",
+    text: "El operario registra el parte diario desde el móvil, con la foto del cuaderno, aunque esté sin señal.",
   },
   {
-    icon: <ClipboardIcon className="h-5 w-5" />,
-    step: "02",
+    stage: "Oficina",
     title: "Aprobar en la oficina",
-    description:
-      "El administrativo revisa cada parte en la bandeja, valida insumos y aprueba o rechaza con trazabilidad.",
+    text: "El administrativo revisa cada parte en la bandeja, valida insumos y aprueba o rechaza con trazabilidad.",
   },
   {
-    icon: <ChartIcon className="h-5 w-5" />,
-    step: "03",
+    stage: "Cliente",
     title: "Auditar y rendir",
-    description:
-      "El productor sigue sus lotes y el dueño cierra finanzas y rentabilidad por firma con la información ya cargada.",
+    text: "El productor sigue sus lotes y el dueño cierra finanzas y rentabilidad por firma con la información ya cargada.",
   },
 ];
 
-const FAQ: { question: string; answer: string }[] = [
+const MOBILE_POINTS: { icon: ReactNode; title: string; text: string }[] = [
   {
-    question: "¿Cómo conviven varias firmas en la misma plataforma?",
-    answer:
-      "El sistema es multi-tenant y multi-firma. Cada razón social opera con sus propios datos y usuarios, con aislamiento por tenant, y el dueño puede ver el consolidado según su rol.",
+    icon: <ClipboardIcon className="h-4 w-4" />,
+    title: "Carga guiada",
+    text: "Cliente, campo, lote y labor en listas desplegables para cargar rápido y sin errores.",
   },
   {
-    question: "¿Qué pasa si el operario carga un parte sin señal?",
-    answer:
-      "La app móvil es offline-first: guarda el parte en el dispositivo, lo marca como pendiente y lo sincroniza automáticamente cuando recupera conexión. La carga en el lote no se pierde por falta de cobertura.",
+    icon: <FieldIcon className="h-4 w-4" />,
+    title: "Foto del cuaderno",
+    text: "Cada parte puede adjuntar la foto del respaldo físico como verificación.",
   },
   {
-    question: "¿Quién ve la información de cada cliente?",
-    answer:
-      "El acceso está segmentado por rol. El productor accede a un panel de auditoría de sus propios lotes, el operario ve solo lo necesario para cargar su trabajo y el administrador gestiona toda la operación.",
+    icon: <CloudOfflineIcon className="h-4 w-4" />,
+    title: "Estado de sincronización",
+    text: "El operario ve siempre cuántos partes quedan pendientes de subir.",
   },
   {
-    question: "¿Cómo se protege la información de cada productor?",
-    answer:
-      "El aislamiento por tenant y por firma mantiene los datos separados. Los accesos se resuelven por rol y por cliente, de modo que cada usuario ve únicamente el alcance que le corresponde.",
-  },
-  {
-    question: "¿Qué módulos incluye la plataforma?",
-    answer:
-      "Mi Campo & Mapeo, Producción, Partes de trabajo, Insumos por cliente, Maquinaria & combustible, Gestión de personal y Ganadero de precisión. Finanzas multi-firma está en camino.",
+    icon: <LivestockIcon className="h-4 w-4" />,
+    title: "RFID a futuro",
+    text: "La lectura de caravanas electrónicas está prevista para el módulo ganadero.",
   },
 ];
 
-const PREVIEW_ACTIVITY: ChartSeries[] = [
+const FIELD_ROWS: { label: string; value: string }[] = [
+  { label: "Cliente", value: "Productor Demo" },
+  { label: "Campo", value: "La Esperanza" },
+  { label: "Lote", value: "4 · Norte" },
+  { label: "Labor", value: "Pulverización" },
+  { label: "Hectáreas", value: "48,5 ha" },
+  { label: "Horas", value: "6,5 h" },
+];
+
+const FAQ: { q: string; a: string }[] = [
   {
-    key: "partes",
-    label: "Partes de trabajo",
-    color: "var(--color-agro-green)",
-    values: [2, 4, 3, 6, 5, 7, 6, 9, 8, 10, 9, 12],
+    q: "¿Cómo conviven varias firmas en la misma plataforma?",
+    a: "El sistema es multi-tenant y multi-firma. Cada razón social opera con sus propios datos y usuarios, con aislamiento por tenant, y el dueño puede ver el consolidado según su rol.",
   },
   {
-    key: "recepciones",
-    label: "Recepciones",
-    color: "var(--color-agro-earth)",
-    values: [1, 2, 2, 3, 4, 3, 5, 4, 6, 5, 7, 8],
+    q: "¿Qué pasa si el operario carga un parte sin señal?",
+    a: "La app móvil es offline-first: guarda el parte en el dispositivo, lo marca como pendiente y lo sincroniza automáticamente cuando recupera conexión. La carga en el lote no se pierde por falta de cobertura.",
+  },
+  {
+    q: "¿Quién ve la información de cada cliente?",
+    a: "El acceso está segmentado por rol. El productor accede a un panel de auditoría de sus propios lotes, el operario ve solo lo necesario para cargar su trabajo y el administrador gestiona toda la operación.",
+  },
+  {
+    q: "¿Cómo se protege la información de cada productor?",
+    a: "El aislamiento por tenant y por firma mantiene los datos separados. Los accesos se resuelven por rol y por cliente, de modo que cada usuario ve únicamente el alcance que le corresponde.",
+  },
+  {
+    q: "¿Qué módulos incluye la plataforma?",
+    a: "Mi Campo & Mapeo, Producción, Partes de trabajo, Insumos por cliente, Maquinaria & combustible, Gestión de personal y Ganadero de precisión. Finanzas multi-firma está en camino.",
   },
 ];
 
-const PREVIEW_LABELS = [
-  "01/10",
-  "03/10",
-  "05/10",
-  "07/10",
-  "09/10",
-  "11/10",
-  "13/10",
-  "15/10",
-  "17/10",
-  "19/10",
-  "21/10",
-  "23/10",
-];
+/* Plates — real field photographs, sourced by the user. Paper-toned
+   fallback + ruled caption keep the page intentional before the files
+   land in /public/almanac/. */
+type PlateSpec = { src: string; alt: string; index: string; caption: string };
 
-/* Factual product numbers only — every figure below is derived from the copy
-   or the module/role lists on this page. No invented metrics. */
-const AVAILABLE_MODULE_COUNT = MODULES.filter((mod) => !mod.soon).length;
-
-const PRODUCT_STATS: { value: number; label: string; hint: string }[] = [
-  { value: 3, label: "Razones sociales", hint: "Eliggi, Tufoni y Néstor" },
-  {
-    value: AVAILABLE_MODULE_COUNT,
-    label: "Módulos en producción",
-    hint: "Finanzas, en camino",
+const PLATES: Record<"hero" | "recorrido" | "cuaderno" | "cierre", PlateSpec> = {
+  hero: {
+    src: "/almanac/campania-lote-pulverizacion.jpg",
+    alt: "Pulverizadora trabajando un lote de la campaña con las hileras del cultivo visibles.",
+    index: "Placa 01",
+    caption:
+      "Placa 01 · Pulverización en el Lote 4 · Norte. El parte se anota en el lote y viaja al tablero.",
   },
-  { value: 5, label: "Roles operativos", hint: "Oficina, campo y auditoría" },
-  { value: 3, label: "Pasos para rendir", hint: "Cargar, aprobar, auditar" },
-];
+  recorrido: {
+    src: "/almanac/labor-siembra.jpg",
+    alt: "Tractor con sembradora abriendo surcos en un lote durante la siembra.",
+    index: "Placa 02",
+    caption:
+      "Placa 02 · Labor de siembra. La secuencia de la campaña se registra labor por labor.",
+  },
+  cuaderno: {
+    src: "/almanac/cuaderno-de-campo.jpg",
+    alt: "Cuaderno de campo de tapas gastadas, abierto sobre la caja de una camioneta, con anotaciones a mano.",
+    index: "Placa 03",
+    caption:
+      "Placa 03 · El cuaderno de campo. La foto del respaldo físico respalda cada parte digital.",
+  },
+  cierre: {
+    src: "/almanac/tranquera-atardecer.jpg",
+    alt: "Tranquera de un establecimiento agropecuario al atardecer, con el campo de fondo.",
+    index: "Placa 04",
+    caption: "Placa 04 · La tranquera. El cierre de la campaña, con el dato ya cargado.",
+  },
+};
 
-/* Real product concepts for the ticker — module names, no fake logos. */
-const MARQUEE_ITEMS = MODULES.map((mod) => mod.title);
+/* ==================================================================== */
+/* Building blocks                                                       */
+/* ==================================================================== */
 
-/* ------------------------------------------------------------------ */
-/* Small building blocks                                              */
-/* ------------------------------------------------------------------ */
-
-const PRIMARY_CTA =
-  "btn-primary inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-white shadow-card transition-all hover:shadow-card-hover active:translate-y-px";
-
-const SECONDARY_CTA =
-  "inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-agro-border bg-card px-6 text-sm font-semibold text-ink shadow-sm transition-all hover:border-agro-border-strong hover:bg-base-subtle";
-
-function SectionHeading({
-  kicker,
-  title,
-  description,
-  inverse = false,
-}: {
-  kicker: string;
-  title: string;
-  description?: string;
-  inverse?: boolean;
-}) {
+function WhatsAppIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
-    <Reveal className="max-w-2xl">
-      <p
-        className={`text-xs font-semibold uppercase tracking-[0.22em] ${
-          inverse ? "text-agro-wheat" : "text-agro-green-dark"
-        }`}
-      >
-        {kicker}
-      </p>
-      <h2
-        className={`font-display mt-3 text-display font-semibold ${
-          inverse ? "text-white" : "text-ink"
-        }`}
-      >
-        {title}
-      </h2>
-      {description && (
-        <p className={`mt-3 text-base ${inverse ? "text-white/70" : "text-ink-soft"}`}>
-          {description}
-        </p>
-      )}
-    </Reveal>
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.03c-.24.68-1.42 1.31-1.95 1.36-.53.05-1.02.24-3.44-.72-2.92-1.15-4.76-4.14-4.9-4.33-.14-.19-1.17-1.56-1.17-2.97 0-1.41.74-2.11 1-2.4.26-.29.57-.36.76-.36.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.58.81 2 .88 2.14.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.3.37-.43.5-.14.14-.28.29-.12.57.16.29.72 1.19 1.55 1.93 1.06.95 1.96 1.24 2.24 1.38.28.14.44.12.6-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.61-.14.24.09 1.55.73 1.82.86.27.14.44.21.51.32.07.12.07.68-.17 1.36z" />
+    </svg>
   );
 }
 
-function PhoneField({
-  label,
-  value,
-  numeric = false,
-}: {
-  label: string;
-  value: string;
-  numeric?: boolean;
-}) {
+function Plate({ src, alt, index, caption }: PlateSpec) {
   return (
-    <div className="rounded-lg border border-agro-border bg-card px-2.5 py-1.5">
-      <p className="text-[9px] font-semibold uppercase tracking-wider text-ink-faint">
-        {label}
-      </p>
-      <p className={`text-[12px] font-medium text-ink ${numeric ? "text-numeric" : ""}`}>
-        {value}
-      </p>
-    </div>
+    <figure className="alm-plate">
+      {/* Required raw <img> slot so the user can drop real photographs in. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} loading="lazy" decoding="async" />
+      <figcaption>
+        <span className="alm-plate-idx">{index}</span>
+        <span>{caption}</span>
+      </figcaption>
+    </figure>
   );
 }
 
-/** Compact field-map motif built from the design tokens (no raster assets). */
-function FieldMapMotif() {
-  const parcels: { points: string; fill: string; opacity: number }[] = [
-    { points: "20,24 120,16 112,86 24,94", fill: "var(--color-agro-olive)", opacity: 0.55 },
-    { points: "134,14 240,22 232,92 126,84", fill: "var(--color-agro-green)", opacity: 0.5 },
-    { points: "252,20 305,30 300,96 246,88", fill: "var(--color-agro-wheat)", opacity: 0.5 },
-    { points: "18,104 116,96 124,164 26,158", fill: "var(--color-agro-green)", opacity: 0.45 },
-    { points: "138,94 240,100 236,162 132,158", fill: "var(--color-agro-earth)", opacity: 0.4 },
-    { points: "252,100 306,104 302,160 248,156", fill: "var(--color-agro-olive)", opacity: 0.5 },
-  ];
+function Query({ q, a }: { q: string; a: string }) {
   return (
-    <div className="grid-plot relative h-[168px] overflow-hidden rounded-xl border border-agro-border bg-agro-green-soft/50">
-      <svg
-        viewBox="0 0 320 180"
-        preserveAspectRatio="none"
-        className="h-full w-full"
-        aria-hidden="true"
-      >
-        {parcels.map((p, i) => (
-          <polygon
-            key={i}
-            points={p.points}
-            fill={p.fill}
-            opacity={p.opacity}
-            stroke="var(--bg-card)"
-            strokeWidth={2}
-          />
-        ))}
-      </svg>
-      <span className="absolute right-2 top-2">
-        <Badge tone="green">Sembrado</Badge>
-      </span>
-      <div className="absolute bottom-2 left-2 flex flex-wrap items-center gap-3 rounded-lg border border-agro-border bg-card/90 px-2.5 py-1.5 backdrop-blur">
-        {[
-          { label: "Libre", color: "var(--color-agro-wheat)" },
-          { label: "Sembrado", color: "var(--color-agro-green)" },
-          { label: "Cosechado", color: "var(--color-agro-earth)" },
-        ].map((item) => (
-          <span key={item.label} className="flex items-center gap-1.5 text-[10px] font-medium text-ink-soft">
-            <span
-              className="h-2 w-2 rounded-full ring-1 ring-inset ring-black/5"
-              style={{ backgroundColor: item.color }}
-            />
-            {item.label}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/** Browser-frame product preview assembled from the real design system. */
-function ProductPreview() {
-  return (
-    <div className="relative">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -inset-6 -z-10 rounded-[2rem] bg-gradient-to-br from-agro-green/15 via-transparent to-agro-earth/15 blur-2xl"
-      />
-
-      <div className="overflow-hidden rounded-card-lg border border-agro-border bg-card shadow-float">
-        {/* Browser chrome */}
-        <div className="flex items-center gap-3 border-b border-agro-border bg-base-subtle/70 px-4 py-3">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-agro-earth/70" />
-            <span className="h-2.5 w-2.5 rounded-full bg-agro-wheat/80" />
-            <span className="h-2.5 w-2.5 rounded-full bg-agro-green/70" />
-          </div>
-          <div className="mx-auto hidden items-center gap-2 rounded-md border border-agro-border bg-card px-3 py-1 text-[11px] text-ink-faint sm:flex">
-            <ShieldIcon className="h-3 w-3 text-agro-green" />
-            agrotrazabilidad.app/dashboard
-          </div>
-          <span className="ml-auto flex items-center gap-1.5 text-[11px] font-medium text-agro-green-dark">
-            <span className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-agro-green" />
-            En línea
-          </span>
-        </div>
-
-        {/* App body */}
-        <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr]">
-          {/* Mini rail */}
-          <aside className="hidden w-14 flex-col items-center gap-2 border-r border-agro-border bg-agro-sidebar py-4 sm:flex">
-            {[MapZoomIcon, ProductionIcon, ClipboardIcon, InputsIcon].map((Icon, i) => (
-              <span
-                key={i}
-                className={`flex h-9 w-9 items-center justify-center rounded-lg ${
-                  i === 0
-                    ? "bg-agro-green/25 text-agro-olive ring-1 ring-inset ring-agro-green/40"
-                    : "text-white/40"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-              </span>
-            ))}
-          </aside>
-
-          <div className="min-w-0 p-4 sm:p-5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-faint">
-                  Vista general
-                </p>
-                <p className="font-display text-title font-semibold text-ink">
-                  Campaña en curso
-                </p>
-              </div>
-              <Badge tone="slate">Multi-firma</Badge>
-            </div>
-
-            {/* Mini KPIs */}
-            <div className="mt-4 grid grid-cols-3 gap-3">
-              {[
-                { label: "Partes por aprobar", value: "7", tone: "text-agro-wheat-dark" },
-                { label: "Recepciones", value: "3", tone: "text-agro-earth-dark" },
-                { label: "Máquinas activas", value: "12", tone: "text-agro-green-dark" },
-              ].map((kpi) => (
-                <div
-                  key={kpi.label}
-                  className="rounded-xl border border-agro-border bg-card px-3 py-2.5 shadow-sm"
-                >
-                  <p className="text-[9px] font-semibold uppercase leading-tight tracking-wider text-ink-faint">
-                    {kpi.label}
-                  </p>
-                  <p className={`text-numeric mt-1 font-display text-lg font-semibold ${kpi.tone}`}>
-                    {kpi.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Chart + map */}
-            <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-2">
-              <div className="rounded-xl border border-agro-border bg-card p-3 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-semibold text-ink">Actividad diaria</p>
-                  <span className="text-[10px] text-ink-faint">14 días</span>
-                </div>
-                <div className="mt-1 h-[150px]">
-                  <TrendChart
-                    labels={PREVIEW_LABELS}
-                    series={PREVIEW_ACTIVITY}
-                    height={150}
-                    ariaLabel="Vista previa de actividad diaria"
-                    emptyMessage="Sin datos para el período."
-                  />
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-agro-border bg-card p-3 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-semibold text-ink">Estado de lotes</p>
-                  <span className="text-[10px] text-ink-faint">La Colorada</span>
-                </div>
-                <div className="mt-2">
-                  <FieldMapMotif />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Floating sync chip */}
-      <div className="absolute -bottom-4 left-4 flex items-center gap-2 rounded-xl border border-agro-border bg-card px-3 py-2 shadow-pop sm:left-6">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-agro-wheat/18 text-agro-wheat-dark ring-1 ring-inset ring-agro-wheat/25">
-          <CloudOfflineIcon className="h-4 w-4" />
+    <details className="alm-query">
+      <summary>
+        <span>{q}</span>
+        <span className="alm-qmark" aria-hidden="true">
+          +
         </span>
-        <div className="leading-tight">
-          <p className="text-[11px] font-semibold text-ink">Partes sincronizados</p>
-          <p className="text-[10px] text-ink-soft">Desde el móvil, al recuperar señal</p>
-        </div>
-      </div>
-    </div>
+      </summary>
+      <p>{a}</p>
+    </details>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Page                                                                */
-/* ------------------------------------------------------------------ */
+/* ==================================================================== */
+/* Page                                                                  */
+/* ==================================================================== */
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const reduced = usePrefersReducedMotion();
-  const scrolled = useScrolled(24);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  const previewRef = useRef<HTMLDivElement | null>(null);
-  const glowARef = useRef<HTMLDivElement | null>(null);
-  const glowBRef = useRef<HTMLDivElement | null>(null);
-
-  useParallax(previewRef, { y: 0.06, max: 56, scale: 0.035, disabled: reduced });
-  useParallax(glowARef, { y: -0.09, x: 0.02, max: 140, disabled: reduced });
-  useParallax(glowBRef, { y: 0.12, x: -0.02, max: 140, disabled: reduced });
+  // Close the mobile menu with Escape and return focus to its trigger.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   return (
-    <div className="app-canvas relative min-h-screen overflow-x-hidden">
-      <ScrollProgress />
+    <div className="almanac-world overflow-x-hidden">
+      <a href="#contenido" className="alm-skip">
+        Saltar al contenido
+      </a>
 
-      {/* Sticky nav: relaxed and transparent at the top, compact with
-          backdrop-blur, border and shadow once the page scrolls. */}
-      <header
-        className={`sticky top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300 ${
-          scrolled
-            ? "border-b border-agro-border bg-card/80 shadow-nav backdrop-blur-md"
-            : "border-b border-transparent bg-transparent"
-        }`}
-      >
-        <div
-          className={`mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 transition-[padding] duration-300 sm:px-6 ${
-            scrolled ? "py-2.5" : "py-4"
-          }`}
-        >
-          <Link href="/" className="shrink-0" aria-label="Agro Trazabilidad, inicio">
-            <LogoWordmark size={38} subtitle="Trazabilidad agropecuaria" />
+      {/* Masthead — a letterhead rule, not a pill nav */}
+      <header className="alm-masthead">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <Link href="/" className="alm-brand" aria-label="Agro Trazabilidad, inicio">
+            <LogoMark size={34} />
+            <span className="alm-brand-text">
+              <span className="alm-brand-name">Agro Trazabilidad</span>
+              <span className="alm-brand-reg">Registro agropecuario</span>
+            </span>
           </Link>
 
-          <nav className="hidden items-center gap-1 rounded-full bg-base-subtle p-1 md:flex">
+          <nav className="hidden items-center gap-6 md:flex" aria-label="Secciones">
             {NAV_ANCHORS.map((anchor) => (
-              <a
-                key={anchor.href}
-                href={anchor.href}
-                className="rounded-full px-4 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:bg-card hover:text-ink"
-              >
+              <a key={anchor.href} href={anchor.href} className="alm-nav-link">
                 {anchor.label}
               </a>
             ))}
           </nav>
 
-          <div className="hidden items-center gap-2 md:flex">
-            <Link
-              href="/login"
-              className="inline-flex h-10 items-center rounded-lg border border-agro-border bg-card px-4 text-sm font-semibold text-ink transition-colors hover:bg-base-subtle"
-            >
+          <div className="hidden items-center md:flex">
+            <Link href="/login" className="alm-link">
               Iniciar sesión
-            </Link>
-            <Link href="/dashboard" className={PRIMARY_CTA + " h-10 px-5"}>
-              Explorar el panel
-              <ArrowRightIcon className="h-4 w-4" />
             </Link>
           </div>
 
-          {/* Mobile menu trigger */}
           <button
             type="button"
+            ref={menuButtonRef}
             onClick={() => setMenuOpen((v) => !v)}
             aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
             aria-expanded={menuOpen}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-agro-border bg-card text-ink-soft transition-colors hover:bg-base-subtle hover:text-ink md:hidden"
+            className="alm-hamburger md:hidden"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.8}
+              aria-hidden="true"
+            >
               {menuOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                />
               )}
             </svg>
           </button>
         </div>
 
-        {/* Mobile menu panel */}
         {menuOpen && (
-          <div className="animate-fade-in border-t border-agro-border bg-card px-4 pb-4 pt-3 md:hidden">
-            <nav className="flex flex-col">
+          <div className="border-t border-[color:var(--almanac-rule)] px-4 pb-4 pt-2 md:hidden">
+            <nav className="flex flex-col" aria-label="Secciones">
               {NAV_ANCHORS.map((anchor) => (
                 <a
                   key={anchor.href}
                   href={anchor.href}
                   onClick={() => setMenuOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-ink-soft transition-colors hover:bg-base-subtle hover:text-ink"
+                  className="alm-nav-link"
                 >
                   {anchor.label}
                 </a>
               ))}
             </nav>
-            <div className="mt-3 flex flex-col gap-2">
-              <Link href="/dashboard" className={PRIMARY_CTA + " w-full"}>
-                Explorar el panel
-                <ArrowRightIcon className="h-4 w-4" />
-              </Link>
-              <Link href="/login" className={SECONDARY_CTA + " w-full"}>
-                Iniciar sesión
-              </Link>
-            </div>
+            <Link
+              href="/login"
+              onClick={() => setMenuOpen(false)}
+              className="alm-link mt-2"
+            >
+              Iniciar sesión
+            </Link>
           </div>
         )}
       </header>
 
-      {/* 1. Hero */}
-      <section id="producto" className="relative scroll-mt-24 overflow-hidden">
-        {/* Aurora + decorative glows: gentle drift at rest, parallax on scroll */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-40 flex justify-center"
+      <main id="contenido" tabIndex={-1}>
+        {/* 1. First viewport — the almanac spread */}
+        <section
+          id="campania"
+          aria-labelledby="t-campania"
+          className="mx-auto w-full max-w-6xl px-4 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-14"
         >
-          <div
-            className="animate-aurora h-[520px] w-[820px] max-w-[130vw] rounded-full blur-3xl"
-            style={{
-              backgroundImage:
-                "radial-gradient(60% 60% at 30% 40%, color-mix(in srgb, var(--color-agro-green) 22%, transparent), transparent 70%), radial-gradient(50% 50% at 75% 30%, color-mix(in srgb, var(--color-agro-wheat) 20%, transparent), transparent 70%), radial-gradient(50% 50% at 55% 85%, color-mix(in srgb, var(--color-agro-earth) 16%, transparent), transparent 70%)",
-            }}
-          />
-        </div>
-        <div
-          ref={glowARef}
-          aria-hidden
-          className="pointer-events-none absolute -top-32 right-[-10%] h-[460px] w-[460px] rounded-full bg-agro-green/10 blur-3xl"
-        />
-        <div
-          ref={glowBRef}
-          aria-hidden
-          className="pointer-events-none absolute bottom-[-15%] left-[-8%] h-[380px] w-[380px] rounded-full bg-agro-earth/10 blur-3xl"
-        />
-
-        <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:py-24">
-          <div className="lg:col-span-5">
-            <Reveal>
-              <span className="inline-flex items-center gap-2 rounded-full border border-agro-green/30 bg-agro-green/10 px-4 py-1.5 text-xs font-semibold text-agro-green-dark">
-                <span className="h-1.5 w-1.5 rounded-full bg-agro-green" />
-                SaaS multi-tenant · Multi-firma · Offline-first
-              </span>
-            </Reveal>
-
-            <Reveal delay={80}>
-              <h1 className="font-display mt-6 text-display-xl font-semibold text-ink">
-                Toda la operación del campo,{" "}
-                <span className="bg-gradient-to-r from-agro-green to-agro-green-deep bg-clip-text text-transparent">
-                  con trazabilidad de la firma al lote
-                </span>
+          <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+            {/* Left column — the campaign register */}
+            <div className="lg:col-span-6 xl:col-span-7">
+              <p className="alm-label alm-num">Campaña 2025/26 · Registro de ejemplo</p>
+              <h1 id="t-campania" className="alm-display mt-3 max-w-[19ch]">
+                El almanaque de la campaña: cada labor del lote, trazada de la firma al
+                cliente.
               </h1>
-            </Reveal>
-
-            <Reveal delay={160}>
-              <p className="mt-6 text-lg text-ink-soft">
+              <p className="alm-lead mt-5 max-w-[58ch]">
                 Agro Trazabilidad reúne mapeo, producción, partes de trabajo, insumos,
-                maquinaria, personal, ganadería y finanzas en una sola plataforma. Los
-                operarios cargan desde el móvil, incluso sin señal, y el productor audita
-                todo desde su panel.
+                maquinaria, personal, ganadería y finanzas en una sola plataforma. El
+                operario anota en el móvil aunque no haya señal, y el dato llega a la
+                oficina y al cliente sin volver a tipearlo.
               </p>
-            </Reveal>
 
-            <Reveal delay={240}>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/dashboard" className={PRIMARY_CTA}>
-                  Explorar el panel
-                  <ArrowRightIcon className="h-4 w-4" />
-                </Link>
-                <Link href="/login" className={SECONDARY_CTA}>
+              <ol className="alm-ledger alm-draw mt-8">
+                {TRACE.map((entry, i) => (
+                  <li
+                    key={entry.title}
+                    className="alm-entry alm-draw-fade"
+                    style={{ animationDelay: `${120 + i * 90}ms` }}
+                  >
+                    <span className="alm-entry-date alm-num">{entry.date}</span>
+                    <div>
+                      <div className="alm-entry-top">
+                        <span className="alm-label">{entry.stage}</span>
+                        <span className={`alm-stamp alm-stamp--${entry.tone}`}>
+                          {entry.stamp}
+                        </span>
+                      </div>
+                      <p className="alm-entry-title">{entry.title}</p>
+                      <p className="alm-entry-detail alm-num">{entry.detail}</p>
+                      {entry.note && <p className="alm-note">{entry.note}</p>}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              <p className="alm-note mt-4 max-w-[60ch]">
+                Registro de ejemplo: muestra cómo viaja un parte del lote al cliente.
+              </p>
+
+              {/* Primary action set as a register line — unmistakable */}
+              <Link
+                href="/demo"
+                className="alm-cta alm-draw-fade mt-8"
+                style={{ animationDelay: "420ms" }}
+              >
+                <span className="alm-cta-mark" aria-hidden="true">
+                  +
+                </span>
+                <span className="alm-cta-label">Ver el demo</span>
+                <span className="alm-cta-hint">Datos de ejemplo · sin cuenta</span>
+                <ArrowRightIcon className="alm-cta-arrow h-5 w-5" />
+              </Link>
+
+              <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1">
+                <a
+                  href={WHATSAPP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="alm-link"
+                >
+                  <WhatsAppIcon className="h-5 w-5" />
+                  Hablar por WhatsApp
+                </a>
+                <Link href="/login" className="alm-link">
                   Iniciar sesión
                 </Link>
               </div>
-            </Reveal>
+            </div>
 
-            <Reveal delay={320}>
-              <ul className="mt-8 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                {[
-                  "Partes aprobados con foto del cuaderno",
-                  "Stock por cliente: ingresado, consumido y sobrante",
-                  "Roles separados para oficina, campo y auditoría",
-                  "Finanzas consolidadas por razón social",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-sm text-ink-soft">
-                    <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-agro-green" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-          </div>
-
-          <div className="lg:col-span-7">
-            <Reveal y={28} delay={140}>
-              <div ref={previewRef}>
-                <ProductPreview />
+            {/* Right column — the plate + the tabular trace block */}
+            <div className="lg:col-span-6 xl:col-span-5">
+              <Plate {...PLATES.hero} />
+              <div className="mt-8">
+                <p className="alm-label">Trazabilidad de punta a punta</p>
+                <dl className="alm-datalist mt-3">
+                  {TRACE_DATA.map((row) => (
+                    <div className="alm-datarow" key={row.label}>
+                      <dt>{row.label}</dt>
+                      <dd>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="alm-faint mt-3 flex items-center gap-2 text-xs">
+                  <CloudOfflineIcon className="h-4 w-4" />
+                  Capturado en el lote sin conexión y sincronizado al recuperar señal.
+                </p>
               </div>
-            </Reveal>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 2. Marquee: real product concepts (module names only) */}
-      <section
-        aria-label="Módulos de la plataforma"
-        className="border-y border-agro-border bg-card/50"
-      >
-        <div
-          className="relative flex overflow-hidden py-5"
-          style={{
-            maskImage:
-              "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
-            WebkitMaskImage:
-              "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
-          }}
+        {/* 2. Value props — margin annotations */}
+        <section
+          id="notas"
+          aria-labelledby="t-notas"
+          className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20"
         >
-          <div className="marquee-track items-center">
-            {[0, 1].map((copy) => (
-              <ul
-                key={copy}
-                aria-hidden={copy === 1}
-                className="flex items-center"
-              >
-                {MARQUEE_ITEMS.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-center gap-3 whitespace-nowrap pr-3"
-                  >
-                    <span className="text-sm font-medium text-ink-soft">{item}</span>
-                    <span className="h-1 w-1 rounded-full bg-agro-border-strong" />
-                  </li>
-                ))}
-              </ul>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Value strip + factual count-up stats */}
-      <section className="border-b border-agro-border bg-base-subtle/50">
-        <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
-          {/* Count-up stats — every number is factual about the product */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
-            {PRODUCT_STATS.map((stat, index) => (
-              <Reveal
-                key={stat.label}
-                delay={index * 90}
-                className={index === 0 ? "" : "lg:border-l lg:border-agro-border lg:pl-8"}
-              >
-                <CountUp
-                  value={stat.value}
-                  className="font-display text-kpi text-numeric font-semibold text-ink"
-                />
-                <p className="mt-2 text-sm font-semibold text-ink">{stat.label}</p>
-                <p className="mt-0.5 text-xs text-ink-faint">{stat.hint}</p>
-              </Reveal>
-            ))}
+          <div className="alm-section grid gap-4 lg:grid-cols-12 lg:gap-10">
+            <h2 id="t-notas" className="alm-h2 lg:col-span-5">
+              Lo que distingue a la plataforma
+            </h2>
+            <p className="alm-lead max-w-[62ch] lg:col-span-6 lg:col-start-7">
+              El dato se carga una vez en el campo y llega a la oficina y al cliente sin
+              volver a tipearlo.
+            </p>
           </div>
 
-          <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-10 border-t border-agro-border pt-12 sm:grid-cols-2 lg:grid-cols-4">
-            {VALUE_PROPS.map((value, index) => (
-              <Reveal key={value.title} delay={index * 90} className="flex flex-col gap-3">
-                <IconTile tone={value.tone}>{value.icon}</IconTile>
-                <h3 className="font-display text-title font-semibold text-ink">
-                  {value.title}
-                </h3>
-                <p className="text-sm text-ink-soft">{value.description}</p>
-              </Reveal>
+          <ul className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+            {VALUE_PROPS.map((value) => (
+              <li key={value.title} className="alm-note">
+                <h3 className="alm-h3">{value.title}</h3>
+                <p className="alm-body mt-2 text-sm">{value.text}</p>
+              </li>
             ))}
+          </ul>
+        </section>
+
+        {/* 3. The campaign loop — dated register entries */}
+        <section
+          id="recorrido"
+          aria-labelledby="t-recorrido"
+          className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20"
+        >
+          <div className="alm-section grid gap-4 lg:grid-cols-12 lg:gap-10">
+            <h2 id="t-recorrido" className="alm-h2 lg:col-span-5">
+              De la tranquera al tablero en tres pasos
+            </h2>
+            <p className="alm-lead max-w-[62ch] lg:col-span-6 lg:col-start-7">
+              La información recorre el mismo camino que el trabajo real, sin planillas
+              paralelas ni dobles cargas.
+            </p>
           </div>
-        </div>
-      </section>
 
-      {/* 4. Módulos */}
-      <section id="modulos" className="scroll-mt-24 py-20 sm:py-28">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <SectionHeading
-            kicker="Módulos"
-            title="Un sistema, todas las labores del agro"
-            description="Cada módulo resuelve una parte concreta de la operación y comparte los mismos datos: lo que se carga en el campo llega a la oficina y al productor sin recargar nada."
-          />
-
-          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {MODULES.map((mod, index) => (
-              <Reveal key={mod.title} delay={(index % 4) * 90} y={20}>
-                <Card className="edge-glow relative h-full p-5 transition-transform hover:-translate-y-0.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <IconTile tone={mod.tone}>{mod.icon}</IconTile>
-                    {mod.soon && <Badge tone="wheat">Próximamente</Badge>}
-                  </div>
-                  <h3 className="font-display mt-4 text-title font-semibold text-ink">
-                    {mod.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-ink-soft">{mod.description}</p>
-                </Card>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Para quién es */}
-      <section id="roles" className="scroll-mt-24 bg-agro-forest py-20 sm:py-28">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <SectionHeading
-            kicker="Para quién es"
-            title="Un rol para cada persona de la cadena"
-            description="Desde el dueño que mira el negocio completo hasta el operario que carga el parte a pie de lote. Cada uno entra a lo que necesita."
-            inverse
-          />
-
-          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {ROLES.map((role, index) => (
-              <Reveal key={role.title} delay={(index % 3) * 90} y={20} className="h-full">
-                <div className="h-full rounded-card-lg border border-white/10 bg-white/5 p-5 shadow-[inset_0_1px_0_rgb(255_255_255/0.06)] backdrop-blur transition-colors hover:border-white/20 hover:bg-white/[0.07]">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-agro-wheat ring-1 ring-inset ring-white/15">
-                    {role.icon}
-                  </span>
-                  <h3 className="font-display mt-4 text-title font-semibold text-white">
-                    {role.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-white/70">{role.description}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Móvil offline-first */}
-      <section id="movil" className="scroll-mt-24 py-20 sm:py-28">
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-          <div>
-            <SectionHeading
-              kicker="App móvil"
-              title="El móvil trabaja primero; la señal viene después"
-              description="La captura de datos en el lote no depende de la cobertura. La app guarda todo en el dispositivo y lo sincroniza de forma asíncrona cuando vuelve la conexión."
-            />
-
-            <ul className="mt-8 space-y-3">
-              {[
-                {
-                  icon: <ClipboardIcon className="h-5 w-5" />,
-                  title: "Carga guiada",
-                  text: "Cliente, campo, lote y labor en listas desplegables para cargar rápido y sin errores.",
-                },
-                {
-                  icon: <FieldIcon className="h-5 w-5" />,
-                  title: "Foto del cuaderno",
-                  text: "Cada parte puede adjuntar la foto del respaldo físico como verificación.",
-                },
-                {
-                  icon: <CloudOfflineIcon className="h-5 w-5" />,
-                  title: "Estado de sincronización",
-                  text: "El operario ve siempre cuántos partes quedan pendientes de subir.",
-                },
-                {
-                  icon: <LivestockIcon className="h-5 w-5" />,
-                  title: "RFID a futuro",
-                  text: "La lectura de caravanas electrónicas está prevista para el módulo ganadero.",
-                },
-              ].map((item, index) => (
-                <Reveal as="li" key={item.title} delay={index * 80} className="flex items-start gap-3">
-                  <IconTile tone="green">{item.icon}</IconTile>
+          <div className="mt-10 grid gap-10 lg:grid-cols-12 lg:gap-12">
+            <ol className="alm-ledger lg:col-span-7">
+              {STEPS.map((step) => (
+                <li key={step.title} className="alm-entry">
+                  <span className="alm-label alm-entry-date">{step.stage}</span>
                   <div>
-                    <p className="font-semibold text-ink">{item.title}</p>
-                    <p className="mt-0.5 text-sm text-ink-soft">{item.text}</p>
+                    <p className="alm-entry-title">{step.title}</p>
+                    <p className="alm-entry-detail">{step.text}</p>
                   </div>
-                </Reveal>
+                </li>
+              ))}
+            </ol>
+            <div className="lg:col-span-5">
+              <Plate {...PLATES.recorrido} />
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Modules — the almanac index */}
+        <section
+          id="modulos"
+          aria-labelledby="t-modulos"
+          className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20"
+        >
+          <div className="alm-section grid gap-4 lg:grid-cols-12 lg:gap-10">
+            <h2 id="t-modulos" className="alm-h2 lg:col-span-5">
+              Un sistema, todas las labores del agro
+            </h2>
+            <p className="alm-lead max-w-[62ch] lg:col-span-6 lg:col-start-7">
+              Cada módulo resuelve una parte concreta de la operación y comparte los mismos
+              datos: lo que se carga en el campo llega a la oficina y al productor sin
+              recargar nada.
+            </p>
+          </div>
+
+          <div className="mt-10 overflow-x-auto">
+            <table className="alm-table">
+              <caption className="sr-only">Módulos de la plataforma</caption>
+              <thead>
+                <tr>
+                  <th scope="col" className="alm-marker-cell">
+                    <span className="sr-only">Marca</span>
+                  </th>
+                  <th scope="col">Módulo</th>
+                  <th scope="col">Qué resuelve</th>
+                </tr>
+              </thead>
+              <tbody>
+                {MODULES.map((mod) => (
+                  <tr key={mod.title}>
+                    <td className="alm-marker-cell" aria-hidden="true">
+                      —
+                    </td>
+                    <th scope="row">{mod.title}</th>
+                    <td>{mod.text}</td>
+                  </tr>
+                ))}
+                <tr className="alm-soon">
+                  <td className="alm-marker-cell" aria-hidden="true">
+                    ·
+                  </td>
+                  <th scope="row">
+                    {SOON.title}{" "}
+                    <span className="alm-stamp alm-stamp--red">En preparación</span>
+                  </th>
+                  <td>{SOON.text}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* 5. Roles — the payroll register */}
+        <section
+          id="roles"
+          aria-labelledby="t-roles"
+          className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20"
+        >
+          <div className="alm-section grid gap-4 lg:grid-cols-12 lg:gap-10">
+            <h2 id="t-roles" className="alm-h2 lg:col-span-5">
+              Un rol para cada persona de la cadena
+            </h2>
+            <p className="alm-lead max-w-[62ch] lg:col-span-6 lg:col-start-7">
+              Desde el dueño que mira el negocio completo hasta el operario que carga el
+              parte a pie de lote. Cada uno entra a lo que necesita.
+            </p>
+          </div>
+
+          <ul className="alm-ledger mt-10 grid lg:grid-cols-2 lg:gap-x-12">
+            {ROLES.map((role) => (
+              <li key={role.title} className="alm-entry">
+                <span className="alm-label alm-entry-date">{role.access}</span>
+                <div>
+                  <p className="alm-entry-title flex items-center gap-2">
+                    <span className="alm-ico">{role.icon}</span>
+                    {role.title}
+                  </p>
+                  <p className="alm-entry-detail">{role.text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* 6. Offline-first — the field log */}
+        <section
+          id="movil"
+          aria-labelledby="t-movil"
+          className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20"
+        >
+          <div className="alm-section grid gap-4 lg:grid-cols-12 lg:gap-10">
+            <h2 id="t-movil" className="alm-h2 lg:col-span-5">
+              El móvil trabaja primero; la señal viene después
+            </h2>
+            <p className="alm-lead max-w-[62ch] lg:col-span-6 lg:col-start-7">
+              La captura de datos en el lote no depende de la cobertura. La app guarda todo
+              en el dispositivo y lo sincroniza de forma asíncrona cuando vuelve la
+              conexión.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-10 lg:grid-cols-12 lg:gap-12">
+            <ul className="space-y-6 lg:col-span-5">
+              {MOBILE_POINTS.map((point) => (
+                <li key={point.title} className="alm-note">
+                  <h3 className="alm-h3 flex items-center gap-2">
+                    <span className="alm-ico">{point.icon}</span>
+                    {point.title}
+                  </h3>
+                  <p className="alm-body mt-1 text-sm">{point.text}</p>
+                </li>
               ))}
             </ul>
-          </div>
 
-          {/* Phone mockup */}
-          <Reveal y={28} className="flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-[320px]">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -inset-8 -z-10 rounded-full bg-agro-green/10 blur-3xl"
-              />
-              <div className="relative rounded-[2rem] border border-agro-border bg-agro-sidebar-deep p-2.5 shadow-float">
-                <div className="relative overflow-hidden rounded-[1.6rem] bg-base">
-                  <div className="absolute left-1/2 top-0 h-5 w-28 -translate-x-1/2 rounded-b-2xl bg-agro-sidebar-deep" />
-
-                  <div className="flex items-center justify-between px-5 pb-2 pt-3 text-[10px] font-semibold text-ink-soft">
-                    <span className="text-numeric">08:42</span>
-                    <span className="flex items-center gap-1 text-agro-wheat-dark">
-                      <CloudOfflineIcon className="h-3 w-3" />
-                      Sin conexión
-                    </span>
+            <div className="lg:col-span-7">
+              <div className="alm-sheet p-5 sm:p-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="alm-label">Bitácora de campo</p>
+                    <p className="alm-h3 mt-1">Parte diario</p>
                   </div>
-
-                  <div className="px-4 pb-5">
-                    <p className="font-display text-base font-semibold text-ink">
-                      Parte diario
-                    </p>
-                    <p className="text-[11px] text-ink-soft">Cargá el trabajo del lote</p>
-
-                    <div className="mt-3 flex items-center gap-2 rounded-xl border border-agro-wheat/30 bg-agro-wheat/10 px-3 py-2 text-[11px] font-medium text-agro-wheat-dark">
-                      <CloudOfflineIcon className="h-3.5 w-3.5 shrink-0" />
-                      3 partes pendientes de sincronizar
-                    </div>
-
-                    <div className="mt-3 space-y-2">
-                      <PhoneField label="Cliente" value="Eliggi" />
-                      <PhoneField label="Campo" value="La Colorada" />
-                      <div className="grid grid-cols-2 gap-2">
-                        <PhoneField label="Lote" value="4 · Norte" />
-                        <PhoneField label="Labor" value="Pulverización" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <PhoneField label="Hectáreas" value="48,5 ha" numeric />
-                        <PhoneField label="Horas" value="6,5 hs" numeric />
-                      </div>
-                    </div>
-
-                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-dashed border-agro-border bg-card px-3 py-2 text-[11px] font-medium text-ink-soft">
-                      <ClipboardIcon className="h-4 w-4 shrink-0 text-agro-green" />
-                      Adjuntar foto del cuaderno
-                    </div>
-
-                    <div className="btn-primary mt-3 flex h-10 items-center justify-center rounded-xl text-[12px] font-semibold text-white">
-                      Guardar en el dispositivo
-                    </div>
-
-                    <p className="mt-2 flex items-center justify-center gap-1.5 text-center text-[10px] text-ink-faint">
-                      <CloudOfflineIcon className="h-3 w-3" />
-                      Se sincroniza al recuperar señal
-                    </p>
-                  </div>
+                  <span className="alm-stamp alm-stamp--red">Sin señal</span>
                 </div>
+
+                <p className="alm-note mt-4">
+                  3 partes pendientes de sincronizar.
+                </p>
+
+                <dl className="alm-fieldgrid mt-4">
+                  {FIELD_ROWS.map((row) => (
+                    <div className="alm-field" key={row.label}>
+                      <dt>{row.label}</dt>
+                      <dd>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <div className="alm-save">
+                  <span>Guardar en el dispositivo</span>
+                  <ClipboardIcon className="h-5 w-5 text-[color:var(--almanac-green)]" />
+                </div>
+                <p className="alm-faint mt-3 flex items-center gap-2 text-xs">
+                  <CloudOfflineIcon className="h-4 w-4" />
+                  Se sincroniza al recuperar señal.
+                </p>
+              </div>
+
+              <div className="mt-6">
+                <Plate {...PLATES.cuaderno} />
               </div>
             </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* 7. Cómo funciona */}
-      <section id="como-funciona" className="scroll-mt-24 border-y border-agro-border bg-base-subtle/50 py-20 sm:py-28">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <SectionHeading
-            kicker="Cómo funciona"
-            title="De la tranquera al tablero en tres pasos"
-            description="La información recorre el mismo camino que el trabajo real, sin planillas paralelas ni dobles cargas."
-          />
-
-          <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
-            {STEPS.map((step, index) => (
-              <Reveal key={step.step} delay={index * 110} y={20} className="h-full">
-                <Card className="edge-glow relative h-full p-6">
-                  <div className="flex items-center justify-between">
-                    <IconTile tone={index === 1 ? "wheat" : index === 2 ? "earth" : "green"}>
-                      {step.icon}
-                    </IconTile>
-                    <span className="text-numeric font-display text-display font-semibold text-agro-border-strong">
-                      {step.step}
-                    </span>
-                  </div>
-                  <h3 className="font-display mt-5 text-title font-semibold text-ink">
-                    {step.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-ink-soft">{step.description}</p>
-                </Card>
-              </Reveal>
-            ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 8. FAQ */}
-      <section id="faq" className="scroll-mt-24 py-20 sm:py-28">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <SectionHeading
-            kicker="Preguntas frecuentes"
-            title="Lo que conviene saber antes de empezar"
-          />
+        {/* 7. FAQ — ledger queries */}
+        <section
+          id="consultas"
+          aria-labelledby="t-consultas"
+          className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20"
+        >
+          <div className="alm-section grid gap-4 lg:grid-cols-12 lg:gap-10">
+            <h2 id="t-consultas" className="alm-h2 lg:col-span-5">
+              Lo que conviene saber antes de empezar
+            </h2>
+          </div>
 
-          <div className="mt-12 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
-            <div className="space-y-3">
-              {FAQ.slice(0, 3).map((item, index) => (
-                <Reveal key={item.question} delay={index * 70} y={16}>
-                  <details className="group card-surface rounded-card-lg border border-agro-border bg-card shadow-card transition-colors open:border-agro-border-strong">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-display font-semibold text-ink [&::-webkit-details-marker]:hidden">
-                      {item.question}
-                      <svg
-                        className="h-5 w-5 shrink-0 text-ink-faint transition-transform duration-200 group-open:rotate-180"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.8}
-                        aria-hidden="true"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </summary>
-                    <p className="px-5 pb-5 text-sm text-ink-soft">{item.answer}</p>
-                  </details>
-                </Reveal>
+          <div className="mt-8 grid gap-x-12 lg:grid-cols-2">
+            <div>
+              {FAQ.slice(0, 3).map((item) => (
+                <Query key={item.q} q={item.q} a={item.a} />
               ))}
             </div>
-            <div className="space-y-3">
-              {FAQ.slice(3).map((item, index) => (
-                <Reveal key={item.question} delay={index * 70} y={16}>
-                  <details className="group card-surface rounded-card-lg border border-agro-border bg-card shadow-card transition-colors open:border-agro-border-strong">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-display font-semibold text-ink [&::-webkit-details-marker]:hidden">
-                      {item.question}
-                      <svg
-                        className="h-5 w-5 shrink-0 text-ink-faint transition-transform duration-200 group-open:rotate-180"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1.8}
-                        aria-hidden="true"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </summary>
-                    <p className="px-5 pb-5 text-sm text-ink-soft">{item.answer}</p>
-                  </details>
-                </Reveal>
+            <div>
+              {FAQ.slice(3).map((item) => (
+                <Query key={item.q} q={item.q} a={item.a} />
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 9. CTA final */}
-      <section className="pb-20 sm:pb-28">
-        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <Reveal y={24}>
-            <div className="hero-band px-6 py-12 sm:px-10 sm:py-16">
-              <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
-                <div className="max-w-2xl">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
-                    Empezá hoy
-                  </p>
-                  <h2 className="font-display mt-3 text-display-lg font-semibold text-white">
-                    Ordená la operación desde el primer parte de trabajo
-                  </h2>
-                  <p className="mt-3 text-white/80">
-                    Explorá el panel con la vista de producto o iniciá sesión para entrar a
-                    tu cuenta.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-3 sm:flex-row lg:shrink-0">
-                  <Link
-                    href="/dashboard"
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-semibold text-agro-green-deep shadow-card transition-all hover:bg-white/90 active:translate-y-px"
-                  >
-                    Explorar el panel
-                    <ArrowRightIcon className="h-4 w-4" />
-                  </Link>
-                  <Link
-                    href="/login"
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/20"
-                  >
-                    Iniciar sesión
-                  </Link>
-                </div>
+        {/* 8. Closing register */}
+        <section
+          id="cierre"
+          aria-labelledby="t-cierre"
+          className="mx-auto w-full max-w-6xl px-4 pb-20 pt-16 sm:px-6 sm:pb-24 sm:pt-20"
+        >
+          <div className="alm-section grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
+            <div className="lg:col-span-7">
+              <span className="alm-stamp alm-stamp--red">Campaña 2025/26</span>
+              <h2 id="t-cierre" className="alm-h2 mt-3 max-w-[20ch]">
+                Cerrá la campaña con el dato ya cargado
+              </h2>
+              <p className="alm-body mt-3 max-w-[58ch]">
+                Recorré el demo con datos de ejemplo, sin crear cuenta, o hablá con nosotros
+                para coordinar una demostración.
+              </p>
+
+              <Link href="/demo" className="alm-cta mt-7">
+                <span className="alm-cta-mark" aria-hidden="true">
+                  +
+                </span>
+                <span className="alm-cta-label">Ver el demo</span>
+                <span className="alm-cta-hint">Datos de ejemplo · sin cuenta</span>
+                <ArrowRightIcon className="alm-cta-arrow h-5 w-5" />
+              </Link>
+
+              <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1">
+                <a
+                  href={WHATSAPP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="alm-link"
+                >
+                  <WhatsAppIcon className="h-5 w-5" />
+                  Hablar por WhatsApp
+                </a>
+                <Link href="/login" className="alm-link">
+                  Iniciar sesión
+                </Link>
               </div>
             </div>
-          </Reveal>
-        </div>
-      </section>
+            <div className="lg:col-span-5">
+              <Plate {...PLATES.cierre} />
+            </div>
+          </div>
+        </section>
+      </main>
 
-      {/* 10. Footer */}
-      <footer className="bg-agro-sidebar-deep">
-        <div
-          aria-hidden
-          className="h-px w-full bg-gradient-to-r from-transparent via-agro-green/60 to-transparent"
-        />
+      {/* Footer — ledger colophon */}
+      <footer className="alm-colophon">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-14 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-sm">
-            <LogoWordmark size={40} subtitle="Trazabilidad agropecuaria" tone="inverse" />
-            <p className="mt-4 text-sm text-white/60">
-              Plataforma SaaS multi-tenant y multi-firma para gestionar campos,
-              producción, partes de trabajo e insumos con trazabilidad de punta a punta.
+            <span className="flex items-center gap-3">
+              <LogoMark size={38} />
+              <span className="alm-brand-text">
+                <span className="alm-brand-name">Agro Trazabilidad</span>
+                <span className="alm-brand-reg">Registro agropecuario</span>
+              </span>
+            </span>
+            <p className="alm-body mt-4 text-sm">
+              Captura offline-first en el lote y trazabilidad de punta a punta para gestionar
+              campos, producción, partes de trabajo e insumos. Varias firmas operan con sus
+              datos aislados sobre la misma plataforma.
             </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {["Multi-tenant", "Multi-firma", "Offline-first"].map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium text-white/70"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
-                Producto
-              </p>
-              <ul className="mt-4 space-y-2.5">
+              <p className="alm-label">Producto</p>
+              <ul className="mt-4 space-y-1">
                 {NAV_ANCHORS.map((anchor) => (
                   <li key={anchor.href}>
-                    <a
-                      href={anchor.href}
-                      className="text-sm text-white/70 transition-colors hover:text-white"
-                    >
+                    <a href={anchor.href} className="alm-link">
                       {anchor.label}
                     </a>
                   </li>
@@ -1131,49 +852,45 @@ export default function Home() {
               </ul>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
-                Acceso
-              </p>
-              <ul className="mt-4 space-y-2.5">
+              <p className="alm-label">Acceso</p>
+              <ul className="mt-4 space-y-1">
                 <li>
-                  <Link
-                    href="/dashboard"
-                    className="text-sm text-white/70 transition-colors hover:text-white"
-                  >
-                    Explorar el panel
+                  <Link href="/demo" className="alm-link">
+                    Ver el demo
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    href="/login"
-                    className="text-sm text-white/70 transition-colors hover:text-white"
-                  >
+                  <Link href="/login" className="alm-link">
                     Iniciar sesión
                   </Link>
+                </li>
+                <li>
+                  <a
+                    href={WHATSAPP_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="alm-link"
+                  >
+                    Hablar por WhatsApp
+                  </a>
                 </li>
               </ul>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
-                Módulos
-              </p>
-              <ul className="mt-4 space-y-2.5 text-sm text-white/70">
-                <li>Mi Campo &amp; Mapeo</li>
-                <li>Producción</li>
-                <li>Partes de trabajo</li>
-                <li>Insumos por cliente</li>
+              <p className="alm-label">Módulos</p>
+              <ul className="alm-body mt-4 space-y-1 text-sm">
+                {MODULES.map((mod) => (
+                  <li key={mod.title}>{mod.title}</li>
+                ))}
               </ul>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-white/10">
-          <div className="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-3 px-4 py-5 text-xs text-white/50 sm:flex-row sm:items-center sm:px-6">
-            <p>© 2026 Agro Trazabilidad. Todos los derechos reservados.</p>
-            <a
-              href="#producto"
-              className="inline-flex items-center gap-1.5 text-white/60 transition-colors hover:text-white"
-            >
+        <div className="border-t border-[color:var(--almanac-rule)]">
+          <div className="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-3 px-4 py-5 text-xs sm:flex-row sm:items-center sm:px-6">
+            <p className="alm-faint">© 2026 Agro Trazabilidad. Todos los derechos reservados.</p>
+            <a href="#campania" className="alm-faint inline-flex items-center gap-1.5">
               Volver arriba
               <svg
                 className="h-3.5 w-3.5"

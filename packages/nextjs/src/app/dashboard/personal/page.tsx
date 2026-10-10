@@ -7,7 +7,6 @@ import {
   Button,
   Card,
   EmptyState,
-  HeroBand,
   Modal,
   StatRow,
   TabButton,
@@ -88,8 +87,23 @@ export default function PersonalPage() {
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    // Initial load. State is only written after the await, so the effect does
+    // not trigger synchronous cascading renders.
+    let alive = true;
+    listUsers()
+      .then((data) => {
+        if (alive) setUsers(data);
+      })
+      .catch((err) => {
+        if (alive) setLoadError(describeError(err));
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const roleTabs = useMemo(() => {
     const present = Array.from(new Set(users.map((u) => u.role)));
@@ -157,7 +171,7 @@ export default function PersonalPage() {
       header: "Operario",
       render: (u) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-agro-green/15 text-xs font-semibold text-agro-green-deep">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-agro-border bg-base-subtle text-xs font-semibold text-ink-soft">
             {(u.username ?? u.email).slice(0, 2).toUpperCase()}
           </div>
           <div className="min-w-0">
@@ -195,26 +209,30 @@ export default function PersonalPage() {
       sidebarItems={navItems}
       breadcrumb="Gestión de usuarios"
     >
-      <HeroBand
-        kicker="Gestión de recursos humanos"
-        title="Personal"
-        description="Usuarios de la firma con su rol y estado. Las liquidaciones y certificaciones llegan en una próxima etapa."
-        icon={<PeopleIcon className="h-6 w-6" />}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">
-              {users.length} usuarios
-            </span>
-            <Button
-              className="!bg-white/95 !text-agro-green-deep !hover:bg-white"
-              onClick={openModal}
-            >
-              <PlusIcon className="h-4 w-4" />
-              Nuevo operario
-            </Button>
+      <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
+        <div className="min-w-0">
+          <p className="op-label">Gestión de recursos humanos</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Personal</h2>
+          <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+            Usuarios de la firma con su rol y estado. Las liquidaciones y certificaciones llegan en
+            una próxima etapa.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="text-right">
+            {loading ? (
+              <div className="skeleton ml-auto h-8 w-14" aria-hidden="true" />
+            ) : (
+              <p className="op-num text-3xl font-bold leading-none text-ink">{users.length}</p>
+            )}
+            <p className="op-label mt-1">Usuarios</p>
           </div>
-        }
-      />
+          <button type="button" onClick={openModal} className="op-btn op-btn--primary">
+            <PlusIcon className="h-4 w-4" />
+            Nuevo operario
+          </button>
+        </div>
+      </section>
 
       {loadError && (
         <Alert tone="error" title="No se pudo cargar el personal" className="mb-5">

@@ -7,7 +7,6 @@ import {
   Button,
   Card,
   EmptyState,
-  HeroBand,
   IconTile,
   Modal,
   StatRow,
@@ -112,14 +111,19 @@ export default function MaquinariaPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const fetchFleet = useCallback(async () => {
+    const [machineData, activityData] = await Promise.all([
+      apiGet<MachineDTO[]>("/machines"),
+      listMachineActivities(),
+    ]);
+    return { machineData, activityData };
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      const [machineData, activityData] = await Promise.all([
-        apiGet<MachineDTO[]>("/machines"),
-        listMachineActivities(),
-      ]);
+      const { machineData, activityData } = await fetchFleet();
       setMachines(machineData);
       setActivities(activityData);
     } catch (err) {
@@ -127,11 +131,28 @@ export default function MaquinariaPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchFleet]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    // Initial load. State is only written after the await, so the effect does
+    // not trigger synchronous cascading renders.
+    let alive = true;
+    fetchFleet()
+      .then(({ machineData, activityData }) => {
+        if (!alive) return;
+        setMachines(machineData);
+        setActivities(activityData);
+      })
+      .catch((err) => {
+        if (alive) setLoadError(describeError(err));
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [fetchFleet]);
 
   const summaries = useMemo(
     () => machines.map((m) => summarize(m, activities)),
@@ -198,26 +219,32 @@ export default function MaquinariaPage() {
       sidebarItems={navItems}
       breadcrumb="Flota, combustible y mantenimiento"
     >
-      <HeroBand
-        kicker="Flota, combustible y mantenimiento"
-        title="Maquinaria"
-        description="Control de la flota con combustible, horas de uso y mantenimiento registrados por actividad."
-        icon={<MachineIcon className="h-6 w-6" />}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold ring-1 ring-white/25">
-              {machines.length} máquinas
-            </span>
-            <Button
-              className="!bg-white/95 !text-agro-green-deep !hover:bg-white"
-              onClick={openModal}
-            >
-              <PlusIcon className="h-4 w-4" />
-              Registrar máquina
-            </Button>
+      <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
+        <div className="min-w-0">
+          <p className="op-label">Flota, combustible y mantenimiento</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Maquinaria</h2>
+          <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+            Control de la flota con combustible, horas de uso y mantenimiento registrados por
+            actividad.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="text-right">
+            {loading ? (
+              <div className="skeleton ml-auto h-8 w-14" aria-hidden="true" />
+            ) : (
+              <p className="op-num text-3xl font-bold leading-none text-ink">
+                {machines.length}
+              </p>
+            )}
+            <p className="op-label mt-1">Máquinas</p>
           </div>
-        }
-      />
+          <button type="button" onClick={openModal} className="op-btn op-btn--primary">
+            <PlusIcon className="h-4 w-4" />
+            Registrar máquina
+          </button>
+        </div>
+      </section>
 
       {loadError && (
         <Alert tone="error" title="No se pudo cargar la flota" className="mb-5">
@@ -286,8 +313,8 @@ export default function MaquinariaPage() {
                   { k: "Último service", v: fmtDate(lastServiceAt) },
                 ].map((d) => (
                   <div key={d.k} className="bg-card px-4 py-3">
-                    <p className="text-[11px] text-ink-faint">{d.k}</p>
-                    <p className="text-sm font-semibold text-ink">{d.v}</p>
+                    <p className="op-label">{d.k}</p>
+                    <p className="op-num text-sm font-semibold text-ink">{d.v}</p>
                   </div>
                 ))}
               </div>
@@ -304,10 +331,10 @@ export default function MaquinariaPage() {
               <MachineIcon />
             </IconTile>
             <div>
-              <p className="text-base font-bold text-ink">
+              <p className="op-num text-base font-bold text-ink">
                 {totalFuel > 0 ? fmtLiters(totalFuel) : "Sin registros"}
               </p>
-              <p className="text-xs text-ink-faint">Combustible total cargado</p>
+              <p className="op-caption">Combustible total cargado</p>
             </div>
           </div>
           <div className="h-10 w-px bg-agro-border" />
