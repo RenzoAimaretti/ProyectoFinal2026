@@ -87,9 +87,10 @@ export class LotService {
 
   private handleCreateError(error: unknown): never {
     if (error instanceof InvalidInputError) {
-      throw new BadRequestException(
-        'Missing required fields: name, farmId, coords, and area',
-      );
+      // The domain owns the message. The previous catch-all named `coords`,
+      // which is now optional, and it hid the polygon rejection reason from the
+      // client that has to fix it.
+      throw new BadRequestException(error.message);
     }
 
     if (error instanceof InvalidRelationError) {

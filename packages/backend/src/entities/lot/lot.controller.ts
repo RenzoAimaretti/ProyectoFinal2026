@@ -50,7 +50,8 @@ export class LotController {
     return this.service.create(req.user.tenantId, {
       name: data.name,
       farmId: data.farmId,
-      coords: data.coords,
+      ...(data.coords !== undefined ? { coords: data.coords } : {}),
+      ...(data.polygon !== undefined ? { polygon: data.polygon } : {}),
       area: data.area,
     });
   }
@@ -67,6 +68,7 @@ export class LotController {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.farmId !== undefined ? { farmId: data.farmId } : {}),
       ...(data.coords !== undefined ? { coords: data.coords } : {}),
+      ...(data.polygon !== undefined ? { polygon: data.polygon } : {}),
       ...(data.area !== undefined ? { area: data.area } : {}),
       ...(data.active !== undefined ? { active: data.active } : {}),
     });

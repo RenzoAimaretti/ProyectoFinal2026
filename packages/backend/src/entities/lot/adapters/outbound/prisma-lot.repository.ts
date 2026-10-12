@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '../../../../../prisma/generated/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
+import { GeoJsonPolygon } from '../../domain/lot-polygon';
 import { LotRepositoryPort } from '../../application/lot.ports';
 import {
   CreateLotInput,
@@ -7,43 +9,67 @@ import {
   UpdateLotInput,
 } from '../../application/lot.types';
 
+/**
+ * `polygon` comes back from Prisma as `JsonValue`. Every write goes through
+ * `LotPolygon.fromGeoJson`, so a stored polygon already satisfies the frozen
+ * contract; this type states that invariant rather than re-validating on read.
+ */
+type LotRow = Omit<LotRecord, 'polygon'> & { polygon: unknown };
+
 @Injectable()
 export class PrismaLotRepository implements LotRepositoryPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAllByTenantId(tenantId: string): Promise<LotRecord[]> {
-    return this.prisma.lot.findMany({
+  async findAllByTenantId(tenantId: string): Promise<LotRecord[]> {
+    const lots = await this.prisma.lot.findMany({
       where: { farm: { client: { tenantId } } },
     });
+
+    return lots.map((lot) => this.toRecord(lot));
   }
 
-  findAllByClientId(clientId: string): Promise<LotRecord[]> {
-    return this.prisma.lot.findMany({
+  async findAllByClientId(clientId: string): Promise<LotRecord[]> {
+    const lots = await this.prisma.lot.findMany({
       where: { farm: { clientId } },
     });
+
+    return lots.map((lot) => this.toRecord(lot));
   }
 
-  findByIdForTenant(id: string, tenantId: string): Promise<LotRecord | null> {
-    return this.prisma.lot.findFirst({
+  async findByIdForTenant(
+    id: string,
+    tenantId: string,
+  ): Promise<LotRecord | null> {
+    const lot = await this.prisma.lot.findFirst({
       where: { id, farm: { client: { tenantId } } },
     });
+
+    return lot ? this.toRecord(lot) : null;
   }
 
-  findByNameAndFarmId(name: string, farmId: string): Promise<LotRecord | null> {
-    return this.prisma.lot.findFirst({
-      where: { name, farmId },
-    });
+  async findByNameAndFarmId(
+    name: string,
+    farmId: string,
+  ): Promise<LotRecord | null> {
+    const lot = await this.prisma.lot.findFirst({ where: { name, farmId } });
+
+    return lot ? this.toRecord(lot) : null;
   }
 
-  create(data: CreateLotInput): Promise<LotRecord> {
-    return this.prisma.lot.create({
+  async create(data: CreateLotInput): Promise<LotRecord> {
+    const lot = await this.prisma.lot.create({
       data: {
         name: data.name,
         farmId: data.farmId,
-        coords: data.coords,
+        ...(data.coords !== undefined ? { coords: data.coords } : {}),
+        ...(data.polygon !== undefined
+          ? { polygon: data.polygon as Prisma.InputJsonValue }
+          : {}),
         area: data.area,
       },
     });
+
+    return this.toRecord(lot);
   }
 
   async updateForTenant(
@@ -60,15 +86,24 @@ export class PrismaLotRepository implements LotRepositoryPort {
       throw new Error(`Lot with id ${id} not found for tenant ${tenantId}`);
     }
 
-    return this.prisma.lot.update({
+    const updated = await this.prisma.lot.update({
       where: { id: lot.id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.farmId !== undefined ? { farmId: data.farmId } : {}),
         ...(data.coords !== undefined ? { coords: data.coords } : {}),
+        ...(data.polygon !== undefined
+          ? { polygon: data.polygon as Prisma.InputJsonValue }
+          : {}),
         ...(data.area !== undefined ? { area: data.area } : {}),
         ...(data.active !== undefined ? { active: data.active } : {}),
       },
     });
+
+    return this.toRecord(updated);
+  }
+
+  private toRecord(lot: LotRow): LotRecord {
+    return { ...lot, polygon: lot.polygon as GeoJsonPolygon | null };
   }
 }

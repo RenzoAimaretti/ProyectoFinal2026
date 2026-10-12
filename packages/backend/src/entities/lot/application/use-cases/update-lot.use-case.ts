@@ -5,7 +5,11 @@ import {
 } from '../../domain/errors';
 import { FarmReaderPort, LotRepositoryPort } from '../lot.ports';
 import { LotRecord, UpdateLotInput } from '../lot.types';
-import { assertPositiveNumber, assertRequiredString } from '../lot.validation';
+import {
+  assertOptionalPolygon,
+  assertPositiveNumber,
+  assertRequiredString,
+} from '../lot.validation';
 
 export class UpdateLotUseCase {
   constructor(
@@ -26,6 +30,7 @@ export class UpdateLotUseCase {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.farmId !== undefined ? { farmId: data.farmId } : {}),
       ...(data.coords !== undefined ? { coords: data.coords } : {}),
+      ...(data.polygon !== undefined ? { polygon: data.polygon } : {}),
       ...(data.area !== undefined ? { area: data.area } : {}),
       ...(data.active !== undefined ? { active: data.active } : {}),
     };
@@ -47,6 +52,10 @@ export class UpdateLotUseCase {
 
     if (sanitizedData.coords !== undefined) {
       updateData.coords = sanitizedData.coords;
+    }
+
+    if (sanitizedData.polygon !== undefined) {
+      updateData.polygon = assertOptionalPolygon(sanitizedData.polygon);
     }
 
     if (sanitizedData.farmId !== undefined) {

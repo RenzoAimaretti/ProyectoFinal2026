@@ -93,4 +93,38 @@ describe('LotController', () => {
       farmId: 'farm-1',
     });
   });
+
+  it('forwards the polygon to the service on create and on update', async () => {
+    service.create.mockResolvedValue({ id: 'lot-2' });
+    service.update.mockResolvedValue({ id: 'lot-1' });
+
+    const req = { user: { id: 'user-1', tenantId: 'tenant-1', role: 'ADMIN' } };
+    const polygon = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+        ],
+      ],
+    };
+
+    await controller.create(req, {
+      name: 'North pasture',
+      farmId: 'farm-1',
+      polygon,
+      area: 12.5,
+    });
+    await controller.update('lot-1', req, { polygon });
+
+    expect(service.create).toHaveBeenCalledWith('tenant-1', {
+      name: 'North pasture',
+      farmId: 'farm-1',
+      polygon,
+      area: 12.5,
+    });
+    expect(service.update).toHaveBeenCalledWith('lot-1', 'tenant-1', { polygon });
+  });
 });
