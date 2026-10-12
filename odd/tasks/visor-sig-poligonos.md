@@ -116,6 +116,32 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   - Errors and identifiers in English; Spanish domain vocabulary where the schema
     already uses it.
 
+- **S11 — Lot state derivation (authored here, frozen as the derivation contract).**
+  `LotState` is one of `libre`, `sembrado`, `aplicado`, `cosechado`, spelled exactly
+  as S3 spells them. It is **never stored**: `GET /lots` and `GET /lots/:id` return it
+  as a projection, so it cannot drift away from the history that produces it.
+
+  Each event proposes a state:
+  - kind `SIEMBRA` → `sembrado`
+  - kind `PULVERIZACION` or `FERTILIZACION` → `aplicado`
+  - kind `COSECHA` → `cosechado`
+  - kind `OTRO` → **no event at all**, it changes nothing. An unclassified catalogue
+    therefore leaves every lot `libre`, which is honest rather than a guess.
+  - an `ACTIVA` recipe for the lot → `aplicado` (S6's reinforcement)
+
+  What counts as an event, and what date it carries:
+  - a daily report whose status is **not** `RECHAZADO`, dated by `date`; a rejected
+    report describes work that did not happen
+  - a task with status `FINALIZADA` **and** a `finishedAt`, dated by `finishedAt`; a
+    pending task is a plan, not history
+  - an `ACTIVA` recipe, dated by `date`
+
+  Resolution: **the most recent event wins**, because that is what the lot looks like
+  now — a sown lot that is later sprayed reads `aplicado`, and a lot sown again after a
+  harvest reads `sembrado`. With no events the state is `libre`. Events that share a
+  timestamp are broken by seasonal order — `cosechado` > `aplicado` > `sembrado` — so
+  the answer never depends on the order the rows came back from the database.
+
 ## Tasks
 
 - [x] **T01 — `Lot.polygon` + additive migration** (S2, S4, S9-partial, S10)
@@ -207,12 +233,28 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
     since `tsconfig.build.json` carries no narrower `include`.
   - Commit: `eea47b8`.
 
-- [ ] **T05 — Lot state derivation** (S3, S5, S6)
+- [x] **T05 — Lot state derivation** (S3, S5, S6, S11)
   - Route: inline.
-  - `LotState` computed from the latest classified event, with `Recipe` reinforcing
-    `aplicado`; never persisted; exposed as a read projection on `/lots`.
-  - Check (RED first): each of the four states, plus the no-history default.
-  - Commit: _pending_.
+  - `domain/lot-state.ts` holds `LOT_STATES`, `LotState`, the fact types and the pure
+    `deriveLotState`; the rules it implements are S11.
+  - `application/use-cases/derive-lot-states.use-case.ts` is a **new** use case rather
+    than a change to `FindAllLotsUseCase`: the read keeps its narrow responsibility and
+    the projection is its own tested unit. It short-circuits an empty lot list, and it
+    copies rather than mutates the records it receives (asserted).
+  - `adapters/outbound/prisma-lot-history.reader.ts` reads all three sources in one
+    query each, so a list of lots costs three queries and not three per lot. It also
+    gives every requested lot an entry, so the caller never has to tell "no history"
+    from "not asked for".
+  - `lot.service.ts` composes it on the list, the client-scoped list and the detail,
+    so the projection cannot be present on one route and missing on another.
+  - Evidence: `lot-state.rules.spec.ts`, `derive-lot-states.use-case.spec.ts` and
+    `prisma-lot-history.reader.spec.ts` are new; `lot.module.spec.ts` is new too and
+    asserts the DI graph reaches the history port, because a mis-wired token fails at
+    application boot and no unit test would catch it. The module runs **106 tests
+    across 8 suites**. Full-suite numbers in L21.
+  - **RED was not observed for this task** — the implementation was written before the
+    specs were first executed. L22 records the mutation check that was run instead.
+  - Commit: `31f7b7e`.
 
 - [ ] **T06 — Real viewer** (S3, S7, S10)
   - Route: inline; `frontend-design` and `flutter-*-layout` skills are not applicable
@@ -397,3 +439,33 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   `pnpm --filter nextjs build` exit 0. The seed was proven on a scratch database rather
   than by inspection, because a wrong enum member in `prisma/seed.ts` is only a string
   until a database rejects it.
+
+- **L21 — T05 done, and S11 was written to freeze it** (2026-10-12): the lot state is
+  derived in the domain and returned as a projection on both `/lots` and `/lots/:id`.
+  Writing S11 exposed something worth stating out loud: a labour whose kind is `OTRO`
+  is **not an event**, so with the seeded vocabulary the only lots that leave `libre`
+  are the ones with a classified labour — and because no seeded labour is `COSECHA`,
+  `cosechado` cannot occur from the seed. That is the honest consequence of T04's
+  finding, not a gap to paper over with a guessed default.
+
+  Evidence at close: **103 suites / 998 tests green**, `nest build` clean, and
+  `pnpm --filter nextjs build` exit 0. Commit `31f7b7e`.
+
+- **L22 — declared deviation: RED was not observed for T05** (2026-10-12): the three new
+  spec files were written and then the implementation was written immediately after,
+  and the first execution already passed — 102 tests green. No RED was seen. Rather
+  than claim test-first on a run that never failed, a mutation check was run: the body
+  of `deriveLotState` was replaced with a bare `return "libre";`, the domain specs were
+  executed, and **12 of 18 tests failed** while the six that legitimately expect `libre`
+  kept passing. The file was restored byte-identical from a backup and the restoration
+  was verified with `diff -q`. That establishes the tests are real checks rather than
+  restatements of the code, but it is not the same as observing RED, and it is recorded
+  as what it is.
+
+- **L23 — a client-side gap carried over from T03, closed here** (2026-10-12): the
+  backend has returned `polygon` on `/lots` since `9dd5994`, but `LotDTO` in
+  `packages/nextjs/src/api/client.ts` was never widened to declare it. Nothing consumed
+  the field, so no build failed — which is exactly why it went unnoticed. It is closed
+  now together with `state`, because T06 is the first consumer of both, and a silently
+  missing field in a hand-maintained DTO is the kind of thing that surfaces as
+  `undefined` at render time rather than as a compile error.
