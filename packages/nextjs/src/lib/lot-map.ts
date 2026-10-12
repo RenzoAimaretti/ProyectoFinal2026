@@ -79,6 +79,15 @@ export function boundsForPolygons(
 }
 
 /**
+ * A stable, cheap signature of a framed box, for deciding when to reframe. Derived
+ * from the bounds themselves rather than from lot ids: an edited polygon keeps its
+ * id and its derived state, so a signature built from those misses the edit.
+ */
+export function boundsSignature(bounds: LatLngBoundsTuple | null): string {
+  return bounds === null ? "none" : bounds.flat().join(",");
+}
+
+/**
  * How many of the given lots still have no geometry. Treats an absent field the
  * same as an explicit `null`: a counter that under-reports because the payload
  * omitted the field would be a quietly wrong number, which is worse than a

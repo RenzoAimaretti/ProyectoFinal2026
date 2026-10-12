@@ -6,6 +6,7 @@ import type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
 import {
   LOT_STATE_COLORS,
   boundsForPolygons,
+  boundsSignature,
   polygonToLatLngs,
   type LatLngBoundsTuple,
 } from "@/lib/lot-map";
@@ -49,15 +50,12 @@ export function LotMap({
     [lots],
   );
 
-  const boundsKey = useMemo(
-    () => drawable.map((entry) => `${entry.lot.id}:${entry.lot.state}`).join("|"),
+  const bounds = useMemo(
+    () => boundsForPolygons(drawable.map((entry) => entry.polygon)),
     [drawable],
   );
 
-  const bounds = useMemo(
-    () => boundsForPolygons(drawable.map((entry) => entry.polygon)),
-    [boundsKey, drawable],
-  );
+  const boundsKey = boundsSignature(bounds);
 
   if (drawable.length === 0) {
     return (
@@ -69,6 +67,7 @@ export function LotMap({
 
   return (
     <MapContainer
+      // The initial frame, so the map never renders at zoom 0 before FitBounds runs.
       bounds={bounds ?? undefined}
       scrollWheelZoom
       className="h-80 w-full"
