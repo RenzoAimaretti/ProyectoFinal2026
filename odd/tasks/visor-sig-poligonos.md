@@ -81,15 +81,27 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
 
 - **S9 — Polygon validity rules (authored here, frozen as the validator contract).**
   A stored polygon is a GeoJSON `Polygon` object. Rejected with `InvalidInputError`
-  carrying the exact message shown:
-  - not an object, or `type !== "Polygon"` → `polygon must be a GeoJSON Polygon`
-  - `coordinates` not an array of rings → `polygon coordinates must be an array of linear rings`
-  - outer ring with fewer than 3 distinct positions → `polygon ring must contain at least 3 distinct positions`
-  - ring not closed → `polygon ring must be closed: the first and last position must match`
-  - a position that is not `[number, number]` → `polygon position must be a [longitude, latitude] pair`
-  - longitude outside `[-180, 180]` → `polygon longitude must be between -180 and 180`
-  - latitude outside `[-90, 90]` → `polygon latitude must be between -90 and 90`
-  - ring that self-intersects → `polygon ring must not self-intersect`
+  carrying the exact message shown, and evaluated in this order, because the first
+  failing rule owns the message:
+  1. not an object, or `type !== "Polygon"` → `polygon must be a GeoJSON Polygon`
+  2. `coordinates` not a non-empty array of arrays → `polygon coordinates must be an array of linear rings`
+  3. a position that is not `[number, number]`, including a non-finite member → `polygon position must be a [longitude, latitude] pair`
+  4. longitude outside `[-180, 180]` → `polygon longitude must be between -180 and 180`
+  5. latitude outside `[-90, 90]` → `polygon latitude must be between -90 and 90`
+  6. fewer than 3 distinct positions → `polygon ring must contain at least 3 distinct positions`
+  7. a position repeated consecutively, which is a zero-length edge → `polygon ring must not repeat a position consecutively`
+  8. ring not closed → `polygon ring must be closed: the first and last position must match`
+  9. any contact between non-adjacent edges: a proper crossing, an endpoint on the
+     other edge, or a collinear overlap → `polygon ring must not self-intersect`
+
+  Rules 7 and 9 are why this list is not shorter: a zero-length edge is adjacent to
+  both edges it meets, so the self-intersection test can never see it, and a contact
+  test that only counted proper crossings let a pinched ring through. Both gaps were
+  found by independent verification and are now regression-tested.
+
+  **Accepted limitation, carried as debt in T08:** each ring is validated on its own,
+  so a hole that touches the exterior ring at a vertex or an edge is accepted. GeoJSON
+  requires a hole to lie inside the exterior ring without crossing it.
 
 - **S10 — Non-negotiable constraints.**
   - The domain layer must not import NestJS, Prisma, or generated Prisma models;
@@ -185,6 +197,15 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   - Route: inline.
   - Draw/edit tools saving against T03's endpoint.
   - Check: draw, save, reload, same position, area computed from geometry.
+  - Commit: _pending_.
+
+- [ ] **T08 — Cross-ring polygon validity** (S9, accepted debt)
+  - Route: inline, deferred.
+  - A hole that touches or crosses the exterior ring is currently accepted because
+    rings are validated independently. Close it when a real polygon editor makes it
+    reachable: the drawing tool of T07 cannot produce a hole today.
+  - Check (RED first): a polygon whose hole shares a vertex with the exterior ring is
+    rejected.
   - Commit: _pending_.
 
 ## Log
@@ -289,3 +310,32 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   `/dashboard/mi-campo` still prerendered; `prisma migrate diff` reporting no
   difference between the live database and `schema.prisma`. The backend is now able
   to store, validate and serve a real polygon. Nothing renders it yet: T04–T07 remain.
+
+- **L17 — the native assessment failed, so an independent verifier ran** (2026-10-12):
+  `assess` returned `risk: unassessable` with
+  `native review assess failed: Error: untracked files require an explicit declaration`,
+  caused by untracked paths that are not part of this feature (`.codegraph/`,
+  `openspec/config.yaml`, `packages/nextjs/AGENTS.md`, `packages/nextjs/CLAUDE.md`).
+  Its plan required `independentVerifier: true`, treated the candidate as high risk,
+  and that verifier found **two real defects**: the self-intersection test counted
+  only proper crossings (a ring pinched at a shared vertex, or with a collinear
+  overlap, was accepted), and the adapter's claimed invariant — "every write goes
+  through `LotPolygon.fromGeoJson`" — is false, because
+  `entities/client/adapters/outbound/prisma-client.repository.ts` also creates lots.
+  It also found two test-quality gaps: the message assertions used Jest's substring
+  form instead of equality, and the area assertions were broad bounds rather than a
+  reference. The untracked declaration remains open for the user; it is not mine to
+  settle.
+
+- **L18 — defects fixed and re-verified** (2026-10-12): `segmentsProperlyIntersect`
+  became `segmentsIntersect` and now also rejects an endpoint lying on the other
+  edge, which covers endpoint touching and collinear overlap; the redundant `2 +`
+  constant left the trapezoid term; the adapter comment now states the real
+  invariant and names the other writer. Message assertions became exact for all nine
+  rules, the area claims became a closed-form spherical-cell reference, and a
+  reversed-winding test was added. The second verification round confirmed no false
+  positives and the hole subtraction is winding-independent, but found **one surviving
+  defect**: a zero-length edge, from a consecutively repeated position, is adjacent to
+  both edges it meets and so was skipped — the new rule 7 of S9 closes it. That made
+  **S9 change**, so it is recorded here rather than slipped in silently. Evidence:
+  **99 suites / 948 tests green**, `nest build` clean.
