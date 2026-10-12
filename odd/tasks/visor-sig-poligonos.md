@@ -280,7 +280,7 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
     helpers were compiled with `tsc` and executed with `node` against 8 assertions, the
     only part of a UI change that can be checked without a browser. See L24.
   - **The viewer's runtime behaviour is unverified.** See L25 and T09.
-  - Commit: `6d03dae`.
+  - Commit: `6d03dae`, plus `ff2a426` for the defect L26 records.
 
 - [ ] **T09 — Verify the viewer in a browser** (S3, blocked on a human)
   - Route: not delegable. I cannot open a browser.
@@ -532,3 +532,24 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   area would contradict the declared `area` on every demo lot and there is still no
   decision about which of the two wins. Two ways to see it work: finish T07 and draw
   one, or `PUT /lots/:id` with a hand-written polygon for a smoke test.
+
+- **L26 — T06 verified, one real defect found and fixed** (2026-10-12): an independent
+  verifier confirmed the highest-risk line with a worked example rather than by reading
+  variable names. The square fixture reaches Leaflet as latitude −33.4..−33.3 and
+  longitude −62.3..−62.2, which is Argentina and consistent with the seed's
+  `33° 23' S · 62° 18' O`, so the swap is correct. It also confirmed the empty state is
+  honest, Leaflet's stylesheet is imported exactly once, the React 19 peers resolve in
+  the lockfile, and `charts.tsx` lost nothing but `SatelliteMap`.
+
+  It found **one reproducible defect**. The reframe key was built from lot ids and
+  derived states, so a polygon whose coordinates changed while its id and state stayed
+  the same left the map framed on the old shape. That is precisely what drawing and
+  adjusting a polygon does, which means the bug was scheduled to land with T07. Fixed
+  in `ff2a426` by keying on the signature of the framed box itself: when the box does
+  not change, reframing would be a no-op anyway. The regression is now asserted in the
+  pure helper check, which runs 11 assertions.
+
+  It judged the `bounds` prop on `MapContainer` together with `FitBounds`'s `fitBounds`
+  as harmless redundancy rather than a defect, because the prop prevents an initial
+  render at zoom 0. A comment now says so, so a reviewer does not read it as an
+  accident.
