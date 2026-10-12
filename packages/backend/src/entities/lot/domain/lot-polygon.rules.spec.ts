@@ -27,7 +27,7 @@ const concaveRing = [
   [0, 0],
 ];
 
-/** A bow-tie: four distinct positions, closed, in range, and self-intersecting. */
+/** A bow-tie: four distinct positions, closed, in range, and properly crossing. */
 const bowTieRing = [
   [0, 0],
   [2, 2],
@@ -35,6 +35,62 @@ const bowTieRing = [
   [0, 2],
   [0, 0],
 ];
+
+/**
+ * Pinched: edges (4,4)-(2,4) and (2,4)-(0,4) are not adjacent and both end on
+ * the shared vertex (2,4). No edge properly crosses another, so only a
+ * contact-aware test rejects it.
+ */
+const pinchedRing = [
+  [0, 0],
+  [4, 0],
+  [4, 4],
+  [2, 4],
+  [2, 2],
+  [2, 4],
+  [0, 4],
+  [0, 0],
+];
+
+/**
+ * Overlapping: edges (4,4)-(1,4) and (2,4)-(0,4) are collinear and share the
+ * span from (1,4) to (2,4). Every orientation is zero.
+ */
+const overlappingRing = [
+  [0, 0],
+  [4, 0],
+  [4, 4],
+  [1, 4],
+  [2, 4],
+  [0, 4],
+  [0, 0],
+];
+
+const EARTH_RADIUS_METERS = 6_371_008.8;
+
+function toRadians(degrees: number): number {
+  return (degrees * Math.PI) / 180;
+}
+
+/**
+ * Exact area of a spherical cell bounded by two meridians and two parallels.
+ * The trapezoid sum the value object uses is exact for this shape, so the
+ * comparison below is against an independent reference rather than a number
+ * derived from the implementation. The tolerance is `toBeCloseTo`'s, not the
+ * formula's: the two do agree to floating-point precision.
+ */
+function sphericalCellHectares(
+  latitude1: number,
+  latitude2: number,
+  longitudeSpanDegrees: number,
+): number {
+  const squareMeters =
+    EARTH_RADIUS_METERS ** 2 *
+    toRadians(longitudeSpanDegrees) *
+    (Math.sin(toRadians(latitude2)) - Math.sin(toRadians(latitude1)));
+
+  return squareMeters / 10_000;
+}
 
 function rejectionMessage(input: unknown): string {
   try {
@@ -50,6 +106,10 @@ function rejectionMessage(input: unknown): string {
   }
 
   throw new Error(`expected a rejection for ${JSON.stringify(input)}`);
+}
+
+function rejectionForCoordinates(coordinates: unknown): string {
+  return rejectionMessage({ type: 'Polygon', coordinates });
 }
 
 function fromCoordinates(coordinates: unknown) {
@@ -131,47 +191,6 @@ describe('LotPolygon domain rules', () => {
 
   it.each([
     [
-      'a ring with only two distinct positions',
-      [
-        [
-          [0, 0],
-          [1, 1],
-          [0, 0],
-        ],
-      ],
-    ],
-    [
-      'a ring that repeats one position',
-      [
-        [
-          [0, 0],
-          [0, 0],
-          [0, 0],
-          [0, 0],
-        ],
-      ],
-    ],
-  ])('rejects %s with the exact message', (_label, coordinates) => {
-    expect(fromCoordinates(coordinates)).toThrow(
-      'polygon ring must contain at least 3 distinct positions',
-    );
-  });
-
-  it('rejects a ring whose first and last positions differ', () => {
-    expect(
-      fromCoordinates([
-        [
-          [0, 0],
-          [1, 0],
-          [1, 1],
-          [0, 1],
-        ],
-      ]),
-    ).toThrow('polygon ring must be closed: the first and last position must match');
-  });
-
-  it.each([
-    [
       'a position with a single member',
       [
         [
@@ -216,7 +235,7 @@ describe('LotPolygon domain rules', () => {
       ],
     ],
   ])('rejects %s with the exact message', (_label, coordinates) => {
-    expect(fromCoordinates(coordinates)).toThrow(
+    expect(rejectionForCoordinates(coordinates)).toBe(
       'polygon position must be a [longitude, latitude] pair',
     );
   });
@@ -245,7 +264,7 @@ describe('LotPolygon domain rules', () => {
       ],
     ],
   ])('rejects %s with the exact message', (_label, coordinates) => {
-    expect(fromCoordinates(coordinates)).toThrow(
+    expect(rejectionForCoordinates(coordinates)).toBe(
       'polygon longitude must be between -180 and 180',
     );
   });
@@ -274,29 +293,117 @@ describe('LotPolygon domain rules', () => {
       ],
     ],
   ])('rejects %s with the exact message', (_label, coordinates) => {
-    expect(fromCoordinates(coordinates)).toThrow(
+    expect(rejectionForCoordinates(coordinates)).toBe(
       'polygon latitude must be between -90 and 90',
     );
   });
 
-  it('rejects a self-intersecting ring with the exact message', () => {
-    expect(fromCoordinates([bowTieRing])).toThrow(
+  it.each([
+    [
+      'a ring with only two distinct positions',
+      [
+        [
+          [0, 0],
+          [1, 1],
+          [0, 0],
+        ],
+      ],
+    ],
+    [
+      'a ring that repeats one position',
+      [
+        [
+          [0, 0],
+          [0, 0],
+          [0, 0],
+          [0, 0],
+        ],
+      ],
+    ],
+  ])('rejects %s with the exact message', (_label, coordinates) => {
+    expect(rejectionForCoordinates(coordinates)).toBe(
+      'polygon ring must contain at least 3 distinct positions',
+    );
+  });
+
+  it('rejects a ring that repeats a position consecutively', () => {
+    // The zero-length edge (1,0)-(1,0) is adjacent to both edges it meets, so
+    // only an explicit rule can catch it.
+    expect(
+      rejectionForCoordinates([
+        [
+          [0, 0],
+          [1, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+          [0, 0],
+        ],
+      ]),
+    ).toBe('polygon ring must not repeat a position consecutively');
+  });
+
+  it('still reports the weaker distinct-position rule first', () => {
+    expect(
+      rejectionForCoordinates([
+        [
+          [0, 0],
+          [0, 0],
+          [0, 0],
+          [0, 0],
+        ],
+      ]),
+    ).toBe('polygon ring must contain at least 3 distinct positions');
+  });
+
+  it('rejects a ring whose first and last positions differ', () => {
+    expect(
+      rejectionForCoordinates([
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+        ],
+      ]),
+    ).toBe(
+      'polygon ring must be closed: the first and last position must match',
+    );
+  });
+
+  it.each([
+    ['a properly crossing ring', bowTieRing],
+    ['a ring pinched at a shared vertex', pinchedRing],
+    ['a ring with a collinear overlap', overlappingRing],
+  ])('rejects %s with the exact message', (_label, ring) => {
+    expect(rejectionForCoordinates([ring])).toBe(
       'polygon ring must not self-intersect',
     );
   });
 
   it('rejects a hole that self-intersects', () => {
-    expect(fromCoordinates([concaveRing, bowTieRing])).toThrow(
+    expect(rejectionForCoordinates([concaveRing, bowTieRing])).toBe(
       'polygon ring must not self-intersect',
     );
   });
 
-  it('reports the area in hectares, computed from the geometry', () => {
-    const area = LotPolygon.fromGeoJson(closedSquare).areaHectares();
+  it('matches the closed-form area of a spherical cell', () => {
+    const expected = sphericalCellHectares(-33.4, -33.3, 0.1);
 
-    // A 0.1° x 0.1° cell near 33.35°S is about 103 km².
-    expect(area).toBeGreaterThan(10_200);
-    expect(area).toBeLessThan(10_400);
+    expect(LotPolygon.fromGeoJson(closedSquare).areaHectares()).toBeCloseTo(
+      expected,
+      2,
+    );
+  });
+
+  it('reports the same area for a ring wound the other way round', () => {
+    const forward = LotPolygon.fromGeoJson(closedSquare).areaHectares();
+    const reversed = LotPolygon.fromGeoJson({
+      type: 'Polygon',
+      coordinates: [[...closedSquare.coordinates[0]].reverse()],
+    }).areaHectares();
+
+    expect(reversed).toBeCloseTo(forward, 6);
   });
 
   it('subtracts the area of a hole', () => {
@@ -315,8 +422,12 @@ describe('LotPolygon domain rules', () => {
       ],
     }).areaHectares();
 
+    // The hole is a 0.06° x 0.06° spherical cell inside the square.
+    expect(holed).toBeCloseTo(
+      outer - sphericalCellHectares(-33.38, -33.32, 0.06),
+      2,
+    );
     expect(holed).toBeLessThan(outer);
-    expect(holed).toBeGreaterThan(outer * 0.5);
   });
 
   it('round-trips through GeoJSON without changing the geometry', () => {

@@ -10,9 +10,12 @@ import {
 } from '../../application/lot.types';
 
 /**
- * `polygon` comes back from Prisma as `JsonValue`. Every write goes through
- * `LotPolygon.fromGeoJson`, so a stored polygon already satisfies the frozen
- * contract; this type states that invariant rather than re-validating on read.
+ * `polygon` comes back from Prisma as `JsonValue` and is narrowed here. The
+ * lot module's own writes all pass through `LotPolygon.fromGeoJson`, so a row
+ * written by `POST /lots` is always valid. That is not a database-wide
+ * invariant: `packages/backend/src/entities/client/adapters/outbound/prisma-client.repository.ts`
+ * also creates lots with `tx.lot.create`, and a direct SQL write can bypass
+ * validation entirely. Those writers must not put a polygon in this column.
  */
 type LotRow = Omit<LotRecord, 'polygon'> & { polygon: unknown };
 
