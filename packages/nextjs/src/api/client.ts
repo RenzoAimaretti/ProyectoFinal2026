@@ -303,13 +303,9 @@ export type FarmDTO = {
   surface: number;
 };
 
-export type GeoJsonPolygon = {
-  type: "Polygon";
-  coordinates: [number, number][][];
-};
+import type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
 
-/** Spelled exactly as `doc/vision.md:86` names them. Derived server-side, never stored. */
-export type LotState = "libre" | "sembrado" | "aplicado" | "cosechado";
+export type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
 
 export type LotDTO = {
   id: string;

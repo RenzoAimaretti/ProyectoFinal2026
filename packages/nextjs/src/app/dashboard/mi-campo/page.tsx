@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/ui/layout";
 import {
@@ -14,16 +15,24 @@ import { Spinner } from "@/components/ui/spinner";
 import { FieldIcon, MapZoomIcon } from "@/components/ui/icons";
 import { isClientRole, navItems } from "@/components/ui/nav";
 import { useAuth } from "@/components/ui/auth";
-import { SatelliteMap } from "@/components/ui/charts";
+import {
+  LOT_STATE_COLORS,
+  LOT_STATE_LABELS,
+  LOT_STATES,
+  countUndelimited,
+} from "@/lib/lot-map";
 import { apiGet, type FarmDTO, type LotDTO } from "@/api/client";
 
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 2.5;
-const ZOOM_STEP = 0.25;
-
-function clampZoom(value: number): number {
-  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
-}
+/** Leaflet touches `window` when it is imported, so it can only load in the browser. */
+const LotMap = dynamic(
+  () => import("@/components/ui/lot-map").then((mod) => mod.LotMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-80 w-full animate-pulse border-t border-agro-border bg-base-subtle" />
+    ),
+  },
+);
 
 export default function MiCampoPage() {
   const { user } = useAuth();
@@ -36,7 +45,6 @@ export default function MiCampoPage() {
 
   const [cliente, setCliente] = useState("");
   const [selected, setSelected] = useState("");
-  const [zoom, setZoom] = useState(MIN_ZOOM);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -87,6 +95,11 @@ export default function MiCampoPage() {
   );
 
   const activeLots = lotesActuales.filter((l) => l.active).length;
+
+  const sinDelimitar = useMemo(
+    () => countUndelimited(lotesActuales),
+    [lotesActuales],
+  );
 
   if (loading) {
     return (
@@ -210,47 +223,29 @@ export default function MiCampoPage() {
             </div>
           )}
 
-          <div className="relative overflow-hidden">
-            <div
-              className="origin-center transition-transform duration-300"
-              style={{ transform: `scale(${zoom})` }}
-            >
-              <SatelliteMap className="h-64 w-full" />
-            </div>
+          <LotMap
+            lots={lotesActuales}
+            selectedLotId={sel?.id ?? null}
+            onSelectLot={setSelected}
+            emptyLabel="Todavía no hay ningún lote con el polígono delimitado en este campo."
+          />
 
-            <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-lg shadow-float ring-1 ring-agro-border">
-              <button
-                type="button"
-                title="Acercar el mapa"
-                aria-label="Acercar el mapa"
-                onClick={() => setZoom((z) => clampZoom(z + ZOOM_STEP))}
-                disabled={zoom >= MAX_ZOOM}
-                className="flex h-8 w-8 items-center justify-center bg-card text-ink transition-colors hover:bg-base-subtle disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                +
-              </button>
-              <button
-                type="button"
-                title="Alejar el mapa"
-                aria-label="Alejar el mapa"
-                onClick={() => setZoom((z) => clampZoom(z - ZOOM_STEP))}
-                disabled={zoom <= MIN_ZOOM}
-                className="flex h-8 w-8 items-center justify-center border-t border-agro-border bg-card text-ink transition-colors hover:bg-base-subtle disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                −
-              </button>
-            </div>
-
-            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-4 py-2 text-[11px] text-white/85">
-              <span>Vista de referencia · no representa la geometría real</span>
-              <span>{zoom.toFixed(2)}×</span>
-            </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-agro-border px-5 py-3 text-xs text-ink-soft">
+            {LOT_STATES.map((state) => (
+              <span key={state} className="inline-flex items-center gap-1.5">
+                <span
+                  className="h-2.5 w-2.5 rounded-sm ring-1 ring-black/10"
+                  style={{ backgroundColor: LOT_STATE_COLORS[state] }}
+                />
+                {LOT_STATE_LABELS[state]}
+              </span>
+            ))}
+            <span className="text-ink-faint">
+              {sinDelimitar === 0
+                ? `${lotesActuales.length} de ${lotesActuales.length} lotes delimitados`
+                : `${sinDelimitar} de ${lotesActuales.length} lotes sin delimitar`}
+            </span>
           </div>
-
-          <p className="border-t border-agro-border px-5 py-3 text-xs text-ink-soft">
-            La imagen es ilustrativa. El dibujo de la geometría real de cada lote está
-            <span className="font-semibold text-ink"> Proximamente</span>.
-          </p>
         </Card>
 
         {/* KPIs reales del establecimiento */}
@@ -298,10 +293,14 @@ export default function MiCampoPage() {
             <div className="space-y-1.5 px-5 py-4">
               <StatRow label="Establecimiento" value={currentFarm.name} />
               <StatRow label="Superficie" value={`${sel.area} ha`} />
-              <StatRow label="Estado" value={sel.active ? "Activo" : "Inactivo"} />
+              <StatRow
+                label="Estado agronómico"
+                value={LOT_STATE_LABELS[sel.state]}
+              />
+              <StatRow label="Activo" value={sel.active ? "Sí" : "No"} />
               <StatRow
                 label="Geometría"
-                value={sel.coords ? "Disponible en el backend" : "Sin coordenadas cargadas"}
+                value={sel.polygon ? "Polígono delimitado" : "Sin delimitar"}
               />
             </div>
           ) : (
