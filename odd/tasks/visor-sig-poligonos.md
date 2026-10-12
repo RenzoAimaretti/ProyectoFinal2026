@@ -169,12 +169,43 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
     `/dashboard/mi-campo`, so the dashboards that read `/lots` did not break.
   - Commit: `9dd5994`.
 
-- [ ] **T04 — `LaborType.kind` + admin UI** (S6)
-  - Route: delegated writer if it splits into backend + nextjs surfaces, else inline.
-  - Additive enum on `LaborType`, assigned by the admin reusing the sprint-2 catalogue
-    screens; seeded vocabulary for the existing labour types.
-  - Check (RED first): derivation can classify each seeded labour type.
-  - Commit: _pending_.
+- [x] **T04 — `LaborType.kind` + admin UI** (S6)
+  - Route: inline.
+  - `enum LaborKind { SIEMBRA PULVERIZACION FERTILIZACION COSECHA OTRO }` in
+    `prisma/schema.prisma`, plus `LaborType.kind LaborKind @default(OTRO)`. Migration
+    `20261012161801_add_labor_kind`, additive with a default, so existing rows become
+    `OTRO` rather than failing.
+  - `domain/labor-kind.ts` owns the vocabulary and `assertLaborKind`. Its message is
+    built from `LABOR_KINDS` (`kind must be one of ${LABOR_KINDS.join(', ')}`) so the
+    list can never drift from the message that describes it.
+  - `kind` travels create → port → adapter. The port makes it **required** on create,
+    so no future caller can silently lean on the database default.
+  - Admin UI: a `SelectField` on `/dashboard/labores`, rendering `OTRO` as
+    "Sin clasificar", plus a `Tipo` column so the admin can see what is classified.
+    `kind` is required on `LaborTypeDTO` because the column is `NOT NULL` with a
+    default: a missing value is a wiring bug, not a case to paper over.
+  - Seeded vocabulary: `Pulverización` → `PULVERIZACION`, `Fertilización` →
+    `FERTILIZACION`, `Siembra` → `SIEMBRA`, and `Arranque de equipo`, `Traslado`,
+    `Pesaje` → `OTRO`. `Arranque de equipo` is *"Puesta en marcha y checklist"*, not a
+    harvest, so it is left unclassified instead of guessed from its name — which is
+    the entire point of having the column.
+  - **`COSECHA` has no seeded labour type**, so `cosechado` stays unreachable until a
+    tenant classifies a labour as such. Adding a `Cosecha` labour to the seed would
+    be inventing vocabulary the client never gave.
+  - Evidence: RED first — 5 suites failing with the missing `./labor-kind` module,
+    `TS2353` for `kind` on three input types, and the schema assertions. Then green at
+    **8 suites / 55 tests** in the module.
+  - End-to-end beyond the unit tests: a scratch database `labor_kind_check` received
+    `prisma migrate deploy` (every migration applied from empty), then the seed ran
+    against it, and `SELECT name, kind FROM "LaborType"` returned exactly six rows:
+    `Siembra` → SIEMBRA, `Pulverización` → PULVERIZACION, `Fertilización` →
+    FERTILIZACION, and `Arranque de equipo`, `Pesaje`, `Traslado` → OTRO. The scratch
+    database was dropped again. The development database was never seeded, because the
+    seed wipes demo data.
+  - Consumer check: `pnpm --filter nextjs build` exits 0 with `/dashboard/labores`
+    prerendering, and `nest build` is clean — which also type checks `prisma/seed.ts`,
+    since `tsconfig.build.json` carries no narrower `include`.
+  - Commit: `eea47b8`.
 
 - [ ] **T05 — Lot state derivation** (S3, S5, S6)
   - Route: inline.
@@ -339,3 +370,30 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   both edges it meets and so was skipped — the new rule 7 of S9 closes it. That made
   **S9 change**, so it is recorded here rather than slipped in silently. Evidence:
   **99 suites / 948 tests green**, `nest build` clean.
+
+- **L19 — `prisma migrate dev` does not regenerate the client in this repository**
+  (2026-10-12): Prisma 7 reads `prisma.config.ts` here, and `migrate dev` applies the
+  migration, reports the database in sync, and leaves `prisma/generated/**` stale.
+  Both T01 and T04 needed an explicit `npx prisma generate`. The failure mode is
+  confusing: the new column exists in the database and in `schema.prisma`, but every
+  Prisma call in the adapter fails type checking because the generated model lacks the
+  field. Run `prisma generate` after every schema change, before trusting a test run.
+
+- **L20 — T04 done, and one vocabulary gap it exposed** (2026-10-12): `LaborType.kind`
+  now exists end to end, with the admin able to classify a labour from
+  `/dashboard/labores`. Two contract notes: the create port requires `kind`, so the
+  adapter can no longer rely on the database default and the repository spec's create
+  assertion had to name `OTRO`; and `POST`/`PUT /labor-types` accept `kind`, which
+  reaches the client through the existing `BadRequestException(error.message)` mapping
+  in `labor-type.service.ts` with no change needed there.
+
+  The gap: **no seeded labour type is `COSECHA`**. The catalogue has Pulverización,
+  Fertilización, Siembra, Arranque de equipo, Traslado and Pesaje, and only the first
+  three describe a crop action. So `cosechado` is unreachable from the seed, and T05
+  must derive it only when a tenant creates or reclassifies a harvest labour. Recorded
+  rather than worked around by inventing a `Cosecha` row.
+
+  Evidence: RED first, then **100 suites / 974 tests green**, `nest build` clean, and
+  `pnpm --filter nextjs build` exit 0. The seed was proven on a scratch database rather
+  than by inspection, because a wrong enum member in `prisma/seed.ts` is only a string
+  until a database rejects it.
