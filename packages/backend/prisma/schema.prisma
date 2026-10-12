@@ -256,7 +256,13 @@ model Lot {
   id        String   @id @default(uuid())
   farmId    String
   name      String
+  // Legado: texto de display en DMS (ej. "33° 23' S · 62° 18' O"), no es dato
+  // geoespacial ni se puede convertir a geometria. Se deprecia, nunca se borra:
+  // el cliente movil lo persiste como columna drift.
   coords    String?
+  // Poligono GeoJSON (RFC 7946) validado en dominio. Nullable a proposito: CUU02
+  // dice que crear el lote y delimitar su poligono son momentos distintos.
+  polygon   Json?
   area      Float
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
