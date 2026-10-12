@@ -51,10 +51,12 @@ describe('Lot use cases', () => {
     const files = [
       'domain/errors.ts',
       'domain/lot-polygon.ts',
+      'domain/lot-state.ts',
       'application/lot.ports.ts',
       'application/lot.types.ts',
       'application/lot.validation.ts',
       'application/use-cases/create-lot.use-case.ts',
+      'application/use-cases/derive-lot-states.use-case.ts',
       'application/use-cases/find-all-lots.use-case.ts',
       'application/use-cases/find-lot.use-case.ts',
       'application/use-cases/update-lot.use-case.ts',

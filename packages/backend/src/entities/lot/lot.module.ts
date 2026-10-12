@@ -6,12 +6,16 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ClientModule } from '../client/client.module';
 import { PrismaLotRepository } from './adapters/outbound/prisma-lot.repository';
 import { PrismaFarmReader } from './adapters/outbound/prisma-farm.reader';
+import { PrismaLotHistoryReader } from './adapters/outbound/prisma-lot-history.reader';
 import {
   LOT_REPOSITORY,
   FARM_READER,
+  LOT_HISTORY_READER,
   LotRepositoryPort,
   FarmReaderPort,
+  LotHistoryReaderPort,
 } from './application/lot.ports';
+import { DeriveLotStatesUseCase } from './application/use-cases/derive-lot-states.use-case';
 import { FindAllLotsUseCase } from './application/use-cases/find-all-lots.use-case';
 import { FindLotUseCase } from './application/use-cases/find-lot.use-case';
 import { CreateLotUseCase } from './application/use-cases/create-lot.use-case';
@@ -25,6 +29,7 @@ import { UpdateLotUseCase } from './application/use-cases/update-lot.use-case';
     JwtAuthGuard,
     PrismaLotRepository,
     PrismaFarmReader,
+    PrismaLotHistoryReader,
     {
       provide: LOT_REPOSITORY,
       useExisting: PrismaLotRepository,
@@ -32,6 +37,16 @@ import { UpdateLotUseCase } from './application/use-cases/update-lot.use-case';
     {
       provide: FARM_READER,
       useExisting: PrismaFarmReader,
+    },
+    {
+      provide: LOT_HISTORY_READER,
+      useExisting: PrismaLotHistoryReader,
+    },
+    {
+      provide: DeriveLotStatesUseCase,
+      useFactory: (historyReader: LotHistoryReaderPort) =>
+        new DeriveLotStatesUseCase(historyReader),
+      inject: [LOT_HISTORY_READER],
     },
     {
       provide: FindAllLotsUseCase,

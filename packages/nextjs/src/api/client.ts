@@ -303,13 +303,24 @@ export type FarmDTO = {
   surface: number;
 };
 
+export type GeoJsonPolygon = {
+  type: "Polygon";
+  coordinates: [number, number][][];
+};
+
+/** Spelled exactly as `doc/vision.md:86` names them. Derived server-side, never stored. */
+export type LotState = "libre" | "sembrado" | "aplicado" | "cosechado";
+
 export type LotDTO = {
   id: string;
   farmId: string;
   name: string;
   coords: string | null;
+  /** GeoJSON polygon, or null until the lot has been delimited. */
+  polygon: GeoJsonPolygon | null;
   area: number;
   active: boolean;
+  state: LotState;
 };
 
 /**

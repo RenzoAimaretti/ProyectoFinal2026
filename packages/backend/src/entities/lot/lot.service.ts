@@ -15,6 +15,7 @@ import { CreateLotUseCase } from './application/use-cases/create-lot.use-case';
 import { FindAllLotsUseCase } from './application/use-cases/find-all-lots.use-case';
 import { FindLotUseCase } from './application/use-cases/find-lot.use-case';
 import { UpdateLotUseCase } from './application/use-cases/update-lot.use-case';
+import { DeriveLotStatesUseCase } from './application/use-cases/derive-lot-states.use-case';
 import { CreateLotInput, UpdateLotInput } from './application/lot.types';
 import {
   CLIENT_USER_READER,
@@ -28,13 +29,16 @@ export class LotService {
     private readonly findLotUseCase: FindLotUseCase,
     private readonly createLotUseCase: CreateLotUseCase,
     private readonly updateLotUseCase: UpdateLotUseCase,
+    private readonly deriveLotStates: DeriveLotStatesUseCase,
     @Inject(CLIENT_USER_READER)
     private readonly clientUserReader: ClientUserReaderPort,
   ) {}
 
   async findAll(tenantId: string) {
     try {
-      return await this.findAllLotsUseCase.execute(tenantId);
+      const lots = await this.findAllLotsUseCase.execute(tenantId);
+
+      return await this.deriveLotStates.execute(lots);
     } catch (error) {
       this.handleUnexpectedError('Error fetching lots', error);
     }
@@ -46,24 +50,33 @@ export class LotService {
    */
   async findAllForUser(tenantId: string, userId: string, role: string) {
     try {
-      if (role === 'PRODUCTOR') {
-        const clientId = await this.clientUserReader.findClientIdByUserId(userId);
-        if (!clientId) {
-          return [];
-        }
+      const lots =
+        role === 'PRODUCTOR'
+          ? await this.readLotsForClientUser(userId)
+          : await this.findAllLotsUseCase.execute(tenantId);
 
-        return await this.findAllLotsUseCase.executeByClient(clientId);
-      }
-
-      return await this.findAllLotsUseCase.execute(tenantId);
+      return await this.deriveLotStates.execute(lots);
     } catch (error) {
       this.handleUnexpectedError('Error fetching lots', error);
     }
   }
 
+  private async readLotsForClientUser(userId: string) {
+    const clientId = await this.clientUserReader.findClientIdByUserId(userId);
+
+    if (!clientId) {
+      return [];
+    }
+
+    return this.findAllLotsUseCase.executeByClient(clientId);
+  }
+
   async findOne(id: string, tenantId: string) {
     try {
-      return await this.findLotUseCase.execute(id, tenantId);
+      const lot = await this.findLotUseCase.execute(id, tenantId);
+      const [withState] = await this.deriveLotStates.execute([lot]);
+
+      return withState;
     } catch (error) {
       this.handleLotReadError('Error fetching lot', error);
     }
