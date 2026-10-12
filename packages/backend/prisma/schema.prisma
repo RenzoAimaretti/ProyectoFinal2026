@@ -206,6 +206,10 @@ model LaborType {
   tenantId    String
   name        String
   description String?
+  // Clase semantica de la labor, deliberadamente separada del nombre: el
+  // inquilino puede renombrar "Siembra" y el significado tiene que sobrevivir.
+  // OTRO = sin clasificar.
+  kind        LaborKind @default(OTRO)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   version     Int      @default(1)
@@ -689,4 +693,14 @@ enum InputUnit {
   L
   KG
   UNIT
+}
+
+// Clase semantica de una labor, para derivar el estado agronomico del lote sin
+// depender del texto de LaborType.name, que el inquilino puede renombrar.
+enum LaborKind {
+  SIEMBRA
+  PULVERIZACION
+  FERTILIZACION
+  COSECHA
+  OTRO
 }
