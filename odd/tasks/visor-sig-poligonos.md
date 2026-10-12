@@ -256,15 +256,43 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
     specs were first executed. L22 records the mutation check that was run instead.
   - Commit: `31f7b7e`.
 
-- [ ] **T06 — Real viewer** (S3, S7, S10)
-  - Route: inline; `frontend-design` and `flutter-*-layout` skills are not applicable
-    (this is React/Next.js).
-  - Real map library in `packages/nextjs`, polygons coloured by derived state, real
-    zoom/pan, fit-bounds to the selected farm, click-to-select. The `SatelliteMap`
-    mock and the "Proximamente" labels about geometry are removed only once true.
-  - Check: `pnpm --filter nextjs build`; manual pass on `/dashboard/mi-campo` as
-    ADMIN and as PRODUCTOR.
-  - Commit: _pending_.
+- [x] **T06 — Real viewer** (S3, S7, S10)
+  - Route: inline. `frontend-design` applies; the Flutter layout skills do not, because
+    this is React.
+  - `src/lib/geo-types.ts` now owns the geospatial vocabulary so `src/lib/lot-map.ts`
+    can be compiled and executed on its own, without pulling the fetch layer in.
+    `lot-map.ts` holds the pure parts: the lat/lng swap, the bounds union, the state
+    colours and the undelimited count.
+  - `src/components/ui/lot-map.tsx` is the Leaflet map, loaded through `next/dynamic`
+    with `ssr: false` because Leaflet touches `window` at import time. Leaflet's
+    stylesheet moved into `src/app/layout.tsx`, the canonical App Router place for a
+    global CSS import, plus a small override so the container inherits the app's font
+    and background instead of Leaflet's grey.
+  - The mock is gone: `SatelliteMap` was deleted from `charts.tsx` (33 lines), and the
+    fake zoom buttons, the `transform: scale()` and both the "no representa la
+    geometría real" and "Proximamente" labels went with it, because the thing they
+    disclaimed is now true. The KPI cards, the farm selector and the role scoping are
+    untouched. The NDVI, weather and soil-moisture placeholders stay, because those
+    are still true.
+  - Evidence: `pnpm --filter nextjs build` exits 0 with type checking **active** —
+    `next.config.ts` sets neither `ignoreBuildErrors` nor `ignoreDuringBuilds` — and
+    Leaflet really is in the bundle (a 152K JS chunk and an 88K CSS chunk). The pure
+    helpers were compiled with `tsc` and executed with `node` against 8 assertions, the
+    only part of a UI change that can be checked without a browser. See L24.
+  - **The viewer's runtime behaviour is unverified.** See L25 and T09.
+  - Commit: `6d03dae`.
+
+- [ ] **T09 — Verify the viewer in a browser** (S3, blocked on a human)
+  - Route: not delegable. I cannot open a browser.
+  - What to check on `/dashboard/mi-campo`, with an ADMIN user and with a PRODUCTOR
+    user: that the imagery tiles load; that a lot with a polygon is drawn in its real
+    position and not in the ocean; that its fill follows the derived state; that
+    clicking a polygon selects the lot; that switching farm re-frames the map without
+    a reload; and that the PRODUCTOR sees only their own client's lots.
+  - Prerequisite: the seeded lots have **no polygons**, so a fresh database shows only
+    the empty state. Either finish T07 and draw one, or `PUT /lots/:id` with a
+    hand-written polygon for a smoke test.
+  - Commit: none expected; this is a check.
 
 - [ ] **T07 — Drawing capture** (S7, S9)
   - Route: inline.
@@ -469,3 +497,38 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   now together with `state`, because T06 is the first consumer of both, and a silently
   missing field in a hand-maintained DTO is the kind of thing that surfaces as
   `undefined` at render time rather than as a compile error.
+
+- **L24 — T06: the map library, and what the standalone compile caught** (2026-10-12):
+  chose **Leaflet 1.9 + react-leaflet 5** over MapLibre GL. Raster tiles need no key,
+  the API is small enough to review, and the drawing tools T07 needs are mature.
+  MapLibre renders vectors better and is the stronger long-term answer, but it needs a
+  tile source with a token, and that is a decision for the team with a budget rather
+  than something to slip into a sprint. Imagery is Esri World Imagery, the same
+  "satellite" intent the mock announced, and it is documented as needing a real tile
+  contract before production.
+
+  Adding a runtime dependency is Risk item 5 and the only part of this corte that
+  touches the build.
+
+  The pure helpers were compiled with `tsc` into a scratch directory and executed with
+  `node` under 8 assertions. That caught two things `next build` would not have: a
+  missing `GeoJsonPosition` import, and `countUndelimited` returning 1 where I expected
+  2, because an absent `polygon` is `undefined` and not `null`. The second was both my
+  assertion being wrong about the world and the function being wrong about its
+  contract — a counter that under-reports when a field is absent is a quietly wrong
+  number — so it now treats absent and null alike.
+
+- **L25 — declared runtime verification gap for T06** (2026-10-12): `packages/nextjs`
+  has no test runner, so nothing about the viewer's behaviour is asserted: tiles
+  rendering, fit-bounds, click-to-select and colour are verified by compilation and by
+  reading, never by execution. I cannot open a browser, so this needs a human pass on
+  `/dashboard/mi-campo` with an ADMIN user and with a PRODUCTOR user before the corte
+  can be called done. The previous sprint carried the same kind of gap on its admin
+  screens, so it is recorded rather than hidden.
+
+  Practical consequence: the seeded lots have display-only `coords` and **no
+  polygons**, so a fresh database shows the viewer's empty state and nothing else.
+  Seed polygons were deliberately **not** invented, because a drawn polygon's computed
+  area would contradict the declared `area` on every demo lot and there is still no
+  decision about which of the two wins. Two ways to see it work: finish T07 and draw
+  one, or `PUT /lots/:id` with a hand-written polygon for a smoke test.
