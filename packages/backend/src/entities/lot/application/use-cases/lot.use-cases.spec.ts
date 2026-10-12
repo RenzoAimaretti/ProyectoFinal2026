@@ -48,6 +48,7 @@ describe('Lot use cases', () => {
     const basePath = join(process.cwd(), 'src/entities/lot');
     const files = [
       'domain/errors.ts',
+      'domain/lot-polygon.ts',
       'application/lot.ports.ts',
       'application/lot.types.ts',
       'application/lot.validation.ts',
