@@ -17,6 +17,7 @@ import 'daos/recipes_dao.dart';
 import 'daos/stocks_dao.dart';
 import 'daos/sync_queue_dao.dart';
 import 'daos/tasks_dao.dart';
+import 'daos/weather_cache_dao.dart';
 
 import 'tables/catalog_tables.dart';
 import 'tables/infra_tables.dart';
@@ -50,6 +51,7 @@ part 'app_database.g.dart';
     SyncQueue,
     Tasks,
     TaskOperators,
+    WeatherCache,
   ],
   daos: [
     CompaniesDao,
@@ -67,6 +69,7 @@ part 'app_database.g.dart';
     PhotosDao,
     SyncQueueDao,
     TasksDao,
+    WeatherCacheDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -76,7 +79,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -89,6 +92,10 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 3) {
             await m.addColumn(sessions, sessions.refreshToken);
+          }
+          if (from < 4) {
+            // Aditiva: tabla nueva, ninguna fila existente se toca.
+            await m.createTable(weatherCache);
           }
         },
         beforeOpen: (details) async {

@@ -10325,6 +10325,610 @@ class TaskOperatorsCompanion extends UpdateCompanion<TaskOperator> {
   }
 }
 
+class $WeatherCacheTable extends WeatherCache
+    with TableInfo<$WeatherCacheTable, WeatherCacheRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WeatherCacheTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _temperatureCMeta = const VerificationMeta(
+    'temperatureC',
+  );
+  @override
+  late final GeneratedColumn<double> temperatureC = GeneratedColumn<double>(
+    'temperature_c',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _windSpeedKnotsMeta = const VerificationMeta(
+    'windSpeedKnots',
+  );
+  @override
+  late final GeneratedColumn<double> windSpeedKnots = GeneratedColumn<double>(
+    'wind_speed_knots',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _windDirectionDegMeta = const VerificationMeta(
+    'windDirectionDeg',
+  );
+  @override
+  late final GeneratedColumn<double> windDirectionDeg = GeneratedColumn<double>(
+    'wind_direction_deg',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _precipitationMmMeta = const VerificationMeta(
+    'precipitationMm',
+  );
+  @override
+  late final GeneratedColumn<double> precipitationMm = GeneratedColumn<double>(
+    'precipitation_mm',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _precipitationProbabilityMaxMeta =
+      const VerificationMeta('precipitationProbabilityMax');
+  @override
+  late final GeneratedColumn<double> precipitationProbabilityMax =
+      GeneratedColumn<double>(
+        'precipitation_probability_max',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _resolvedFromMeta = const VerificationMeta(
+    'resolvedFrom',
+  );
+  @override
+  late final GeneratedColumn<String> resolvedFrom = GeneratedColumn<String>(
+    'resolved_from',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _staleMeta = const VerificationMeta('stale');
+  @override
+  late final GeneratedColumn<bool> stale = GeneratedColumn<bool>(
+    'stale',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("stale" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _fetchedAtMeta = const VerificationMeta(
+    'fetchedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
+    'fetched_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    temperatureC,
+    windSpeedKnots,
+    windDirectionDeg,
+    precipitationMm,
+    precipitationProbabilityMax,
+    resolvedFrom,
+    stale,
+    fetchedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'weather_cache';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WeatherCacheRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('temperature_c')) {
+      context.handle(
+        _temperatureCMeta,
+        temperatureC.isAcceptableOrUnknown(
+          data['temperature_c']!,
+          _temperatureCMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_temperatureCMeta);
+    }
+    if (data.containsKey('wind_speed_knots')) {
+      context.handle(
+        _windSpeedKnotsMeta,
+        windSpeedKnots.isAcceptableOrUnknown(
+          data['wind_speed_knots']!,
+          _windSpeedKnotsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_windSpeedKnotsMeta);
+    }
+    if (data.containsKey('wind_direction_deg')) {
+      context.handle(
+        _windDirectionDegMeta,
+        windDirectionDeg.isAcceptableOrUnknown(
+          data['wind_direction_deg']!,
+          _windDirectionDegMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_windDirectionDegMeta);
+    }
+    if (data.containsKey('precipitation_mm')) {
+      context.handle(
+        _precipitationMmMeta,
+        precipitationMm.isAcceptableOrUnknown(
+          data['precipitation_mm']!,
+          _precipitationMmMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_precipitationMmMeta);
+    }
+    if (data.containsKey('precipitation_probability_max')) {
+      context.handle(
+        _precipitationProbabilityMaxMeta,
+        precipitationProbabilityMax.isAcceptableOrUnknown(
+          data['precipitation_probability_max']!,
+          _precipitationProbabilityMaxMeta,
+        ),
+      );
+    }
+    if (data.containsKey('resolved_from')) {
+      context.handle(
+        _resolvedFromMeta,
+        resolvedFrom.isAcceptableOrUnknown(
+          data['resolved_from']!,
+          _resolvedFromMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_resolvedFromMeta);
+    }
+    if (data.containsKey('stale')) {
+      context.handle(
+        _staleMeta,
+        stale.isAcceptableOrUnknown(data['stale']!, _staleMeta),
+      );
+    }
+    if (data.containsKey('fetched_at')) {
+      context.handle(
+        _fetchedAtMeta,
+        fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fetchedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  WeatherCacheRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WeatherCacheRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      temperatureC: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}temperature_c'],
+      )!,
+      windSpeedKnots: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}wind_speed_knots'],
+      )!,
+      windDirectionDeg: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}wind_direction_deg'],
+      )!,
+      precipitationMm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}precipitation_mm'],
+      )!,
+      precipitationProbabilityMax: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}precipitation_probability_max'],
+      ),
+      resolvedFrom: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}resolved_from'],
+      )!,
+      stale: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}stale'],
+      )!,
+      fetchedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}fetched_at'],
+      )!,
+    );
+  }
+
+  @override
+  $WeatherCacheTable createAlias(String alias) {
+    return $WeatherCacheTable(attachedDatabase, alias);
+  }
+}
+
+class WeatherCacheRow extends DataClass implements Insertable<WeatherCacheRow> {
+  final String id;
+  final double temperatureC;
+  final double windSpeedKnots;
+  final double windDirectionDeg;
+  final double precipitationMm;
+  final double? precipitationProbabilityMax;
+  final String resolvedFrom;
+  final bool stale;
+  final DateTime fetchedAt;
+  const WeatherCacheRow({
+    required this.id,
+    required this.temperatureC,
+    required this.windSpeedKnots,
+    required this.windDirectionDeg,
+    required this.precipitationMm,
+    this.precipitationProbabilityMax,
+    required this.resolvedFrom,
+    required this.stale,
+    required this.fetchedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['temperature_c'] = Variable<double>(temperatureC);
+    map['wind_speed_knots'] = Variable<double>(windSpeedKnots);
+    map['wind_direction_deg'] = Variable<double>(windDirectionDeg);
+    map['precipitation_mm'] = Variable<double>(precipitationMm);
+    if (!nullToAbsent || precipitationProbabilityMax != null) {
+      map['precipitation_probability_max'] = Variable<double>(
+        precipitationProbabilityMax,
+      );
+    }
+    map['resolved_from'] = Variable<String>(resolvedFrom);
+    map['stale'] = Variable<bool>(stale);
+    map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    return map;
+  }
+
+  WeatherCacheCompanion toCompanion(bool nullToAbsent) {
+    return WeatherCacheCompanion(
+      id: Value(id),
+      temperatureC: Value(temperatureC),
+      windSpeedKnots: Value(windSpeedKnots),
+      windDirectionDeg: Value(windDirectionDeg),
+      precipitationMm: Value(precipitationMm),
+      precipitationProbabilityMax:
+          precipitationProbabilityMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(precipitationProbabilityMax),
+      resolvedFrom: Value(resolvedFrom),
+      stale: Value(stale),
+      fetchedAt: Value(fetchedAt),
+    );
+  }
+
+  factory WeatherCacheRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WeatherCacheRow(
+      id: serializer.fromJson<String>(json['id']),
+      temperatureC: serializer.fromJson<double>(json['temperatureC']),
+      windSpeedKnots: serializer.fromJson<double>(json['windSpeedKnots']),
+      windDirectionDeg: serializer.fromJson<double>(json['windDirectionDeg']),
+      precipitationMm: serializer.fromJson<double>(json['precipitationMm']),
+      precipitationProbabilityMax: serializer.fromJson<double?>(
+        json['precipitationProbabilityMax'],
+      ),
+      resolvedFrom: serializer.fromJson<String>(json['resolvedFrom']),
+      stale: serializer.fromJson<bool>(json['stale']),
+      fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'temperatureC': serializer.toJson<double>(temperatureC),
+      'windSpeedKnots': serializer.toJson<double>(windSpeedKnots),
+      'windDirectionDeg': serializer.toJson<double>(windDirectionDeg),
+      'precipitationMm': serializer.toJson<double>(precipitationMm),
+      'precipitationProbabilityMax': serializer.toJson<double?>(
+        precipitationProbabilityMax,
+      ),
+      'resolvedFrom': serializer.toJson<String>(resolvedFrom),
+      'stale': serializer.toJson<bool>(stale),
+      'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+    };
+  }
+
+  WeatherCacheRow copyWith({
+    String? id,
+    double? temperatureC,
+    double? windSpeedKnots,
+    double? windDirectionDeg,
+    double? precipitationMm,
+    Value<double?> precipitationProbabilityMax = const Value.absent(),
+    String? resolvedFrom,
+    bool? stale,
+    DateTime? fetchedAt,
+  }) => WeatherCacheRow(
+    id: id ?? this.id,
+    temperatureC: temperatureC ?? this.temperatureC,
+    windSpeedKnots: windSpeedKnots ?? this.windSpeedKnots,
+    windDirectionDeg: windDirectionDeg ?? this.windDirectionDeg,
+    precipitationMm: precipitationMm ?? this.precipitationMm,
+    precipitationProbabilityMax: precipitationProbabilityMax.present
+        ? precipitationProbabilityMax.value
+        : this.precipitationProbabilityMax,
+    resolvedFrom: resolvedFrom ?? this.resolvedFrom,
+    stale: stale ?? this.stale,
+    fetchedAt: fetchedAt ?? this.fetchedAt,
+  );
+  WeatherCacheRow copyWithCompanion(WeatherCacheCompanion data) {
+    return WeatherCacheRow(
+      id: data.id.present ? data.id.value : this.id,
+      temperatureC: data.temperatureC.present
+          ? data.temperatureC.value
+          : this.temperatureC,
+      windSpeedKnots: data.windSpeedKnots.present
+          ? data.windSpeedKnots.value
+          : this.windSpeedKnots,
+      windDirectionDeg: data.windDirectionDeg.present
+          ? data.windDirectionDeg.value
+          : this.windDirectionDeg,
+      precipitationMm: data.precipitationMm.present
+          ? data.precipitationMm.value
+          : this.precipitationMm,
+      precipitationProbabilityMax: data.precipitationProbabilityMax.present
+          ? data.precipitationProbabilityMax.value
+          : this.precipitationProbabilityMax,
+      resolvedFrom: data.resolvedFrom.present
+          ? data.resolvedFrom.value
+          : this.resolvedFrom,
+      stale: data.stale.present ? data.stale.value : this.stale,
+      fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WeatherCacheRow(')
+          ..write('id: $id, ')
+          ..write('temperatureC: $temperatureC, ')
+          ..write('windSpeedKnots: $windSpeedKnots, ')
+          ..write('windDirectionDeg: $windDirectionDeg, ')
+          ..write('precipitationMm: $precipitationMm, ')
+          ..write('precipitationProbabilityMax: $precipitationProbabilityMax, ')
+          ..write('resolvedFrom: $resolvedFrom, ')
+          ..write('stale: $stale, ')
+          ..write('fetchedAt: $fetchedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    temperatureC,
+    windSpeedKnots,
+    windDirectionDeg,
+    precipitationMm,
+    precipitationProbabilityMax,
+    resolvedFrom,
+    stale,
+    fetchedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WeatherCacheRow &&
+          other.id == this.id &&
+          other.temperatureC == this.temperatureC &&
+          other.windSpeedKnots == this.windSpeedKnots &&
+          other.windDirectionDeg == this.windDirectionDeg &&
+          other.precipitationMm == this.precipitationMm &&
+          other.precipitationProbabilityMax ==
+              this.precipitationProbabilityMax &&
+          other.resolvedFrom == this.resolvedFrom &&
+          other.stale == this.stale &&
+          other.fetchedAt == this.fetchedAt);
+}
+
+class WeatherCacheCompanion extends UpdateCompanion<WeatherCacheRow> {
+  final Value<String> id;
+  final Value<double> temperatureC;
+  final Value<double> windSpeedKnots;
+  final Value<double> windDirectionDeg;
+  final Value<double> precipitationMm;
+  final Value<double?> precipitationProbabilityMax;
+  final Value<String> resolvedFrom;
+  final Value<bool> stale;
+  final Value<DateTime> fetchedAt;
+  final Value<int> rowid;
+  const WeatherCacheCompanion({
+    this.id = const Value.absent(),
+    this.temperatureC = const Value.absent(),
+    this.windSpeedKnots = const Value.absent(),
+    this.windDirectionDeg = const Value.absent(),
+    this.precipitationMm = const Value.absent(),
+    this.precipitationProbabilityMax = const Value.absent(),
+    this.resolvedFrom = const Value.absent(),
+    this.stale = const Value.absent(),
+    this.fetchedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WeatherCacheCompanion.insert({
+    required String id,
+    required double temperatureC,
+    required double windSpeedKnots,
+    required double windDirectionDeg,
+    required double precipitationMm,
+    this.precipitationProbabilityMax = const Value.absent(),
+    required String resolvedFrom,
+    this.stale = const Value.absent(),
+    required DateTime fetchedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       temperatureC = Value(temperatureC),
+       windSpeedKnots = Value(windSpeedKnots),
+       windDirectionDeg = Value(windDirectionDeg),
+       precipitationMm = Value(precipitationMm),
+       resolvedFrom = Value(resolvedFrom),
+       fetchedAt = Value(fetchedAt);
+  static Insertable<WeatherCacheRow> custom({
+    Expression<String>? id,
+    Expression<double>? temperatureC,
+    Expression<double>? windSpeedKnots,
+    Expression<double>? windDirectionDeg,
+    Expression<double>? precipitationMm,
+    Expression<double>? precipitationProbabilityMax,
+    Expression<String>? resolvedFrom,
+    Expression<bool>? stale,
+    Expression<DateTime>? fetchedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (temperatureC != null) 'temperature_c': temperatureC,
+      if (windSpeedKnots != null) 'wind_speed_knots': windSpeedKnots,
+      if (windDirectionDeg != null) 'wind_direction_deg': windDirectionDeg,
+      if (precipitationMm != null) 'precipitation_mm': precipitationMm,
+      if (precipitationProbabilityMax != null)
+        'precipitation_probability_max': precipitationProbabilityMax,
+      if (resolvedFrom != null) 'resolved_from': resolvedFrom,
+      if (stale != null) 'stale': stale,
+      if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WeatherCacheCompanion copyWith({
+    Value<String>? id,
+    Value<double>? temperatureC,
+    Value<double>? windSpeedKnots,
+    Value<double>? windDirectionDeg,
+    Value<double>? precipitationMm,
+    Value<double?>? precipitationProbabilityMax,
+    Value<String>? resolvedFrom,
+    Value<bool>? stale,
+    Value<DateTime>? fetchedAt,
+    Value<int>? rowid,
+  }) {
+    return WeatherCacheCompanion(
+      id: id ?? this.id,
+      temperatureC: temperatureC ?? this.temperatureC,
+      windSpeedKnots: windSpeedKnots ?? this.windSpeedKnots,
+      windDirectionDeg: windDirectionDeg ?? this.windDirectionDeg,
+      precipitationMm: precipitationMm ?? this.precipitationMm,
+      precipitationProbabilityMax:
+          precipitationProbabilityMax ?? this.precipitationProbabilityMax,
+      resolvedFrom: resolvedFrom ?? this.resolvedFrom,
+      stale: stale ?? this.stale,
+      fetchedAt: fetchedAt ?? this.fetchedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (temperatureC.present) {
+      map['temperature_c'] = Variable<double>(temperatureC.value);
+    }
+    if (windSpeedKnots.present) {
+      map['wind_speed_knots'] = Variable<double>(windSpeedKnots.value);
+    }
+    if (windDirectionDeg.present) {
+      map['wind_direction_deg'] = Variable<double>(windDirectionDeg.value);
+    }
+    if (precipitationMm.present) {
+      map['precipitation_mm'] = Variable<double>(precipitationMm.value);
+    }
+    if (precipitationProbabilityMax.present) {
+      map['precipitation_probability_max'] = Variable<double>(
+        precipitationProbabilityMax.value,
+      );
+    }
+    if (resolvedFrom.present) {
+      map['resolved_from'] = Variable<String>(resolvedFrom.value);
+    }
+    if (stale.present) {
+      map['stale'] = Variable<bool>(stale.value);
+    }
+    if (fetchedAt.present) {
+      map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WeatherCacheCompanion(')
+          ..write('id: $id, ')
+          ..write('temperatureC: $temperatureC, ')
+          ..write('windSpeedKnots: $windSpeedKnots, ')
+          ..write('windDirectionDeg: $windDirectionDeg, ')
+          ..write('precipitationMm: $precipitationMm, ')
+          ..write('precipitationProbabilityMax: $precipitationProbabilityMax, ')
+          ..write('resolvedFrom: $resolvedFrom, ')
+          ..write('stale: $stale, ')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -10351,6 +10955,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PhotosTable photos = $PhotosTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $TaskOperatorsTable taskOperators = $TaskOperatorsTable(this);
+  late final $WeatherCacheTable weatherCache = $WeatherCacheTable(this);
   late final Index idxFarmsClientId = Index(
     'idx_farms_client_id',
     'CREATE INDEX idx_farms_client_id ON farms (client_id)',
@@ -10442,6 +11047,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final PhotosDao photosDao = PhotosDao(this as AppDatabase);
   late final SyncQueueDao syncQueueDao = SyncQueueDao(this as AppDatabase);
   late final TasksDao tasksDao = TasksDao(this as AppDatabase);
+  late final WeatherCacheDao weatherCacheDao = WeatherCacheDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -10467,6 +11075,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     photos,
     syncQueue,
     taskOperators,
+    weatherCache,
     idxFarmsClientId,
     idxLotsFarmId,
     idxMachinesCompanyId,
@@ -20185,6 +20794,296 @@ typedef $$TaskOperatorsTableProcessedTableManager =
       TaskOperator,
       PrefetchHooks Function({bool taskId})
     >;
+typedef $$WeatherCacheTableCreateCompanionBuilder =
+    WeatherCacheCompanion Function({
+      required String id,
+      required double temperatureC,
+      required double windSpeedKnots,
+      required double windDirectionDeg,
+      required double precipitationMm,
+      Value<double?> precipitationProbabilityMax,
+      required String resolvedFrom,
+      Value<bool> stale,
+      required DateTime fetchedAt,
+      Value<int> rowid,
+    });
+typedef $$WeatherCacheTableUpdateCompanionBuilder =
+    WeatherCacheCompanion Function({
+      Value<String> id,
+      Value<double> temperatureC,
+      Value<double> windSpeedKnots,
+      Value<double> windDirectionDeg,
+      Value<double> precipitationMm,
+      Value<double?> precipitationProbabilityMax,
+      Value<String> resolvedFrom,
+      Value<bool> stale,
+      Value<DateTime> fetchedAt,
+      Value<int> rowid,
+    });
+
+class $$WeatherCacheTableFilterComposer
+    extends Composer<_$AppDatabase, $WeatherCacheTable> {
+  $$WeatherCacheTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get temperatureC => $composableBuilder(
+    column: $table.temperatureC,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get windSpeedKnots => $composableBuilder(
+    column: $table.windSpeedKnots,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get windDirectionDeg => $composableBuilder(
+    column: $table.windDirectionDeg,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get precipitationMm => $composableBuilder(
+    column: $table.precipitationMm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get precipitationProbabilityMax => $composableBuilder(
+    column: $table.precipitationProbabilityMax,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get resolvedFrom => $composableBuilder(
+    column: $table.resolvedFrom,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get stale => $composableBuilder(
+    column: $table.stale,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
+    column: $table.fetchedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$WeatherCacheTableOrderingComposer
+    extends Composer<_$AppDatabase, $WeatherCacheTable> {
+  $$WeatherCacheTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get temperatureC => $composableBuilder(
+    column: $table.temperatureC,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get windSpeedKnots => $composableBuilder(
+    column: $table.windSpeedKnots,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get windDirectionDeg => $composableBuilder(
+    column: $table.windDirectionDeg,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get precipitationMm => $composableBuilder(
+    column: $table.precipitationMm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get precipitationProbabilityMax => $composableBuilder(
+    column: $table.precipitationProbabilityMax,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get resolvedFrom => $composableBuilder(
+    column: $table.resolvedFrom,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get stale => $composableBuilder(
+    column: $table.stale,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
+    column: $table.fetchedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WeatherCacheTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WeatherCacheTable> {
+  $$WeatherCacheTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get temperatureC => $composableBuilder(
+    column: $table.temperatureC,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get windSpeedKnots => $composableBuilder(
+    column: $table.windSpeedKnots,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get windDirectionDeg => $composableBuilder(
+    column: $table.windDirectionDeg,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get precipitationMm => $composableBuilder(
+    column: $table.precipitationMm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get precipitationProbabilityMax => $composableBuilder(
+    column: $table.precipitationProbabilityMax,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get resolvedFrom => $composableBuilder(
+    column: $table.resolvedFrom,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get stale =>
+      $composableBuilder(column: $table.stale, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get fetchedAt =>
+      $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+}
+
+class $$WeatherCacheTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WeatherCacheTable,
+          WeatherCacheRow,
+          $$WeatherCacheTableFilterComposer,
+          $$WeatherCacheTableOrderingComposer,
+          $$WeatherCacheTableAnnotationComposer,
+          $$WeatherCacheTableCreateCompanionBuilder,
+          $$WeatherCacheTableUpdateCompanionBuilder,
+          (
+            WeatherCacheRow,
+            BaseReferences<_$AppDatabase, $WeatherCacheTable, WeatherCacheRow>,
+          ),
+          WeatherCacheRow,
+          PrefetchHooks Function()
+        > {
+  $$WeatherCacheTableTableManager(_$AppDatabase db, $WeatherCacheTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WeatherCacheTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WeatherCacheTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WeatherCacheTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<double> temperatureC = const Value.absent(),
+                Value<double> windSpeedKnots = const Value.absent(),
+                Value<double> windDirectionDeg = const Value.absent(),
+                Value<double> precipitationMm = const Value.absent(),
+                Value<double?> precipitationProbabilityMax =
+                    const Value.absent(),
+                Value<String> resolvedFrom = const Value.absent(),
+                Value<bool> stale = const Value.absent(),
+                Value<DateTime> fetchedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WeatherCacheCompanion(
+                id: id,
+                temperatureC: temperatureC,
+                windSpeedKnots: windSpeedKnots,
+                windDirectionDeg: windDirectionDeg,
+                precipitationMm: precipitationMm,
+                precipitationProbabilityMax: precipitationProbabilityMax,
+                resolvedFrom: resolvedFrom,
+                stale: stale,
+                fetchedAt: fetchedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required double temperatureC,
+                required double windSpeedKnots,
+                required double windDirectionDeg,
+                required double precipitationMm,
+                Value<double?> precipitationProbabilityMax =
+                    const Value.absent(),
+                required String resolvedFrom,
+                Value<bool> stale = const Value.absent(),
+                required DateTime fetchedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => WeatherCacheCompanion.insert(
+                id: id,
+                temperatureC: temperatureC,
+                windSpeedKnots: windSpeedKnots,
+                windDirectionDeg: windDirectionDeg,
+                precipitationMm: precipitationMm,
+                precipitationProbabilityMax: precipitationProbabilityMax,
+                resolvedFrom: resolvedFrom,
+                stale: stale,
+                fetchedAt: fetchedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$WeatherCacheTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WeatherCacheTable,
+      WeatherCacheRow,
+      $$WeatherCacheTableFilterComposer,
+      $$WeatherCacheTableOrderingComposer,
+      $$WeatherCacheTableAnnotationComposer,
+      $$WeatherCacheTableCreateCompanionBuilder,
+      $$WeatherCacheTableUpdateCompanionBuilder,
+      (
+        WeatherCacheRow,
+        BaseReferences<_$AppDatabase, $WeatherCacheTable, WeatherCacheRow>,
+      ),
+      WeatherCacheRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -20228,4 +21127,6 @@ class $AppDatabaseManager {
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
   $$TaskOperatorsTableTableManager get taskOperators =>
       $$TaskOperatorsTableTableManager(_db, _db.taskOperators);
+  $$WeatherCacheTableTableManager get weatherCache =>
+      $$WeatherCacheTableTableManager(_db, _db.weatherCache);
 }

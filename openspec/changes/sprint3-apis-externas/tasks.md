@@ -78,39 +78,39 @@
 
 ## 9. Consumidor Next.js
 
-- [ ] 9.1 `src/api/client.ts`: agregar `WeatherResponse`, `UsdRateResponse` y `GrainPricesResponse` (espejo del contrato de design §2.8) y las funciones `getWeather(lat, lon)`, `getLotWeather(lotId)`, `getUsdOfficial()` y `getGrainPrices()` sobre `apiGet` — sin tocar el transporte (Bearer + `cache: "no-store"` ya existen) (design §2.11).
-- [ ] 9.2 Crear `src/components/weather/weather-widgets.tsx`: `WeatherWidget`, `WindWidget`, `RadarWidget`, `UsdWidget` y `GrainPricesWidget`, con badge de `stale` y `fetchedAt` visible (design §2.11, spec A11).
-- [ ] 9.3 Reutilizar `WindRose` de `src/components/ui/charts.tsx` como lectura visual del vector viento dentro del `WindWidget` (design §2.11).
-- [ ] 9.4 Crear `src/components/weather/leaflet-map.tsx`: componente `"use client"` con Leaflet **vanilla** (sin `react-leaflet`), capa de viento y overlay de radar armado con el `tileTemplate` del backend (design §2.11, spec A11).
-- [ ] 9.5 Montar el bloque de widgets superiores en `src/app/dashboard/page.tsx` (Dashboard General), cargando el mapa con `next/dynamic` y `{ ssr: false }` (design §2.11, spec A11).
-- [ ] 9.6 `src/app/dashboard/mi-campo/page.tsx`: quitar `"Clima y heladas"` de `ROADMAP_ITEMS` (deja de ser "próximamente") (design §2.11).
-- [ ] 9.7 `packages/nextjs/package.json`: agregar `leaflet` y `@types/leaflet` (dev) y validar los peers bajo React 19 / Next 16 (design §2.11, proposal Risks).
+- [x] 9.1 `src/api/client.ts`: agregar `WeatherResponse`, `UsdRateResponse` y `GrainPricesResponse` (espejo del contrato de design §2.8) y las funciones `getWeather(lat, lon)`, `getLotWeather(lotId)`, `getUsdOfficial()` y `getGrainPrices()` sobre `apiGet` — sin tocar el transporte (Bearer + `cache: "no-store"` ya existen) (design §2.11).
+- [x] 9.2 Crear `src/components/weather/weather-widgets.tsx`: `WeatherWidget`, `WindWidget`, `RadarWidget`, `UsdWidget` y `GrainPricesWidget`, con badge de `stale` y `fetchedAt` visible (design §2.11, spec A11).
+- [x] 9.3 Reutilizar `WindRose` de `src/components/ui/charts.tsx` como lectura visual del vector viento dentro del `WindWidget` (design §2.11).
+- [x] 9.4 Crear `src/components/weather/leaflet-map.tsx`: componente `"use client"` con Leaflet **vanilla** (sin `react-leaflet`), capa de viento y overlay de radar armado con el `tileTemplate` del backend (design §2.11, spec A11).
+- [x] 9.5 Montar el bloque de widgets superiores en `src/app/dashboard/page.tsx` (Dashboard General), cargando el mapa con `next/dynamic` y `{ ssr: false }` (design §2.11, spec A11).
+- [x] 9.6 `src/app/dashboard/mi-campo/page.tsx`: quitar `"Clima y heladas"` de `ROADMAP_ITEMS` (deja de ser "próximamente") (design §2.11).
+- [x] 9.7 `packages/nextjs/package.json`: agregar `leaflet` y `@types/leaflet` (dev) y validar los peers bajo React 19 / Next 16 (design §2.11, proposal Risks).
 
 ## 10. Consumidor móvil
 
-- [ ] 10.1 Crear `lib/domain/models/weather_reading.dart`: `WeatherReading` (temperatura, `windSpeedKnots`, `windDirectionDeg`, precipitación, probabilidad, `fetchedAt`, `stale`, `resolvedFrom`) (design §2.12, spec A12).
-- [ ] 10.2 Crear `lib/domain/repositories/weather_repository.dart`: puerto `WeatherRepository` con `lastReading()`, `fetchCurrent({lat, lon})` y `fetchForLot({lotId})` (design §2.12).
-- [ ] 10.3 Crear `lib/domain/usecases/get_weather_usecase.dart`: `GetWeatherUseCase` cache-first (devuelve lo local al instante y refresca si hay red) (design §2.12).
-- [ ] 10.4 Crear `lib/data/services/weather_api_service.dart`: `WeatherApiService({http.Client? client, String? baseUrl})` con `_baseUrl = baseUrl ?? ApiConfig.baseUrl` (patrón `auth_api_service.dart`), `GET /weather/current?lat=&lon=` y `GET /lots/:lotId/weather` con `Authorization: Bearer` (design §2.12).
-- [ ] 10.5 `lib/data/services/tables/infra_tables.dart`: agregar la tabla `WeatherCache` (`@DataClassName('WeatherCacheRow')`, PK fija `id = 'current'`, columnas de lectura + `fetchedAt` + `stale` + `resolvedFrom`) (design §2.12, spec A12).
-- [ ] 10.6 Crear `lib/data/services/daos/weather_cache_dao.dart`: `save(reading)` (upsert de la fila vigente) y `get()` (design §2.12).
-- [ ] 10.7 `lib/data/services/app_database.dart`: `schemaVersion` **3 → 4**, `if (from < 4) { await m.createTable(weatherCache); }`, registrar `WeatherCache` en `tables:` y `WeatherCacheDao` en `daos:`; correr `dart run build_runner build` (design §2.12/§5).
-- [ ] 10.8 Crear `lib/data/repositories/http_weather_repository.dart` (adaptador remoto del puerto) y `lib/data/repositories/drift_weather_cache_repository.dart` (cache local sobre el DAO) (design §2.12).
-- [ ] 10.9 Crear `lib/app/home/weather_view_model.dart` (estado de la tarjeta: lectura local inmediata + refresh) y agregar la tarjeta de clima/viento **en nudos** con timestamp en `lib/app/home/dashboard_view.dart` (design §2.12, spec A12).
-- [ ] 10.10 `lib/main.dart`: wiring en el composition root (`WeatherApiService` → repositorios → `GetWeatherUseCase` → `WeatherViewModel`); los widgets NO instancian repositorios ni servicios (design §2.12).
+- [x] 10.1 Crear `lib/domain/models/weather_reading.dart`: `WeatherReading` (temperatura, `windSpeedKnots`, `windDirectionDeg`, precipitación, probabilidad, `fetchedAt`, `stale`, `resolvedFrom`) (design §2.12, spec A12).
+- [x] 10.2 Crear `lib/domain/repositories/weather_repository.dart`: puerto `WeatherRepository` con `lastReading()`, `fetchCurrent({lat, lon})` y `fetchForLot({lotId})` (design §2.12).
+- [x] 10.3 Crear `lib/domain/usecases/get_weather_usecase.dart`: `GetWeatherUseCase` cache-first (devuelve lo local al instante y refresca si hay red) (design §2.12).
+- [x] 10.4 Crear `lib/data/services/weather_api_service.dart`: `WeatherApiService({http.Client? client, String? baseUrl})` con `_baseUrl = baseUrl ?? ApiConfig.baseUrl` (patrón `auth_api_service.dart`), `GET /weather/current?lat=&lon=` y `GET /lots/:lotId/weather` con `Authorization: Bearer` (design §2.12).
+- [x] 10.5 `lib/data/services/tables/infra_tables.dart`: agregar la tabla `WeatherCache` (`@DataClassName('WeatherCacheRow')`, PK fija `id = 'current'`, columnas de lectura + `fetchedAt` + `stale` + `resolvedFrom`) (design §2.12, spec A12).
+- [x] 10.6 Crear `lib/data/services/daos/weather_cache_dao.dart`: `save(reading)` (upsert de la fila vigente) y `get()` (design §2.12).
+- [x] 10.7 `lib/data/services/app_database.dart`: `schemaVersion` **3 → 4**, `if (from < 4) { await m.createTable(weatherCache); }`, registrar `WeatherCache` en `tables:` y `WeatherCacheDao` en `daos:`; correr `dart run build_runner build` (design §2.12/§5).
+- [x] 10.8 Crear `lib/data/repositories/http_weather_repository.dart` (adaptador remoto del puerto) y `lib/data/repositories/drift_weather_cache_repository.dart` (cache local sobre el DAO) (design §2.12).
+- [x] 10.9 Crear `lib/app/home/weather_view_model.dart` (estado de la tarjeta: lectura local inmediata + refresh) y agregar la tarjeta de clima/viento **en nudos** con timestamp en `lib/app/home/dashboard_view.dart` (design §2.12, spec A12).
+- [x] 10.10 `lib/main.dart`: wiring en el composition root (`WeatherApiService` → repositorios → `GetWeatherUseCase` → `WeatherViewModel`); los widgets NO instancian repositorios ni servicios (design §2.12).
 
 ## 11. Tests — móvil
 
-- [ ] 11.1 Crear `test/data/services/weather_api_service_test.dart` con `MockClient` (patrón `daily_report_api_service_test.dart`): 200/401/500 y `SocketException` → resultado o excepción correcta (design §2.13).
-- [ ] 11.2 Test de adaptador drift con `AppDatabase.forTesting(NativeDatabase.memory())`: `WeatherCacheDao` guarda y lee la última lectura con su `fetchedAt`; migración 3→4 crea la tabla (design §2.13, spec A12).
-- [ ] 11.3 Test de `GetWeatherUseCase` con fakes in-memory y widget test de la tarjeta: muestra el viento en nudos y el timestamp de la lectura (design §2.13, spec A12).
+- [x] 11.1 Crear `test/data/services/weather_api_service_test.dart` con `MockClient` (patrón `daily_report_api_service_test.dart`): 200/401/500 y `SocketException` → resultado o excepción correcta (design §2.13).
+- [x] 11.2 Test de adaptador drift con `AppDatabase.forTesting(NativeDatabase.memory())`: `WeatherCacheDao` guarda y lee la última lectura con su `fetchedAt`; migración 3→4 crea la tabla (design §2.13, spec A12).
+- [x] 11.3 Test de `GetWeatherUseCase` con fakes in-memory y widget test de la tarjeta: muestra el viento en nudos y el timestamp de la lectura (design §2.13, spec A12).
 
 ## 12. Verificación global
 
 - [ ] 12.1 `npm test` verde en `packages/backend` (suite de integraciones: núcleo, providers, parser y controllers) (design §2.13).
 - [ ] 12.2 `flutter analyze` → 0 errores / 0 warnings en `packages/mobile`.
 - [ ] 12.3 `flutter test` verde en `packages/mobile`.
-- [ ] 12.4 `npm run lint` verde en `packages/nextjs`.
+- [ ] 12.4 `npm run lint` verde en `packages/nextjs`. **Bloqueado por un error preexistente ajeno al sprint**: `src/components/ui/reveal.tsx:62` (`react-hooks/set-state-in-effect`), último tocado en `97c84a9`. El código de este sprint **no agrega errores** (lint acotado a las superficies de la unidad 3: 0 errores), pero el comando global no queda verde hasta arreglar ese archivo, que está fuera de la superficie del change.
 - [ ] 12.5 E2E manual con el backend y el frontend levantados: los cuatro endpoints responden con datos reales y **sin ninguna API key**; el dashboard muestra el bloque de widgets con mapa y radar; el móvil muestra la tarjeta con timestamp (Success Criteria del proposal).
 - [ ] 12.6 Verificación de degradación: con una fuente inalcanzable (red cortada al proveedor), los endpoints responden `stale: true` con `fetchedAt`; sin valor previo, responden 503/502. Verificar además que el backend levantado en el `PORT` local configurado sirve los cuatro endpoints.
 

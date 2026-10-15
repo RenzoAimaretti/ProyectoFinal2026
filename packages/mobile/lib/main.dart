@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'app/auth/login_view.dart';
 import 'app/auth/login_view_model.dart';
 import 'app/home/dashboard_view.dart';
+import 'app/home/weather_view_model.dart';
 import 'app/machinery/machine_activities_view_model.dart';
 import 'app/machinery/machine_activity_form_view_model.dart';
 import 'app/receptions/reception_form_view_model.dart';
@@ -24,9 +25,11 @@ import 'data/repositories/drift_reception_repository.dart';
 import 'data/repositories/drift_session_repository.dart';
 import 'data/repositories/drift_sync_queue_store.dart';
 import 'data/repositories/drift_task_reader.dart';
+import 'data/repositories/drift_weather_cache_repository.dart';
 import 'data/repositories/flutter_sync_delayer.dart';
 import 'data/repositories/http_auth_repository.dart';
 import 'data/repositories/http_daily_report_repository.dart';
+import 'data/repositories/http_weather_repository.dart';
 import 'data/repositories/path_provider_photo_storage_repository.dart';
 import 'data/repositories/sync_queue_writer.dart';
 import 'data/repositories/token_refresher.dart';
@@ -34,13 +37,17 @@ import 'data/services/app_database.dart';
 import 'data/services/auth_api_service.dart';
 import 'data/services/catalog_seeder.dart';
 import 'data/services/photo_picker_service.dart';
+import 'data/services/weather_api_service.dart';
 import 'domain/models/catalogs.dart' as domain;
 import 'domain/models/session.dart';
+import 'domain/repositories/session_repository.dart';
+import 'domain/repositories/task_reader.dart';
 import 'domain/usecases/add_photo_usecase.dart';
 import 'domain/usecases/create_daily_report_usecase.dart';
 import 'domain/usecases/create_reception_usecase.dart';
 import 'domain/usecases/delete_photo_usecase.dart';
 import 'domain/usecases/demo_login_usecase.dart';
+import 'domain/usecases/get_weather_usecase.dart';
 import 'domain/usecases/list_assigned_tasks_usecase.dart';
 import 'domain/usecases/list_daily_reports_usecase.dart';
 import 'domain/usecases/list_machine_activities_usecase.dart';
@@ -82,6 +89,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final ReceptionFormViewModel _receptionFormViewModel;
   late final MachineActivitiesViewModel _machineActivitiesViewModel;
   late final MachineActivityFormViewModel _machineActivityFormViewModel;
+  late final WeatherViewModel _weatherViewModel;
   late final RestoreSessionUseCase _restoreSessionUseCase;
 
   /// Motor de sincronización (Sprint 2) + gate de conectividad.
@@ -177,6 +185,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final listAssignedTasksUseCase = ListAssignedTasksUseCase(taskReader);
     _tasksViewModel = TasksViewModel(listAssignedTasksUseCase, taskReader);
 
+    // Clima y viento (spec A12): servicio HTTP → cache drift → repositorio →
+    // use case → ViewModel. Los widgets NO instancian nada de esto.
+    final weatherApiService = WeatherApiService();
+    final weatherCache = DriftWeatherCacheRepository(_database);
+    final weatherRepository = HttpWeatherRepository(
+      apiService: weatherApiService,
+      cache: weatherCache,
+      sessionRepository: sessionRepository,
+    );
+    final getWeatherUseCase = GetWeatherUseCase(weatherRepository);
+    _weatherViewModel = WeatherViewModel(
+      getWeatherUseCase,
+      resolveLocation: () =>
+          _resolveWeatherLocation(taskReader, sessionRepository),
+    );
+
     // Selector global de firma (post-login): stream de razones sociales reales.
     _companies = companyReader.watchAll();
 
@@ -230,6 +254,31 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       machineReader: machineReader,
       companyReader: companyReader,
     );
+  }
+
+  /// Resuelve la ubicación con la que se pide el clima (spec A12).
+  ///
+  /// El móvil no tiene GPS ni lote seleccionado: se usa el lote de la primera
+  /// tarea asignada al operario. Si no hay tareas locales (o el plugin no
+  /// responde), devuelve `null` y la tarjeta queda solo con el cache local.
+  /// Queda como decisión abierta de producto (design §6).
+  Future<WeatherLocation?> _resolveWeatherLocation(
+    TaskReader taskReader,
+    SessionRepository sessionRepository,
+  ) async {
+    try {
+      final session = await sessionRepository.current();
+      if (session == null) return null;
+      final tasks = await taskReader.watchAssignedTo(session.userId).first;
+      for (final task in tasks) {
+        if (task.lotId.isNotEmpty) {
+          return WeatherLocation(lotId: task.lotId);
+        }
+      }
+    } catch (_) {
+      // Sin tareas locales o sin plugin de plataforma: cache local.
+    }
+    return null;
   }
 
   /// Composition root del motor de sincronización (Sprint 2).
@@ -317,6 +366,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _dailyReportFormViewModel.dispose();
     _receptionFormViewModel.dispose();
     _machineActivityFormViewModel.dispose();
+    _weatherViewModel.dispose();
     if (widget.database == null) {
       _database.close();
     }
@@ -368,6 +418,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       receptionFormViewModel: _receptionFormViewModel,
                       machineActivitiesViewModel: _machineActivitiesViewModel,
                       machineActivityFormViewModel: _machineActivityFormViewModel,
+                      weatherViewModel: _weatherViewModel,
                     )
                   : LoginView(
                       viewModel: _loginViewModel,

@@ -17,6 +17,25 @@ class Photos extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Última lectura meteorológica (spec A12: offline). Una sola fila vigente con
+/// clave fija `id = 'current'`; `stale` + `fetchedAt` viajan desde el backend
+/// para que un valor degradado nunca se presente como fresco (spec A8).
+@DataClassName('WeatherCacheRow')
+class WeatherCache extends Table {
+  TextColumn get id => text()();
+  RealColumn get temperatureC => real()();
+  RealColumn get windSpeedKnots => real()();
+  RealColumn get windDirectionDeg => real()();
+  RealColumn get precipitationMm => real()();
+  RealColumn get precipitationProbabilityMax => real().nullable()();
+  TextColumn get resolvedFrom => text()();
+  BoolColumn get stale => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get fetchedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Cola outbox de sincronización (sin FK). Row class `SyncQueueEntry` para no
 /// chocar con la clase `SyncQueue extends Table`.
 @TableIndex(name: 'idx_sync_queue_status_created', columns: {#status, #createdAt})
