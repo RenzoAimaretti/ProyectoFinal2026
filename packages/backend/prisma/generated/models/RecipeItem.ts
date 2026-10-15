@@ -41,6 +41,7 @@ export type RecipeItemMinAggregateOutputType = {
   recipeId: string | null
   inputId: string | null
   dose: number | null
+  dosageBasis: $Enums.DosageBasis | null
   unit: string | null
   loadOrder: number | null
 }
@@ -50,6 +51,7 @@ export type RecipeItemMaxAggregateOutputType = {
   recipeId: string | null
   inputId: string | null
   dose: number | null
+  dosageBasis: $Enums.DosageBasis | null
   unit: string | null
   loadOrder: number | null
 }
@@ -59,6 +61,7 @@ export type RecipeItemCountAggregateOutputType = {
   recipeId: number
   inputId: number
   dose: number
+  dosageBasis: number
   unit: number
   loadOrder: number
   _all: number
@@ -80,6 +83,7 @@ export type RecipeItemMinAggregateInputType = {
   recipeId?: true
   inputId?: true
   dose?: true
+  dosageBasis?: true
   unit?: true
   loadOrder?: true
 }
@@ -89,6 +93,7 @@ export type RecipeItemMaxAggregateInputType = {
   recipeId?: true
   inputId?: true
   dose?: true
+  dosageBasis?: true
   unit?: true
   loadOrder?: true
 }
@@ -98,6 +103,7 @@ export type RecipeItemCountAggregateInputType = {
   recipeId?: true
   inputId?: true
   dose?: true
+  dosageBasis?: true
   unit?: true
   loadOrder?: true
   _all?: true
@@ -194,6 +200,7 @@ export type RecipeItemGroupByOutputType = {
   recipeId: string
   inputId: string
   dose: number
+  dosageBasis: $Enums.DosageBasis
   unit: string | null
   loadOrder: number
   _count: RecipeItemCountAggregateOutputType | null
@@ -226,6 +233,7 @@ export type RecipeItemWhereInput = {
   recipeId?: Prisma.StringFilter<"RecipeItem"> | string
   inputId?: Prisma.StringFilter<"RecipeItem"> | string
   dose?: Prisma.FloatFilter<"RecipeItem"> | number
+  dosageBasis?: Prisma.EnumDosageBasisFilter<"RecipeItem"> | $Enums.DosageBasis
   unit?: Prisma.StringNullableFilter<"RecipeItem"> | string | null
   loadOrder?: Prisma.IntFilter<"RecipeItem"> | number
   recipe?: Prisma.XOR<Prisma.RecipeScalarRelationFilter, Prisma.RecipeWhereInput>
@@ -237,6 +245,7 @@ export type RecipeItemOrderByWithRelationInput = {
   recipeId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   dose?: Prisma.SortOrder
+  dosageBasis?: Prisma.SortOrder
   unit?: Prisma.SortOrderInput | Prisma.SortOrder
   loadOrder?: Prisma.SortOrder
   recipe?: Prisma.RecipeOrderByWithRelationInput
@@ -251,6 +260,7 @@ export type RecipeItemWhereUniqueInput = Prisma.AtLeast<{
   recipeId?: Prisma.StringFilter<"RecipeItem"> | string
   inputId?: Prisma.StringFilter<"RecipeItem"> | string
   dose?: Prisma.FloatFilter<"RecipeItem"> | number
+  dosageBasis?: Prisma.EnumDosageBasisFilter<"RecipeItem"> | $Enums.DosageBasis
   unit?: Prisma.StringNullableFilter<"RecipeItem"> | string | null
   loadOrder?: Prisma.IntFilter<"RecipeItem"> | number
   recipe?: Prisma.XOR<Prisma.RecipeScalarRelationFilter, Prisma.RecipeWhereInput>
@@ -262,6 +272,7 @@ export type RecipeItemOrderByWithAggregationInput = {
   recipeId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   dose?: Prisma.SortOrder
+  dosageBasis?: Prisma.SortOrder
   unit?: Prisma.SortOrderInput | Prisma.SortOrder
   loadOrder?: Prisma.SortOrder
   _count?: Prisma.RecipeItemCountOrderByAggregateInput
@@ -279,6 +290,7 @@ export type RecipeItemScalarWhereWithAggregatesInput = {
   recipeId?: Prisma.StringWithAggregatesFilter<"RecipeItem"> | string
   inputId?: Prisma.StringWithAggregatesFilter<"RecipeItem"> | string
   dose?: Prisma.FloatWithAggregatesFilter<"RecipeItem"> | number
+  dosageBasis?: Prisma.EnumDosageBasisWithAggregatesFilter<"RecipeItem"> | $Enums.DosageBasis
   unit?: Prisma.StringNullableWithAggregatesFilter<"RecipeItem"> | string | null
   loadOrder?: Prisma.IntWithAggregatesFilter<"RecipeItem"> | number
 }
@@ -286,6 +298,7 @@ export type RecipeItemScalarWhereWithAggregatesInput = {
 export type RecipeItemCreateInput = {
   id?: string
   dose: number
+  dosageBasis?: $Enums.DosageBasis
   unit?: string | null
   loadOrder: number
   recipe: Prisma.RecipeCreateNestedOneWithoutItemsInput
@@ -297,6 +310,7 @@ export type RecipeItemUncheckedCreateInput = {
   recipeId: string
   inputId: string
   dose: number
+  dosageBasis?: $Enums.DosageBasis
   unit?: string | null
   loadOrder: number
 }
@@ -304,6 +318,7 @@ export type RecipeItemUncheckedCreateInput = {
 export type RecipeItemUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   dose?: Prisma.FloatFieldUpdateOperationsInput | number
+  dosageBasis?: Prisma.EnumDosageBasisFieldUpdateOperationsInput | $Enums.DosageBasis
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   loadOrder?: Prisma.IntFieldUpdateOperationsInput | number
   recipe?: Prisma.RecipeUpdateOneRequiredWithoutItemsNestedInput
@@ -315,6 +330,7 @@ export type RecipeItemUncheckedUpdateInput = {
   recipeId?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   dose?: Prisma.FloatFieldUpdateOperationsInput | number
+  dosageBasis?: Prisma.EnumDosageBasisFieldUpdateOperationsInput | $Enums.DosageBasis
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   loadOrder?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -324,6 +340,7 @@ export type RecipeItemCreateManyInput = {
   recipeId: string
   inputId: string
   dose: number
+  dosageBasis?: $Enums.DosageBasis
   unit?: string | null
   loadOrder: number
 }
@@ -331,6 +348,7 @@ export type RecipeItemCreateManyInput = {
 export type RecipeItemUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   dose?: Prisma.FloatFieldUpdateOperationsInput | number
+  dosageBasis?: Prisma.EnumDosageBasisFieldUpdateOperationsInput | $Enums.DosageBasis
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   loadOrder?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -340,6 +358,7 @@ export type RecipeItemUncheckedUpdateManyInput = {
   recipeId?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   dose?: Prisma.FloatFieldUpdateOperationsInput | number
+  dosageBasis?: Prisma.EnumDosageBasisFieldUpdateOperationsInput | $Enums.DosageBasis
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   loadOrder?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -359,6 +378,7 @@ export type RecipeItemCountOrderByAggregateInput = {
   recipeId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   dose?: Prisma.SortOrder
+  dosageBasis?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   loadOrder?: Prisma.SortOrder
 }
@@ -373,6 +393,7 @@ export type RecipeItemMaxOrderByAggregateInput = {
   recipeId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   dose?: Prisma.SortOrder
+  dosageBasis?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   loadOrder?: Prisma.SortOrder
 }
@@ -382,6 +403,7 @@ export type RecipeItemMinOrderByAggregateInput = {
   recipeId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   dose?: Prisma.SortOrder
+  dosageBasis?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   loadOrder?: Prisma.SortOrder
 }
@@ -475,9 +497,14 @@ export type RecipeItemUncheckedUpdateManyWithoutRecipeNestedInput = {
   deleteMany?: Prisma.RecipeItemScalarWhereInput | Prisma.RecipeItemScalarWhereInput[]
 }
 
+export type EnumDosageBasisFieldUpdateOperationsInput = {
+  set?: $Enums.DosageBasis
+}
+
 export type RecipeItemCreateWithoutInputInput = {
   id?: string
   dose: number
+  dosageBasis?: $Enums.DosageBasis
   unit?: string | null
   loadOrder: number
   recipe: Prisma.RecipeCreateNestedOneWithoutItemsInput
@@ -487,6 +514,7 @@ export type RecipeItemUncheckedCreateWithoutInputInput = {
   id?: string
   recipeId: string
   dose: number
+  dosageBasis?: $Enums.DosageBasis
   unit?: string | null
   loadOrder: number
 }
@@ -525,6 +553,7 @@ export type RecipeItemScalarWhereInput = {
   recipeId?: Prisma.StringFilter<"RecipeItem"> | string
   inputId?: Prisma.StringFilter<"RecipeItem"> | string
   dose?: Prisma.FloatFilter<"RecipeItem"> | number
+  dosageBasis?: Prisma.EnumDosageBasisFilter<"RecipeItem"> | $Enums.DosageBasis
   unit?: Prisma.StringNullableFilter<"RecipeItem"> | string | null
   loadOrder?: Prisma.IntFilter<"RecipeItem"> | number
 }
@@ -532,6 +561,7 @@ export type RecipeItemScalarWhereInput = {
 export type RecipeItemCreateWithoutRecipeInput = {
   id?: string
   dose: number
+  dosageBasis?: $Enums.DosageBasis
   unit?: string | null
   loadOrder: number
   input: Prisma.InputCreateNestedOneWithoutRecipeItemsInput
@@ -541,6 +571,7 @@ export type RecipeItemUncheckedCreateWithoutRecipeInput = {
   id?: string
   inputId: string
   dose: number
+  dosageBasis?: $Enums.DosageBasis
   unit?: string | null
   loadOrder: number
 }
@@ -575,6 +606,7 @@ export type RecipeItemCreateManyInputInput = {
   id?: string
   recipeId: string
   dose: number
+  dosageBasis?: $Enums.DosageBasis
   unit?: string | null
   loadOrder: number
 }
@@ -582,6 +614,7 @@ export type RecipeItemCreateManyInputInput = {
 export type RecipeItemUpdateWithoutInputInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   dose?: Prisma.FloatFieldUpdateOperationsInput | number
+  dosageBasis?: Prisma.EnumDosageBasisFieldUpdateOperationsInput | $Enums.DosageBasis
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   loadOrder?: Prisma.IntFieldUpdateOperationsInput | number
   recipe?: Prisma.RecipeUpdateOneRequiredWithoutItemsNestedInput
@@ -591,6 +624,7 @@ export type RecipeItemUncheckedUpdateWithoutInputInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   recipeId?: Prisma.StringFieldUpdateOperationsInput | string
   dose?: Prisma.FloatFieldUpdateOperationsInput | number
+  dosageBasis?: Prisma.EnumDosageBasisFieldUpdateOperationsInput | $Enums.DosageBasis
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   loadOrder?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -599,6 +633,7 @@ export type RecipeItemUncheckedUpdateManyWithoutInputInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   recipeId?: Prisma.StringFieldUpdateOperationsInput | string
   dose?: Prisma.FloatFieldUpdateOperationsInput | number
+  dosageBasis?: Prisma.EnumDosageBasisFieldUpdateOperationsInput | $Enums.DosageBasis
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   loadOrder?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -607,6 +642,7 @@ export type RecipeItemCreateManyRecipeInput = {
   id?: string
   inputId: string
   dose: number
+  dosageBasis?: $Enums.DosageBasis
   unit?: string | null
   loadOrder: number
 }
@@ -614,6 +650,7 @@ export type RecipeItemCreateManyRecipeInput = {
 export type RecipeItemUpdateWithoutRecipeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   dose?: Prisma.FloatFieldUpdateOperationsInput | number
+  dosageBasis?: Prisma.EnumDosageBasisFieldUpdateOperationsInput | $Enums.DosageBasis
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   loadOrder?: Prisma.IntFieldUpdateOperationsInput | number
   input?: Prisma.InputUpdateOneRequiredWithoutRecipeItemsNestedInput
@@ -623,6 +660,7 @@ export type RecipeItemUncheckedUpdateWithoutRecipeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   dose?: Prisma.FloatFieldUpdateOperationsInput | number
+  dosageBasis?: Prisma.EnumDosageBasisFieldUpdateOperationsInput | $Enums.DosageBasis
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   loadOrder?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -631,6 +669,7 @@ export type RecipeItemUncheckedUpdateManyWithoutRecipeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   dose?: Prisma.FloatFieldUpdateOperationsInput | number
+  dosageBasis?: Prisma.EnumDosageBasisFieldUpdateOperationsInput | $Enums.DosageBasis
   unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   loadOrder?: Prisma.IntFieldUpdateOperationsInput | number
 }
@@ -642,6 +681,7 @@ export type RecipeItemSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   recipeId?: boolean
   inputId?: boolean
   dose?: boolean
+  dosageBasis?: boolean
   unit?: boolean
   loadOrder?: boolean
   recipe?: boolean | Prisma.RecipeDefaultArgs<ExtArgs>
@@ -653,6 +693,7 @@ export type RecipeItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   recipeId?: boolean
   inputId?: boolean
   dose?: boolean
+  dosageBasis?: boolean
   unit?: boolean
   loadOrder?: boolean
   recipe?: boolean | Prisma.RecipeDefaultArgs<ExtArgs>
@@ -664,6 +705,7 @@ export type RecipeItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   recipeId?: boolean
   inputId?: boolean
   dose?: boolean
+  dosageBasis?: boolean
   unit?: boolean
   loadOrder?: boolean
   recipe?: boolean | Prisma.RecipeDefaultArgs<ExtArgs>
@@ -675,11 +717,12 @@ export type RecipeItemSelectScalar = {
   recipeId?: boolean
   inputId?: boolean
   dose?: boolean
+  dosageBasis?: boolean
   unit?: boolean
   loadOrder?: boolean
 }
 
-export type RecipeItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "recipeId" | "inputId" | "dose" | "unit" | "loadOrder", ExtArgs["result"]["recipeItem"]>
+export type RecipeItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "recipeId" | "inputId" | "dose" | "dosageBasis" | "unit" | "loadOrder", ExtArgs["result"]["recipeItem"]>
 export type RecipeItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   recipe?: boolean | Prisma.RecipeDefaultArgs<ExtArgs>
   input?: boolean | Prisma.InputDefaultArgs<ExtArgs>
@@ -704,6 +747,7 @@ export type $RecipeItemPayload<ExtArgs extends runtime.Types.Extensions.Internal
     recipeId: string
     inputId: string
     dose: number
+    dosageBasis: $Enums.DosageBasis
     unit: string | null
     loadOrder: number
   }, ExtArgs["result"]["recipeItem"]>
@@ -1135,6 +1179,7 @@ export interface RecipeItemFieldRefs {
   readonly recipeId: Prisma.FieldRef<"RecipeItem", 'String'>
   readonly inputId: Prisma.FieldRef<"RecipeItem", 'String'>
   readonly dose: Prisma.FieldRef<"RecipeItem", 'Float'>
+  readonly dosageBasis: Prisma.FieldRef<"RecipeItem", 'DosageBasis'>
   readonly unit: Prisma.FieldRef<"RecipeItem", 'String'>
   readonly loadOrder: Prisma.FieldRef<"RecipeItem", 'Int'>
 }

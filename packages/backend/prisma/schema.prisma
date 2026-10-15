@@ -184,6 +184,7 @@ model TaskType {
   tenantId    String
   name        String
   description String?
+  requiresPrescription Boolean @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   version     Int      @default(1)
@@ -249,6 +250,7 @@ model Task {
   lotId         String
   taskTypeId    String
   status        TaskStatus     @default(PENDIENTE)
+  prescriptionStatus PrescriptionStatus @default(NO_REQUIERE)
   startedAt     DateTime?
   finishedAt    DateTime?
   updatedTaskAt DateTime?
@@ -262,10 +264,12 @@ model Task {
   operators    User[]         @relation("TaskOperators")
   machineLogs  MachineUsage[]
   dailyReports DailyReport[]
+  recipe       Recipe?
 
   @@index([lotId])
   @@index([taskTypeId])
   @@index([status])
+  @@index([prescriptionStatus])
 }
 
 // ============================================================================
@@ -275,15 +279,21 @@ model Task {
 model Recipe {
   id              String       @id @default(uuid())
   lotId           String
+  taskId          String?      @unique
   date            DateTime
   status          RecipeStatus @default(ACTIVA)
   observations    String?
+  pest            String?
+  crop            String?
+  reapplicationIntervalDays Int?
+  reapplicationDate DateTime?
   sprayVolume     Float
   sprayVolumeUnit String
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
   lot   Lot          @relation(fields: [lotId], references: [id])
+  task  Task?        @relation(fields: [taskId], references: [id], onDelete: SetNull)
   items RecipeItem[]
 
   @@index([lotId])
@@ -295,6 +305,7 @@ model RecipeItem {
   recipeId  String
   inputId   String
   dose      Float
+  dosageBasis DosageBasis @default(POR_HECTAREA)
   unit      String?
   loadOrder Int
 
@@ -583,6 +594,7 @@ enum UserRole {
   PRODUCTOR
   CONTRATISTA
   VETERINARIO
+  INGENIERO
 }
 
 enum TaskStatus {
@@ -642,4 +654,15 @@ enum PhotoEntityType {
 enum RecipeStatus {
   ACTIVA
   ARCHIVADA
+}
+
+enum PrescriptionStatus {
+  NO_REQUIERE
+  SIN_RECETA
+  CON_RECETA
+}
+
+enum DosageBasis {
+  POR_HECTAREA
+  CONCENTRACION
 }

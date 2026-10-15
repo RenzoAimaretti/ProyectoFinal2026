@@ -39,6 +39,7 @@ export type TaskTypeMinAggregateOutputType = {
   tenantId: string | null
   name: string | null
   description: string | null
+  requiresPrescription: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   version: number | null
@@ -50,6 +51,7 @@ export type TaskTypeMaxAggregateOutputType = {
   tenantId: string | null
   name: string | null
   description: string | null
+  requiresPrescription: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   version: number | null
@@ -61,6 +63,7 @@ export type TaskTypeCountAggregateOutputType = {
   tenantId: number
   name: number
   description: number
+  requiresPrescription: number
   createdAt: number
   updatedAt: number
   version: number
@@ -82,6 +85,7 @@ export type TaskTypeMinAggregateInputType = {
   tenantId?: true
   name?: true
   description?: true
+  requiresPrescription?: true
   createdAt?: true
   updatedAt?: true
   version?: true
@@ -93,6 +97,7 @@ export type TaskTypeMaxAggregateInputType = {
   tenantId?: true
   name?: true
   description?: true
+  requiresPrescription?: true
   createdAt?: true
   updatedAt?: true
   version?: true
@@ -104,6 +109,7 @@ export type TaskTypeCountAggregateInputType = {
   tenantId?: true
   name?: true
   description?: true
+  requiresPrescription?: true
   createdAt?: true
   updatedAt?: true
   version?: true
@@ -202,6 +208,7 @@ export type TaskTypeGroupByOutputType = {
   tenantId: string
   name: string
   description: string | null
+  requiresPrescription: boolean
   createdAt: Date
   updatedAt: Date
   version: number
@@ -236,6 +243,7 @@ export type TaskTypeWhereInput = {
   tenantId?: Prisma.StringFilter<"TaskType"> | string
   name?: Prisma.StringFilter<"TaskType"> | string
   description?: Prisma.StringNullableFilter<"TaskType"> | string | null
+  requiresPrescription?: Prisma.BoolFilter<"TaskType"> | boolean
   createdAt?: Prisma.DateTimeFilter<"TaskType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TaskType"> | Date | string
   version?: Prisma.IntFilter<"TaskType"> | number
@@ -250,6 +258,7 @@ export type TaskTypeOrderByWithRelationInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  requiresPrescription?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -268,6 +277,7 @@ export type TaskTypeWhereUniqueInput = Prisma.AtLeast<{
   tenantId?: Prisma.StringFilter<"TaskType"> | string
   name?: Prisma.StringFilter<"TaskType"> | string
   description?: Prisma.StringNullableFilter<"TaskType"> | string | null
+  requiresPrescription?: Prisma.BoolFilter<"TaskType"> | boolean
   createdAt?: Prisma.DateTimeFilter<"TaskType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TaskType"> | Date | string
   version?: Prisma.IntFilter<"TaskType"> | number
@@ -282,6 +292,7 @@ export type TaskTypeOrderByWithAggregationInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  requiresPrescription?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -301,6 +312,7 @@ export type TaskTypeScalarWhereWithAggregatesInput = {
   tenantId?: Prisma.StringWithAggregatesFilter<"TaskType"> | string
   name?: Prisma.StringWithAggregatesFilter<"TaskType"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"TaskType"> | string | null
+  requiresPrescription?: Prisma.BoolWithAggregatesFilter<"TaskType"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TaskType"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"TaskType"> | Date | string
   version?: Prisma.IntWithAggregatesFilter<"TaskType"> | number
@@ -311,6 +323,7 @@ export type TaskTypeCreateInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -325,6 +338,7 @@ export type TaskTypeUncheckedCreateInput = {
   tenantId: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -337,6 +351,7 @@ export type TaskTypeUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -351,6 +366,7 @@ export type TaskTypeUncheckedUpdateInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -364,6 +380,7 @@ export type TaskTypeCreateManyInput = {
   tenantId: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -374,6 +391,7 @@ export type TaskTypeUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -385,6 +403,7 @@ export type TaskTypeUncheckedUpdateManyInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -411,6 +430,7 @@ export type TaskTypeCountOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  requiresPrescription?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -426,6 +446,7 @@ export type TaskTypeMaxOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  requiresPrescription?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -437,6 +458,7 @@ export type TaskTypeMinOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  requiresPrescription?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -526,6 +548,7 @@ export type TaskTypeCreateWithoutTenantInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -538,6 +561,7 @@ export type TaskTypeUncheckedCreateWithoutTenantInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -580,6 +604,7 @@ export type TaskTypeScalarWhereInput = {
   tenantId?: Prisma.StringFilter<"TaskType"> | string
   name?: Prisma.StringFilter<"TaskType"> | string
   description?: Prisma.StringNullableFilter<"TaskType"> | string | null
+  requiresPrescription?: Prisma.BoolFilter<"TaskType"> | boolean
   createdAt?: Prisma.DateTimeFilter<"TaskType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TaskType"> | Date | string
   version?: Prisma.IntFilter<"TaskType"> | number
@@ -590,6 +615,7 @@ export type TaskTypeCreateWithoutTasksInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -603,6 +629,7 @@ export type TaskTypeUncheckedCreateWithoutTasksInput = {
   tenantId: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -630,6 +657,7 @@ export type TaskTypeUpdateWithoutTasksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -643,6 +671,7 @@ export type TaskTypeUncheckedUpdateWithoutTasksInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -654,6 +683,7 @@ export type TaskTypeCreateWithoutDailyReportsInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -667,6 +697,7 @@ export type TaskTypeUncheckedCreateWithoutDailyReportsInput = {
   tenantId: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -694,6 +725,7 @@ export type TaskTypeUpdateWithoutDailyReportsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -707,6 +739,7 @@ export type TaskTypeUncheckedUpdateWithoutDailyReportsInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -718,6 +751,7 @@ export type TaskTypeCreateManyTenantInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -728,6 +762,7 @@ export type TaskTypeUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -740,6 +775,7 @@ export type TaskTypeUncheckedUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -752,6 +788,7 @@ export type TaskTypeUncheckedUpdateManyWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -803,6 +840,7 @@ export type TaskTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  requiresPrescription?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   version?: boolean
@@ -818,6 +856,7 @@ export type TaskTypeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  requiresPrescription?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   version?: boolean
@@ -830,6 +869,7 @@ export type TaskTypeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  requiresPrescription?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   version?: boolean
@@ -842,13 +882,14 @@ export type TaskTypeSelectScalar = {
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  requiresPrescription?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   version?: boolean
   deleted?: boolean
 }
 
-export type TaskTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "name" | "description" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["taskType"]>
+export type TaskTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "name" | "description" | "requiresPrescription" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["taskType"]>
 export type TaskTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   tasks?: boolean | Prisma.TaskType$tasksArgs<ExtArgs>
@@ -874,6 +915,7 @@ export type $TaskTypePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     tenantId: string
     name: string
     description: string | null
+    requiresPrescription: boolean
     createdAt: Date
     updatedAt: Date
     version: number
@@ -1308,6 +1350,7 @@ export interface TaskTypeFieldRefs {
   readonly tenantId: Prisma.FieldRef<"TaskType", 'String'>
   readonly name: Prisma.FieldRef<"TaskType", 'String'>
   readonly description: Prisma.FieldRef<"TaskType", 'String'>
+  readonly requiresPrescription: Prisma.FieldRef<"TaskType", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"TaskType", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"TaskType", 'DateTime'>
   readonly version: Prisma.FieldRef<"TaskType", 'Int'>

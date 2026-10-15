@@ -14,6 +14,7 @@ export const USER_ROLE_VALUES = [
   'PRODUCTOR',
   'CONTRATISTA',
   'VETERINARIO',
+  'INGENIERO',
 ] as const;
 
 export type UserRoleValue = (typeof USER_ROLE_VALUES)[number];
