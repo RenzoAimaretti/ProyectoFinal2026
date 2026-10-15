@@ -18,3 +18,14 @@ export class EntityNotFoundError extends Error {
     this.name = 'EntityNotFoundError';
   }
 }
+
+/**
+ * R7: a prescription is frozen once its task has started (EN_PROGRESO or
+ * FINALIZADA) and can only be archived afterwards.
+ */
+export class PrescriptionFrozenError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'PrescriptionFrozenError';
+  }
+}

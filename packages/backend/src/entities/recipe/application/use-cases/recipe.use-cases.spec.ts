@@ -82,7 +82,9 @@ describe('Recipe use cases', () => {
     const files = [
       'domain/errors.ts',
       'domain/recipe-status.ts',
+      'domain/dosage-basis.ts',
       'domain/recipe.rules.ts',
+      'domain/spray-calculation.ts',
       'application/recipe.ports.ts',
       'application/recipe.types.ts',
       'application/recipe.validation.ts',
