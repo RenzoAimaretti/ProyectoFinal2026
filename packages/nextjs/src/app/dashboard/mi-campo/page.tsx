@@ -40,7 +40,6 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 const ROADMAP_ITEMS = [
   "Cultivos y rotaciones",
   "Índice NDVI",
-  "Clima y heladas",
   "Humedad de suelo",
 ];
 

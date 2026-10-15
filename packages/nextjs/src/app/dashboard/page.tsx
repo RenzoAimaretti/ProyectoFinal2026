@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/ui/layout";
@@ -36,9 +37,13 @@ import {
 import {
   ApiError,
   approveDailyReport,
+  getGrainPrices,
+  getLotWeather,
   getStoredUser,
+  getUsdOfficial,
   listClients,
   listDailyReports,
+  listLots,
   listReceptions,
   listStock,
   rejectDailyReport,
@@ -47,9 +52,25 @@ import {
   RECEPTION_STATUS_LABELS,
   type ClientDTO,
   type DailyReportDTO,
+  type GrainPricesResponse,
   type ReceptionDTO,
   type StockDTO,
+  type UsdRateResponse,
+  type WeatherResponse,
 } from "@/api/client";
+import {
+  GrainPricesWidget,
+  RadarWidget,
+  UsdWidget,
+  WeatherWidget,
+  WindWidget,
+} from "@/components/weather/weather-widgets";
+
+// Leaflet needs `window`, so the map is client-only and never server-rendered.
+const LeafletMap = dynamic(() => import("@/components/weather/leaflet-map"), {
+  ssr: false,
+  loading: () => <div className="skeleton h-72 w-full" aria-hidden="true" />,
+});
 
 /* ------------------------------------------------------------------ */
 /* Formatting + date helpers (real data, no invented metrics)          */
@@ -309,6 +330,15 @@ export default function Dashboard() {
   const [receptions, setReceptions] = useState<ReceptionDTO[]>([]);
   const [clients, setClients] = useState<ClientDTO[]>([]);
   const [stockRows, setStockRows] = useState<StockRow[]>([]);
+
+  // External integrations block (weather, radar, USD, grain board).
+  const [weather, setWeather] = useState<WeatherResponse | null>(null);
+  const [weatherLocationName, setWeatherLocationName] = useState<string | null>(null);
+  const [usdRate, setUsdRate] = useState<UsdRateResponse | null>(null);
+  const [grainPrices, setGrainPrices] = useState<GrainPricesResponse | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
+  const [weatherVersion, setWeatherVersion] = useState(0);
 
   const [focused, setFocused] = useState<string | null>(null);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
