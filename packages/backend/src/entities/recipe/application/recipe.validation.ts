@@ -2,6 +2,7 @@ import { InvalidInputError } from '../domain/errors';
 import {
   assertDistinctLoadOrders,
   assertRecipeHasItems,
+  assertValidDosageBasis,
   assertValidDose,
   assertValidLoadOrder,
   orderRecipeItemsByLoadOrder,
@@ -68,7 +69,7 @@ export function normalizeRecipeItems(items: unknown): CreateRecipeItemData[] {
         ? (item as Record<string, unknown>)
         : {};
 
-    return {
+    const normalizedItem: CreateRecipeItemData = {
       inputId: assertRequiredString(source.inputId, `items[${index}].inputId`),
       dose: assertValidDose(source.dose, `items[${index}].dose`),
       unit: assertOptionalString(source.unit, `items[${index}].unit`),
@@ -77,6 +78,18 @@ export function normalizeRecipeItems(items: unknown): CreateRecipeItemData[] {
         `items[${index}].loadOrder`,
       ),
     };
+
+    // R4: the basis is validated when present and left absent otherwise, so the
+    // stored default (POR_HECTAREA) applies without changing the shape of the
+    // already covered lot-scoped items.
+    if (source.dosageBasis !== undefined) {
+      normalizedItem.dosageBasis = assertValidDosageBasis(
+        source.dosageBasis,
+        `items[${index}].dosageBasis`,
+      );
+    }
+
+    return normalizedItem;
   });
 
   assertDistinctLoadOrders(normalized);

@@ -34,19 +34,47 @@ export type RecipeRecord = {
   reapplicationDate?: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  /**
+   * Additive read field: the surface of the recipe lot. The prescription totals
+   * are computed from it, so it is optional to keep the existing typed literals
+   * working when a caller does not need the calculation.
+   */
+  lotArea?: number;
   items: RecipeItemRecord[];
+};
+
+/**
+ * A recipe row enriched with the total amount to load, in the row's own unit.
+ * Additive: present only when the lot area is known and the totals were
+ * computed.
+ */
+export type RecipeItemOutput = RecipeItemRecord & {
+  total?: number;
+};
+
+/**
+ * R5: the shape the editor and the server share for a single prescription. It
+ * is the stored recipe plus the optional computed totals (`caldoTotal`) and the
+ * optional per-item `total`.
+ */
+export type RecipeOutput = Omit<RecipeRecord, 'items'> & {
+  caldoTotal?: number;
+  items: RecipeItemOutput[];
 };
 
 /**
  * The task facts the prescription lifecycle rules need. `status` decides
  * whether the prescription is frozen and `lotId` must match the prescription
  * lot; `taskTypeRequiresPrescription` tells whether the task was born SIN_RECETA.
+ * `lotArea` is the surface of the task lot and feeds the totals calculation
+ * without a second round trip.
  */
 export type TaskPrescriptionContext = {
   id: string;
   lotId: string;
   status: TaskStatusValue;
   taskTypeRequiresPrescription: boolean;
+  lotArea: number;
 };
 
 export type CreateRecipeItemInput = {
@@ -59,7 +87,11 @@ export type CreateRecipeItemInput = {
 
 export type CreateRecipeInput = {
   taskId?: string;
-  lotId: string;
+  /**
+   * Optional: a prescription takes the lot from its task. When a caller does
+   * send it, it is checked against the task lot so a mismatched lot is rejected.
+   */
+  lotId?: string;
   date: string;
   pest?: string;
   crop?: string;
@@ -92,6 +124,14 @@ export type CreateRecipeData = {
   reapplicationIntervalDays?: number | null;
   reapplicationDate?: Date | null;
   items: CreateRecipeItemData[];
+};
+
+/**
+ * The data the task-prescription port needs to attach a prescription to a task.
+ * `taskId` is required here because the attachment always marks the task.
+ */
+export type CreateTaskPrescriptionData = CreateRecipeData & {
+  taskId: string;
 };
 
 export type UpdateRecipeItemInput = CreateRecipeItemInput;
