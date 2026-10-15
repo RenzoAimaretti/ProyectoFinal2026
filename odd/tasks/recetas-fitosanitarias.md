@@ -112,12 +112,12 @@ to `ADMIN`, `SUPERVISOR`, `INGENIERO`, `OPERARIO`, `CONTRATISTA`.
 
 ## Tasks
 
-- [ ] B1 [backend] schema: `INGENIERO` role, `PrescriptionStatus`, `DosageBasis`,
+- [x] B1 [backend] schema: `INGENIERO` role, `PrescriptionStatus`, `DosageBasis`,
       `TaskType.requiresPrescription`, `Task.prescriptionStatus`, `Recipe.taskId`
       + pest/crop/re-application, `RecipeItem.dosageBasis`; hand-authored
       migration; `AUTH_USER_ROLES` mirror; seed (agronomist user, prescription
       flag on application task types, one pending and one prescribed task).
-- [ ] B2 [backend] prescription domain rules and the calculation, pure and unit
+- [x] B2 [backend] prescription domain rules and the calculation, pure and unit
       tested: dosage basis validation, load order, lot/task consistency, freeze
       after the task starts, spray-volume and per-product totals.
 - [ ] B3 [backend] recipe hexagon: `CreateRecipe` / `UpdateRecipe` use cases,
@@ -174,3 +174,72 @@ no pull request, no merge — the owner opens the PR against main.
 - Recon complete; plan and decisions approved by the owner.
 - Environment baseline captured: backend jest green with no database; datasource
   `localhost:5433` unreachable. ODD doc created before the first source write.
+
+### B1 — schema, role and seed (commit `e6e5c5a`)
+
+Verification, run for real:
+
+- `npx prisma validate`: `The schema at prisma\schema.prisma is valid`
+- `npx prisma generate`: generated Prisma Client 7.8.0 into `prisma/generated`
+- `pnpm test`: 92 suites / 875 tests, all passing
+- `npx tsc --noEmit -p tsconfig.json`: exit 0
+- `pnpm build` (`nest build`): exit 0
+
+The role list was hardcoded in three places and widening the Prisma enum broke
+compilation in the task module (`TS2416` in `prisma-user.reader.ts`). Fixed by
+adding `INGENIERO` to `USER_ROLE_VALUES` in both `entities/user/application/user.types.ts`
+and `entities/task/application/task.types.ts`, mirroring `AUTH_USER_ROLES`.
+
+Independent verification (read-only, high risk tier because the commit touches
+the auth hot path) returned PASS with no blockers. Non-blocking findings carried
+forward:
+
+1. `recipe.controller.ts` still gates reads with `@Roles('ADMIN','SUPERVISOR')`,
+   so `INGENIERO` is 403 on `GET /recipes` until B3.
+2. Next.js `modulesForRole` returns **every** module for a role it does not know,
+   so an `INGENIERO` would see the whole sidebar until W1.
+3. Next.js `api/client.ts` `UserRole` union is missing `INGENIERO` (stale typed
+   boundary, runtime unaffected) — W1.
+4. Future migrations must not both add and use an enum value in the same file:
+   Prisma runs a migration file in one transaction and `55P04` would trigger.
+
+Environment notes for the owner:
+
+- The seed now requires a new `SEED_INGENIERO_PASSWORD` environment variable
+  (no hardcoded fallback, same convention as `SEED_ADMIN_PASSWORD`). `db:seed`
+  fails loudly without it.
+- The migration is authored but NOT applied. To materialise it, bring Postgres
+  up at `localhost:5433` and run `pnpm --filter backend db:reset` (or
+  `migrate deploy`).
+- `prettier --check` fails on untouched files too, so the repository is not
+  Prettier-formatted. Formatting was deliberately NOT run: it is not convergent
+  and would rewrite the whole repository.
+
+### B2 — domain rules and the calculation
+
+New: `entities/recipe/domain/spray-calculation.ts` (+ spec) and
+`domain/dosage-basis.ts`. Extended: `domain/recipe.rules.ts` (+ spec),
+`domain/errors.ts` (`PrescriptionFrozenError`),
+`application/recipe.types.ts`.
+
+Formulas: `caldoTotal = sprayVolume × lotArea`; `POR_HECTAREA` row =
+`dose × lotArea`; `CONCENTRACION` row = `dose × caldoTotal / 100` (dose is the
+amount per 100 L, so a 1% v/v mix is entered as `1`). Row totals use the exact
+unrounded caldo and are then rounded, as is the caldo total, to 2 decimals.
+
+Strict TDD evidence — captured BEFORE implementing (behavioural failures, not a
+compile error): `Test Suites: 2 failed, 2 total / Tests: 82 failed, 46 passed,
+128 total`. After implementing: `2 passed` / `128 passed`.
+
+Verification re-run by the orchestrator:
+
+- `pnpm test`: 93 suites / 958 tests, all passing (baseline was 92 / 875, so
+  +1 suite and +83 tests, with no baseline test weakened)
+- `npx tsc --noEmit -p tsconfig.json`: exit 0
+- `pnpm build` (`nest build`): exit 0
+
+The `PrescriptionFrozenError` has no HTTP mapping yet on purpose: the recipe
+controller's `translate()` ends in `throw error` and still compiles, so
+`PrescriptionFrozenError -> 409` is deferred to B3 as planned. New record fields
+stay optional so the additive-only rule (R8) and the existing typed spec literals
+keep working.
