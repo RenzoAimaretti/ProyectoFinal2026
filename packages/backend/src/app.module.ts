@@ -21,6 +21,9 @@ import { MachineModule } from './entities/machine/machine.module';
 import { MachineUsageModule } from './entities/machine-usage/machine-usage.module';
 import { AuthModule } from './auth/auth.module';
 import { RbacModule } from './auth/rbac.module';
+import { WeatherModule } from './integrations/weather/weather.module';
+import { ExchangeRateModule } from './integrations/exchange-rate/exchange-rate.module';
+import { GrainPriceModule } from './integrations/grain-price/grain-price.module';
 
 @Module({
   imports: [
@@ -45,7 +48,10 @@ import { RbacModule } from './auth/rbac.module';
     TaskTypeModule,
     TaskModule,
     MachineModule,
-    MachineUsageModule
+    MachineUsageModule,
+    WeatherModule,
+    ExchangeRateModule,
+    GrainPriceModule
   ],
   controllers: [],
   providers: [],

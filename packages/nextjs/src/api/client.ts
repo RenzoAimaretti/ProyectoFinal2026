@@ -882,3 +882,120 @@ export type CreateDailyReportBody = {
 export function createDailyReport(body: CreateDailyReportBody): Promise<DailyReportDTO> {
   return apiPost<DailyReportDTO>("/daily-reports", body);
 }
+
+/* ------------------------------------------------------------------ */
+/* External integrations (Sprint 3): weather, USD and grain prices     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Mirrors `WeatherOutput` (design §2.8). Every degradable source carries
+ * `stale` plus the `fetchedAt` ISO timestamp of the value actually served, so
+ * a cached reading is never presented as fresh (spec A8).
+ */
+export type WeatherLocation = {
+  lat: number;
+  lon: number;
+  resolvedFrom: "coordinates" | "lot" | "farm";
+  lotId: string | null;
+  usedFarmFallback: boolean;
+};
+
+export type WeatherCurrent = {
+  temperatureC: number;
+  windSpeedKnots: number;
+  windDirectionDeg: number;
+  precipitationMm: number;
+};
+
+export type WeatherHourlyPoint = {
+  time: string;
+  windSpeedKnots: number;
+  windDirectionDeg: number;
+  precipitationMm: number;
+};
+
+export type WeatherDailyPoint = {
+  date: string;
+  precipitationSumMm: number;
+  precipitationProbabilityMax: number | null;
+};
+
+export type RadarFrame = {
+  time: string;
+  path: string;
+};
+
+export type RadarResponse = {
+  host: string;
+  frames: RadarFrame[];
+  /** `${host}${path}/256/{z}/{x}/{y}/2/1_1.png` — the client fetches tiles from the CDN. */
+  tileTemplate: string;
+  coverageWarning: boolean;
+};
+
+export type WeatherResponse = {
+  source: "open-meteo" | "open-meteo+rainviewer";
+  location: WeatherLocation;
+  current: WeatherCurrent;
+  hourly: WeatherHourlyPoint[];
+  daily: WeatherDailyPoint[];
+  radar: RadarResponse | null;
+  stale: boolean;
+  /** ISO 8601 */
+  fetchedAt: string;
+};
+
+export type UsdRateResponse = {
+  source: "dolarapi.com";
+  casa: "oficial";
+  moneda: "USD";
+  nombre: string;
+  compra: number;
+  venta: number;
+  /** ISO 8601 published by the source. */
+  fechaActualizacion: string;
+  stale: boolean;
+  /** ISO 8601 */
+  fetchedAt: string;
+};
+
+export type GrainKey = "trigo" | "maiz" | "girasol" | "soja" | "sorgo";
+
+export type GrainPriceRow = {
+  grain: GrainKey;
+  label: string;
+  pricePerTonArs: number | null;
+  pricePerTonUsd: number | null;
+};
+
+export type GrainPricesResponse = {
+  source: "cac.bcr.com.ar";
+  /** ISO 8601 (`YYYY-MM-DD`) — the published board date. */
+  date: string;
+  publishedAt: string | null;
+  bnaRate: number | null;
+  prices: GrainPriceRow[];
+  stale: boolean;
+  /** ISO 8601 */
+  fetchedAt: string;
+};
+
+/** Current weather and 7-day forecast for explicit coordinates. */
+export function getWeather(lat: number, lon: number): Promise<WeatherResponse> {
+  return apiGet<WeatherResponse>(`/weather/current?lat=${lat}&lon=${lon}`);
+}
+
+/** Weather resolved server-side from the lot's polygon (tenant-scoped). */
+export function getLotWeather(lotId: string): Promise<WeatherResponse> {
+  return apiGet<WeatherResponse>(`/lots/${encodeURIComponent(lotId)}/weather`);
+}
+
+/** Official USD rate (Banco Nación) as exposed by the backend. */
+export function getUsdOfficial(): Promise<UsdRateResponse> {
+  return apiGet<UsdRateResponse>("/exchange-rate/usd");
+}
+
+/** BCR grain board: Trigo, Maíz, Girasol, Soja and Sorgo in $/Tn and US$/Tn. */
+export function getGrainPrices(): Promise<GrainPricesResponse> {
+  return apiGet<GrainPricesResponse>("/grain-prices");
+}

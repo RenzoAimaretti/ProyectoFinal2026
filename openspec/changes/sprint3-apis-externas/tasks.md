@@ -35,46 +35,46 @@
 
 ## 4. Módulo `exchange-rate`
 
-- [ ] 4.1 Crear `src/integrations/exchange-rate/domain/exchange-rate.types.ts`: `UsdRateSnapshot` (`source: 'dolarapi.com'`, `casa`, `moneda`, `nombre`, `compra`, `venta`, `fechaActualizacion`) (design §2.6, spec A5).
-- [ ] 4.2 Crear `src/integrations/exchange-rate/application/exchange-rate.ports.ts`: `EXCHANGE_RATE_PROVIDER` + `ExchangeRateProviderPort.fetchOfficialUsd()` (design §2.6).
-- [ ] 4.3 Crear `src/integrations/exchange-rate/application/use-cases/get-usd-official.use-case.ts`: read-through con TTL de **30 min** y clave `exchange-rate:usd-oficial`, con degradación a `stale` (design §2.4/§2.6, spec A7–A8).
-- [ ] 4.4 Crear `src/integrations/exchange-rate/adapters/outbound/dolarapi.exchange-rate.provider.ts`: `GET https://dolarapi.com/v1/dolares/oficial` y validación de la forma del payload (sin `compra`/`venta` → `UpstreamParseError`) (design §2.6).
-- [ ] 4.5 Guardar el fixture real `src/integrations/exchange-rate/adapters/outbound/__fixtures__/dolarapi-oficial.json` (spec A13).
-- [ ] 4.6 Crear `src/integrations/exchange-rate/exchange-rate.module.ts`: composition root del módulo (design §2.1).
+- [x] 4.1 Crear `src/integrations/exchange-rate/domain/exchange-rate.types.ts`: `UsdRateSnapshot` (`source: 'dolarapi.com'`, `casa`, `moneda`, `nombre`, `compra`, `venta`, `fechaActualizacion`) (design §2.6, spec A5).
+- [x] 4.2 Crear `src/integrations/exchange-rate/application/exchange-rate.ports.ts`: `EXCHANGE_RATE_PROVIDER` + `ExchangeRateProviderPort.fetchOfficialUsd()` (design §2.6).
+- [x] 4.3 Crear `src/integrations/exchange-rate/application/use-cases/get-usd-official.use-case.ts`: read-through con TTL de **30 min** y clave `exchange-rate:usd-oficial`, con degradación a `stale` (design §2.4/§2.6, spec A7–A8).
+- [x] 4.4 Crear `src/integrations/exchange-rate/adapters/outbound/dolarapi.exchange-rate.provider.ts`: `GET https://dolarapi.com/v1/dolares/oficial` y validación de la forma del payload (sin `compra`/`venta` → `UpstreamParseError`) (design §2.6).
+- [x] 4.5 Guardar el fixture real `src/integrations/exchange-rate/adapters/outbound/__fixtures__/dolarapi-oficial.json` (spec A13).
+- [x] 4.6 Crear `src/integrations/exchange-rate/exchange-rate.module.ts`: composition root del módulo (design §2.1).
 
 ## 5. Módulo `grain-price`
 
-- [ ] 5.1 Crear `src/integrations/grain-price/domain/grain-price.types.ts`: `PizarraSnapshot` (`source: 'cac.bcr.com.ar'`, `date`, `publishedAt`, `bnaRate`, `prices`) y `GrainPriceRow` (`grain`, `label`, `pricePerTonArs`, `pricePerTonUsd`) (design §2.7, spec A6).
-- [ ] 5.2 Crear `src/integrations/grain-price/application/grain-price.ports.ts`: `GRAIN_PRICE_PROVIDER` + `GrainPriceProviderPort.fetchPizarra()` (design §2.7).
-- [ ] 5.3 Crear `src/integrations/grain-price/application/use-cases/get-grain-prices.use-case.ts`: read-through con TTL de **24 h** y clave `grain-price:pizarra-bcr`, con degradación a `stale` (design §2.4/§2.7, spec A7–A8).
-- [ ] 5.4 Agregar `cheerio` a `packages/backend/package.json` (única dependencia nueva del backend) (design §2.7).
-- [ ] 5.5 Crear `src/integrations/grain-price/adapters/outbound/bcr-pizarra.parser.ts`: `parsePizarra(html: string): PizarraSnapshot`, **función pura** con `cheerio`, que extrae los cinco granos en `$/Tn` y `US$/Tn`, la cotización BNA de conversión y la fecha; sin filas reconocibles lanza `UpstreamParseError` (nunca ceros silenciosos) (design §2.7, spec A6/A13).
-- [ ] 5.6 Guardar el fixture HTML real `src/integrations/grain-price/adapters/outbound/__fixtures__/pizarra-bcr.html` capturado de `https://www.cac.bcr.com.ar/es/precios-de-pizarra` (spec A13).
-- [ ] 5.7 Crear `src/integrations/grain-price/adapters/outbound/bcr-grain-price.provider.ts` (fetch de BCR + delega en el parser) y `src/integrations/grain-price/grain-price.module.ts` (composition root) (design §2.1/§2.7).
+- [x] 5.1 Crear `src/integrations/grain-price/domain/grain-price.types.ts`: `PizarraSnapshot` (`source: 'cac.bcr.com.ar'`, `date`, `publishedAt`, `bnaRate`, `prices`) y `GrainPriceRow` (`grain`, `label`, `pricePerTonArs`, `pricePerTonUsd`) (design §2.7, spec A6).
+- [x] 5.2 Crear `src/integrations/grain-price/application/grain-price.ports.ts`: `GRAIN_PRICE_PROVIDER` + `GrainPriceProviderPort.fetchPizarra()` (design §2.7).
+- [x] 5.3 Crear `src/integrations/grain-price/application/use-cases/get-grain-prices.use-case.ts`: read-through con TTL de **24 h** y clave `grain-price:pizarra-bcr`, con degradación a `stale` (design §2.4/§2.7, spec A7–A8).
+- [x] 5.4 Agregar `cheerio` a `packages/backend/package.json` (única dependencia nueva del backend) (design §2.7).
+- [x] 5.5 Crear `src/integrations/grain-price/adapters/outbound/bcr-pizarra.parser.ts`: `parsePizarra(html: string): PizarraSnapshot`, **función pura** con `cheerio`, que extrae los cinco granos en `$/Tn` y `US$/Tn`, la cotización BNA de conversión y la fecha; sin filas reconocibles lanza `UpstreamParseError` (nunca ceros silenciosos) (design §2.7, spec A6/A13).
+- [x] 5.6 Guardar el fixture HTML real `src/integrations/grain-price/adapters/outbound/__fixtures__/pizarra-bcr.html` capturado de `https://www.cac.bcr.com.ar/es/precios-de-pizarra` (spec A13).
+- [x] 5.7 Crear `src/integrations/grain-price/adapters/outbound/bcr-grain-price.provider.ts` (fetch de BCR + delega en el parser) y `src/integrations/grain-price/grain-price.module.ts` (composition root) (design §2.1/§2.7).
 
 ## 6. Controllers inbound y wiring
 
-- [ ] 6.1 Crear `src/integrations/weather/adapters/inbound/weather.controller.ts`: `@Controller('weather')` + `GET current` con `@UseGuards(JwtAuthGuard)`, DTO por selección explícita de `lat`/`lon` y `translate(error)` (`EntityNotFoundError`→404, `InvalidInputError`→400, `UpstreamUnavailableError`→503, `UpstreamError`/`UpstreamParseError`→502) (design §2.4/§2.8).
-- [ ] 6.2 Crear `src/integrations/weather/adapters/inbound/lot-weather.controller.ts`: `@Controller('lots')` + `GET :lotId/weather`; `tenantId` sale de `req.user.tenantId` y **nunca** del body/query; un lote de otro tenant → 404 (design §2.8/§2.9, spec A9).
-- [ ] 6.3 Crear `src/integrations/exchange-rate/adapters/inbound/exchange-rate.controller.ts`: `@Controller('exchange-rate')` + `GET usd` con `JwtAuthGuard`; dato global, sin scope de tenant (design §2.8/§2.9, spec A5/A9).
-- [ ] 6.4 Crear `src/integrations/grain-price/adapters/inbound/grain-price.controller.ts`: `@Controller('grain-prices')` + `GET` con `JwtAuthGuard`; dato global, sin scope de tenant (design §2.8/§2.9, spec A6/A9).
-- [ ] 6.5 `src/app.module.ts`: agregar `WeatherModule`, `ExchangeRateModule` y `GrainPriceModule` al array `imports` (design §2.8).
-- [ ] 6.6 `src/main.ts`: cambiar `process.env.PORT ?? 3000` por `process.env.PORT ?? 3001` para alinearlo con `packages/mobile/lib/core/config/api_config.dart` y `packages/nextjs/src/api/client.ts` (design §2.8, proposal Risks).
+- [x] 6.1 Crear `src/integrations/weather/adapters/inbound/weather.controller.ts`: `@Controller('weather')` + `GET current` con `@UseGuards(JwtAuthGuard)`, DTO por selección explícita de `lat`/`lon` y `translate(error)` (`EntityNotFoundError`→404, `InvalidInputError`→400, `UpstreamUnavailableError`→503, `UpstreamError`/`UpstreamParseError`→502) (design §2.4/§2.8).
+- [x] 6.2 Crear `src/integrations/weather/adapters/inbound/lot-weather.controller.ts`: `@Controller('lots')` + `GET :lotId/weather`; `tenantId` sale de `req.user.tenantId` y **nunca** del body/query; un lote de otro tenant → 404 (design §2.8/§2.9, spec A9).
+- [x] 6.3 Crear `src/integrations/exchange-rate/adapters/inbound/exchange-rate.controller.ts`: `@Controller('exchange-rate')` + `GET usd` con `JwtAuthGuard`; dato global, sin scope de tenant (design §2.8/§2.9, spec A5/A9).
+- [x] 6.4 Crear `src/integrations/grain-price/adapters/inbound/grain-price.controller.ts`: `@Controller('grain-prices')` + `GET` con `JwtAuthGuard`; dato global, sin scope de tenant (design §2.8/§2.9, spec A6/A9).
+- [x] 6.5 `src/app.module.ts`: agregar `WeatherModule`, `ExchangeRateModule` y `GrainPriceModule` al array `imports` (design §2.8).
+- [x] 6.6 ~~`src/main.ts`: cambiar `process.env.PORT ?? 3000` por `process.env.PORT ?? 3001`~~ — **descartado en apply**: el puerto es configuración local de cada entorno, no una decisión del proyecto (proposal, Fuera de alcance). `main.ts` queda en `?? 3000`.
 
 ## 7. Entorno e infraestructura
 
-- [ ] 7.1 `.env.example` (raíz): agregar `PORT=3001` y `EXTERNAL_HTTP_TIMEOUT_MS=8000` a la sección "backend"; recordar que **no existe** `packages/backend/.env.example` (el `.env.example` de la raíz indica copiar las variables a `packages/backend/.env`) (design §2.10).
-- [ ] 7.2 Confirmar que ninguna fuente requiere API key: no se agrega ningún secreto nuevo al `.env.example` (design §2.10, spec A10).
-- [ ] 7.3 Verificar que no se introdujo `@nestjs/config`, `ConfigService` ni un uso de `ioredis` (que sigue declarado pero sin importar) (proposal Decisions 9 y 14, design §2.3).
+- [x] 7.1 `.env.example` (raíz): agregar **solo** `EXTERNAL_HTTP_TIMEOUT_MS=8000` a la sección "backend"; **no** agregar `PORT` (es configuración local, ver proposal Fuera de alcance); recordar que **no existe** `packages/backend/.env.example` (el `.env.example` de la raíz indica copiar las variables a `packages/backend/.env`) (design §2.10).
+- [x] 7.2 Confirmar que ninguna fuente requiere API key: no se agrega ningún secreto nuevo al `.env.example` (design §2.10, spec A10).
+- [x] 7.3 Verificar que no se introdujo `@nestjs/config`, `ConfigService` ni un uso de `ioredis` (que sigue declarado pero sin importar) (proposal Decisions 9 y 14, design §2.3).
 
 ## 8. Tests — backend
 
 - [x] 8.1 Unit del núcleo: `InMemoryTtlCache` (`get`/`set`, LRU acotado, entradas que sobreviven al TTL) y `FetchHttpClient` (timeout → `UpstreamUnavailableError`; `status >= 400` → `UpstreamError`) con `fetch` stubbeado (design §2.13).
 - [x] 8.2 Unit de aplicación con **`ClockPort` fake**: TTL vigente NO llama al provider; TTL vencido sí; fallo upstream **con** entrada cacheada → `stale: true` + `fetchedAt` original; fallo upstream **sin** entrada → propaga (design §2.4/§2.13, spec A7–A8).
-- [ ] 8.3 Unit del parser de la pizarra contra el fixture HTML real: cinco granos, `$/Tn` y `US$/Tn`, `bnaRate` y fecha; markup alterado → `UpstreamParseError` (design §2.7/§2.13, spec A6/A13).
+- [x] 8.3 Unit del parser de la pizarra contra el fixture HTML real: cinco granos, `$/Tn` y `US$/Tn`, `bnaRate` y fecha; markup alterado → `UpstreamParseError` (design §2.7/§2.13, spec A6/A13).
 - [x] 8.4 Unit del provider de Open-Meteo contra su fixture JSON: verifica `wind_speed_unit=kn`, `timezone=America/Argentina/Cordoba` y `forecast_days`, y el mapeo a `WeatherSnapshot` (design §2.5/§2.13, spec A1–A2).
 - [x] 8.5 Unit del dominio de ubicación: centroide en GeoJSON `Polygon` y en array de pares; polígono vacío o inválido → error (design §2.5/§2.13, spec A4).
-- [ ] 8.6 Tests de controller de los cuatro endpoints: DTO/query → input del use case; `tenantId` sale del JWT e ignora extras del cliente; traducción 404/400/503/502 (design §2.4/§2.13, spec A9).
+- [x] 8.6 Tests de controller de los cuatro endpoints: DTO/query → input del use case; `tenantId` sale del JWT e ignora extras del cliente; traducción 404/400/503/502 (design §2.4/§2.13, spec A9).
 
 ## 9. Consumidor Next.js
 
@@ -112,7 +112,7 @@
 - [ ] 12.3 `flutter test` verde en `packages/mobile`.
 - [ ] 12.4 `npm run lint` verde en `packages/nextjs`.
 - [ ] 12.5 E2E manual con el backend y el frontend levantados: los cuatro endpoints responden con datos reales y **sin ninguna API key**; el dashboard muestra el bloque de widgets con mapa y radar; el móvil muestra la tarjeta con timestamp (Success Criteria del proposal).
-- [ ] 12.6 Verificación de degradación: con una fuente inalcanzable (red cortada al proveedor), los endpoints responden `stale: true` con `fetchedAt`; sin valor previo, responden 503/502. Verificar además que los tres defaults de puerto (backend, móvil, web) coinciden en 3001.
+- [ ] 12.6 Verificación de degradación: con una fuente inalcanzable (red cortada al proveedor), los endpoints responden `stale: true` con `fetchedAt`; sin valor previo, responden 503/502. Verificar además que el backend levantado en el `PORT` local configurado sirve los cuatro endpoints.
 
 ## Explicit Non-Goals
 

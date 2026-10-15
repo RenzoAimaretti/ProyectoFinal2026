@@ -22,7 +22,6 @@ Responsable: **Ignacio — Dev 1 (Mobile & Sync)**, según el Roadmap & Gantt de
 - Bloque de widgets del dashboard Next.js + **mapa Leaflet propio** con capa de viento y radar RainViewer.
 - Tarjeta de clima/viento en el móvil con **cache local en drift** y su timestamp (última lectura visible sin señal).
 - Tests con **mocks y fixtures reales capturados**: Jest en backend, `MockClient` en Flutter. Fixture HTML obligatorio para la pizarra.
-- Alineación del default de `PORT` del backend (hoy 3000) con los clientes (3001).
 
 ### Fuera de alcance
 
@@ -33,6 +32,7 @@ Responsable: **Ignacio — Dev 1 (Mobile & Sync)**, según el Roadmap & Gantt de
 - Capas de tiles de **Open-Meteo**: `tiles.open-meteo.com` fue sondeado y no devolvió metadata usable, por lo que no se promete ese servicio.
 - Redis, scheduler, cron y `@nestjs/config`/`ConfigService`: no se introducen.
 - Framework de tests en `packages/nextjs`: no se agrega en este sprint.
+- **Alineación del puerto del backend**: `main.ts` queda como estaba (`process.env.PORT ?? 3000`) y `.env.example` no gana `PORT`. El puerto es configuración local de cada entorno, no una decisión del proyecto. El desalineamiento con los clientes (que apuntan a 3001) queda como riesgo abierto y se resuelve seteando `PORT` en el `.env` local.
 - `packages/web`: scaffold Flutter ajeno al proyecto; se ignora.
 
 ## Approach
@@ -74,9 +74,9 @@ Responsable: **Ignacio — Dev 1 (Mobile & Sync)**, según el Roadmap & Gantt de
 | `packages/backend/src/integrations/exchange-rate/**` | New | Hexágono del dólar oficial sobre `dolarapi.com` |
 | `packages/backend/src/integrations/grain-price/**` | New | Hexágono de la pizarra BCR: provider HTTP + parser `cheerio` + fixture HTML |
 | `packages/backend/src/app.module.ts` | Modified | Registrar `WeatherModule`, `ExchangeRateModule`, `GrainPriceModule` |
-| `packages/backend/src/main.ts` | Modified | Alinear el default de `PORT` de 3000 a 3001 |
+| `packages/backend/src/main.ts` | Unchanged | Se evaluó alinear el default de `PORT` a 3001; se descartó por ser configuración local (ver Fuera de alcance) |
 | `packages/backend/package.json` | Modified | Dependencia nueva: `cheerio` |
-| `.env.example` | Modified | Documentar `EXTERNAL_HTTP_TIMEOUT_MS` y `PORT` en la sección del backend |
+| `.env.example` | Modified | Documentar `EXTERNAL_HTTP_TIMEOUT_MS` en la sección del backend (sin `PORT`, por ser configuración local) |
 | `packages/nextjs/src/api/client.ts` | Modified | DTOs + `getWeather`, `getLotWeather`, `getUsdOfficial`, `getGrainPrices` |
 | `packages/nextjs/src/components/weather/weather-widgets.tsx` | New | Widgets superiores: clima, viento, radar, dólar y pizarra |
 | `packages/nextjs/src/components/weather/leaflet-map.tsx` | New | Mapa Leaflet propio (client-only, import dinámico) con capa de viento y radar |
@@ -99,7 +99,7 @@ Responsable: **Ignacio — Dev 1 (Mobile & Sync)**, según el Roadmap & Gantt de
 
 | Risk | Likelihood | Mitigation |
 |------|------------|------------|
-| Mismatch de puerto: `main.ts` default 3000 vs 3001 en `api_config.dart` y `src/api/client.ts` | High | Alinear el default de `PORT` a **3001** en `packages/backend/src/main.ts` y documentar `PORT=3001` en `.env.example`; verificar los tres defaults en la verificación global |
+| Mismatch de puerto: `main.ts` default 3000 vs 3001 en `api_config.dart` y `src/api/client.ts` | High | **Riesgo abierto y aceptado** (decisión del usuario: el puerto es configuración local). Mitigación operativa: setear `PORT=3001` en el `packages/backend/.env` de cada entorno; el sprint no toca `main.ts` ni documenta `PORT` en `.env.example` |
 | Scraping de BCR frágil ante cambios de markup | High | `cheerio` + fixture HTML real versionado; el test falla fuerte en vez de devolver ceros |
 | Cobertura pobre de RainViewer sobre Argentina | Med | Fallback documentado a `precipitation`/`precipitation_probability_max` de Open-Meteo (R004) |
 | Open-Meteo free tier para uso no comercial | Med | Proyecto universitario sin fines de lucro; revisar términos antes de comercializar (open question) |
@@ -146,7 +146,7 @@ Todo el sprint es **aditivo y aislado**: revertir equivale a (1) quitar `Weather
 - [ ] El dashboard web muestra el bloque de widgets superiores con mapa Leaflet, capa de viento y radar.
 - [ ] El móvil muestra la tarjeta de clima/viento con timestamp y la conserva visible sin señal (cache drift).
 - [ ] Tests verdes: Jest backend con fixtures reales, `flutter test` en móvil; `flutter analyze` sin errores.
-- [ ] Los tres defaults de puerto (backend, móvil, web) apuntan al mismo valor.
+- [ ] El backend arranca en el puerto configurado localmente (`PORT` en `packages/backend/.env`) y los cuatro endpoints responden desde ahí.
 
 ## Artifacts
 

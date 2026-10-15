@@ -403,7 +403,7 @@ Formas JSON de respuesta (`fetch` del cliente, `cache: "no-store"`):
 }
 ```
 
-Cableado en `app.module.ts`: se agregan `WeatherModule`, `ExchangeRateModule` y `GrainPriceModule` al array `imports` (hoy 22 módulos). `main.ts` cambia `process.env.PORT ?? 3000` por `process.env.PORT ?? 3001` (proposal Risks).
+Cableado en `app.module.ts`: se agregan `WeatherModule`, `ExchangeRateModule` y `GrainPriceModule` al array `imports` (hoy 22 módulos). El default de `PORT` en `main.ts` **no se toca**: el puerto es configuración local de cada entorno (ver proposal, Fuera de alcance).
 
 ### 2.9 Scoping multi-tenant
 
@@ -426,7 +426,7 @@ El repo **no tiene `@nestjs/config`**: `src/main.ts` hace `import 'dotenv/config
 |---|---|---|---|
 | `JWT_SECRET` | sí (ya existía) | — | `requireJwtSecret()` existente |
 | `EXTERNAL_HTTP_TIMEOUT_MS` | no | `8000` | `integrations.config.ts` con guard estilo `requireJwtSecret()` que solo valida el número si viene |
-| `PORT` | no | **3001** (alineado) | `main.ts` |
+| `PORT` | no | 3000 (default del código, sin tocar) | `main.ts` |
 | API keys de terceros | **ninguna** | — | no aplica: las tres fuentes son keyless |
 
 `integrations.config.ts`:
@@ -443,7 +443,7 @@ export function readExternalHttpTimeoutMs(): number {
 }
 ```
 
-Documentación: el `.env.example` de **la raíz** (que ya existe con las secciones `docker-compose` y `backend`) gana `EXTERNAL_HTTP_TIMEOUT_MS` y `PORT` en su sección backend. Nota: **no existe `packages/backend/.env.example`** — el `.env.example` de la raíz indica "place these in `packages/backend/.env`".
+Documentación: el `.env.example` de **la raíz** (que ya existe con las secciones `docker-compose` y `backend`) gana `EXTERNAL_HTTP_TIMEOUT_MS` en su sección backend. **No** se agrega `PORT`: el puerto es configuración local de cada entorno, no del proyecto. Nota: **no existe `packages/backend/.env.example`** — el `.env.example` de la raíz indica "place these in `packages/backend/.env`".
 
 ### 2.11 Consumidor Next.js — widgets + Leaflet
 
@@ -651,7 +651,7 @@ Cuatro fuentes externas, **cero API keys**, un único cliente HTTP saliente, una
 | `src/integrations/weather/adapters/outbound/__fixtures__/rainviewer-weather-maps.json` | Create | Fixture JSON real capturado |
 | `src/integrations/exchange-rate/adapters/outbound/__fixtures__/dolarapi-oficial.json` | Create | Fixture JSON real capturado |
 | `src/app.module.ts` | Modify | + `WeatherModule`, `ExchangeRateModule`, `GrainPriceModule` |
-| `src/main.ts` | Modify | `process.env.PORT ?? 3001` (alineación de puerto) |
+| `src/main.ts` | Unchanged | El default de `PORT` (3000) no se toca: el puerto es configuración local (ver proposal, Fuera de alcance) |
 | `package.json` | Modify | + `cheerio` |
 
 ### Web (`packages/nextjs/`)
@@ -686,7 +686,7 @@ Cuatro fuentes externas, **cero API keys**, un único cliente HTTP saliente, una
 
 | Archivo | Acción | Qué |
 |---|---|---|
-| `.env.example` | Modify | + `PORT=3001` y `EXTERNAL_HTTP_TIMEOUT_MS=8000` en la sección backend (design §2.10) |
+| `.env.example` | Modify | + `EXTERNAL_HTTP_TIMEOUT_MS=8000` en la sección backend (design §2.10); sin `PORT` |
 
 ## 5. Migración / Rollout
 
@@ -699,7 +699,7 @@ if (from < 4) {
 ```
 
 - **Backend**: **sin migración Prisma**. No hay delta para `schema.prisma`: el sprint no agrega modelos ni columnas. Tampoco hay migración de datos ni backfill.
-- **Rollout aditivo**: la capa saliente nace apagada en el sentido de que solo la activan sus cuatro rutas nuevas; ninguna ruta existente cambia de contrato. El único cambio sobre comportamiento existente es el **default de `PORT`** (3000 → 3001), que es en sí mismo la corrección del bug detectado (proposal Risks) y se documenta en `.env.example`.
+- **Rollout aditivo**: la capa saliente nace apagada en el sentido de que solo la activan sus cuatro rutas nuevas; ninguna ruta existente cambia de contrato. **Ningún comportamiento existente se modifica**: el sprint es estrictamente aditivo, porque el default de `PORT` de `main.ts` no se toca (el puerto es configuración local de cada entorno).
 - **Reversión**: quitar los tres módulos de `app.module.ts` deja el backend exactamente como estaba (más las dependencias huérfanas `cheerio`). En web, borrar `src/components/weather/` y la llamada en `dashboard/page.tsx`. En móvil, des-cablear la tarjeta en `main.dart` y dejar `WeatherCache` vacía.
 
 ## 6. Preguntas abiertas
