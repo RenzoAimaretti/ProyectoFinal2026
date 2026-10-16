@@ -3,10 +3,10 @@ import {
   InvalidInputError,
   InvalidRelationError,
 } from '../../domain/errors';
+import { LotPolygon } from '../../domain/lot-polygon';
 import { FarmReaderPort, LotRepositoryPort } from '../lot.ports';
 import { LotRecord, UpdateLotInput } from '../lot.types';
 import {
-  assertOptionalPolygon,
   assertPositiveNumber,
   assertRequiredString,
 } from '../lot.validation';
@@ -54,8 +54,10 @@ export class UpdateLotUseCase {
       updateData.coords = sanitizedData.coords;
     }
 
-    if (sanitizedData.polygon !== undefined) {
-      updateData.polygon = assertOptionalPolygon(sanitizedData.polygon);
+    if (sanitizedData.polygon !== undefined && sanitizedData.polygon !== null) {
+      const polygon = LotPolygon.fromGeoJson(sanitizedData.polygon);
+      updateData.polygon = polygon.toGeoJson();
+      updateData.area = polygon.areaHectares();
     }
 
     if (sanitizedData.farmId !== undefined) {
@@ -70,7 +72,7 @@ export class UpdateLotUseCase {
       updateData.farmId = farmId;
     }
 
-    if (sanitizedData.area !== undefined) {
+    if (sanitizedData.area !== undefined && updateData.area === undefined) {
       updateData.area = assertPositiveNumber(sanitizedData.area, 'area');
     }
 

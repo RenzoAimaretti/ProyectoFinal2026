@@ -20,8 +20,12 @@ import {
   LOT_STATE_LABELS,
   LOT_STATES,
   countUndelimited,
+  farmMapCenter,
+  latLngsToPolygon,
+  ringToLatLngs,
+  type LatLngTuple,
 } from "@/lib/lot-map";
-import { apiGet, type FarmDTO, type LotDTO } from "@/api/client";
+import { apiGet, apiPut, ApiError, type FarmDTO, type LotDTO } from "@/api/client";
 
 /** Leaflet touches `window` when it is imported, so it can only load in the browser. */
 const LotMap = dynamic(
@@ -37,6 +41,7 @@ const LotMap = dynamic(
 export default function MiCampoPage() {
   const { user } = useAuth();
   const esAdmin = !isClientRole(user?.role);
+  const canDraw = user?.role === "ADMIN" || user?.role === "SUPERVISOR";
 
   const [farms, setFarms] = useState<FarmDTO[]>([]);
   const [lotesByFarm, setLotesByFarm] = useState<Record<string, LotDTO[]>>({});
@@ -45,6 +50,11 @@ export default function MiCampoPage() {
 
   const [cliente, setCliente] = useState("");
   const [selected, setSelected] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<LatLngTuple[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveNotice, setSaveNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -100,6 +110,62 @@ export default function MiCampoPage() {
     () => countUndelimited(lotesActuales),
     [lotesActuales],
   );
+
+  const cancelDrawing = () => {
+    setEditing(false);
+    setDraft([]);
+    setSaveError(null);
+  };
+
+  const selectLot = (id: string) => {
+    cancelDrawing();
+    setSaveNotice(null);
+    setSelected(id);
+  };
+
+  const savePolygon = async () => {
+    if (!sel || !canDraw || saving) return;
+    setSaveError(null);
+    setSaveNotice(null);
+    let polygon;
+    try {
+      polygon = latLngsToPolygon(draft);
+      // The editor moves the exterior only; keep any existing interior rings intact.
+      if (sel.polygon?.coordinates.length && sel.polygon.coordinates.length > 1) {
+        polygon.coordinates.push(...sel.polygon.coordinates.slice(1));
+      }
+    } catch (cause) {
+      setSaveError(cause instanceof Error ? cause.message : "Polígono inválido.");
+      return;
+    }
+    setSaving(true);
+    try {
+      // PUT returns the authoritative polygon and area; keep it even if refresh fails.
+      const updated = await apiPut<LotDTO>(`/lots/${encodeURIComponent(sel.id)}`, { polygon });
+      setLotesByFarm((previous) => ({
+        ...previous,
+        [sel.farmId]: (previous[sel.farmId] ?? []).map((lot) =>
+          lot.id === sel.id ? { ...lot, ...updated } : lot,
+        ),
+      }));
+      cancelDrawing();
+      try {
+        const lots = await apiGet<LotDTO[]>("/lots");
+        setLotesByFarm(Object.fromEntries(farms.map((farm) => [
+          farm.id, lots.filter((lot) => lot.farmId === farm.id),
+        ])));
+      } catch {
+        setSaveNotice("El polígono se guardó, pero no se pudo actualizar la lista. Recargá la página para sincronizar los datos.");
+      }
+    } catch (cause) {
+      const body = cause instanceof ApiError ? cause.body : null;
+      const message = body && typeof body === "object" && "message" in body
+        ? (body as { message: unknown }).message : null;
+      setSaveError(typeof message === "string" ? message : "No se pudo guardar el polígono. Intentá de nuevo.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -169,7 +235,10 @@ export default function MiCampoPage() {
                   <button
                     key={f.id}
                     type="button"
+                    disabled={saving}
                     onClick={() => {
+                      cancelDrawing();
+                      setSaveNotice(null);
                       setCliente(f.id);
                       const firstId = lotesByFarm[f.id]?.[0]?.id;
                       setSelected(firstId ?? "");
@@ -201,7 +270,8 @@ export default function MiCampoPage() {
                   <button
                     key={l.id}
                     type="button"
-                    onClick={() => setSelected(l.id)}
+                    disabled={saving}
+                    onClick={() => selectLot(l.id)}
                     className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
                       isActive
                         ? "border-agro-green bg-agro-green text-white"
@@ -223,12 +293,46 @@ export default function MiCampoPage() {
             </div>
           )}
 
+          {canDraw && sel && (
+            <div className="border-b border-agro-border px-5 py-3">
+              {!editing ? (
+                <button type="button" className="rounded-lg bg-agro-green px-3 py-2 text-sm font-semibold text-white" onClick={() => {
+                  setDraft(sel.polygon ? ringToLatLngs(sel.polygon.coordinates[0].slice(0, -1)) : []);
+                  setSaveError(null);
+                  setSaveNotice(null);
+                  setEditing(true);
+                }}>
+                  {sel.polygon ? "Editar delimitación" : "Dibujar delimitación"}
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-ink-soft">Tocá el mapa para agregar vértices; arrastrá los puntos para ajustar. Mínimo tres puntos.</p>
+                  <div className="flex gap-2">
+                    <button type="button" disabled={saving} onClick={() => void savePolygon()} className="rounded-lg bg-agro-green px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                      {saving ? "Guardando…" : "Guardar polígono"}
+                    </button>
+                    <button type="button" disabled={saving} onClick={cancelDrawing} className="rounded-lg border border-agro-border px-3 py-2 text-sm text-ink disabled:opacity-50">Cancelar</button>
+                  </div>
+                  {saveError && <Alert tone="error" title="No se pudo guardar">{saveError}</Alert>}
+                </div>
+              )}
+            </div>
+          )}
+          {saveNotice && <Alert tone="warning" title="Guardado con aviso">{saveNotice}</Alert>}
           <LotMap
             lots={lotesActuales}
             selectedLotId={sel?.id ?? null}
-            onSelectLot={setSelected}
+            onSelectLot={(id) => { if (!saving) selectLot(id); }}
+            farmId={currentFarm.id}
+            fallbackCenter={farmMapCenter(currentFarm.location) ?? [-33.4, -62.3]}
+            editing={editing && !saving}
+            draft={draft}
+            onDraftChange={setDraft}
             emptyLabel="Todavía no hay ningún lote con el polígono delimitado en este campo."
           />
+          {!lotesActuales.some((lot) => lot.polygon) && !farmMapCenter(currentFarm.location) && (
+            <p className="px-5 py-2 text-xs text-ink-soft">Vista inicial aproximada en Argentina: la ubicación declarada no contiene coordenadas. Navegá hasta el lote antes de marcar puntos.</p>
+          )}
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-agro-border px-5 py-3 text-xs text-ink-soft">
             {LOT_STATES.map((state) => (

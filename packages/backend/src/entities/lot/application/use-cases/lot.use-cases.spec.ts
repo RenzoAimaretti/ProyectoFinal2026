@@ -449,7 +449,7 @@ describe('Lot use cases', () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
-    it('updates a lot with a polygon', async () => {
+    it('derives area from a saved polygon instead of trusting a supplied area', async () => {
       const { repository, farmReader } = createPorts();
       repository.findByIdForTenant.mockResolvedValue(baseLot);
       repository.updateForTenant.mockResolvedValue({
@@ -459,14 +459,38 @@ describe('Lot use cases', () => {
 
       const useCase = new UpdateLotUseCase(repository, farmReader);
 
-      await expect(
-        useCase.execute('lot-1', 'company-1', { polygon: square }),
-      ).resolves.toEqual({ ...baseLot, polygon: square });
+      await useCase.execute('lot-1', 'company-1', {
+        polygon: square,
+        area: 1,
+      });
+
+      const radians = (degrees: number) => (degrees * Math.PI) / 180;
+      const expectedHectares =
+        (6_371_008.8 ** 2 *
+          radians(0.1) *
+          (Math.sin(radians(-33.3)) - Math.sin(radians(-33.4)))) /
+        10_000;
+      expect(repository.updateForTenant).toHaveBeenCalledWith(
+        'lot-1',
+        'company-1',
+        { polygon: square, area: expect.any(Number) },
+      );
+      const [, , update] = repository.updateForTenant.mock.calls[0];
+      expect(update.area).toBeCloseTo(expectedHectares, 6);
+    });
+
+    it('keeps an explicit area-only update without changing the polygon', async () => {
+      const { repository, farmReader } = createPorts();
+      repository.findByIdForTenant.mockResolvedValue(baseLot);
+      repository.updateForTenant.mockResolvedValue({ ...baseLot, area: 20 });
+
+      const useCase = new UpdateLotUseCase(repository, farmReader);
+      await useCase.execute('lot-1', 'company-1', { area: 20 });
 
       expect(repository.updateForTenant).toHaveBeenCalledWith(
         'lot-1',
         'company-1',
-        { polygon: square },
+        { area: 20 },
       );
     });
 

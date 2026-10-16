@@ -142,6 +142,14 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   timestamp are broken by seasonal order — `cosechado` > `aplicado` > `sembrado` — so
   the answer never depends on the order the rows came back from the database.
 
+- **S12 — Drawing permission decision (user response, quoted verbatim):**
+  > Solo ADMIN y SUPERVISOR por ahora
+
+  This is a deliberate first-increment exception to S1's producer/contractor scenario,
+  not a claim that those roles can complete CUU02. Leave the existing `PUT /lots/:id`
+  guard intact and hide write controls for read-only roles; revisit authorization and
+  ownership checks before granting those roles write access.
+
 ## Tasks
 
 - [x] **T01 — `Lot.polygon` + additive migration** (S2, S4, S9-partial, S10)
@@ -294,10 +302,12 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
     hand-written polygon for a smoke test.
   - Commit: none expected; this is a check.
 
-- [ ] **T07 — Drawing capture** (S7, S9)
-  - Route: inline.
-  - Draw/edit tools saving against T03's endpoint.
-  - Check: draw, save, reload, same position, area computed from geometry.
+- [ ] **T07 — Drawing capture** (S1, S4, S7, S9, S12)
+  - Route: two disjoint work units: backend-derived area and Next.js drawing UI.
+  - Draw/edit tools save against T03's endpoint. Only ADMIN and SUPERVISOR can save in this increment; PRODUCTOR and CONTRATISTA retain read-only access (S12).
+  - The backend derives `area` from a newly saved polygon, rather than trusting the browser; existing area-only updates keep their current behavior.
+  - Checks observed: backend RED on trusting a conflicting area, then 104 suites / 1003 tests green; `node --experimental-strip-types --test packages/nextjs/test/lot-map.test.mjs` passes three permanent helper tests; Next.js typecheck and build pass. The targeted ESLint run fails only on `react-hooks/set-state-in-effect` in `page.tsx`, reproduced identically on HEAD. Independent verification found and then confirmed correction of a false save-error message when PUT succeeded and GET refresh failed.
+  - Still requires T09's browser check: draw, save, reload at the same position and test roles manually. Do not claim full runtime acceptance yet.
   - Commit: _pending_.
 
 - [ ] **T08 — Cross-ring polygon validity** (S9, accepted debt)
@@ -553,3 +563,32 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   as harmless redundancy rather than a defect, because the prop prevents an initial
   render at zoom 0. A comment now says so, so a reviewer does not read it as an
   accident.
+
+- **L27 — resumed T07 / user decision** (2026-10-16): the Notion task remains marked
+  `Sin empezar` although the repository records T01–T06 as complete; Notion's technical
+  approach page predates these commits and still promises an impossible `coords` backfill.
+  The user's current request was, verbatim: "Continuemos con el trabajo que veniamos
+  haciendo sobre el modulo sig que habia pendiente en notion". Asked who can save
+  drawings because S1 includes PRODUCTOR/CONTRATISTA but `PUT /lots/:id` permits only
+  ADMIN/SUPERVISOR. The user chose, verbatim: "Solo ADMIN y SUPERVISOR por ahora".
+  S12 freezes that limit; no role-guard relaxation is authorized. The drawing feature
+  must work when no lot has a polygon yet, and area is computed server-side from the
+  validated polygon, while existing explicit area-only edits remain unchanged.
+
+- **L28 — T07 implementation and verification gap** (2026-10-16): backend area is
+  derived by `LotPolygon.areaHectares()` when updating a non-null polygon; explicit
+  area-only updates retain their old behavior. The backend test observed RED first
+  (provided area `1` incorrectly persisted instead of approximately `10328.282`),
+  then the lot suite passed 107/107 and the full backend suite passed 104 suites /
+  1003 tests. Next.js has a manual Leaflet vertex editor that works on an empty map,
+  converts lat/lng into a deduplicated closed GeoJSON ring, saves via PUT, and refreshes
+  from the server. A permanent Node test now checks the pure conversion, boundaries
+  and fallback location (3/3 green); it was added after the implementation, so it is
+  regression proof, not evidence of RED. Next.js typecheck and build passed; the
+  targeted ESLint invocation fails on `react-hooks/set-state-in-effect` in the
+  pre-existing `useEffect(() => void load())`, reproduced on HEAD. An independent
+  verifier found one candidate-caused bug: successful PUT followed by failed GET
+  falsely reported an unsuccessful save. The fix retains the PUT response's polygon
+  and area, leaves editing mode and shows a truthful refresh warning; a narrow
+  read-only re-verification confirmed it. No browser interaction was available, so
+  T09's draw/save/reload and role checks remain unverified and T07 stays open.
