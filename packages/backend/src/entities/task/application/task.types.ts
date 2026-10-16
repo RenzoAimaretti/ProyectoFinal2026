@@ -19,6 +19,15 @@ export const USER_ROLE_VALUES = [
 
 export type UserRoleValue = (typeof USER_ROLE_VALUES)[number];
 
+export const PRESCRIPTION_STATUS_VALUES = [
+  'NO_REQUIERE',
+  'SIN_RECETA',
+  'CON_RECETA',
+] as const;
+
+export type PrescriptionStatusValue =
+  (typeof PRESCRIPTION_STATUS_VALUES)[number];
+
 export type TaskRecord = {
   id: string;
   lotId: string;
@@ -57,6 +66,12 @@ export type TaskReadOutput = TaskRecord & {
   farmName?: string;
   taskTypeName?: string;
   operators?: TaskOperatorSummary[];
+  /**
+   * Additive read field: whether the task still needs a phytosanitary
+   * prescription (`SIN_RECETA`), already has one (`CON_RECETA`) or never needed
+   * one (`NO_REQUIERE`). Optional so existing consumers keep working unchanged.
+   */
+  prescriptionStatus?: PrescriptionStatusValue;
 };
 
 export type CreateTaskInput = {
@@ -75,6 +90,11 @@ export type CreateTaskData = {
   lotId: string;
   taskTypeId: string;
   startedAt: Date;
+  /**
+   * Additive: preset by the creation rule from `TaskType.requiresPrescription`.
+   * When omitted the model default (`NO_REQUIERE`) applies.
+   */
+  prescriptionStatus?: PrescriptionStatusValue;
 };
 
 export type UpdateTaskData = {

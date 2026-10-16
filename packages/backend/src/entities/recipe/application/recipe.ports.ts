@@ -1,6 +1,7 @@
 import {
   CreateRecipeData,
   CreateTaskPrescriptionData,
+  PendingPrescriptionTask,
   RecipeRecord,
   TaskPrescriptionContext,
   UpdateRecipeData,
@@ -10,6 +11,9 @@ export const RECIPE_REPOSITORY = Symbol('RECIPE_REPOSITORY');
 export const LOT_READER = Symbol('RECIPE_LOT_READER');
 export const RECIPE_INPUT_READER = Symbol('RECIPE_INPUT_READER');
 export const TASK_PRESCRIPTION = Symbol('TASK_PRESCRIPTION');
+export const PENDING_PRESCRIPTION_READER = Symbol(
+  'PENDING_PRESCRIPTION_READER',
+);
 
 export interface RecipeRepositoryPort {
   create(data: CreateRecipeData): Promise<RecipeRecord>;
@@ -67,4 +71,14 @@ export interface TaskPrescriptionPort {
    * never half-apply.
    */
   attachPrescription(data: CreateTaskPrescriptionData): Promise<RecipeRecord>;
+}
+
+/**
+ * Read side of the agronomist inbox: the tasks still waiting for a
+ * prescription. Kept separate from {@link TaskPrescriptionPort} because it is a
+ * pure query; the tenant scope is applied by the adapter through the same
+ * `task -> lot -> farm -> client` chain the task reads use.
+ */
+export interface PendingPrescriptionReaderPort {
+  findPendingByTenant(tenantId: string): Promise<PendingPrescriptionTask[]>;
 }

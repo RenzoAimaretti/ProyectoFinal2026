@@ -48,6 +48,9 @@ export class PrismaTaskRepository implements TaskRepositoryPort {
         lotId: data.lotId,
         taskTypeId: data.taskTypeId,
         startedAt: data.startedAt,
+        ...(data.prescriptionStatus !== undefined
+          ? { prescriptionStatus: data.prescriptionStatus }
+          : {}),
       },
     });
   }

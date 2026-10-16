@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { TaskPrescriptionPort } from '../../application/recipe.ports';
+import {
+  PendingPrescriptionReaderPort,
+  TaskPrescriptionPort,
+} from '../../application/recipe.ports';
 import {
   CreateTaskPrescriptionData,
+  PendingPrescriptionTask,
   RecipeRecord,
   TaskPrescriptionContext,
 } from '../../application/recipe.types';
@@ -19,9 +23,14 @@ import { RECIPE_ITEM_INCLUDE, toRecipeRecord } from './recipe.mapper';
  * together, so `attachPrescription` owns a single `prisma.$transaction` and
  * performs both of them; the application layer never sees a transaction handle.
  * The task read is tenant-scoped through `task -> lot -> farm -> client`.
+ *
+ * It also serves the agronomist inbox read (`findPendingByTenant`), which is
+ * scoped through the very same chain.
  */
 @Injectable()
-export class PrismaTaskPrescriptionAdapter implements TaskPrescriptionPort {
+export class PrismaTaskPrescriptionAdapter
+  implements TaskPrescriptionPort, PendingPrescriptionReaderPort
+{
   constructor(private readonly prisma: PrismaService) {}
 
   async findContextByIdForTenant(
@@ -54,6 +63,42 @@ export class PrismaTaskPrescriptionAdapter implements TaskPrescriptionPort {
       taskTypeRequiresPrescription: task.taskType.requiresPrescription,
       lotArea: task.lot.area,
     };
+  }
+
+  async findPendingByTenant(
+    tenantId: string,
+  ): Promise<PendingPrescriptionTask[]> {
+    const tasks = await this.prisma.task.findMany({
+      where: {
+        prescriptionStatus: 'SIN_RECETA',
+        lot: { farm: { client: { tenantId } } },
+      },
+      select: {
+        id: true,
+        lotId: true,
+        taskTypeId: true,
+        status: true,
+        startedAt: true,
+        prescriptionStatus: true,
+        lot: { select: { name: true, farm: { select: { name: true } } } },
+        taskType: { select: { name: true } },
+      },
+      orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
+    });
+
+    return tasks.map(
+      (task): PendingPrescriptionTask => ({
+        id: task.id,
+        lotId: task.lotId,
+        lotName: task.lot.name,
+        farmName: task.lot.farm.name,
+        taskTypeId: task.taskTypeId,
+        taskTypeName: task.taskType.name,
+        status: task.status,
+        startedAt: task.startedAt,
+        prescriptionStatus: task.prescriptionStatus,
+      }),
+    );
   }
 
   async attachPrescription(

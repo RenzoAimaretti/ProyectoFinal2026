@@ -96,6 +96,7 @@ describe('Recipe use cases', () => {
       'application/use-cases/find-recipes-by-lot.use-case.ts',
       'application/use-cases/create-prescription.use-case.ts',
       'application/use-cases/update-recipe.use-case.ts',
+      'application/use-cases/find-pending-prescriptions.use-case.ts',
     ];
 
     const contents = files

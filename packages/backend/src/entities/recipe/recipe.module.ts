@@ -2,19 +2,23 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
 import {
   LOT_READER,
+  PENDING_PRESCRIPTION_READER,
   RECIPE_INPUT_READER,
   RECIPE_REPOSITORY,
   TASK_PRESCRIPTION,
   LotReaderPort,
+  PendingPrescriptionReaderPort,
   RecipeInputReaderPort,
   RecipeRepositoryPort,
   TaskPrescriptionPort,
 } from './application/recipe.ports';
 import { CreatePrescriptionUseCase } from './application/use-cases/create-prescription.use-case';
 import { CreateRecipeUseCase } from './application/use-cases/create-recipe.use-case';
+import { FindPendingPrescriptionsUseCase } from './application/use-cases/find-pending-prescriptions.use-case';
 import { FindRecipeUseCase } from './application/use-cases/find-recipe.use-case';
 import { FindRecipesByLotUseCase } from './application/use-cases/find-recipes-by-lot.use-case';
 import { UpdateRecipeUseCase } from './application/use-cases/update-recipe.use-case';
+import { PrescriptionController } from './adapters/inbound/prescription.controller';
 import { RecipeController } from './adapters/inbound/recipe.controller';
 import { PrismaLotReader } from './adapters/outbound/prisma-lot.reader';
 import { PrismaRecipeInputReader } from './adapters/outbound/prisma-recipe-input.reader';
@@ -23,7 +27,7 @@ import { PrismaTaskPrescriptionAdapter } from './adapters/outbound/prisma-task-p
 
 @Module({
   imports: [PrismaModule],
-  controllers: [RecipeController],
+  controllers: [RecipeController, PrescriptionController],
   providers: [
     PrismaRecipeRepository,
     PrismaLotReader,
@@ -37,6 +41,10 @@ import { PrismaTaskPrescriptionAdapter } from './adapters/outbound/prisma-task-p
       useExisting: PrismaTaskPrescriptionAdapter,
     },
     {
+      provide: PENDING_PRESCRIPTION_READER,
+      useExisting: PrismaTaskPrescriptionAdapter,
+    },
+    {
       provide: FindRecipesByLotUseCase,
       useFactory: (repository: RecipeRepositoryPort) =>
         new FindRecipesByLotUseCase(repository),
@@ -47,6 +55,12 @@ import { PrismaTaskPrescriptionAdapter } from './adapters/outbound/prisma-task-p
       useFactory: (repository: RecipeRepositoryPort) =>
         new FindRecipeUseCase(repository),
       inject: [RECIPE_REPOSITORY],
+    },
+    {
+      provide: FindPendingPrescriptionsUseCase,
+      useFactory: (reader: PendingPrescriptionReaderPort) =>
+        new FindPendingPrescriptionsUseCase(reader),
+      inject: [PENDING_PRESCRIPTION_READER],
     },
     {
       provide: CreateRecipeUseCase,

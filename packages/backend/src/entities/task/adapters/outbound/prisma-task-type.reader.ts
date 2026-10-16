@@ -9,7 +9,7 @@ export class PrismaTaskTypeReader implements TaskTypeReaderPort {
   findByIdForTenant(id: string, tenantId: string) {
     return this.prisma.taskType.findFirst({
       where: { id, tenantId },
-      select: { id: true },
+      select: { id: true, requiresPrescription: true },
     });
   }
 }

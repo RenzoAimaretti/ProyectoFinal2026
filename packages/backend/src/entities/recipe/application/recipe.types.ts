@@ -1,6 +1,9 @@
 import { DosageBasisValue } from '../domain/dosage-basis';
 import { RecipeStatus } from '../domain/recipe-status';
-import { TaskStatusValue } from '../../task/application/task.types';
+import {
+  PrescriptionStatusValue,
+  TaskStatusValue,
+} from '../../task/application/task.types';
 
 export type { DosageBasisValue } from '../domain/dosage-basis';
 export type { PrescriptionTotals } from '../domain/spray-calculation';
@@ -75,6 +78,23 @@ export type TaskPrescriptionContext = {
   status: TaskStatusValue;
   taskTypeRequiresPrescription: boolean;
   lotArea: number;
+};
+
+/**
+ * The agronomist inbox row: a task still waiting for its prescription, with the
+ * display names the console needs to render it. Tenant-scoped through
+ * `task -> lot -> farm -> client`, the same chain the task reads use.
+ */
+export type PendingPrescriptionTask = {
+  id: string;
+  lotId: string;
+  lotName: string;
+  farmName: string;
+  taskTypeId: string;
+  taskTypeName: string;
+  status: TaskStatusValue;
+  startedAt: Date | null;
+  prescriptionStatus: PrescriptionStatusValue;
 };
 
 export type CreateRecipeItemInput = {

@@ -71,7 +71,7 @@ describe('PrismaTaskPrescriptionAdapter', () => {
     $transaction: jest.fn((callback: (client: typeof tx) => unknown) =>
       callback(tx),
     ),
-    task: { findFirst: jest.fn() },
+    task: { findFirst: jest.fn(), findMany: jest.fn() },
   };
 
   const adapter = new PrismaTaskPrescriptionAdapter(prisma as never);
@@ -127,6 +127,61 @@ describe('PrismaTaskPrescriptionAdapter', () => {
       await expect(
         adapter.findContextByIdForTenant('task-1', 'tenant-2'),
       ).resolves.toBeNull();
+    });
+  });
+
+  describe('findPendingByTenant', () => {
+    it('reads SIN_RECETA tasks tenant-scoped through lot/farm/client and maps the inbox fields', async () => {
+      prisma.task.findMany.mockResolvedValue([
+        {
+          id: 'task-1',
+          lotId: 'lot-1',
+          taskTypeId: 'task-type-1',
+          status: 'PENDIENTE',
+          startedAt: new Date('2026-01-10T00:00:00.000Z'),
+          prescriptionStatus: 'SIN_RECETA',
+          lot: { name: 'Lote N°1', farm: { name: 'Agro-Sur' } },
+          taskType: { name: 'Pulverización' },
+        },
+      ]);
+
+      await expect(adapter.findPendingByTenant('tenant-1')).resolves.toEqual([
+        {
+          id: 'task-1',
+          lotId: 'lot-1',
+          lotName: 'Lote N°1',
+          farmName: 'Agro-Sur',
+          taskTypeId: 'task-type-1',
+          taskTypeName: 'Pulverización',
+          status: 'PENDIENTE',
+          startedAt: new Date('2026-01-10T00:00:00.000Z'),
+          prescriptionStatus: 'SIN_RECETA',
+        },
+      ]);
+
+      expect(prisma.task.findMany).toHaveBeenCalledWith({
+        where: {
+          prescriptionStatus: 'SIN_RECETA',
+          lot: { farm: { client: { tenantId: 'tenant-1' } } },
+        },
+        select: {
+          id: true,
+          lotId: true,
+          taskTypeId: true,
+          status: true,
+          startedAt: true,
+          prescriptionStatus: true,
+          lot: { select: { name: true, farm: { select: { name: true } } } },
+          taskType: { select: { name: true } },
+        },
+        orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
+      });
+    });
+
+    it('returns an empty inbox when nothing is pending', async () => {
+      prisma.task.findMany.mockResolvedValue([]);
+
+      await expect(adapter.findPendingByTenant('tenant-2')).resolves.toEqual([]);
     });
   });
 
