@@ -308,7 +308,7 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   - The backend derives `area` from a newly saved polygon, rather than trusting the browser; existing area-only updates keep their current behavior.
   - Checks observed: backend RED on trusting a conflicting area, then 104 suites / 1003 tests green; `node --experimental-strip-types --test packages/nextjs/test/lot-map.test.mjs` passes three permanent helper tests; Next.js typecheck and build pass. The targeted ESLint run fails only on `react-hooks/set-state-in-effect` in `page.tsx`, reproduced identically on HEAD. Independent verification found and then confirmed correction of a false save-error message when PUT succeeded and GET refresh failed.
   - Still requires T09's browser check: draw, save, reload at the same position and test roles manually. Do not claim full runtime acceptance yet.
-  - Commit: _pending_.
+  - Implementation commit: `8a9c73e` (includes backend tests and a permanent Node geometry test); runtime acceptance remains open until T09.
 
 - [ ] **T08 — Cross-ring polygon validity** (S9, accepted debt)
   - Route: inline, deferred.
@@ -592,3 +592,4 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   and area, leaves editing mode and shows a truthful refresh warning; a narrow
   read-only re-verification confirmed it. No browser interaction was available, so
   T09's draw/save/reload and role checks remain unverified and T07 stays open.
+  Implementation work-unit commit: `8a9c73e`.
