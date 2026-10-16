@@ -33,6 +33,7 @@ const ROLE_LABELS: Record<UserRole, string> = {
   PRODUCTOR: "Productor",
   CONTRATISTA: "Contratista",
   VETERINARIO: "Veterinario",
+  INGENIERO: "Ingeniero agrónomo",
 };
 
 const ROLE_TONES: Record<UserRole, Tone> = {
@@ -42,6 +43,7 @@ const ROLE_TONES: Record<UserRole, Tone> = {
   PRODUCTOR: "earth",
   CONTRATISTA: "slate",
   VETERINARIO: "green",
+  INGENIERO: "green",
 };
 
 const ALL_ROLES = Object.keys(ROLE_LABELS) as UserRole[];

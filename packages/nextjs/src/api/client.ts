@@ -327,6 +327,11 @@ export type TaskDTO = {
   startedAt: string | null;
   finishedAt: string | null;
   /**
+   * Enriched by `GET /tasks` and `GET /tasks/:id`. Optional so the UI keeps
+   * working against an older backend that does not return it yet.
+   */
+  prescriptionStatus?: PrescriptionStatus;
+  /**
    * Enriched by `GET /tasks`. Optional so the UI keeps working against an
    * older backend and can fall back to the lot/farm/task-type catalogues.
    */
@@ -717,6 +722,43 @@ export function listRecipesByLot(lotId: string): Promise<RecipeDTO[]> {
 }
 
 /* ------------------------------------------------------------------ */
+/* Prescriptions (recetas fitosanitarias — agronomist inbox)           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Orthogonal to the execution `TaskStatus`: whether the task needs a
+ * prescription and, if so, whether it already has one.
+ */
+export type PrescriptionStatus = "NO_REQUIERE" | "SIN_RECETA" | "CON_RECETA";
+
+export const PRESCRIPTION_STATUS_LABELS: Record<PrescriptionStatus, string> = {
+  NO_REQUIERE: "No requiere receta",
+  SIN_RECETA: "Sin receta",
+  CON_RECETA: "Con receta",
+};
+
+/**
+ * One row of `GET /prescriptions/pending`: a task still waiting for its
+ * prescription, enriched with the display names the console renders.
+ */
+export type PendingPrescriptionTaskDTO = {
+  id: string;
+  lotId: string;
+  lotName: string;
+  farmName: string;
+  taskTypeId: string;
+  taskTypeName: string;
+  status: TaskDTO["status"];
+  startedAt: string | null;
+  prescriptionStatus: PrescriptionStatus;
+};
+
+/** Reads the agronomist inbox (`GET /prescriptions/pending`). */
+export function listPendingPrescriptions(): Promise<PendingPrescriptionTaskDTO[]> {
+  return apiGet<PendingPrescriptionTaskDTO[]>("/prescriptions/pending");
+}
+
+/* ------------------------------------------------------------------ */
 /* Machine activities (actividades de maquinaria)                      */
 /* ------------------------------------------------------------------ */
 
@@ -828,7 +870,8 @@ export type UserRole =
   | "SUPERVISOR"
   | "PRODUCTOR"
   | "CONTRATISTA"
-  | "VETERINARIO";
+  | "VETERINARIO"
+  | "INGENIERO";
 
 export type UserDTO = {
   id: string;

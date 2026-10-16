@@ -2,15 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   groupNavItems,
+  homePathForRole,
+  isPrescriptionRole,
   modulesForRole,
   navIcon,
   navLabel,
+  PRESCRIPTION_MODULE_HREF,
   roleLabel,
   type NavItem,
 } from "./nav";
+import { listPendingPrescriptions } from "@/api/client";
 import { useAuth, useRequireAuth } from "./auth";
 import { DashboardIcon, LogoutIcon } from "./icons";
 import { LogoMark } from "./logo";
@@ -29,12 +33,15 @@ function SidebarBody({
   activePath,
   userEmail,
   role,
+  badges,
   onNavigate,
 }: {
   items: NavItem[];
   activePath?: string;
   userEmail: string;
   role: string;
+  /** Optional per-module counter keyed by href. Omit or use 0 for no badge. */
+  badges?: Record<string, number>;
   onNavigate?: () => void;
 }) {
   const groups = groupNavItems(items);
@@ -78,6 +85,8 @@ function SidebarBody({
               {group.items.map((item) => {
                 const isActive = item.href === activePath;
                 const Icon = navIcon(item.icon);
+                const badge = badges?.[item.href];
+                const showBadge = typeof badge === "number" && badge > 0;
                 return (
                   <li key={item.label}>
                     <Link
@@ -88,7 +97,16 @@ function SidebarBody({
                     >
                       <span className="opacity-80">{Icon ? <Icon className="h-4 w-4" /> : null}</span>
                       <span className="truncate">{item.label}</span>
-                      {isActive && <span className="op-nav-dot ml-auto" aria-hidden="true" />}
+                      {showBadge ? (
+                        <span
+                          className="op-nav-badge ml-auto"
+                          aria-label={`${badge} pendientes`}
+                        >
+                          {badge}
+                        </span>
+                      ) : (
+                        isActive && <span className="op-nav-dot ml-auto" aria-hidden="true" />
+                      )}
                     </Link>
                   </li>
                 );
@@ -113,6 +131,22 @@ function SidebarBody({
   );
 }
 
+/**
+ * Neutral shell shown while the session is being read or the role guard is
+ * redirecting, so a page the current role cannot open never mounts its data
+ * fetches.
+ */
+function ShellLoading({ label }: { label: string }) {
+  return (
+    <div className="operate-world op-canvas flex min-h-screen items-center justify-center">
+      <div className="flex items-center gap-2.5 text-sm text-ink-soft">
+        <span className="op-nav-dot animate-pulse-soft" aria-hidden="true" />
+        {label}
+      </div>
+    </div>
+  );
+}
+
 export const DashboardLayout = ({
   title,
   sidebarItems,
@@ -125,17 +159,58 @@ export const DashboardLayout = ({
   children: React.ReactNode;
 }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, ready } = useRequireAuth();
   const { logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
+
+  const userRole = user?.role;
 
   // Filter by role, then relabel per role (e.g. "Campos de clientes" for staff).
   const items = modulesForRole(sidebarItems, user?.role).map((item) => ({
     ...item,
     label: navLabel(item, user?.role),
   }));
-  const role = roleLabel(user?.role);
+  const role = roleLabel(userRole);
   const userEmail = user?.email ?? "Usuario";
+
+  // Role guard: a role may only open its home route and its own modules. The
+  // admin index (/dashboard) is a module-less route that is allowed only to the
+  // roles whose home it is (ADMIN, SUPERVISOR, and the default staff roles); an
+  // INGENIERO is redirected from it to the prescription inbox.
+  const homePath = homePathForRole(userRole);
+  const pathAllowed =
+    pathname === homePath ||
+    items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
+
+  // Prescription inbox counter. Fetched once per session role (not on every
+  // render or keystroke), only for roles the endpoint allows, and it never
+  // throws into the tree: on error the count stays null and no badge renders.
+  useEffect(() => {
+    if (!isPrescriptionRole(userRole)) return;
+    let alive = true;
+    listPendingPrescriptions()
+      .then((list) => {
+        if (alive) setPendingCount(Array.isArray(list) ? list.length : null);
+      })
+      .catch(() => {
+        if (alive) setPendingCount(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [userRole]);
+
+  useEffect(() => {
+    if (!ready || !user) return;
+    if (!pathAllowed) router.replace(homePath);
+  }, [ready, user, pathAllowed, homePath, router]);
+
+  const badges =
+    pendingCount && pendingCount > 0
+      ? { [PRESCRIPTION_MODULE_HREF]: pendingCount }
+      : undefined;
 
   // Close the mobile menu with Escape.
   useEffect(() => {
@@ -149,18 +224,13 @@ export const DashboardLayout = ({
 
   // Guard: do not render the dashboard (nor fire its data fetches) until the
   // session has been read from localStorage and validated.
-  if (!ready) {
-    return (
-      <div className="operate-world op-canvas flex min-h-screen items-center justify-center">
-        <div className="flex items-center gap-2.5 text-sm text-ink-soft">
-          <span className="op-nav-dot animate-pulse-soft" aria-hidden="true" />
-          Cargando sesión…
-        </div>
-      </div>
-    );
-  }
+  if (!ready) return <ShellLoading label="Cargando sesión…" />;
 
   if (!user) return null;
+
+  // The role has no module for this route: hold the shell while the redirect
+  // above resolves instead of mounting the page and its fetches.
+  if (!pathAllowed) return <ShellLoading label="Redirigiendo…" />;
 
   return (
     <WorldProvider value="operate-world">
@@ -176,6 +246,7 @@ export const DashboardLayout = ({
             activePath={pathname}
             userEmail={userEmail}
             role={role}
+            badges={badges}
           />
         </aside>
 
@@ -199,6 +270,7 @@ export const DashboardLayout = ({
                 activePath={pathname}
                 userEmail={userEmail}
                 role={role}
+                badges={badges}
                 onNavigate={() => setMobileOpen(false)}
               />
             </aside>

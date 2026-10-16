@@ -1497,6 +1497,18 @@ body {
   border-radius: 999px;
   background: var(--op-signal);
 }
+.op-nav-badge {
+  min-width: 1.35rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--op-signal);
+  color: var(--op-ground);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  font-variant-numeric: tabular-nums lining-nums;
+}
 
 /* --- Standard controls, restyled from the palette (still web components) --- */
 .op-btn {
