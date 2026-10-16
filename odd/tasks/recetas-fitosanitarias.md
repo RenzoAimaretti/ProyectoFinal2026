@@ -128,15 +128,15 @@ to `ADMIN`, `SUPERVISOR`, `INGENIERO`, `OPERARIO`, `CONTRATISTA`.
       routing with role enforcement.
 - [ ] B4 [backend] `GET /prescriptions/pending` and `prescriptionStatus` on task
       reads.
-- [ ] W1 [web] `INGENIERO` in `MODULES_BY_ROLE`, `ROLE_LABELS`,
+- [x] W1 [web] `INGENIERO` in `MODULES_BY_ROLE`, `ROLE_LABELS`,
       `homePathForRole`, and the route guard.
-- [ ] W2 [web] `/dashboard/recetas`: pending prescription inbox plus the
+- [x] W2 [web] `/dashboard/recetas`: pending prescription inbox plus the
       navigation counter.
-- [ ] W3 [web] prescription editor with the live spray-volume / dose panel and
+- [x] W3 [web] prescription editor with the live spray-volume / dose panel and
       the re-application plan.
-- [ ] W4 [web] Producción integration: sin receta / con receta badge, prescription
+- [x] W4 [web] Producción integration: sin receta / con receta badge, prescription
       view, edit while the task has not started.
-- [ ] V1 verify: backend jest + `next build` + lint + honest reporting of what
+- [x] V1 verify: backend jest + `next build` + lint + honest reporting of what
       could not be run.
 
 ## Acceptance
@@ -246,3 +246,101 @@ controller's `translate()` ends in `throw error` and still compiles, so
 `PrescriptionFrozenError -> 409` is deferred to B3 as planned. New record fields
 stay optional so the additive-only rule (R8) and the existing typed spec literals
 keep working.
+
+### B3 — prescription endpoints and RBAC (commit `569e57a`)
+
+Added `CreatePrescriptionUseCase` and `UpdateRecipeUseCase`, a task-prescription
+port and its Prisma adapter, DTO-less request typing that mirrors the module's
+existing pattern, a shared recipe mapper, and the routes:
+
+| Route | Roles |
+|---|---|
+| `GET /recipes?lotId=` | ADMIN, SUPERVISOR, INGENIERO, OPERARIO, CONTRATISTA |
+| `GET /recipes/:id` | ADMIN, SUPERVISOR, INGENIERO, OPERARIO, CONTRATISTA |
+| `POST /recipes` | INGENIERO, ADMIN |
+| `PUT /recipes/:id` | INGENIERO, ADMIN |
+
+`POST /recipes` writes the recipe and flips the task to `CON_RECETA` inside ONE
+`prisma.$transaction`, so the two writes cannot half-apply; the application layer
+never sees a transaction handle. `PrescriptionFrozenError -> 409`.
+
+Decision recorded: `TaskType.requiresPrescription` means the prescription is
+REQUIRED, never RESTRICTED. A prescription is accepted on any task, because a
+fertilization task needs a caldo/dose calculation too.
+
+TDD evidence: use cases RED `37 failed / 37 total` -> GREEN `37 passed`; controller
+RED `4 failed, 7 passed` -> GREEN `11 passed`. Full suite: 96 suites / 1013 tests.
+
+### B4 — pending inbox and `SIN_RECETA` (commit `361ea7e`)
+
+`GET /prescriptions/pending` (INGENIERO, ADMIN, SUPERVISOR) returns the
+`SIN_RECETA` tasks, tenant-scoped through `Task -> Lot -> Farm -> Client`, exactly
+like `GET /tasks`. A task whose type requires a prescription is now created
+`SIN_RECETA` (driven by the `TaskType.requiresPrescription` column, never by name
+matching), and `prescriptionStatus` is exposed on task reads.
+
+TDD evidence: RED captured in the mapper and the create-task use case before
+implementing. Full suite: 98 suites / 1027 tests.
+
+Honest note: the `GET /tasks` and `GET /tasks/:id` reads use Prisma `include`,
+which already returned every scalar column, so `prescriptionStatus` was already
+present at runtime; B4's work there was typing, explicit mapping and a locking
+test rather than a behaviour change.
+
+### Integration gaps found while wiring the console
+
+Three real gaps that the original plan did not anticipate, all found by building
+against the API instead of assuming it:
+
+1. **`lotArea` was missing from the pending inbox** while the editor needs it for
+   the live calculation. Fixed additively in commit `6b8bc7a`.
+2. **`INGENIERO` got HTTP 403 on `GET /tasks` and `GET /task-types`**, so the
+   agronomist could not read the very activities the feature is about. Fixed in
+   commit `61f0504`. Write routes were deliberately NOT widened, and `GET /users`
+   was deliberately left at ADMIN/SUPERVISOR.
+3. **A pre-existing bug in `/dashboard/produccion`**: its `Promise.all` had no
+   failure handling, and `GET /users` is ADMIN/SUPERVISOR-only, so the whole board
+   rendered nothing for OPERARIO (and would have for INGENIERO). Fixed in commit
+   `cf3957f`: `listTasks` is the only required fetch; the auxiliary collections
+   degrade individually and the user is told honestly when data is partial.
+
+### V1 — final verification (run, not assumed)
+
+Backend, from `packages/backend`:
+
+- `pnpm test`: 98 suites / 1027 tests, all passing (baseline was 92 / 875)
+- `npx prisma validate`: the schema is valid
+- `pnpm build` (`nest build`): exit 0
+- `npx tsc --noEmit -p tsconfig.json`: exit 0
+
+Console, from `packages/nextjs`:
+
+- `pnpm build`: exit 0
+- `npx tsc --noEmit`: exit 0
+- `pnpm lint`: exit 1 with exactly 3 PRE-EXISTING findings (1 error in
+  `reveal.tsx:62`, 2 warnings in `api/client.ts:99` and `ui/auth.tsx:26`) and zero
+  introduced by this work
+
+### NOT verified, and why
+
+- **Nothing that needs the database.** Postgres at `localhost:5433` is unreachable
+  and Docker is down, so the migration was never applied, the seed was never run,
+  and no HTTP request was ever made against a live backend. The end-to-end flow
+  (agronomist logs in, sees the inbox, writes a prescription, the task flips to
+  `CON_RECETA`) is reasoned and type-checked but NOT executed.
+- **`packages/nextjs` has no test runner**, so the console has no automated tests.
+  None were invented; verification is build + tsc + lint + review.
+
+### Outstanding items for the owner
+
+- Set `SEED_INGENIERO_PASSWORD` (the seed now fails loudly without it).
+- Apply the migration once Postgres is up: `pnpm --filter backend db:reset`.
+- Pre-existing, out of scope, NOT fixed: `CONTRATISTA` gets 403 on `GET /tasks`, so
+  the Producción board still errors for that role; and `SUPERVISOR` has write
+  permission on tasks but the "Nueva tarea" button is gated to ADMIN only.
+- Dead code: the recipe module still carries the legacy lot-scoped
+  `CreateRecipeUseCase`, which is wired but has no route. It is now superseded by
+  `CreatePrescriptionUseCase`; removing it is a small, isolated cleanup.
+- The role list is hand-duplicated in `AUTH_USER_ROLES`, `user.types.ts` and
+  `task.types.ts`. Adding a role means touching all three; a single source would
+  remove the trap.
