@@ -47,7 +47,7 @@ describe('TaskTypeController', () => {
     }
   });
 
-  it('restricts reads to ADMIN, SUPERVISOR and OPERARIO so PRODUCTOR gets 403', () => {
+  it('allows ADMIN, SUPERVISOR, OPERARIO and INGENIERO to read task types so PRODUCTOR gets 403', () => {
     for (const method of ['findAll', 'findOne'] as const) {
       const guards = Reflect.getMetadata(
         GUARDS_METADATA,
@@ -59,7 +59,7 @@ describe('TaskTypeController', () => {
         ROLES_KEY,
         TaskTypeController.prototype[method],
       ) as string[] | undefined;
-      expect(roles).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO']);
+      expect(roles).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO', 'INGENIERO']);
       expect(roles).not.toContain('PRODUCTOR');
     }
   });
