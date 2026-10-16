@@ -105,7 +105,10 @@ Endpoints:
 - `GET /recipes?lotId=` → unchanged, additive fields only.
 - `GET /tasks`, `GET /tasks/:id` → include `prescriptionStatus`.
 - `GET /prescriptions/pending` → tasks with `prescriptionStatus = SIN_RECETA`
-  for the caller's firma, with `lotName`, `farmName` and `taskTypeName`.
+  for the caller's tenant, with `lotName`, `farmName` and `taskTypeName`.
+  Scoping note: `Task` has no firm/company column, so this read is tenant-scoped
+  through the existing `Task -> Lot -> Farm -> Client` chain, exactly like
+  `GET /tasks`. It is NOT firma-scoped.
 
 Roles: `POST`/`PUT /recipes` restricted to `INGENIERO` (and `ADMIN`). Reads open
 to `ADMIN`, `SUPERVISOR`, `INGENIERO`, `OPERARIO`, `CONTRATISTA`.
