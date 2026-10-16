@@ -13,8 +13,8 @@ Runner: `pnpm --filter backend test`, focused Jest, Next.js tests/typecheck; iso
 - S8 — User: "inica a trabajar en el worktree con odd". Check branch/worktree isolation, synced ODD file/mirror/todo, tests and coherent work-unit commits without push/PR.
 
 ## Tasks
-- T1 [S7-S8] Notion handoff and ODD tracking; route inline (no parallel writer; metadata). Status: in_progress; commit: pending; check: Notion fetch verified, ODD mirror id 1213 read back.
-- T2 [S3-S4] Separate fuel movement semantics, historical compatibility and role/company validation; route inline (dependent on schema and behavior). Status: pending; commit: pending; RED/GREEN pending.
+- T1 [S7-S8] Notion handoff and ODD tracking; route inline (no parallel writer; metadata). Status: done; commit: 2d1f8a0; check: Notion content/status fetched, ODD mirror id 1213 read back, diff --check passed.
+- T2 [S3-S4] Separate fuel movement semantics, historical compatibility and role/company validation; route inline (dependent on schema and behavior). Status: in_progress; commit: pending; RED/GREEN pending.
 - T3 [S5] Receipt attachment with scoped retrieval; route inline (depends on movement model). Status: pending; commit: pending; RED/GREEN pending.
 - T4 [S6] Machine types, configurable thresholds and accumulated usage alerts; route inline (depends on current activity model). Status: pending; commit: pending; RED/GREEN pending.
 - T5 [S2] Authorized multi-company consolidated reads and membership checks; route inline (depends on prior domain results). Status: pending; commit: pending; RED/GREEN pending.
@@ -27,3 +27,4 @@ Runner: `pnpm --filter backend test`, focused Jest, Next.js tests/typecheck; iso
 - L3 User: "perfecto inica a trabajar en el worktree con odd, en la tarea de notion describi de manera breve y sumple el trabajo que vamos a realizar y las decisiones que tomamos para que otros devs estem al tanto."
 - L4 Notion page updated and fetched: scope, firm permissions, separate movements, receipt attachments, type thresholds, historical caveat. `Estado` set to `En curso`. Worktree clean at a50a882 before this document. Forecast exceeds ~400 lines.
 - L5 User chose: "Cadena de PRs en rama de feature (recomendado)". No push or PR authorized; target `dev` follows AGENTS.md. Review slices will be recorded at coherent commit boundaries.
+- L6 T1 committed as 2d1f8a0; Notion verified `En curso`. Next T2 models separate movements without rewriting historical records.

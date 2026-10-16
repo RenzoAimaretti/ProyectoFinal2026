@@ -6,12 +6,14 @@ import {
   RegisterMachineActivityData,
 } from '../../application/machine-activity.types';
 import { MachineActivityType } from '../../domain/machine-activity-type';
+import { FuelMovement } from '../../domain/fuel-movement';
 
 type MachineActivityRow = {
   id: string;
   machineId: string;
   companyId: string;
   type: MachineActivityType;
+  fuelMovement?: FuelMovement | null;
   date: Date;
   liters: number | null;
   receipt: string | null;
@@ -38,6 +40,7 @@ export class PrismaMachineActivityRepository
         machineId: data.machineId,
         companyId: data.companyId,
         type: data.type,
+        fuelMovement: data.fuelMovement ?? (data.type === 'COMBUSTIBLE' ? 'INCOME' : null),
         date: data.date,
         liters: data.liters,
         receipt: data.receipt,
@@ -82,6 +85,7 @@ export class PrismaMachineActivityRepository
       machineId: activity.machineId,
       companyId: activity.companyId,
       type: activity.type,
+      fuelMovement: activity.type === 'COMBUSTIBLE' ? activity.fuelMovement ?? 'INCOME' : null,
       date: activity.date,
       liters: activity.liters,
       receipt: activity.receipt,

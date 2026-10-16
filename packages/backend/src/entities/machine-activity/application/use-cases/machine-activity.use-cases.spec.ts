@@ -148,6 +148,17 @@ describe('Machine activity use cases', () => {
         { ...fuelInput, liters: -5 },
       ],
       [
+        'unknown movement',
+        'company-1',
+        { ...fuelInput, fuelMovement: 'TRANSFER' },
+      ],
+      [
+        'movement on maintenance',
+        'company-1',
+        { machineId: 'machine-1', type: 'MANTENIMIENTO', date: activityDate,
+          cost: 10, spareParts: 'Filter', fuelMovement: 'INCOME' },
+      ],
+      [
         'maintenance without a cost',
         'company-1',
         {
@@ -239,6 +250,24 @@ describe('Machine activity use cases', () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
+    it('persists explicit fuel consumption without changing its company scope', async () => {
+      repository.create.mockResolvedValue(baseRecord);
+
+      await useCase.execute('company-1', {
+        ...fuelInput,
+        fuelMovement: 'CONSUMPTION',
+      } as RegisterMachineActivityInput);
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          companyId: 'company-1',
+          type: 'COMBUSTIBLE',
+          fuelMovement: 'CONSUMPTION',
+          liters: 120,
+        }),
+      );
+    });
+
     it('persists a fuel activity scoped to the company', async () => {
       repository.create.mockResolvedValue(baseRecord);
 
@@ -250,6 +279,7 @@ describe('Machine activity use cases', () => {
         machineId: 'machine-1',
         companyId: 'company-1',
         type: 'COMBUSTIBLE',
+        fuelMovement: 'INCOME',
         date: new Date(activityDate),
         liters: 120,
         receipt: 'A-0001',

@@ -2955,6 +2955,7 @@ export const MachineActivityScalarFieldEnum = {
   machineId: 'machineId',
   companyId: 'companyId',
   type: 'type',
+  fuelMovement: 'fuelMovement',
   date: 'date',
   liters: 'liters',
   receipt: 'receipt',
@@ -3244,6 +3245,20 @@ export type EnumMachineActivityTypeFieldRefInput<$PrismaModel> = FieldRefInputTy
  */
 export type ListEnumMachineActivityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MachineActivityType[]'>
     
+
+
+/**
+ * Reference to a field of type 'FuelMovement'
+ */
+export type EnumFuelMovementFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FuelMovement'>
+
+
+
+/**
+ * Reference to a field of type 'FuelMovement[]'
+ */
+export type ListEnumFuelMovementFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FuelMovement[]'>
+
 
 
 /**

@@ -777,6 +777,7 @@ export type MachineActivityDTO = {
   machineId: string;
   companyId: string;
   type: MachineActivityType;
+  fuelMovement?: "INCOME" | "CONSUMPTION" | null;
   date: string;
   liters: number | null;
   receipt: string | null;
@@ -792,6 +793,7 @@ export type MachineActivityDTO = {
 export type CreateMachineActivityBody = {
   machineId: string;
   type: MachineActivityType;
+  fuelMovement?: "INCOME" | "CONSUMPTION";
   date: string;
   liters?: number | null;
   receipt?: string | null;

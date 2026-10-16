@@ -1,4 +1,5 @@
 import { InvalidRelationError } from '../../domain/errors';
+import { resolveFuelMovement } from '../../domain/fuel-movement';
 import {
   assertMachineActivityFields,
   assertMachineActivityType,
@@ -33,6 +34,7 @@ export class RegisterMachineActivityUseCase {
     const company = assertRequiredString(companyId, 'companyId');
     const machineId = assertRequiredString(data.machineId, 'machineId');
     const type = assertMachineActivityType(data.type);
+    const fuelMovement = resolveFuelMovement(type, data.fuelMovement);
     const date = assertRequiredDate(data.date, 'date');
     const liters = assertOptionalNumber(data.liters, 'liters');
     const receipt = assertOptionalString(data.receipt, 'receipt');
@@ -64,6 +66,7 @@ export class RegisterMachineActivityUseCase {
       machineId,
       companyId: company,
       type,
+      fuelMovement,
       date,
       liters,
       receipt,

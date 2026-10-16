@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Body,
   Controller,
   Get,
@@ -25,6 +26,7 @@ import {
 type RequestWithUser = {
   user: {
     firmaId: string;
+    role: string;
   };
 };
 
@@ -64,12 +66,15 @@ export class MachineActivityController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'SUPERVISOR')
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Post()
   async create(
     @Req() req: RequestWithUser,
     @Body() body: RegisterMachineActivityInput,
   ) {
+    if (req.user.role === 'OPERARIO' && body.type !== 'COMBUSTIBLE') {
+      throw new ForbiddenException('Only fuel activities may be registered by OPERARIO');
+    }
     try {
       return await this.registerMachineActivity.execute(req.user.firmaId, body);
     } catch (error) {

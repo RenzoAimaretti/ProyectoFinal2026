@@ -355,6 +355,13 @@ export type EnumMachineActivityTypeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumMachineActivityTypeFilter<$PrismaModel> | $Enums.MachineActivityType
 }
 
+export type EnumFuelMovementNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.FuelMovement | Prisma.EnumFuelMovementFieldRefInput<$PrismaModel> | null
+  in?: $Enums.FuelMovement[] | Prisma.ListEnumFuelMovementFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.FuelMovement[] | Prisma.ListEnumFuelMovementFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFuelMovementNullableFilter<$PrismaModel> | $Enums.FuelMovement | null
+}
+
 export type EnumMachineActivityTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.MachineActivityType | Prisma.EnumMachineActivityTypeFieldRefInput<$PrismaModel>
   in?: $Enums.MachineActivityType[] | Prisma.ListEnumMachineActivityTypeFieldRefInput<$PrismaModel>
@@ -363,6 +370,16 @@ export type EnumMachineActivityTypeWithAggregatesFilter<$PrismaModel = never> = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumMachineActivityTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumMachineActivityTypeFilter<$PrismaModel>
+}
+
+export type EnumFuelMovementNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FuelMovement | Prisma.EnumFuelMovementFieldRefInput<$PrismaModel> | null
+  in?: $Enums.FuelMovement[] | Prisma.ListEnumFuelMovementFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.FuelMovement[] | Prisma.ListEnumFuelMovementFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFuelMovementNullableWithAggregatesFilter<$PrismaModel> | $Enums.FuelMovement | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFuelMovementNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFuelMovementNullableFilter<$PrismaModel>
 }
 
 export type EnumPhotoEntityTypeFilter<$PrismaModel = never> = {
@@ -759,6 +776,13 @@ export type NestedEnumMachineActivityTypeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumMachineActivityTypeFilter<$PrismaModel> | $Enums.MachineActivityType
 }
 
+export type NestedEnumFuelMovementNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.FuelMovement | Prisma.EnumFuelMovementFieldRefInput<$PrismaModel> | null
+  in?: $Enums.FuelMovement[] | Prisma.ListEnumFuelMovementFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.FuelMovement[] | Prisma.ListEnumFuelMovementFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFuelMovementNullableFilter<$PrismaModel> | $Enums.FuelMovement | null
+}
+
 export type NestedEnumMachineActivityTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.MachineActivityType | Prisma.EnumMachineActivityTypeFieldRefInput<$PrismaModel>
   in?: $Enums.MachineActivityType[] | Prisma.ListEnumMachineActivityTypeFieldRefInput<$PrismaModel>
@@ -767,6 +791,16 @@ export type NestedEnumMachineActivityTypeWithAggregatesFilter<$PrismaModel = nev
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumMachineActivityTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumMachineActivityTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumFuelMovementNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.FuelMovement | Prisma.EnumFuelMovementFieldRefInput<$PrismaModel> | null
+  in?: $Enums.FuelMovement[] | Prisma.ListEnumFuelMovementFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.FuelMovement[] | Prisma.ListEnumFuelMovementFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFuelMovementNullableWithAggregatesFilter<$PrismaModel> | $Enums.FuelMovement | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFuelMovementNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFuelMovementNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumPhotoEntityTypeFilter<$PrismaModel = never> = {

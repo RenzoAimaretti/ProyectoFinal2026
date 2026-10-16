@@ -436,6 +436,7 @@ export const MachineActivityScalarFieldEnum = {
   machineId: 'machineId',
   companyId: 'companyId',
   type: 'type',
+  fuelMovement: 'fuelMovement',
   date: 'date',
   liters: 'liters',
   receipt: 'receipt',

@@ -496,6 +496,7 @@ model MachineActivity {
   machineId    String
   companyId    String
   type         MachineActivityType
+  fuelMovement FuelMovement?
   date         DateTime
   liters       Float?
   receipt      String?
@@ -666,6 +667,11 @@ enum MachineActivityType {
   MANTENIMIENTO
   REPARACION
   USO_CAMPO
+}
+
+enum FuelMovement {
+  INCOME
+  CONSUMPTION
 }
 
 enum PhotoEntityType {

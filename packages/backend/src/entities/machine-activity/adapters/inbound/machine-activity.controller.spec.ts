@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../auth/guards/roles.guard';
 import { ROLES_KEY } from '../../../../auth/decorators/roles.decorator';
@@ -31,7 +31,7 @@ const mockActivity: MachineActivityRecord = {
   updatedAt: new Date('2026-03-09T10:00:00.000Z'),
 };
 
-const req = { user: { firmaId: 'company-1' } };
+const req = { user: { firmaId: 'company-1', role: 'ADMIN' } };
 
 describe('MachineActivityController', () => {
   let controller: MachineActivityController;
@@ -116,6 +116,28 @@ describe('MachineActivityController', () => {
       'company-1',
       body,
     );
+  });
+
+  it('lets OPERARIO register fuel only and rejects maintenance without writing', async () => {
+    const roles = Reflect.getMetadata(
+      ROLES_KEY,
+      MachineActivityController.prototype.create,
+    ) as string[];
+    expect(roles).toContain('OPERARIO');
+
+    const operator = { user: { firmaId: 'company-1', role: 'OPERARIO' } };
+    registerMachineActivity.execute.mockResolvedValue(mockActivity);
+    await expect(controller.create(operator as never, {
+      machineId: 'machine-1', type: 'COMBUSTIBLE',
+      date: '2026-03-09T00:00:00.000Z', liters: 5,
+    })).resolves.toEqual(mockActivity);
+    expect(registerMachineActivity.execute).toHaveBeenCalledTimes(1);
+
+    await expect(controller.create(operator as never, {
+      machineId: 'machine-1', type: 'MANTENIMIENTO',
+      date: '2026-03-09T00:00:00.000Z', cost: 50,
+    })).rejects.toThrow(ForbiddenException);
+    expect(registerMachineActivity.execute).toHaveBeenCalledTimes(1);
   });
 
   it('maps domain errors to HTTP exceptions', async () => {

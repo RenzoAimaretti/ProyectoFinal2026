@@ -26,6 +26,7 @@ const expectedRecord: MachineActivityRecord = {
   machineId: 'machine-1',
   companyId: 'company-1',
   type: 'COMBUSTIBLE',
+  fuelMovement: 'INCOME',
   date: new Date('2026-03-09T00:00:00.000Z'),
   liters: 120,
   receipt: 'A-0001',
@@ -71,7 +72,19 @@ describe('PrismaMachineActivityRepository', () => {
 
     await expect(repository.create(data)).resolves.toEqual(expectedRecord);
 
-    expect(prisma.machineActivity.create).toHaveBeenCalledWith({ data });
+    expect(prisma.machineActivity.create).toHaveBeenCalledWith({
+      data: { ...data, fuelMovement: 'INCOME' },
+    });
+  });
+
+  it('keeps consumption distinct on read without rewriting legacy income', async () => {
+    prisma.machineActivity.findMany.mockResolvedValue([
+      { ...persistedActivity, id: 'legacy-1', fuelMovement: null },
+      { ...persistedActivity, id: 'consumption-1', fuelMovement: 'CONSUMPTION' },
+    ]);
+
+    const records = await repository.findAllByCompany('company-1');
+    expect(records.map((row) => row.fuelMovement)).toEqual(['INCOME', 'CONSUMPTION']);
   });
 
   it('scopes the activity read directly by company id', async () => {

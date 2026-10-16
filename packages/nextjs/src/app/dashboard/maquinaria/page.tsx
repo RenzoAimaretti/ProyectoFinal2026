@@ -77,7 +77,7 @@ function latestDate(dates: string[]): string | null {
 function summarize(machine: MachineDTO, activities: MachineActivityDTO[]): MachineSummary {
   const own = activities.filter((a) => a.machineId === machine.id);
   const fuelLiters = own
-    .filter((a) => a.type === "COMBUSTIBLE" && typeof a.liters === "number")
+    .filter((a) => a.type === "COMBUSTIBLE" && a.fuelMovement !== "CONSUMPTION" && typeof a.liters === "number")
     .reduce((sum, a) => sum + (a.liters as number), 0);
   const usageHours = own
     .filter((a) => typeof a.usageHours === "number")
@@ -141,7 +141,7 @@ export default function MaquinariaPage() {
   const totalFuel = useMemo(
     () =>
       activities
-        .filter((a) => a.type === "COMBUSTIBLE" && typeof a.liters === "number")
+        .filter((a) => a.type === "COMBUSTIBLE" && a.fuelMovement !== "CONSUMPTION" && typeof a.liters === "number")
         .reduce((sum, a) => sum + (a.liters as number), 0),
     [activities],
   );
