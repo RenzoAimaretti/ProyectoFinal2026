@@ -344,3 +344,70 @@ Console, from `packages/nextjs`:
 - The role list is hand-duplicated in `AUTH_USER_ROLES`, `user.types.ts` and
   `task.types.ts`. Adding a role means touching all three; a single source would
   remove the trap.
+
+## Phase 2 — recipe form rework
+
+Owner feedback after testing the live flow: the form is confusing, and it never
+shows how the caldo and the products relate to each other. Direction approved:
+keep BOTH dosage bases and rebuild the form so it fills in and reads properly.
+
+### Requirements
+
+- The form follows the agronomist's sequence: add each product with its rate,
+  then declare the caldo per hectare, then see the computed amounts below.
+- Every row shows BOTH the total amount for the lot AND its equivalent rate, so
+  the contractor loading the tank knows the proportion. Today a `POR_HECTAREA`
+  row shows no concentration at all — that is the real gap.
+- The caldo per hectare stays a first-class, required input: it is what turns a
+  concentration into an absolute amount.
+- Both bases stay: `POR_HECTAREA` (labels that state "3 L/ha") and
+  `CONCENTRACION` (mixes stated per 100 L of water).
+
+### Design decisions
+
+| # | Decision |
+|---|----------|
+| 12 | Both dosage bases are kept. |
+| 13 | A row's unit is derived from its basis and the input's catalogue unit: `POR_HECTAREA` -> `<unit>/ha`, `CONCENTRACION` -> `<unit>/100 L`. Today `RecipeItem.unit` is copied raw from `Input.unit` (e.g. "L"), which is ambiguous next to a basis. No schema change. |
+| 14 | The totals output gains, per row, the derived `perHectare` and `per100L` amounts, so the saved recipe is authoritative instead of the console inventing the numbers. Additive change. |
+| 15 | The caldo per hectare stays REQUIRED (`Recipe.sprayVolume` is NOT NULL). No migration. |
+| 16 | Form order: products -> caldo -> live results below (the owner's stated order). The saved recipe still READS caldo-first, which is the classic prescription format. |
+
+### Formulas (same arithmetic, now expressed both ways)
+
+- `caldoTotal` (L) = `sprayVolume` (L/ha) x `lotArea` (ha)
+- `POR_HECTAREA`: row total = `dose` x `lotArea`
+- `CONCENTRACION`: row total = `dose` x `caldoTotal` / 100 (dose is per 100 L)
+- Derived, for display on every row regardless of basis:
+  - `perHectare` = row total / `lotArea`
+  - `per100L` = row total x 100 / `caldoTotal`
+- Row totals are computed from the EXACT unrounded caldo; everything is rounded
+  to 2 decimals only for output, and the console mirrors the same functions.
+
+### Tasks
+
+- [ ] U1 [backend] derived `perHectare` / `per100L` per row in the totals output,
+      unit normalisation by basis, and the validation that goes with them (TDD).
+- [ ] U2 [web] rebuild the editor: products -> caldo -> live results below, the
+      equivalence shown on every row, unit driven by the basis, and clearer
+      Spanish labels for the agronomist.
+- [ ] U3 [web] make the read-only recipe view read like a real prescription:
+      lot and surface, caldo per hectare and total, then each product with its
+      rate, basis, total amount, equivalence per 100 L and load order.
+- [ ] V2 verify: backend suite, `next build`, and a LIVE end-to-end run against
+      the running Postgres and backend (this time it can be executed, not just
+      reasoned).
+
+### Acceptance
+
+- With 96 ha and 120 L/ha of caldo, a 3 L/ha row shows 288 L total
+  (= 3 L/ha, = 2.5 L/100 L) and a 1.5-per-100 L row shows 172.8 L total
+  (= 1.8 L/ha, = 1.5 L/100 L).
+- A single row's `total`, `perHectare` and `per100L` are mutually consistent.
+- The console's live panel and the saved recipe agree exactly.
+- Nothing changes for the existing endpoints' consumers: the additions are
+  additive and `GET /recipes?lotId=` keeps its shape.
+
+### Status
+
+Awaiting the owner's go-ahead to start with U1.
