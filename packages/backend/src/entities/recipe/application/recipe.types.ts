@@ -90,6 +90,12 @@ export type PendingPrescriptionTask = {
   lotId: string;
   lotName: string;
   farmName: string;
+  /**
+   * Surface of the task lot in hectares. Additive inbox field: the console
+   * editor computes `caldoTotal = sprayVolume * lotArea` live, exactly as the
+   * server does, without an extra round trip.
+   */
+  lotArea: number;
   taskTypeId: string;
   taskTypeName: string;
   status: TaskStatusValue;

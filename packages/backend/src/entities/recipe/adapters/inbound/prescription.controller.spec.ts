@@ -18,6 +18,7 @@ const pendingTask: PendingPrescriptionTask = {
   lotId: 'lot-1',
   lotName: 'Lote N°1',
   farmName: 'Agro-Sur',
+  lotArea: 12.5,
   taskTypeId: 'task-type-1',
   taskTypeName: 'Pulverización',
   status: 'PENDIENTE',

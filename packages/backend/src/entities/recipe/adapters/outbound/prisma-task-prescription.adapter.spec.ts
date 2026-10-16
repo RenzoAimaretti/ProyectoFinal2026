@@ -140,7 +140,7 @@ describe('PrismaTaskPrescriptionAdapter', () => {
           status: 'PENDIENTE',
           startedAt: new Date('2026-01-10T00:00:00.000Z'),
           prescriptionStatus: 'SIN_RECETA',
-          lot: { name: 'Lote N°1', farm: { name: 'Agro-Sur' } },
+          lot: { name: 'Lote N°1', area: 12.5, farm: { name: 'Agro-Sur' } },
           taskType: { name: 'Pulverización' },
         },
       ]);
@@ -151,6 +151,7 @@ describe('PrismaTaskPrescriptionAdapter', () => {
           lotId: 'lot-1',
           lotName: 'Lote N°1',
           farmName: 'Agro-Sur',
+          lotArea: 12.5,
           taskTypeId: 'task-type-1',
           taskTypeName: 'Pulverización',
           status: 'PENDIENTE',
@@ -171,7 +172,9 @@ describe('PrismaTaskPrescriptionAdapter', () => {
           status: true,
           startedAt: true,
           prescriptionStatus: true,
-          lot: { select: { name: true, farm: { select: { name: true } } } },
+          lot: {
+            select: { name: true, area: true, farm: { select: { name: true } } },
+          },
           taskType: { select: { name: true } },
         },
         orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
