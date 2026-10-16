@@ -40,17 +40,37 @@ export type CalcItemInput = {
   dosageBasis: DosageBasis;
 };
 
+/**
+ * The three faces of one row's amount, mirroring the server's
+ * `PrescriptionItemTotals` (decision 14): the absolute amount for the lot and
+ * its two equivalent rates. All three are rounded to two decimals.
+ */
+export type LiveRowTotals = {
+  /** Amount for the whole lot, in the row's base unit (e.g. L). */
+  total: number;
+  /** The same amount expressed per hectare. */
+  perHectare: number;
+  /** The same amount expressed per 100 L of caldo. */
+  per100L: number;
+};
+
 export type LiveTotals = {
   /** Total spray volume in litres, or null when it cannot be computed. */
   caldoTotal: number | null;
-  /** One total per item (in the given order), or null per row. */
-  rows: (number | null)[];
+  /** One row of totals per item (in the given order), or null per row. */
+  rows: (LiveRowTotals | null)[];
 };
 
 /**
  * Live totals for the editor. `sprayVolume` and `lotArea` may be unknown; each
  * item dose may be empty. Every value that cannot be computed is returned as
  * `null` so the caller can render an honest "—" instead of a fabricated figure.
+ *
+ * This is a line-by-line mirror of the server's `calculatePrescriptionTotals`
+ * (`backend/src/entities/recipe/domain/spray-calculation.ts`): the row amount is
+ * computed from the EXACT unrounded caldo, then each of the three numbers is
+ * rounded independently to two decimals. `perHectare = total / lotArea` and
+ * `per100L = total * 100 / caldo`, exactly as the server derives them.
  */
 export function computeLiveTotals(
   sprayVolume: number | null,
@@ -62,20 +82,63 @@ export function computeLiveTotals(
       ? sprayVolume * lotArea
       : null;
 
-  const rows = items.map((item) => {
-    if (caldoExact === null || !isPositiveFinite(item.dose)) return null;
-    if (!isPositiveFinite(lotArea)) return null;
-    const total =
+  const rows = items.map((item): LiveRowTotals | null => {
+    if (caldoExact === null || !isPositiveFinite(lotArea)) return null;
+    if (!isPositiveFinite(item.dose)) return null;
+    const totalExact =
       item.dosageBasis === "POR_HECTAREA"
         ? item.dose * lotArea
         : (item.dose * caldoExact) / 100;
-    return roundTo2(total);
+    return {
+      total: roundTo2(totalExact),
+      perHectare: roundTo2(totalExact / lotArea),
+      per100L: roundTo2((totalExact * 100) / caldoExact),
+    };
   });
 
   return {
     caldoTotal: caldoExact === null ? null : roundTo2(caldoExact),
     rows,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Dosage unit normalisation (mirrors the server, decision 13)         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The same rate suffix the server strips before deriving the unit (any casing,
+ * optional spaces around the slash). Keeping it identical keeps the client's
+ * derivation idempotent and tolerant of the raw units the old form stored.
+ */
+const RATE_SUFFIX_PATTERN = /\s*\/\s*(?:ha|100\s*l)\s*$/i;
+
+/**
+ * Strips any rate suffix from a stored unit and returns the bare base unit
+ * (e.g. `L/ha` or `L/100 L` -> `L`). Returns `null` for a missing or blank
+ * unit, so the caller never invents a unit that was not provided.
+ */
+export function baseDosageUnit(unit: string | null | undefined): string | null {
+  if (unit === null || unit === undefined) return null;
+  const base = unit.trim().replace(RATE_SUFFIX_PATTERN, "").trim();
+  return base.length === 0 ? null : base;
+}
+
+/**
+ * Client mirror of the server's `normalizeDosageUnit`
+ * (`backend/src/entities/recipe/domain/dosage-unit.ts`, decision 13): derives
+ * the rate unit a row will be saved with from its base unit and basis.
+ * `POR_HECTAREA` -> `<base>/ha`, `CONCENTRACION` -> `<base>/100 L`. Tolerant and
+ * idempotent: any pre-existing rate suffix is stripped first, and a missing or
+ * blank unit stays `null`.
+ */
+export function normalizeDosageUnit(
+  unit: string | null | undefined,
+  dosageBasis: DosageBasis,
+): string | null {
+  const base = baseDosageUnit(unit);
+  if (base === null) return null;
+  return dosageBasis === "POR_HECTAREA" ? `${base}/ha` : `${base}/100 L`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -151,4 +214,17 @@ export function formatNumber(value: number | null | undefined): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(value);
+}
+
+/**
+ * Formats a number together with its unit. An uncomputable value stays an
+ * honest "—" without trailing the unit, so no invented figure is ever shown.
+ */
+export function formatWithUnit(
+  value: number | null | undefined,
+  unit: string | null | undefined,
+): string {
+  const formatted = formatNumber(value);
+  if (formatted === "—") return formatted;
+  return unit ? `${formatted} ${unit}` : formatted;
 }

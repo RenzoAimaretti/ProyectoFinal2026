@@ -718,8 +718,10 @@ export const DOSAGE_BASIS_LABELS: Record<DosageBasis, string> = {
 
 /**
  * A recipe row as returned by the reads. `dosageBasis`, `id` and `recipeId` are
- * additive fields of the new prescription endpoints; `total` is present only on
- * `GET /recipes/:id` when the lot area is known.
+ * additive fields of the new prescription endpoints. `unit` is normalised by the
+ * server to a rate (`<base>/ha` or `<base>/100 L`). `total`, `perHectare` and
+ * `per100L` are the three faces of the same amount (decision 14) and are present
+ * only on `GET /recipes/:id` when the lot area is known.
  */
 export type RecipeItemDTO = {
   id: string;
@@ -730,8 +732,12 @@ export type RecipeItemDTO = {
   dosageBasis: DosageBasis;
   unit: string | null;
   loadOrder: number;
-  /** Computed total amount to load, in the row unit. Detail read only. */
+  /** Computed total amount for the whole lot, in the row's base unit. */
   total?: number;
+  /** The same amount expressed per hectare. Detail read only. */
+  perHectare?: number;
+  /** The same amount expressed per 100 L of caldo. Detail read only. */
+  per100L?: number;
 };
 
 /**

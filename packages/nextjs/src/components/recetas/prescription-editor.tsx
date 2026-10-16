@@ -20,11 +20,14 @@ import {
   type TaskDTO,
 } from "@/api/client";
 import {
+  baseDosageUnit,
   computeLiveTotals,
   dateKeyToIso,
   formatNumber,
+  formatWithUnit,
   isPositiveFinite,
   isoToDateKey,
+  normalizeDosageUnit,
   parsePositiveNumber,
   todayKey,
 } from "./prescription-calc";
@@ -51,6 +54,12 @@ type RowState = {
   inputId: string;
   dose: string;
   dosageBasis: DosageBasis;
+  /**
+   * Base unit of the row, taken from the selected catalogue product (or the
+   * loaded row when editing). The rate unit the server saves is derived from it
+   * and the basis with `normalizeDosageUnit`, so the raw catalogue unit is never
+   * shown next to a basis.
+   */
   unit: string;
 };
 
@@ -125,7 +134,11 @@ function describeApiError(err: unknown): ApiErrorInfo {
 
 /**
  * Prescription editor. Handles CREATE (a pending task) and EDIT (an existing
- * prescription) with a live panel that mirrors the server calculation. It is
+ * prescription). The form follows the agronomist's sequence — application data,
+ * then products with their dose and basis, then the caldo per hectare — and the
+ * live results are shown below, where every row displays the three faces of the
+ * same number (total for the lot, per hectare and per 100 L). The live panel
+ * mirrors the server calculation exactly (see `prescription-calc.ts`). It is
  * mounted only while open, so a fresh mount always starts from clean state.
  */
 export function PrescriptionEditor({
@@ -269,7 +282,10 @@ export function PrescriptionEditor({
   const caldoMessage =
     areaUsable === null
       ? "El lote no tiene una superficie (ha) válida registrada: no se puede calcular el caldo."
-      : "Ingresá el volumen de caldo (por hectárea) para ver el total.";
+      : "Ingresá el caldo por hectárea para ver el total del lote.";
+
+  const inputName = (id: string): string | null =>
+    inputs.find((candidate) => candidate.id === id)?.name ?? null;
 
   const addRow = () => {
     setRows((prev) => [
@@ -316,10 +332,10 @@ export function PrescriptionEditor({
     const dateIso = dateKeyToIso(date);
     if (!dateIso) errors.date = "La fecha de la receta no es válida.";
     if (sprayVolumeNumber === null) {
-      errors.sprayVolume = "El volumen de caldo debe ser mayor que 0.";
+      errors.sprayVolume = "El caldo por hectárea debe ser mayor que 0.";
     }
     if (!sprayVolumeUnit.trim()) {
-      errors.sprayVolumeUnit = "Indicá la unidad del volumen (por ejemplo L/ha).";
+      errors.sprayVolumeUnit = "Indicá la unidad del caldo (por ejemplo L/ha).";
     }
     if (rows.length === 0) {
       errors.items = "Agregá al menos un producto.";
@@ -443,7 +459,7 @@ export function PrescriptionEditor({
       widthClass="max-w-2xl"
       footer={footer}
     >
-      <div className="space-y-5">
+      <div className="space-y-6 px-5 py-5">
         {frozen && (
           <Alert tone="warning" title="Receta congelada">
             La actividad ya {context.status === "FINALIZADA" ? "finalizó" : "comenzó"}
@@ -466,62 +482,11 @@ export function PrescriptionEditor({
           </Alert>
         ) : (
           <>
-            {/* Volumen de caldo */}
-            <section className="space-y-3">
-              <h3 className="op-label">Volumen de caldo</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <TextField
-                  label="Volumen por hectárea"
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="any"
-                  value={sprayVolume}
-                  onChange={(e) => setSprayVolume(e.target.value)}
-                  disabled={locked}
-                  required
-                  error={fieldErrors.sprayVolume}
-                  hint="Cantidad de agua a aplicar por hectárea."
-                />
-                <TextField
-                  label="Unidad"
-                  value={sprayVolumeUnit}
-                  onChange={(e) => setSprayVolumeUnit(e.target.value)}
-                  disabled={locked}
-                  required
-                  error={fieldErrors.sprayVolumeUnit}
-                  placeholder="L/ha"
-                />
-              </div>
-
-              <div className="op-plate px-4 py-3">
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                  <div>
-                    <p className="op-label">Caldo total del lote</p>
-                    {liveTotals.caldoTotal !== null ? (
-                      <p className="op-num mt-1 text-2xl font-bold text-ink">
-                        {formatNumber(liveTotals.caldoTotal)}{" "}
-                        <span className="text-base font-semibold text-ink-soft">L</span>
-                      </p>
-                    ) : (
-                      <p className="mt-1 max-w-md text-sm text-ink-soft">
-                        {caldoMessage}
-                      </p>
-                    )}
-                  </div>
-                  <p className="op-caption text-right">
-                    Superficie:{" "}
-                    <span className="op-num">
-                      {areaUsable !== null ? `${formatNumber(areaUsable)} ha` : "sin dato"}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            {/* Datos de la receta */}
-            <section className="space-y-3">
-              <h3 className="op-label">Datos de la receta</h3>
+            {/* 1. Datos de la aplicación */}
+            <section className="space-y-3" aria-labelledby="editor-datos">
+              <h3 id="editor-datos" className="op-label">
+                Datos de la aplicación
+              </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <TextField
                   label="Fecha"
@@ -533,34 +498,43 @@ export function PrescriptionEditor({
                   error={fieldErrors.date}
                 />
                 <TextField
+                  label="Plaga / objetivo"
+                  value={pest}
+                  maxLength={120}
+                  onChange={(e) => setPest(e.target.value)}
+                  disabled={locked}
+                  placeholder="Ej.: Chinche verde"
+                />
+                <TextField
                   label="Cultivo"
                   value={crop}
                   maxLength={120}
                   onChange={(e) => setCrop(e.target.value)}
                   disabled={locked}
                   placeholder="Ej.: Soja"
-                />
-                <TextField
-                  label="Plaga objetivo"
-                  value={pest}
-                  maxLength={120}
-                  onChange={(e) => setPest(e.target.value)}
-                  disabled={locked}
-                  placeholder="Ej.: Chinche verde"
                   className="sm:col-span-2"
                 />
               </div>
+              <TextareaField
+                label="Observaciones"
+                value={observations}
+                onChange={(e) => setObservations(e.target.value)}
+                disabled={locked}
+                rows={3}
+                placeholder="Notas para quien aplica la receta."
+              />
             </section>
 
-            {/* Productos */}
-            <section className="space-y-3">
+            {/* 2. Productos */}
+            <section className="space-y-3" aria-labelledby="editor-productos">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <h3 className="op-label">Productos</h3>
+                  <h3 id="editor-productos" className="op-label">
+                    Productos
+                  </h3>
                   <p className="op-caption mt-0.5 max-w-xl">
-                    Orden de carga: el N.º es la posición de la fila. Usá ↑/↓ para
-                    reordenar. En «Concentración» la dosis es la cantidad por cada
-                    100 L de agua, así que una mezcla al 1 % v/v se ingresa como 1.
+                    Cargá cada producto con su dosis y su base. El orden de carga es
+                    la posición de la fila: usá ↑/↓ para reordenar.
                   </p>
                 </div>
                 <button
@@ -602,119 +576,253 @@ export function PrescriptionEditor({
                 </p>
               ) : (
                 <ul className="space-y-3">
-                  {rows.map((row, index) => (
-                    <li
-                      key={row.key}
-                      className="border border-agro-border bg-base-subtle/30 p-3"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="op-caption">
-                          Orden de carga{" "}
+                  {rows.map((row, index) => {
+                    const rateUnit = normalizeDosageUnit(row.unit, row.dosageBasis);
+                    return (
+                      <li
+                        key={row.key}
+                        className="border border-agro-border bg-base-subtle/30 p-3"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="op-caption">
+                            Orden de carga{" "}
+                            <span className="op-num font-semibold text-ink">
+                              {index + 1}
+                            </span>
+                          </p>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              className="op-btn op-btn--quiet h-8 w-8 p-0"
+                              onClick={() => moveRow(index, -1)}
+                              disabled={locked || index === 0}
+                              aria-label={`Subir el producto ${index + 1}`}
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              className="op-btn op-btn--quiet h-8 w-8 p-0"
+                              onClick={() => moveRow(index, 1)}
+                              disabled={locked || index === rows.length - 1}
+                              aria-label={`Bajar el producto ${index + 1}`}
+                            >
+                              ↓
+                            </button>
+                            <button
+                              type="button"
+                              className="op-btn op-btn--reject h-8 w-8 p-0"
+                              onClick={() => removeRow(row.key)}
+                              disabled={locked}
+                              aria-label={`Quitar el producto ${index + 1}`}
+                            >
+                              <XIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <SelectField
+                            label="Producto"
+                            value={row.inputId}
+                            onChange={(e) => changeRowInput(row, e.target.value)}
+                            options={inputs.map((input) => ({
+                              value: input.id,
+                              label: input.name,
+                            }))}
+                            placeholder={
+                              inputsLoading ? "Cargando…" : "Elegí un producto"
+                            }
+                            disabled={locked || inputsLoading}
+                            required
+                            error={fieldErrors[`row-${index}-inputId`]}
+                            className="sm:col-span-2"
+                          />
+                          <SelectField
+                            label="Base de dosificación"
+                            value={row.dosageBasis}
+                            onChange={(e) =>
+                              updateRow(row.key, {
+                                dosageBasis: e.target.value as DosageBasis,
+                              })
+                            }
+                            options={BASIS_OPTIONS}
+                            disabled={locked}
+                          />
+                          <TextField
+                            label="Dosis"
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            step="any"
+                            value={row.dose}
+                            onChange={(e) => updateRow(row.key, { dose: e.target.value })}
+                            disabled={locked}
+                            required
+                            error={fieldErrors[`row-${index}-dose`]}
+                            hint={
+                              row.dosageBasis === "CONCENTRACION"
+                                ? "Cantidad por cada 100 L de agua: una mezcla al 1 % v/v se ingresa como 1."
+                                : "Cantidad por hectárea."
+                            }
+                          />
+                        </div>
+
+                        <p className="mt-2 text-xs text-ink-soft">
+                          Dosis expresada como:{" "}
                           <span className="op-num font-semibold text-ink">
-                            {index + 1}
+                            {rateUnit ?? "sin unidad (definila en el catálogo de insumos)"}
                           </span>
                         </p>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            className="op-btn op-btn--quiet h-8 w-8 p-0"
-                            onClick={() => moveRow(index, -1)}
-                            disabled={locked || index === 0}
-                            aria-label={`Subir el producto ${index + 1}`}
-                          >
-                            ↑
-                          </button>
-                          <button
-                            type="button"
-                            className="op-btn op-btn--quiet h-8 w-8 p-0"
-                            onClick={() => moveRow(index, 1)}
-                            disabled={locked || index === rows.length - 1}
-                            aria-label={`Bajar el producto ${index + 1}`}
-                          >
-                            ↓
-                          </button>
-                          <button
-                            type="button"
-                            className="op-btn op-btn--reject h-8 w-8 p-0"
-                            onClick={() => removeRow(row.key)}
-                            disabled={locked}
-                            aria-label={`Quitar el producto ${index + 1}`}
-                          >
-                            <XIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <SelectField
-                          label="Producto"
-                          value={row.inputId}
-                          onChange={(e) => changeRowInput(row, e.target.value)}
-                          options={inputs.map((input) => ({
-                            value: input.id,
-                            label: input.name,
-                          }))}
-                          placeholder={
-                            inputsLoading ? "Cargando…" : "Elegí un producto"
-                          }
-                          disabled={locked || inputsLoading}
-                          required
-                          error={fieldErrors[`row-${index}-inputId`]}
-                        />
-                        <SelectField
-                          label="Base de dosificación"
-                          value={row.dosageBasis}
-                          onChange={(e) =>
-                            updateRow(row.key, {
-                              dosageBasis: e.target.value as DosageBasis,
-                            })
-                          }
-                          options={BASIS_OPTIONS}
-                          disabled={locked}
-                        />
-                        <TextField
-                          label="Dosis"
-                          type="number"
-                          inputMode="decimal"
-                          min="0"
-                          step="any"
-                          value={row.dose}
-                          onChange={(e) => updateRow(row.key, { dose: e.target.value })}
-                          disabled={locked}
-                          required
-                          error={fieldErrors[`row-${index}-dose`]}
-                          hint={
-                            row.dosageBasis === "CONCENTRACION"
-                              ? "Por cada 100 L de agua (1 % v/v = 1)."
-                              : "Por hectárea."
-                          }
-                        />
-                        <TextField
-                          label="Unidad"
-                          value={row.unit}
-                          onChange={(e) => updateRow(row.key, { unit: e.target.value })}
-                          disabled={locked}
-                          placeholder="L, kg…"
-                        />
-                      </div>
-
-                      <div className="mt-3 flex items-center justify-between border-t border-agro-border pt-2">
-                        <span className="op-label">Total a cargar</span>
-                        <span className="op-num text-sm font-semibold text-ink">
-                          {typeof liveTotals.rows[index] === "number"
-                            ? `${formatNumber(liveTotals.rows[index])}${row.unit ? ` ${row.unit}` : ""}`
-                            : "—"}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </section>
 
-            {/* Plan de reaplicación */}
-            <section className="space-y-3">
-              <h3 className="op-label">Plan de reaplicación (opcional)</h3>
+            {/* 3. Caldo */}
+            <section className="space-y-3" aria-labelledby="editor-caldo">
+              <h3 id="editor-caldo" className="op-label">
+                Caldo
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <TextField
+                  label="Caldo por hectárea"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="any"
+                  value={sprayVolume}
+                  onChange={(e) => setSprayVolume(e.target.value)}
+                  disabled={locked}
+                  required
+                  error={fieldErrors.sprayVolume}
+                  hint="Cantidad de agua a aplicar por hectárea."
+                  className="sm:col-span-2"
+                />
+                <TextField
+                  label="Unidad"
+                  value={sprayVolumeUnit}
+                  onChange={(e) => setSprayVolumeUnit(e.target.value)}
+                  disabled={locked}
+                  required
+                  error={fieldErrors.sprayVolumeUnit}
+                  placeholder="L/ha"
+                />
+              </div>
+
+              <div className="op-plate px-4 py-3">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="op-label">Caldo total del lote</p>
+                    {liveTotals.caldoTotal !== null ? (
+                      <p className="op-num mt-1 text-2xl font-bold text-ink">
+                        {formatNumber(liveTotals.caldoTotal)}{" "}
+                        <span className="text-base font-semibold text-ink-soft">L</span>
+                      </p>
+                    ) : (
+                      <p className="mt-1 max-w-md text-sm text-ink-soft">
+                        {caldoMessage}
+                      </p>
+                    )}
+                  </div>
+                  <p className="op-caption text-right">
+                    Superficie del lote (el multiplicador)
+                    <br />
+                    <span className="op-num text-ink">
+                      {areaUsable !== null ? `${formatNumber(areaUsable)} ha` : "sin dato"}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* 4. Resultado (live) */}
+            <section className="space-y-3" aria-labelledby="editor-resultado">
+              <div>
+                <h3 id="editor-resultado" className="op-label">
+                  Resultado
+                </h3>
+                <p className="op-caption mt-0.5 max-w-xl">
+                  Cuánto va en el caldo y su equivalente por hectárea y por 100 L. Se
+                  recalcula a medida que cargás los productos.
+                </p>
+              </div>
+
+              {rows.length === 0 ? (
+                <p className="text-sm text-ink-soft">
+                  Todavía no agregaste productos: no hay nada que calcular.
+                </p>
+              ) : (
+                <div aria-live="polite">
+                  {liveTotals.caldoTotal === null && (
+                    <p className="mb-2 text-xs text-ink-soft">{caldoMessage}</p>
+                  )}
+                  <ul className="divide-y divide-agro-border border border-agro-border">
+                    {rows.map((row, index) => {
+                      const result = liveTotals.rows[index];
+                      const baseUnit = baseDosageUnit(row.unit);
+                      const rateUnit = normalizeDosageUnit(row.unit, row.dosageBasis);
+                      const perHectareUnit = baseUnit ? `${baseUnit}/ha` : null;
+                      const per100LUnit = baseUnit ? `${baseUnit}/100 L` : null;
+                      const dose = parsePositiveNumber(row.dose);
+                      return (
+                        <li key={row.key} className="px-4 py-3">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="op-caption">
+                                Orden de carga{" "}
+                                <span className="op-num font-semibold text-ink">
+                                  {index + 1}
+                                </span>{" "}
+                                · {DOSAGE_BASIS_LABELS[row.dosageBasis]}
+                              </p>
+                              <p className="truncate text-sm font-semibold text-ink">
+                                {inputName(row.inputId) ??
+                                  (row.inputId ? "Insumo" : "Producto sin elegir")}
+                              </p>
+                              <p className="mt-0.5 text-xs text-ink-soft">
+                                Dosis:{" "}
+                                <span className="op-num text-ink">
+                                  {formatWithUnit(dose, rateUnit)}
+                                </span>
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="op-label">Total a cargar</p>
+                              <p className="op-num text-lg font-bold text-ink">
+                                {formatWithUnit(result?.total ?? null, baseUnit)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 border-t border-agro-border pt-2">
+                            <p className="op-caption">
+                              Por hectárea:{" "}
+                              <span className="op-num text-ink">
+                                {formatWithUnit(result?.perHectare ?? null, perHectareUnit)}
+                              </span>
+                            </p>
+                            <p className="op-caption">
+                              Por 100 L:{" "}
+                              <span className="op-num text-ink">
+                                {formatWithUnit(result?.per100L ?? null, per100LUnit)}
+                              </span>
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+            </section>
+
+            {/* 5. Plan de reaplicación */}
+            <section className="space-y-3" aria-labelledby="editor-reaplicacion">
+              <h3 id="editor-reaplicacion" className="op-label">
+                Plan de reaplicación (opcional)
+              </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <TextField
                   label="Intervalo (días)"
@@ -739,16 +847,6 @@ export function PrescriptionEditor({
                 />
               </div>
             </section>
-
-            {/* Observaciones */}
-            <TextareaField
-              label="Observaciones"
-              value={observations}
-              onChange={(e) => setObservations(e.target.value)}
-              disabled={locked}
-              rows={3}
-              placeholder="Notas para quien aplica la receta."
-            />
           </>
         )}
       </div>
