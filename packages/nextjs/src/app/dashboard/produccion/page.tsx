@@ -137,6 +137,12 @@ function describeOperators(task: TaskDTO): string {
   }`;
 }
 
+/** Joins Spanish labels with a final "y" instead of a trailing comma. */
+function joinWithY(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? "";
+  return `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
+}
+
 function describeError(err: unknown): string {
   if (err instanceof ApiError) {
     const body = err.body as { message?: string } | string | null;
@@ -232,6 +238,26 @@ type PrescriptionView = {
   lotName: string;
 };
 
+/**
+ * Auxiliary collections the board can live without. `true` means its read
+ * failed, so anything that depends on it must degrade instead of showing
+ * empty-but-valid data. Only `listTasks` is required: `GET /tasks` already
+ * carries the lot/farm/task-type/operator names the board renders.
+ */
+type Degraded = {
+  lots: boolean;
+  farms: boolean;
+  taskTypes: boolean;
+  users: boolean;
+};
+
+const NO_DEGRADED: Degraded = {
+  lots: false,
+  farms: false,
+  taskTypes: false,
+  users: false,
+};
+
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
@@ -248,6 +274,7 @@ export default function ProduccionPage() {
   const [farms, setFarms] = useState<FarmDTO[]>([]);
   const [taskTypes, setTaskTypes] = useState<TaskTypeDTO[]>([]);
   const [users, setUsers] = useState<UserDTO[]>([]);
+  const [degraded, setDegraded] = useState<Degraded>(NO_DEGRADED);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -318,27 +345,60 @@ export default function ProduccionPage() {
 
   useEffect(() => {
     let alive = true;
-    Promise.all([
+
+    // Only `listTasks` is required to render the board: `GET /tasks` already
+    // enriches every task with its lot, farm, task-type and operator names. The
+    // auxiliary catalogues below are read best-effort, so a role that cannot
+    // read one of them (e.g. `GET /users` is ADMIN/SUPERVISOR-only) still gets
+    // the board instead of a blank page.
+    Promise.allSettled([
       listTasks(),
       listLots(),
       listFarms(),
       listTaskTypes(),
       listUsers(),
     ])
-      .then(([taskList, lotList, farmList, typeList, userList]) => {
+      .then((results) => {
         if (!alive) return;
-        setTasks(Array.isArray(taskList) ? taskList : []);
-        setLots(Array.isArray(lotList) ? lotList : []);
-        setFarms(Array.isArray(farmList) ? farmList : []);
-        setTaskTypes(Array.isArray(typeList) ? typeList : []);
-        setUsers(Array.isArray(userList) ? userList : []);
-      })
-      .catch((err) => {
-        if (alive) setError(describeError(err));
+        const [tasksResult, lotsResult, farmsResult, typesResult, usersResult] = results;
+
+        if (tasksResult.status === "rejected") {
+          setError(describeError(tasksResult.reason));
+          return;
+        }
+
+        setTasks(Array.isArray(tasksResult.value) ? tasksResult.value : []);
+        setLots(
+          lotsResult.status === "fulfilled" && Array.isArray(lotsResult.value)
+            ? lotsResult.value
+            : [],
+        );
+        setFarms(
+          farmsResult.status === "fulfilled" && Array.isArray(farmsResult.value)
+            ? farmsResult.value
+            : [],
+        );
+        setTaskTypes(
+          typesResult.status === "fulfilled" && Array.isArray(typesResult.value)
+            ? typesResult.value
+            : [],
+        );
+        setUsers(
+          usersResult.status === "fulfilled" && Array.isArray(usersResult.value)
+            ? usersResult.value
+            : [],
+        );
+        setDegraded({
+          lots: lotsResult.status === "rejected",
+          farms: farmsResult.status === "rejected",
+          taskTypes: typesResult.status === "rejected",
+          users: usersResult.status === "rejected",
+        });
       })
       .finally(() => {
         if (alive) setLoading(false);
       });
+
     return () => {
       alive = false;
     };
@@ -350,6 +410,19 @@ export default function ProduccionPage() {
     () => new Map(taskTypes.map((type) => [type.id, type])),
     [taskTypes],
   );
+
+  /**
+   * Names of the board-relevant catalogues that failed to load. Only these are
+   * surfaced as a page-level notice: `users` is deliberately ADMIN/SUPERVISOR
+   * only, so its absence for other roles is expected, not an incident.
+   */
+  const degradedCatalogueLabels = useMemo(() => {
+    const labels: string[] = [];
+    if (degraded.lots) labels.push("los lotes");
+    if (degraded.farms) labels.push("los campos");
+    if (degraded.taskTypes) labels.push("las labores");
+    return labels;
+  }, [degraded]);
 
   /** Tasks of the selected day, ordered by start time ascending. */
   const dayTasks = useMemo(
@@ -384,19 +457,24 @@ export default function ProduccionPage() {
         const farmName =
           task.farmName ??
           (lot ? farmById.get(lot.farmId)?.name : undefined) ??
-          "Sin campo";
+          (degraded.farms ? "Campo no disponible" : "Sin campo");
+        const taskTypeName =
+          task.taskTypeName ??
+          typeById.get(task.taskTypeId)?.name ??
+          (degraded.taskTypes ? "Labor no disponible" : "Sin labor");
+        const lotName =
+          task.lotName ?? lot?.name ?? (degraded.lots ? "Lote no disponible" : "Sin lote");
         return {
           task,
-          taskTypeName:
-            task.taskTypeName ?? typeById.get(task.taskTypeId)?.name ?? "Sin labor",
+          taskTypeName,
           farmName,
-          lotName: task.lotName ?? lot?.name ?? "Sin lote",
+          lotName,
           operatorsLabel: describeOperators(task),
           time: fmtTime(task.startedAt),
           duration: fmtDuration(task.startedAt, task.finishedAt),
         };
       }),
-    [dayTasks, lotById, farmById, typeById],
+    [dayTasks, lotById, farmById, typeById, degraded],
   );
 
   /* ----- Create task modal ----- */
@@ -448,12 +526,15 @@ export default function ProduccionPage() {
   }, [selectedDate]);
 
   const canCreate = farms.length > 0 && taskTypes.length > 0;
-  const createBlockedReason =
-    farms.length === 0
-      ? "Cargá al menos un campo para crear una tarea."
-      : taskTypes.length === 0
-        ? "Cargá al menos una labor para crear una tarea."
-        : undefined;
+  const createBlockedReason = degraded.farms
+    ? "No se pudieron cargar los campos. Reintentá."
+    : degraded.taskTypes
+      ? "No se pudieron cargar las labores. Reintentá."
+      : farms.length === 0
+        ? "Cargá al menos un campo para crear una tarea."
+        : taskTypes.length === 0
+          ? "Cargá al menos una labor para crear una tarea."
+          : undefined;
 
   const handleCreate = useCallback(async () => {
     if (creating) return;
@@ -631,6 +712,13 @@ export default function ProduccionPage() {
               Reintentar
             </Button>
           </div>
+        </Alert>
+      )}
+
+      {!loading && !error && degradedCatalogueLabels.length > 0 && (
+        <Alert tone="warning" title="Datos parciales" className="mb-5">
+          No se pudieron cargar {joinWithY(degradedCatalogueLabels)}. Las tareas se
+          muestran igual, pero algunos nombres pueden faltar.
         </Alert>
       )}
 
@@ -881,8 +969,12 @@ export default function ProduccionPage() {
               value={createOperatorId}
               onChange={(e) => setCreateOperatorId(e.target.value)}
               options={operatorOptions}
-              disabled={creating}
-              hint="Opcional. Podés asignarlo ahora o más tarde."
+              disabled={creating || degraded.users}
+              hint={
+                degraded.users
+                  ? "No se pudo cargar la lista de operarios. Podés asignar el operario más tarde."
+                  : "Opcional. Podés asignarlo ahora o más tarde."
+              }
             />
           </div>
         </Modal>
