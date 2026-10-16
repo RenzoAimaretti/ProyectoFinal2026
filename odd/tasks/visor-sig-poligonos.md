@@ -681,5 +681,12 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   blocker, but correctly distinguished that prior mock tests were insufficient.
   The first Jest attempt exhausted its 30-second foreground limit; its later
   background focused run and full suite passed. T10 had no observed RED. The
-  backend development server was paused before fixing the unsafe partial route;
-  do not claim it is live until it is restarted and checked.
+  backend development server was paused before fixing the unsafe partial route,
+  then restarted after checks; unauthenticated `/lots` responds 401 on port 3001
+  and frontend `/dashboard/mi-campo` responds 200 on port 3002. The user still
+  needs to exercise creation, blocked and successful deletion, and vertex editing
+  in a browser (T09). Native RDD ASSESS of the backend work-unit slice returned
+  `unassessable` because unrelated untracked files require explicit declaration;
+  no untracked files were removed or implicitly included. Its conservative high
+  risk plan's independent verification was performed, but native review itself
+  was unavailable. No PR, push or merge was performed.
