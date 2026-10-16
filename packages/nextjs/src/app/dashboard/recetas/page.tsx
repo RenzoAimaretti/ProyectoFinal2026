@@ -6,7 +6,11 @@ import { Badge, Card, EmptyState } from "@/components/ui/primitives";
 import { Alert } from "@/components/ui/feedback";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClipboardIcon, RefreshIcon } from "@/components/ui/icons";
-import { navItems } from "@/components/ui/nav";
+import { navItems, notifyPrescriptionInboxChanged } from "@/components/ui/nav";
+import {
+  PrescriptionEditor,
+  type EditorContext,
+} from "@/components/recetas/prescription-editor";
 import {
   ApiError,
   listPendingPrescriptions,
@@ -78,11 +82,32 @@ export default function RecetasPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
+  const [editorContext, setEditorContext] = useState<EditorContext | null>(null);
 
   const refresh = useCallback(() => {
     setLoading(true);
     setError(null);
     setVersion((v) => v + 1);
+  }, []);
+
+  /** CLOSE AND REFRESH after a prescription is written. */
+  const handleSaved = useCallback(() => {
+    setEditorContext(null);
+    refresh();
+    // The task left SIN_RECETA: tell the shell so the sidebar counter updates.
+    notifyPrescriptionInboxChanged();
+  }, [refresh]);
+
+  const openEditor = useCallback((task: PendingPrescriptionTaskDTO) => {
+    setEditorContext({
+      taskId: task.id,
+      taskTypeName: task.taskTypeName,
+      farmName: task.farmName,
+      lotName: task.lotName,
+      lotArea: typeof task.lotArea === "number" ? task.lotArea : null,
+      status: task.status,
+      startedAt: task.startedAt,
+    });
   }, []);
 
   useEffect(() => {
@@ -207,13 +232,10 @@ export default function RecetasPage() {
 
                     <div className="flex shrink-0 flex-col items-end gap-2">
                       <Badge tone="wheat">Sin receta</Badge>
-                      {/* The editor is W3. Until it exists this is visibly inert. */}
                       <button
                         type="button"
                         className="op-btn op-btn--primary"
-                        disabled
-                        aria-disabled="true"
-                        title="El editor de recetas estará disponible en la próxima entrega."
+                        onClick={() => openEditor(task)}
                       >
                         Escribir receta
                       </button>
@@ -224,6 +246,16 @@ export default function RecetasPage() {
             })}
           </ul>
         </Card>
+      )}
+
+      {editorContext && (
+        <PrescriptionEditor
+          key={editorContext.taskId}
+          mode="create"
+          context={editorContext}
+          onClose={() => setEditorContext(null)}
+          onSaved={handleSaved}
+        />
       )}
     </DashboardLayout>
   );

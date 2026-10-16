@@ -68,6 +68,19 @@ export interface NavItem {
 /** Route of the agronomist prescription inbox; single source for nav + badge. */
 export const PRESCRIPTION_MODULE_HREF = "/dashboard/recetas";
 
+/**
+ * Window event dispatched after the prescription inbox changes (a task got its
+ * prescription). The dashboard layout listens for it to refresh the sidebar
+ * counter without a full page reload. No payload: listeners re-read the inbox.
+ */
+export const PRESCRIPTION_INBOX_CHANGED_EVENT = "agro:prescription-inbox-changed";
+
+/** Notifies the shell that the pending-prescription inbox may have changed. */
+export function notifyPrescriptionInboxChanged(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(PRESCRIPTION_INBOX_CHANGED_EVENT));
+}
+
 /** The modules of the back-office, shared by every dashboard page. */
 export const navItems: NavItem[] = [
   {

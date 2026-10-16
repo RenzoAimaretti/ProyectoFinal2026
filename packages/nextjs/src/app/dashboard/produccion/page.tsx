@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/ui/layout";
 import {
+  Badge,
   Button,
   Card,
   EmptyState,
@@ -14,6 +15,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { isAdminRole, navItems } from "@/components/ui/nav";
 import { useAuth } from "@/components/ui/auth";
 import {
+  PrescriptionEditor,
+  type EditorContext,
+} from "@/components/recetas/prescription-editor";
+import { PrescriptionDetail } from "@/components/recetas/prescription-detail";
+import {
   PeopleIcon,
   PlusIcon,
   ProductionIcon,
@@ -23,13 +29,17 @@ import {
   ApiError,
   assignTaskOperator,
   createTask,
+  getRecipe,
   listFarms,
   listLots,
+  listRecipesByLot,
   listTaskTypes,
   listTasks,
   listUsers,
   type FarmDTO,
   type LotDTO,
+  type PrescriptionStatus,
+  type RecipeDetailDTO,
   type TaskDTO,
   type TaskTypeDTO,
   type UserDTO,
@@ -143,6 +153,22 @@ function describeError(err: unknown): string {
   return "Ocurrió un error inesperado. Intentá nuevamente.";
 }
 
+/**
+ * Prescription state of an activity from `Task.prescriptionStatus`.
+ * `NO_REQUIERE` (and an unknown/missing value) render nothing: a task type that
+ * does not require a prescription is not flagged as missing one.
+ */
+function PrescriptionStateBadge({ status }: { status?: PrescriptionStatus }) {
+  if (status === "SIN_RECETA") return <Badge tone="wheat">Sin receta</Badge>;
+  if (status === "CON_RECETA") return <Badge tone="green">Con receta</Badge>;
+  return null;
+}
+
+/** A task that already started freezes its prescription (R7). */
+function isTaskStarted(status: TaskDTO["status"]): boolean {
+  return status === "EN_PROGRESO" || status === "FINALIZADA";
+}
+
 /* ------------------------------------------------------------------ */
 /* Status signals (operate plan legend: field green = done, signal =  */
 /* in progress, empty = not started, clay = cancelled)                */
@@ -198,6 +224,14 @@ type TimelineRow = {
   duration: string | null;
 };
 
+/** A prescription loaded for the read-only detail modal. */
+type PrescriptionView = {
+  recipe: RecipeDetailDTO;
+  taskTypeName: string;
+  farmName: string;
+  lotName: string;
+};
+
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
@@ -206,6 +240,8 @@ export default function ProduccionPage() {
   const toast = useToast();
   const { user } = useAuth();
   const isAdmin = isAdminRole(user?.role);
+  // Only the roles the backend allows may write a prescription (INGENIERO, ADMIN).
+  const canEditPrescription = user?.role === "INGENIERO" || user?.role === "ADMIN";
 
   const [tasks, setTasks] = useState<TaskDTO[]>([]);
   const [lots, setLots] = useState<LotDTO[]>([]);
@@ -218,11 +254,67 @@ export default function ProduccionPage() {
   const [version, setVersion] = useState(0);
   const [selectedDate, setSelectedDate] = useState(todayKey);
 
+  const [prescriptionView, setPrescriptionView] = useState<PrescriptionView | null>(null);
+  const [editorContext, setEditorContext] = useState<EditorContext | null>(null);
+  const [editorRecipeId, setEditorRecipeId] = useState<string | null>(null);
+  const [prescriptionError, setPrescriptionError] = useState<string | null>(null);
+  const [prescriptionBusyTaskId, setPrescriptionBusyTaskId] = useState<string | null>(null);
+
   const refresh = useCallback(() => {
     setLoading(true);
     setError(null);
     setVersion((v) => v + 1);
   }, []);
+
+  /**
+   * Finds the prescription of a task by lot (`GET /recipes?lotId=`, matched on
+   * `taskId`) and either loads its detail (`GET /recipes/:id`) or opens the
+   * editor. The read-only detail is used for "Ver receta".
+   */
+  const openPrescription = useCallback(
+    async (row: TimelineRow, intent: "view" | "edit") => {
+      if (prescriptionBusyTaskId) return;
+      setPrescriptionError(null);
+      setPrescriptionBusyTaskId(row.task.id);
+      try {
+        const recipes = await listRecipesByLot(row.task.lotId);
+        const match = (Array.isArray(recipes) ? recipes : []).find(
+          (recipe) => recipe.taskId === row.task.id,
+        );
+        if (!match) {
+          setPrescriptionError(
+            "La actividad figura con receta, pero no se encontró la receta de su lote.",
+          );
+          return;
+        }
+        if (intent === "edit") {
+          setEditorRecipeId(match.id);
+          setEditorContext({
+            taskId: row.task.id,
+            taskTypeName: row.taskTypeName,
+            farmName: row.farmName,
+            lotName: row.lotName,
+            lotArea: null,
+            status: row.task.status,
+            startedAt: row.task.startedAt,
+          });
+        } else {
+          const detail = await getRecipe(match.id);
+          setPrescriptionView({
+            recipe: detail,
+            taskTypeName: row.taskTypeName,
+            farmName: row.farmName,
+            lotName: row.lotName,
+          });
+        }
+      } catch (err) {
+        setPrescriptionError(describeError(err));
+      } finally {
+        setPrescriptionBusyTaskId(null);
+      }
+    },
+    [prescriptionBusyTaskId],
+  );
 
   useEffect(() => {
     let alive = true;
@@ -542,6 +634,17 @@ export default function ProduccionPage() {
         </Alert>
       )}
 
+      {prescriptionError && (
+        <Alert
+          tone="error"
+          title="No se pudo abrir la receta"
+          className="mb-5"
+          onDismiss={() => setPrescriptionError(null)}
+        >
+          {prescriptionError}
+        </Alert>
+      )}
+
       {loading ? (
         <TimelineSkeleton />
       ) : error ? null : rows.length === 0 ? (
@@ -638,6 +741,38 @@ export default function ProduccionPage() {
                           <p className="mt-0.5 text-xs font-medium text-ink-faint">
                             {duration}
                           </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Prescription state (from Task.prescriptionStatus) */}
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-agro-border pt-3">
+                      <PrescriptionStateBadge status={task.prescriptionStatus} />
+                      <div className="flex flex-wrap items-center gap-2">
+                        {task.prescriptionStatus === "CON_RECETA" && (
+                          <>
+                            <button
+                              type="button"
+                              className="op-btn op-btn--quiet"
+                              onClick={() => void openPrescription(row, "view")}
+                              disabled={prescriptionBusyTaskId === task.id}
+                              aria-busy={prescriptionBusyTaskId === task.id}
+                            >
+                              {prescriptionBusyTaskId === task.id
+                                ? "Abriendo…"
+                                : "Ver receta"}
+                            </button>
+                            {canEditPrescription && !isTaskStarted(task.status) && (
+                              <button
+                                type="button"
+                                className="op-btn op-btn--primary"
+                                onClick={() => void openPrescription(row, "edit")}
+                                disabled={prescriptionBusyTaskId === task.id}
+                              >
+                                Editar receta
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -751,6 +886,46 @@ export default function ProduccionPage() {
             />
           </div>
         </Modal>
+      )}
+
+      {/* Receta fitosanitaria (lectura) */}
+      <Modal
+        open={prescriptionView !== null}
+        onClose={() => setPrescriptionView(null)}
+        title="Receta fitosanitaria"
+        subtitle={
+          prescriptionView
+            ? `${prescriptionView.taskTypeName} · ${prescriptionView.farmName} · ${prescriptionView.lotName}`
+            : undefined
+        }
+        widthClass="max-w-2xl"
+      >
+        {prescriptionView && (
+          <PrescriptionDetail
+            recipe={prescriptionView.recipe}
+            taskTypeName={prescriptionView.taskTypeName}
+            farmName={prescriptionView.farmName}
+            lotName={prescriptionView.lotName}
+          />
+        )}
+      </Modal>
+
+      {editorContext && (
+        <PrescriptionEditor
+          key={editorContext.taskId}
+          mode="edit"
+          context={editorContext}
+          recipeId={editorRecipeId}
+          onClose={() => {
+            setEditorContext(null);
+            setEditorRecipeId(null);
+          }}
+          onSaved={() => {
+            setEditorContext(null);
+            setEditorRecipeId(null);
+            refresh();
+          }}
+        />
       )}
     </DashboardLayout>
   );

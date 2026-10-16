@@ -10,6 +10,7 @@ import {
   modulesForRole,
   navIcon,
   navLabel,
+  PRESCRIPTION_INBOX_CHANGED_EVENT,
   PRESCRIPTION_MODULE_HREF,
   roleLabel,
   type NavItem,
@@ -184,21 +185,27 @@ export const DashboardLayout = ({
     pathname === homePath ||
     items.some((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
 
-  // Prescription inbox counter. Fetched once per session role (not on every
-  // render or keystroke), only for roles the endpoint allows, and it never
-  // throws into the tree: on error the count stays null and no badge renders.
+  // Prescription inbox counter. Fetched once per session role, only for roles
+  // the endpoint allows, and refreshed when the inbox reports a change (a task
+  // got its prescription). It never throws into the tree: on error the count
+  // stays null and no badge renders.
   useEffect(() => {
     if (!isPrescriptionRole(userRole)) return;
     let alive = true;
-    listPendingPrescriptions()
-      .then((list) => {
-        if (alive) setPendingCount(Array.isArray(list) ? list.length : null);
-      })
-      .catch(() => {
-        if (alive) setPendingCount(null);
-      });
+    const load = () => {
+      listPendingPrescriptions()
+        .then((list) => {
+          if (alive) setPendingCount(Array.isArray(list) ? list.length : null);
+        })
+        .catch(() => {
+          if (alive) setPendingCount(null);
+        });
+    };
+    load();
+    window.addEventListener(PRESCRIPTION_INBOX_CHANGED_EVENT, load);
     return () => {
       alive = false;
+      window.removeEventListener(PRESCRIPTION_INBOX_CHANGED_EVENT, load);
     };
   }, [userRole]);
 
