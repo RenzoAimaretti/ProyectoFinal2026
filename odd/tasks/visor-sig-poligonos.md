@@ -181,15 +181,15 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   - Boundary adjustment: `LotRecord.polygon` and the validation wiring moved to
     T02/T03, because typing the field needs the value object's GeoJSON type, which
     T01 does not own. Recorded in L8.
-  - Commit: _pending_.
+  - Commit: `cbb315b`.
 
-- [ ] **T02 — `LotPolygon` value object + validity rules** (S9, S10)
+- [x] **T02 — `LotPolygon` value object + validity rules** (S9, S10)
   - Route: inline; strict TDD, pure domain, no I/O.
   - New `domain/lot-polygon.ts` implementing every rule of S9 with its exact
     message; extend the purity test's file list.
   - Check (RED first): `domain/lot-polygon.spec.ts` covering each S9 rule, at least
     one valid polygon, and the boundary values `±180` / `±90`.
-  - Commit: _pending_.
+  - Commit: `fd2d09c` (later validation fix `db897f2`).
 
 - [x] **T03 — `/lots` contract** (S1, S2, S4, S10)
   - Route: inline.
@@ -300,11 +300,13 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
     Leaflet really is in the bundle (a 152K JS chunk and an 88K CSS chunk). The pure
     helpers were compiled with `tsc` and executed with `node` against 8 assertions, the
     only part of a UI change that can be checked without a browser. See L24.
-  - **The viewer's runtime behaviour is unverified.** See L25 and T09.
+  - Runtime acceptance was later confirmed by the user at T09; individual browser
+    observations were not recorded by the agent. See L25 and L32.
   - Commit: `6d03dae`, plus `ff2a426` for the defect L26 records.
 
-- [ ] **T09 — Verify the viewer in a browser** (S3, blocked on a human)
-  - Route: not delegable. I cannot open a browser.
+- [x] **T09 — Verify the viewer in a browser** (S3, human acceptance)
+  - Route: user-performed browser acceptance, confirmed in L32. The agent did not
+    observe or independently record each interaction; do not invent per-case results.
   - What to check on `/dashboard/mi-campo`, with an ADMIN user and with a PRODUCTOR
     user: that the imagery tiles load; that a lot with a polygon is drawn in its real
     position and not in the ocean; that its fill follows the derived state; that
@@ -313,24 +315,26 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   - Prerequisite: the seeded lots have **no polygons**, so a fresh database shows only
     the empty state. Either finish T07 and draw one, or `PUT /lots/:id` with a
     hand-written polygon for a smoke test.
-  - Commit: none expected; this is a check.
+  - Commit: none expected; this is a human check.
 
-- [ ] **T07 — Drawing capture** (S1, S4, S7, S9, S12)
+- [x] **T07 — Drawing capture** (S1, S4, S7, S9, S12)
   - Route: two disjoint work units: backend-derived area and Next.js drawing UI.
   - Draw/edit tools save against T03's endpoint. Only ADMIN and SUPERVISOR can save in this increment; PRODUCTOR and CONTRATISTA retain read-only access (S12).
   - The backend derives `area` from a newly saved polygon, rather than trusting the browser; existing area-only updates keep their current behavior.
   - Checks observed: backend RED on trusting a conflicting area, then 104 suites / 1003 tests green; `node --experimental-strip-types --test packages/nextjs/test/lot-map.test.mjs` passes three permanent helper tests; Next.js typecheck and build pass. The targeted ESLint run fails only on `react-hooks/set-state-in-effect` in `page.tsx`, reproduced identically on HEAD. Independent verification found and then confirmed correction of a false save-error message when PUT succeeded and GET refresh failed.
-  - Still requires T09's browser check: draw, save, reload at the same position and test roles manually. Do not claim full runtime acceptance yet.
-  - Implementation commit: `8a9c73e` (includes backend tests and a permanent Node geometry test); runtime acceptance remains open until T09.
+  - Browser acceptance: user confirmed completion in L32 after the requested
+    manual test. No per-interaction trace was provided to the agent.
+  - Implementation commit: `8a9c73e` (backend tests and permanent Node geometry test).
 
-- [ ] **T08 — Cross-ring polygon validity** (S9, accepted debt)
+- [-] **T08 — Cross-ring polygon validity** (S9, accepted debt outside this delivery)
   - Route: inline, deferred.
   - A hole that touches or crosses the exterior ring is currently accepted because
     rings are validated independently. Close it when a real polygon editor makes it
     reachable: the drawing tool of T07 cannot produce a hole today.
-  - Check (RED first): a polygon whose hole shares a vertex with the exterior ring is
-    rejected.
-  - Commit: _pending_.
+  - Dropped from this closed feature, not implemented: the current editor cannot
+    create holes. Reopen as separate work if hole editing becomes in scope; the
+    known acceptance gap remains documented, not falsely marked as fixed.
+  - Commit: none.
 
 - [x] **T10 — Guarded physical lot deletion** (S13-S14, S10, S12)
   - Route: backend work unit. Tenant-scoped `DELETE /lots/:id` for ADMIN/SUPERVISOR.
@@ -348,7 +352,7 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
     unit/HTTP tests alone had not established DB semantics, motivating the scratch
     check. The initial 30-second focused Jest attempt timed out before the fix;
     the subsequent focused and full runs passed. No RED observed for T10.
-  - Commit: `8665ed6`. Browser acceptance still belongs to T09.
+  - Commit: `8665ed6`. Human browser acceptance recorded under T09/L32.
 
 - [x] **T11 — Add/remove controls in Mi Campo** (S13-S14, S12)
   - Route: Next.js work unit. Add lot with name and positive declared area using
@@ -357,7 +361,8 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
     to read-only roles.
   - Check: typed UI, API shape and failed/success feedback inspected; Next.js
     typecheck passed. No Next.js build while the dev server owns `.next`; browser
-    creation/rejection/success and roles remain unverified in T09.
+    creation/rejection/success and roles were deferred to human acceptance T09;
+    no per-case result was supplied to the agent.
   - Commit: `d3bc4ff` (shared frontend work unit with T12).
 
 - [x] **T12 — Remove individual draft vertices** (S13, S9, S12)
@@ -366,7 +371,7 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
     three distinct positions, and preserve Cancel. Do not mutate storage until
     Save.
   - Check: pure Node geometry tests 4/4 passed and Next.js typecheck passed;
-    browser interaction remains T09.
+    browser acceptance is recorded at T09 without an agent-observed trace.
   - Commit: `d3bc4ff` (shared frontend work unit with T11).
 
 ## Log
@@ -690,3 +695,14 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   no untracked files were removed or implicitly included. Its conservative high
   risk plan's independent verification was performed, but native review itself
   was unavailable. No PR, push or merge was performed.
+
+- **L32 — user acceptance and delivery request (verbatim):**
+  > levantame nuevamente el back y el front para probarlo y si esta todo en orden cerramos
+  > listo nomas, cerralo y arma la pr
+
+  The user confirmed completion after receiving the manual test checklist. Treat
+  this as owner acceptance of T09/T07 and the lot/vertex UI, **not** as an agent
+  observation of every listed browser scenario. T08 remains an explicitly
+  documented, unimplemented cross-ring debt outside this delivery. PR creation
+  is separate: the branch diff against `dev` is 4,715 changed lines and `gh`
+  returned HTTP 401; no push/PR has been performed at this point.
