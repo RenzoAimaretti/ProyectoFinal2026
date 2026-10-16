@@ -6,6 +6,7 @@ import {
 import {
   RECIPE_TEXT_MAX_LENGTH,
   assertDistinctLoadOrders,
+  assertFiniteDerivedValue,
   assertOptionalRecipeText,
   assertPrescriptionEditable,
   assertPrescriptionLotMatchesTask,
@@ -204,6 +205,34 @@ describe('Recipe agronomic rules', () => {
         expect(() => assertValidLotArea(lotArea)).toThrow(InvalidInputError);
       },
     );
+  });
+
+  describe('assertFiniteDerivedValue', () => {
+    it.each([0, 0.18, 288, 2.5])(
+      'accepts the finite derived value %p',
+      (value) => {
+        expect(assertFiniteDerivedValue(value, 'items[0].total')).toBe(value);
+      },
+    );
+
+    it.each([
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+      '2',
+      null,
+      undefined,
+    ])('rejects the non-finite derived value %p', (value) => {
+      expect(() =>
+        assertFiniteDerivedValue(value, 'items[0].per100L'),
+      ).toThrow(InvalidInputError);
+    });
+
+    it('names the offending field in the error message', () => {
+      expect(() =>
+        assertFiniteDerivedValue(Number.POSITIVE_INFINITY, 'items[0].per100L'),
+      ).toThrow('items[0].per100L');
+    });
   });
 
   describe('assertOptionalRecipeText', () => {

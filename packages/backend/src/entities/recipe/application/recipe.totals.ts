@@ -39,6 +39,8 @@ export function withPrescriptionTotals(
     items: recipe.items.map((item, index) => ({
       ...item,
       total: totals.items[index]?.total,
+      perHectare: totals.items[index]?.perHectare,
+      per100L: totals.items[index]?.per100L,
     })),
   };
 }

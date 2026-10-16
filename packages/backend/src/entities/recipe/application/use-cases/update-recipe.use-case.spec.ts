@@ -243,8 +243,18 @@ describe('UpdateRecipeUseCase', () => {
       ...updatedRecord,
       caldoTotal: 1200,
       items: [
-        { ...updatedRecord.items[0], total: 30 },
-        { ...updatedRecord.items[1], total: 24 },
+        {
+          ...updatedRecord.items[0],
+          total: 30,
+          perHectare: 3,
+          per100L: 2.5,
+        },
+        {
+          ...updatedRecord.items[1],
+          total: 24,
+          perHectare: 2.4,
+          per100L: 2,
+        },
       ],
     });
 
@@ -262,19 +272,26 @@ describe('UpdateRecipeUseCase', () => {
             inputId: 'input-1',
             dose: 3,
             dosageBasis: 'POR_HECTAREA',
-            unit: 'L',
+            unit: 'L/ha',
             loadOrder: 1,
           },
           {
             inputId: 'input-2',
             dose: 2,
             dosageBasis: 'CONCENTRACION',
-            unit: 'L',
+            unit: 'L/100 L',
             loadOrder: 2,
           },
         ],
       }),
     );
+  });
+
+  it('derives the persisted row units from the dosage basis', async () => {
+    await useCase.execute('recipe-1', 'tenant-1', validUpdate);
+
+    const [, , data] = repository.update.mock.calls[0];
+    expect(data.items?.map((item) => item.unit)).toEqual(['L/ha', 'L/100 L']);
   });
 
   it('never forwards a task change to the repository', async () => {

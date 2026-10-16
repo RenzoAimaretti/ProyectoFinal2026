@@ -1,5 +1,6 @@
 import { DosageBasisValue } from './dosage-basis';
 import {
+  assertFiniteDerivedValue,
   assertValidDose,
   assertValidDosageBasis,
   assertValidLotArea,
@@ -27,11 +28,16 @@ export type SprayCalculationInput = {
 };
 
 /**
- * Total amount of one product to load, in the row's own unit.
+ * Total amount of one product for the lot, in the row's own unit, plus its two
+ * equivalent rates: `perHectare` (amount per hectare) and `per100L` (amount per
+ * 100 L of caldo). Decision 14: every row shows both the absolute amount and
+ * the equivalent rate, regardless of the basis it was entered with.
  */
 export type PrescriptionItemTotals = {
   inputId: string;
   total: number;
+  perHectare: number;
+  per100L: number;
 };
 
 /**
@@ -58,7 +64,14 @@ export function roundTo2(value: number): number {
  * `dose * lotArea` and a CONCENTRACION row is `dose * caldo / 100` (the dose is
  * the amount per 100 L of water, so a 1% v/v mix is entered as `1`). Row totals
  * use the exact caldo, before rounding, to avoid compounding the rounding
- * error. The function is pure and never mutates its input.
+ * error.
+ *
+ * Decision 14: each row also carries the two equivalent rates, derived from the
+ * same exact unrounded row total: `perHectare = row total / lotArea` and
+ * `per100L = row total * 100 / caldo`. Each of the three numbers is rounded
+ * independently to two decimals, and every output is asserted finite so an
+ * overflow cannot be published as a real quantity. The function is pure and
+ * never mutates its input.
  */
 export function calculatePrescriptionTotals(
   input: SprayCalculationInput,
@@ -78,9 +91,28 @@ export function calculatePrescriptionTotals(
       dosageBasis === 'POR_HECTAREA'
         ? dose * lotArea
         : (dose * caldoTotal) / 100;
+    const perHectare = total / lotArea;
+    const per100L = (total * 100) / caldoTotal;
 
-    return { inputId: item.inputId, total: roundTo2(total) };
+    return {
+      inputId: item.inputId,
+      total: assertFiniteDerivedValue(
+        roundTo2(total),
+        `items[${index}].total`,
+      ),
+      perHectare: assertFiniteDerivedValue(
+        roundTo2(perHectare),
+        `items[${index}].perHectare`,
+      ),
+      per100L: assertFiniteDerivedValue(
+        roundTo2(per100L),
+        `items[${index}].per100L`,
+      ),
+    };
   });
 
-  return { caldoTotal: roundTo2(caldoTotal), items };
+  return {
+    caldoTotal: assertFiniteDerivedValue(roundTo2(caldoTotal), 'caldoTotal'),
+    items,
+  };
 }

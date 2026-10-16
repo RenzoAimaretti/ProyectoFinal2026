@@ -47,12 +47,15 @@ export type RecipeRecord = {
 };
 
 /**
- * A recipe row enriched with the total amount to load, in the row's own unit.
- * Additive: present only when the lot area is known and the totals were
- * computed.
+ * A recipe row enriched with the computed amounts. `total` is the amount for
+ * the whole lot in the row's unit; `perHectare` and `per100L` are the two
+ * equivalent rates (decision 14). Additive: present only when the lot area is
+ * known and the totals were computed.
  */
 export type RecipeItemOutput = RecipeItemRecord & {
   total?: number;
+  perHectare?: number;
+  per100L?: number;
 };
 
 /**

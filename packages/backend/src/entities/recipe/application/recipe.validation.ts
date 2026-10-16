@@ -1,3 +1,5 @@
+import { DEFAULT_DOSAGE_BASIS } from '../domain/dosage-basis';
+import { normalizeDosageUnit } from '../domain/dosage-unit';
 import { InvalidInputError } from '../domain/errors';
 import {
   assertDistinctLoadOrders,
@@ -69,24 +71,42 @@ export function normalizeRecipeItems(items: unknown): CreateRecipeItemData[] {
         ? (item as Record<string, unknown>)
         : {};
 
+    const inputId = assertRequiredString(
+      source.inputId,
+      `items[${index}].inputId`,
+    );
+    const dose = assertValidDose(source.dose, `items[${index}].dose`);
+
+    // R4/decision 13: the basis decides the derived rate unit. It is validated
+    // when present and defaults to POR_HECTAREA otherwise, mirroring the stored
+    // default, so the unit can always be derived without inventing a basis.
+    const dosageBasis =
+      source.dosageBasis !== undefined
+        ? assertValidDosageBasis(
+            source.dosageBasis,
+            `items[${index}].dosageBasis`,
+          )
+        : DEFAULT_DOSAGE_BASIS;
+
     const normalizedItem: CreateRecipeItemData = {
-      inputId: assertRequiredString(source.inputId, `items[${index}].inputId`),
-      dose: assertValidDose(source.dose, `items[${index}].dose`),
-      unit: assertOptionalString(source.unit, `items[${index}].unit`),
+      inputId,
+      dose,
+      unit: normalizeDosageUnit(
+        source.unit,
+        dosageBasis,
+        `items[${index}].unit`,
+      ),
       loadOrder: assertValidLoadOrder(
         source.loadOrder,
         `items[${index}].loadOrder`,
       ),
     };
 
-    // R4: the basis is validated when present and left absent otherwise, so the
-    // stored default (POR_HECTAREA) applies without changing the shape of the
-    // already covered lot-scoped items.
+    // R4: the basis is left absent when the caller omitted it, so the stored
+    // default applies without changing the shape of the already covered
+    // lot-scoped items.
     if (source.dosageBasis !== undefined) {
-      normalizedItem.dosageBasis = assertValidDosageBasis(
-        source.dosageBasis,
-        `items[${index}].dosageBasis`,
-      );
+      normalizedItem.dosageBasis = dosageBasis;
     }
 
     return normalizedItem;

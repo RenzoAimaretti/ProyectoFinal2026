@@ -269,8 +269,8 @@ describe('CreatePrescriptionUseCase', () => {
       ...attachedRecord,
       caldoTotal: 1200,
       items: [
-        { ...attachedRecord.items[0], total: 30 },
-        { ...attachedRecord.items[1], total: 24 },
+        { ...attachedRecord.items[0], total: 30, perHectare: 3, per100L: 2.5 },
+        { ...attachedRecord.items[1], total: 24, perHectare: 2.4, per100L: 2 },
       ],
     });
 
@@ -291,18 +291,56 @@ describe('CreatePrescriptionUseCase', () => {
           inputId: 'input-1',
           dose: 3,
           dosageBasis: 'POR_HECTAREA',
-          unit: 'L',
+          unit: 'L/ha',
           loadOrder: 1,
         },
         {
           inputId: 'input-2',
           dose: 2,
           dosageBasis: 'CONCENTRACION',
-          unit: 'L',
+          unit: 'L/100 L',
           loadOrder: 2,
         },
       ],
     });
+  });
+
+  it('derives the persisted row unit from the dosage basis', async () => {
+    await useCase.execute('tenant-1', validInput);
+
+    const [attachData] = taskPrescription.attachPrescription.mock.calls[0];
+    expect(attachData.items.map((item) => item.unit)).toEqual([
+      'L/ha',
+      'L/100 L',
+    ]);
+  });
+
+  it('strips a rate suffix the caller already sent before re-deriving it', async () => {
+    await useCase.execute('tenant-1', {
+      ...validInput,
+      items: [
+        {
+          inputId: 'input-1',
+          dose: 3,
+          dosageBasis: 'POR_HECTAREA',
+          unit: 'L/100L',
+          loadOrder: 1,
+        },
+      ],
+    });
+
+    const [attachData] = taskPrescription.attachPrescription.mock.calls[0];
+    expect(attachData.items[0].unit).toBe('L/ha');
+  });
+
+  it('keeps a missing unit null instead of inventing one', async () => {
+    await useCase.execute('tenant-1', {
+      ...validInput,
+      items: [{ inputId: 'input-1', dose: 3, loadOrder: 1 }],
+    });
+
+    const [attachData] = taskPrescription.attachPrescription.mock.calls[0];
+    expect(attachData.items[0].unit).toBeNull();
   });
 
   it('allows a prescription on a task type that does not require one', async () => {

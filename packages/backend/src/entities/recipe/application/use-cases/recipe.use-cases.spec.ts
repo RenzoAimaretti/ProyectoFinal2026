@@ -85,6 +85,7 @@ describe('Recipe use cases', () => {
       'domain/errors.ts',
       'domain/recipe-status.ts',
       'domain/dosage-basis.ts',
+      'domain/dosage-unit.ts',
       'domain/recipe.rules.ts',
       'domain/spray-calculation.ts',
       'application/recipe.ports.ts',

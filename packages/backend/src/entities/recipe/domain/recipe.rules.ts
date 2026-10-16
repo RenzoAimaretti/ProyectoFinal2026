@@ -147,6 +147,22 @@ export function assertValidDosageBasis(
 }
 
 /**
+ * Decision 14: the derived per-hectare and per-100 L amounts are shown to the
+ * contractor, so a value that overflowed to `Infinity` or decayed to `NaN`
+ * cannot be published as a real quantity.
+ */
+export function assertFiniteDerivedValue(
+  value: unknown,
+  fieldName: string,
+): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new InvalidInputError(`${fieldName} must be a finite number`);
+  }
+
+  return value;
+}
+
+/**
  * R4: maximum length accepted for the optional pest and crop labels, so a
  * free-text field cannot store an unbounded value.
  */
