@@ -1,4 +1,7 @@
 import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CLIENT_USER_READER } from '../client/application/client.ports';
 import { LOT_HISTORY_READER, LOT_REPOSITORY } from './application/lot.ports';
@@ -6,6 +9,7 @@ import type { LotHistoryReaderPort } from './application/lot.ports';
 import type { LotRepositoryPort } from './application/lot.ports';
 import type { LotRecord } from './application/lot.types';
 import { LotModule } from './lot.module';
+import { LotHasRelationsError } from './domain/errors';
 import { LotService } from './lot.service';
 
 const baseLot: LotRecord = {
@@ -22,7 +26,7 @@ const baseLot: LotRecord = {
   deleted: false,
 };
 
-async function compileLotModule() {
+async function compileLotModule(authenticatedRole?: string) {
   const repository: jest.Mocked<LotRepositoryPort> = {
     findAllByTenantId: jest.fn().mockResolvedValue([]),
     findAllByClientId: jest.fn().mockResolvedValue([]),
@@ -30,6 +34,7 @@ async function compileLotModule() {
     findByNameAndFarmId: jest.fn().mockResolvedValue(null),
     create: jest.fn(),
     updateForTenant: jest.fn(),
+    deleteForTenant: jest.fn(),
   };
 
   const historyReader: jest.Mocked<LotHistoryReaderPort> = {
@@ -40,7 +45,18 @@ async function compileLotModule() {
     findClientIdByUserId: jest.fn().mockResolvedValue(null),
   };
 
-  const moduleRef = await Test.createTestingModule({ imports: [LotModule] })
+  const builder = Test.createTestingModule({ imports: [LotModule] });
+  if (authenticatedRole) {
+    builder.overrideGuard(JwtAuthGuard).useValue({
+      canActivate: (context: { switchToHttp: () => { getRequest: () => { user: unknown } } }) => {
+        context.switchToHttp().getRequest().user = {
+          id: 'user-1', tenantId: 'tenant-1', role: authenticatedRole,
+        };
+        return true;
+      },
+    });
+  }
+  const moduleRef = await builder
     .overrideProvider(PrismaService)
     .useValue({})
     .overrideProvider(LOT_REPOSITORY)
@@ -55,6 +71,55 @@ async function compileLotModule() {
 }
 
 describe('LotModule', () => {
+  describe('DELETE /lots/:id over HTTP', () => {
+    let app: INestApplication;
+    let repository: jest.Mocked<LotRepositoryPort>;
+    beforeEach(async () => {
+      const compiled = await compileLotModule('ADMIN');
+      repository = compiled.repository;
+      app = compiled.moduleRef.createNestApplication();
+      await app.init();
+    });
+
+    afterEach(async () => {
+      await app.close();
+    });
+
+    it('returns 404 for missing or cross-tenant lots without writes', async () => {
+      repository.findByIdForTenant.mockResolvedValue(null);
+      const response = await request(app.getHttpServer()).delete('/lots/lot-1');
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: 'Lot with id lot-1 not found', error: 'Not Found', statusCode: 404 });
+      expect(repository.deleteForTenant).toHaveBeenCalledWith('lot-1', 'tenant-1');
+    });
+
+    it('returns 409 for a referenced lot without deleting its associated records', async () => {
+      repository.deleteForTenant.mockRejectedValue(new LotHasRelationsError('lot-1'));
+      const response = await request(app.getHttpServer()).delete('/lots/lot-1');
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({ message: 'Lot with id lot-1 has related records', error: 'Conflict', statusCode: 409 });
+      expect(repository.deleteForTenant).toHaveBeenCalledWith('lot-1', 'tenant-1');
+    });
+
+    it('returns 204 after deleting an unreferenced lot', async () => {
+      repository.deleteForTenant.mockResolvedValue(true);
+      await request(app.getHttpServer()).delete('/lots/lot-1').expect(204);
+      expect(repository.deleteForTenant).toHaveBeenCalledWith('lot-1', 'tenant-1');
+    });
+
+    it('returns 403 for read-only roles without touching the repository', async () => {
+      const compiled = await compileLotModule('PRODUCTOR');
+      const readOnlyApp = compiled.moduleRef.createNestApplication();
+      try {
+        await readOnlyApp.init();
+        const response = await request(readOnlyApp.getHttpServer()).delete('/lots/lot-1');
+        expect(response.status).toBe(403);
+        expect(compiled.repository.deleteForTenant).not.toHaveBeenCalled();
+      } finally {
+        await readOnlyApp.close();
+      }
+    });
+  });
   it('resolves the lot service from the module graph', async () => {
     const { moduleRef } = await compileLotModule();
 

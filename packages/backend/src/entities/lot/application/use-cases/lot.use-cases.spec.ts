@@ -5,11 +5,13 @@ import {
   EntityNotFoundError,
   InvalidInputError,
   InvalidRelationError,
+  LotHasRelationsError,
 } from '../../domain/errors';
 import type { GeoJsonPolygon } from '../../domain/lot-polygon';
 import { FarmReaderPort, LotRepositoryPort } from '../lot.ports';
 import { CreateLotInput, UpdateLotInput } from '../lot.types';
 import { CreateLotUseCase } from './create-lot.use-case';
+import { DeleteLotUseCase } from './delete-lot.use-case';
 import { FindAllLotsUseCase } from './find-all-lots.use-case';
 import { FindLotUseCase } from './find-lot.use-case';
 import { UpdateLotUseCase } from './update-lot.use-case';
@@ -36,6 +38,7 @@ function createPorts() {
     findByNameAndFarmId: jest.fn(),
     create: jest.fn(),
     updateForTenant: jest.fn(),
+    deleteForTenant: jest.fn(),
   };
 
   const farmReader: jest.Mocked<FarmReaderPort> = {
@@ -56,6 +59,7 @@ describe('Lot use cases', () => {
       'application/lot.types.ts',
       'application/lot.validation.ts',
       'application/use-cases/create-lot.use-case.ts',
+      'application/use-cases/delete-lot.use-case.ts',
       'application/use-cases/derive-lot-states.use-case.ts',
       'application/use-cases/find-all-lots.use-case.ts',
       'application/use-cases/find-lot.use-case.ts',
@@ -69,6 +73,30 @@ describe('Lot use cases', () => {
     expect(contents).not.toContain('@nestjs/common');
     expect(contents).not.toContain('PrismaService');
     expect(contents).not.toContain('prisma/generated');
+  });
+
+  describe('DeleteLotUseCase', () => {
+    it.each(['missing', 'cross-tenant'])('rejects a %s lot without a prior read', async () => {
+      const { repository } = createPorts();
+      repository.deleteForTenant.mockResolvedValue(false);
+      await expect(new DeleteLotUseCase(repository).execute('lot-1', 'tenant-2')).rejects.toThrow('Lot with id lot-1 not found');
+      expect(repository.deleteForTenant).toHaveBeenCalledWith('lot-1', 'tenant-2');
+      expect(repository.findByIdForTenant).not.toHaveBeenCalled();
+    });
+
+    it('propagates a guarded relationship conflict without reading first', async () => {
+      const { repository } = createPorts();
+      repository.deleteForTenant.mockRejectedValue(new LotHasRelationsError('lot-1'));
+      await expect(new DeleteLotUseCase(repository).execute('lot-1', 'tenant-1')).rejects.toBeInstanceOf(LotHasRelationsError);
+      expect(repository.findByIdForTenant).not.toHaveBeenCalled();
+    });
+
+    it('deletes only an unreferenced tenant lot', async () => {
+      const { repository } = createPorts();
+      repository.deleteForTenant.mockResolvedValue(true);
+      await expect(new DeleteLotUseCase(repository).execute('lot-1', 'tenant-1')).resolves.toBeUndefined();
+      expect(repository.deleteForTenant).toHaveBeenCalledWith('lot-1', 'tenant-1');
+    });
   });
 
   describe('FindAllLotsUseCase', () => {

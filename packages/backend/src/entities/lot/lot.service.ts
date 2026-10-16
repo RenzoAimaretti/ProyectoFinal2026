@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -10,11 +11,13 @@ import {
   EntityNotFoundError,
   InvalidInputError,
   InvalidRelationError,
+  LotHasRelationsError,
 } from './domain/errors';
 import { CreateLotUseCase } from './application/use-cases/create-lot.use-case';
 import { FindAllLotsUseCase } from './application/use-cases/find-all-lots.use-case';
 import { FindLotUseCase } from './application/use-cases/find-lot.use-case';
 import { UpdateLotUseCase } from './application/use-cases/update-lot.use-case';
+import { DeleteLotUseCase } from './application/use-cases/delete-lot.use-case';
 import { DeriveLotStatesUseCase } from './application/use-cases/derive-lot-states.use-case';
 import { CreateLotInput, UpdateLotInput } from './application/lot.types';
 import {
@@ -29,6 +32,7 @@ export class LotService {
     private readonly findLotUseCase: FindLotUseCase,
     private readonly createLotUseCase: CreateLotUseCase,
     private readonly updateLotUseCase: UpdateLotUseCase,
+    private readonly deleteLotUseCase: DeleteLotUseCase,
     private readonly deriveLotStates: DeriveLotStatesUseCase,
     @Inject(CLIENT_USER_READER)
     private readonly clientUserReader: ClientUserReaderPort,
@@ -95,6 +99,20 @@ export class LotService {
       return await this.updateLotUseCase.execute(id, tenantId, data);
     } catch (error) {
       this.handleUpdateError(id, error);
+    }
+  }
+
+  async delete(id: string, tenantId: string): Promise<void> {
+    try {
+      await this.deleteLotUseCase.execute(id, tenantId);
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException(error.message);
+      }
+      if (error instanceof LotHasRelationsError) {
+        throw new ConflictException(error.message);
+      }
+      this.handleUnexpectedError(`Error deleting lot ${id}`, error);
     }
   }
 

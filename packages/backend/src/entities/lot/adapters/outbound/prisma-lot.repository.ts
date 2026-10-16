@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../../../prisma/generated/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { GeoJsonPolygon } from '../../domain/lot-polygon';
+import { LotHasRelationsError } from '../../domain/errors';
 import { LotRepositoryPort } from '../../application/lot.ports';
 import {
   CreateLotInput,
@@ -57,6 +58,59 @@ export class PrismaLotRepository implements LotRepositoryPort {
     const lot = await this.prisma.lot.findFirst({ where: { name, farmId } });
 
     return lot ? this.toRecord(lot) : null;
+  }
+
+  private async hasDirectRelationsIn(
+    db: Pick<PrismaService, 'lot'>,
+    id: string,
+    tenantId: string,
+  ): Promise<boolean> {
+    const referenced = await db.lot.findFirst({
+      where: {
+        id,
+        farm: { client: { tenantId } },
+        OR: [
+          { tasks: { some: {} } },
+          { recipes: { some: {} } },
+          { dailyReports: { some: {} } },
+          { livestock: { some: {} } },
+          { movements: { some: {} } },
+        ],
+      },
+      select: { id: true },
+    });
+    return referenced !== null;
+  }
+
+  async deleteForTenant(id: string, tenantId: string): Promise<boolean> {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        // Lock the parent before the final association check. A concurrent FK
+        // insert must wait for this transaction, including optional SetNull FKs.
+        const locked = await tx.$queryRaw<Array<{ id: string }>>`
+          SELECT l."id" FROM "Lot" l
+          JOIN "Farm" f ON f."id" = l."farmId"
+          JOIN "Client" c ON c."id" = f."clientId"
+          WHERE l."id" = ${id} AND c."tenantId" = ${tenantId}
+          FOR UPDATE OF l
+        `;
+        if (locked.length === 0) return false;
+        if (await this.hasDirectRelationsIn(tx, id, tenantId)) {
+          throw new LotHasRelationsError(id);
+        }
+        const result = await tx.lot.deleteMany({
+          where: { id, farm: { client: { tenantId } } },
+        });
+        return result.count > 0;
+      });
+    } catch (error) {
+      // Restrictive FKs provide a final backstop; Livestock uses SET NULL, so
+      // only the row lock plus in-transaction association check protects it.
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+        throw new LotHasRelationsError(id);
+      }
+      throw error;
+    }
   }
 
   async create(data: CreateLotInput): Promise<LotRecord> {
