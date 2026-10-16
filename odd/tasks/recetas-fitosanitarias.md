@@ -123,10 +123,10 @@ to `ADMIN`, `SUPERVISOR`, `INGENIERO`, `OPERARIO`, `CONTRATISTA`.
 - [x] B2 [backend] prescription domain rules and the calculation, pure and unit
       tested: dosage basis validation, load order, lot/task consistency, freeze
       after the task starts, spray-volume and per-product totals.
-- [ ] B3 [backend] recipe hexagon: `CreateRecipe` / `UpdateRecipe` use cases,
+- [x] B3 [backend] recipe hexagon: `CreateRecipe` / `UpdateRecipe` use cases,
       ports, adapters, DTOs, and the missing `POST /recipes` / `PUT /recipes/:id`
       routing with role enforcement.
-- [ ] B4 [backend] `GET /prescriptions/pending` and `prescriptionStatus` on task
+- [x] B4 [backend] `GET /prescriptions/pending` and `prescriptionStatus` on task
       reads.
 - [x] W1 [web] `INGENIERO` in `MODULES_BY_ROLE`, `ROLE_LABELS`,
       `homePathForRole`, and the route guard.
