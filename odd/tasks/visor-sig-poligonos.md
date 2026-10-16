@@ -150,6 +150,19 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   guard intact and hide write controls for read-only roles; revisit authorization and
   ownership checks before granting those roles write access.
 
+- **S13 — Lot and vertex controls (user request, quoted verbatim):**
+  > Nos faltan las opciones para:
+  > - agregar/quitar lotes -> quitar debe validar que no haya trabajos asociados activos o no
+  > - quitar vertices de un lote
+
+- **S14 — Removal policy (user choice, quoted verbatim):**
+  > Borrarlo físicamente solo si no tiene ninguna relación
+
+  Apply S12's existing ADMIN/SUPERVISOR write restriction to these controls. For
+  deletion, `Task` counts regardless of its status or `deleted` flag; the other
+  direct Lot references also prevent a physical delete. This does not authorize
+  deleting related records or running a seed/reset against the development DB.
+
 ## Tasks
 
 - [x] **T01 — `Lot.polygon` + additive migration** (S2, S4, S9-partial, S10)
@@ -318,6 +331,43 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   - Check (RED first): a polygon whose hole shares a vertex with the exterior ring is
     rejected.
   - Commit: _pending_.
+
+- [x] **T10 — Guarded physical lot deletion** (S13-S14, S10, S12)
+  - Route: backend work unit. Tenant-scoped `DELETE /lots/:id` for ADMIN/SUPERVISOR.
+    A single Prisma transaction locks the tenant-scoped Lot row (`FOR UPDATE OF l`),
+    checks every direct association without status/deleted filters, then deletes.
+    Missing/cross-tenant returns 404; associated records return 409; successful
+    physical deletion returns 204. No related record is deleted.
+  - Check: 3 focused suites / 56 tests, full backend suite 104 suites / 1020
+    tests and `pnpm --filter backend build` passed. `node test/lot-delete.integration.cjs`
+    from `packages/backend` (after build) passed against a uniquely named scratch
+    PostgreSQL database, then dropped it: real HTTP 404/409/204, lot/livestock
+    unchanged after rejection, and FK key-share contention with `FOR UPDATE`
+    prevents an association after deletion. Development records were untouched.
+    Independent verifier found no code blocker; it correctly noted that mock
+    unit/HTTP tests alone had not established DB semantics, motivating the scratch
+    check. The initial 30-second focused Jest attempt timed out before the fix;
+    the subsequent focused and full runs passed. No RED observed for T10.
+  - Commit: `8665ed6`. Browser acceptance still belongs to T09.
+
+- [x] **T11 — Add/remove controls in Mi Campo** (S13-S14, S12)
+  - Route: Next.js work unit. Add lot with name and positive declared area using
+    existing POST, confirm physical delete, display server rejection without
+    removing the lot locally, and refresh on success. Never expose write controls
+    to read-only roles.
+  - Check: typed UI, API shape and failed/success feedback inspected; Next.js
+    typecheck passed. No Next.js build while the dev server owns `.next`; browser
+    creation/rejection/success and roles remain unverified in T09.
+  - Commit: `d3bc4ff` (shared frontend work unit with T12).
+
+- [x] **T12 — Remove individual draft vertices** (S13, S9, S12)
+  - Route: Next.js map editor. Let the user remove a chosen vertex from the
+    unsaved exterior-ring draft; keep other points, refuse save with fewer than
+    three distinct positions, and preserve Cancel. Do not mutate storage until
+    Save.
+  - Check: pure Node geometry tests 4/4 passed and Next.js typecheck passed;
+    browser interaction remains T09.
+  - Commit: `d3bc4ff` (shared frontend work unit with T11).
 
 ## Log
 
@@ -593,3 +643,43 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   read-only re-verification confirmed it. No browser interaction was available, so
   T09's draw/save/reload and role checks remain unverified and T07 stays open.
   Implementation work-unit commit: `8a9c73e`.
+
+- **L29 — the user's follow-up, verbatim** (2026-10-16):
+  > Nos faltan las opciones para:
+  > - agregar/quitar lotes -> quitar debe validar que no haya trabajos asociados activos o no
+  > - quitar vertices de un lote
+
+  The existing `POST /lots` needs a positive `area` even without geometry. There
+  is no `DELETE /lots/:id`. `Lot` is referenced by Task, Recipe, DailyReport,
+  Livestock and LivestockMovement; `MachineUsage` refers via Task. The user selected,
+  verbatim: "Borrarlo físicamente solo si no tiene ninguna relación". T10–T12
+  separate deletion integrity, lot UI, and vertex editing; no actual development
+  records are deleted to verify them.
+
+- **L30 — deletion race discovered before accepting T10** (2026-10-16):
+  `packages/backend/prisma/migrations/20260922214007_multifirma_baseline/migration.sql`
+  defines `Livestock_lotId_fkey` as `ON DELETE SET NULL`, unlike the Task,
+  Recipe, DailyReport and LivestockMovement FKs that use `RESTRICT`. A standalone
+  `hasDirectRelations` preflight followed by `deleteMany` and P2003 handling could
+  delete the lot and silently detach a livestock newly linked during that race.
+  T10 now requires a row lock and fresh association check in one transaction, or
+  it must stop blocked; no real database record may be deleted to test it.
+
+- **L31 — T10–T12 checks and integration limits** (2026-10-16):
+  T11–T12 frontend work-unit commit `d3bc4ff`: 4/4 Node helper tests and Next.js
+  typecheck green. The Next.js build was not run because the live dev server uses
+  `.next`; browser creation, guarded delete feedback and vertex editing remain T09.
+  T10 backend commit `8665ed6`: 56 focused tests, full backend suite 104/1020,
+  and Nest build green. A test-created, uniquely named scratch database received
+  the actual Prisma migrations; HTTP exercised 404, 409 and 204, proving that a
+  rejected delete preserves the lot and livestock link. Two PostgreSQL connections
+  demonstrated that a child FK association cannot pass a parent `FOR UPDATE`
+  followed by deletion; after commit it fails without detaching the animal.
+  The scratch database was dropped and no development records were deleted. This
+  tests the FK lock behavior deterministically, not an instrumented interleaving
+  inside the HTTP endpoint. An independent read-only verifier found no code-level
+  blocker, but correctly distinguished that prior mock tests were insufficient.
+  The first Jest attempt exhausted its 30-second foreground limit; its later
+  background focused run and full suite passed. T10 had no observed RED. The
+  backend development server was paused before fixing the unsafe partial route;
+  do not claim it is live until it is restarted and checked.

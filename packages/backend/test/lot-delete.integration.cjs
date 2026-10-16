@@ -1,4 +1,4 @@
-// Run with `node test/lot-delete.integration.cjs` from packages/backend.
+// Run `pnpm build` first, then `node test/lot-delete.integration.cjs` from packages/backend.
 // This creates and destroys a uniquely named scratch database; it never deletes development records.
 const assert = require('node:assert/strict');
 const { randomBytes } = require('node:crypto');
