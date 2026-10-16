@@ -45,6 +45,16 @@ export function polygonToLatLngs(polygon: GeoJsonPolygon): LatLngTuple[][] {
   return polygon.coordinates.map(ringToLatLngs);
 }
 
+/** Remove only the chosen unsaved vertex; the stored polygon is never touched. */
+export function removeDraftVertex(vertices: readonly LatLngTuple[], index: number): LatLngTuple[] {
+  return vertices.filter((_, vertexIndex) => vertexIndex !== index);
+}
+
+/** Number of distinct draft positions; saving needs at least three. */
+export function distinctDraftVertexCount(vertices: readonly LatLngTuple[]): number {
+  return new Set(vertices.map(([lat, lng]) => `${lat},${lng}`)).size;
+}
+
 /** Build a single-ring GeoJSON polygon from Leaflet vertices, without zero-length edges. */
 export function latLngsToPolygon(vertices: readonly LatLngTuple[]): GeoJsonPolygon {
   const ring: GeoJsonPosition[] = [];
