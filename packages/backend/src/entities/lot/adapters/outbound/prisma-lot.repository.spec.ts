@@ -1,4 +1,5 @@
 import { PrismaLotRepository } from './prisma-lot.repository';
+import { Prisma } from '../../../../../prisma/generated/client';
 
 const square = {
   type: 'Polygon',
@@ -29,11 +30,14 @@ const row = {
 
 describe('PrismaLotRepository', () => {
   const prisma = {
+    $queryRaw: jest.fn(),
+    $transaction: jest.fn(),
     lot: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      deleteMany: jest.fn(),
     },
   };
 
@@ -41,6 +45,52 @@ describe('PrismaLotRepository', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    prisma.$transaction.mockImplementation(async (callback: (tx: typeof prisma) => Promise<unknown>) => callback(prisma));
+    prisma.$queryRaw.mockResolvedValue([{ id: 'lot-1' }]);
+    prisma.lot.findFirst.mockResolvedValue(null);
+  });
+
+  it.each(['tasks', 'recipes', 'dailyReports', 'livestock', 'movements'])(
+    'checks %s after locking, regardless of status, deleted or active flags', async (relation) => {
+      prisma.lot.findFirst.mockResolvedValue({ id: 'lot-1' });
+      await expect(repository.deleteForTenant('lot-1', 'tenant-1')).rejects.toThrow('Lot with id lot-1 has related records');
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(prisma.$queryRaw.mock.invocationCallOrder[0]).toBeLessThan(prisma.lot.findFirst.mock.invocationCallOrder[0]);
+      expect(prisma.lot.findFirst).toHaveBeenCalledWith({
+        where: {
+          id: 'lot-1',
+          farm: { client: { tenantId: 'tenant-1' } },
+          OR: expect.arrayContaining([{ [relation]: { some: {} } }]),
+        },
+        select: { id: true },
+      });
+      expect(prisma.lot.deleteMany).not.toHaveBeenCalled();
+    },
+  );
+
+  it('does not check associations or delete a missing or cross-tenant row', async () => {
+    prisma.$queryRaw.mockResolvedValue([]);
+    await expect(repository.deleteForTenant('lot-1', 'tenant-2')).resolves.toBe(false);
+    expect(prisma.lot.findFirst).not.toHaveBeenCalled();
+    expect(prisma.lot.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('scopes the physical delete to the tenant after the locked check', async () => {
+    prisma.lot.deleteMany.mockResolvedValue({ count: 1 });
+    await expect(repository.deleteForTenant('lot-1', 'tenant-1')).resolves.toBe(true);
+    expect(prisma.lot.deleteMany).toHaveBeenCalledWith({
+      where: { id: 'lot-1', farm: { client: { tenantId: 'tenant-1' } } },
+    });
+    expect(prisma.lot.findFirst.mock.invocationCallOrder[0]).toBeLessThan(prisma.lot.deleteMany.mock.invocationCallOrder[0]);
+    const [sql, lotId, tenantId] = prisma.$queryRaw.mock.calls[0] as [TemplateStringsArray, string, string];
+    expect(sql.join('?')).toMatch(/JOIN "Farm" f.*JOIN "Client" c.*FOR UPDATE OF l/s);
+    expect([lotId, tenantId]).toEqual(['lot-1', 'tenant-1']);
+  });
+
+  it('maps a foreign-key conflict without deleting relations', async () => {
+    prisma.lot.deleteMany.mockRejectedValue(new Prisma.PrismaClientKnownRequestError('Foreign key constraint failed', { code: 'P2003', clientVersion: '7.8.0' }));
+    await expect(repository.deleteForTenant('lot-1', 'tenant-1')).rejects.toThrow('Lot with id lot-1 has related records');
+    expect(prisma.lot.deleteMany).toHaveBeenCalledTimes(1);
   });
 
   it('scopes every read through the farm chain', async () => {

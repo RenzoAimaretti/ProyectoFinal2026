@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
+import { ROLES_KEY } from '../../auth/decorators/roles.decorator';
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -14,6 +15,7 @@ describe('LotController', () => {
     findOne: jest.Mock;
     create: jest.Mock;
     update: jest.Mock;
+    delete: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -23,6 +25,7 @@ describe('LotController', () => {
       findOne: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      delete: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -34,7 +37,7 @@ describe('LotController', () => {
   });
 
   it('protects every route with JwtAuthGuard', () => {
-    const methods = ['findAll', 'findOne', 'create', 'update'] as const;
+    const methods = ['findAll', 'findOne', 'create', 'update', 'delete'] as const;
 
     for (const method of methods) {
       const guards = Reflect.getMetadata(
@@ -45,6 +48,13 @@ describe('LotController', () => {
       expect(guards).toContain(JwtAuthGuard);
       expect(guards).toContain(RolesGuard);
     }
+  });
+
+  it('restricts deletion to ADMIN/SUPERVISOR and delegates the tenant identity', async () => {
+    expect(Reflect.getMetadata(ROLES_KEY, LotController.prototype.delete)).toEqual(['ADMIN', 'SUPERVISOR']);
+    service.delete.mockResolvedValue(undefined);
+    await expect(controller.delete('lot-1', { user: { id: 'user-1', tenantId: 'tenant-1', role: 'ADMIN' } })).resolves.toBeUndefined();
+    expect(service.delete).toHaveBeenCalledWith('lot-1', 'tenant-1');
   });
 
   it('delegates tenant-scoped requests using req.user.tenantId', async () => {

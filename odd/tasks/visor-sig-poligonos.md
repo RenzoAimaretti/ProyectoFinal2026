@@ -142,6 +142,27 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   timestamp are broken by seasonal order — `cosechado` > `aplicado` > `sembrado` — so
   the answer never depends on the order the rows came back from the database.
 
+- **S12 — Drawing permission decision (user response, quoted verbatim):**
+  > Solo ADMIN y SUPERVISOR por ahora
+
+  This is a deliberate first-increment exception to S1's producer/contractor scenario,
+  not a claim that those roles can complete CUU02. Leave the existing `PUT /lots/:id`
+  guard intact and hide write controls for read-only roles; revisit authorization and
+  ownership checks before granting those roles write access.
+
+- **S13 — Lot and vertex controls (user request, quoted verbatim):**
+  > Nos faltan las opciones para:
+  > - agregar/quitar lotes -> quitar debe validar que no haya trabajos asociados activos o no
+  > - quitar vertices de un lote
+
+- **S14 — Removal policy (user choice, quoted verbatim):**
+  > Borrarlo físicamente solo si no tiene ninguna relación
+
+  Apply S12's existing ADMIN/SUPERVISOR write restriction to these controls. For
+  deletion, `Task` counts regardless of its status or `deleted` flag; the other
+  direct Lot references also prevent a physical delete. This does not authorize
+  deleting related records or running a seed/reset against the development DB.
+
 ## Tasks
 
 - [x] **T01 — `Lot.polygon` + additive migration** (S2, S4, S9-partial, S10)
@@ -160,15 +181,15 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   - Boundary adjustment: `LotRecord.polygon` and the validation wiring moved to
     T02/T03, because typing the field needs the value object's GeoJSON type, which
     T01 does not own. Recorded in L8.
-  - Commit: _pending_.
+  - Commit: `cbb315b`.
 
-- [ ] **T02 — `LotPolygon` value object + validity rules** (S9, S10)
+- [x] **T02 — `LotPolygon` value object + validity rules** (S9, S10)
   - Route: inline; strict TDD, pure domain, no I/O.
   - New `domain/lot-polygon.ts` implementing every rule of S9 with its exact
     message; extend the purity test's file list.
   - Check (RED first): `domain/lot-polygon.spec.ts` covering each S9 rule, at least
     one valid polygon, and the boundary values `±180` / `±90`.
-  - Commit: _pending_.
+  - Commit: `fd2d09c` (later validation fix `db897f2`).
 
 - [x] **T03 — `/lots` contract** (S1, S2, S4, S10)
   - Route: inline.
@@ -256,30 +277,102 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
     specs were first executed. L22 records the mutation check that was run instead.
   - Commit: `31f7b7e`.
 
-- [ ] **T06 — Real viewer** (S3, S7, S10)
-  - Route: inline; `frontend-design` and `flutter-*-layout` skills are not applicable
-    (this is React/Next.js).
-  - Real map library in `packages/nextjs`, polygons coloured by derived state, real
-    zoom/pan, fit-bounds to the selected farm, click-to-select. The `SatelliteMap`
-    mock and the "Proximamente" labels about geometry are removed only once true.
-  - Check: `pnpm --filter nextjs build`; manual pass on `/dashboard/mi-campo` as
-    ADMIN and as PRODUCTOR.
-  - Commit: _pending_.
+- [x] **T06 — Real viewer** (S3, S7, S10)
+  - Route: inline. `frontend-design` applies; the Flutter layout skills do not, because
+    this is React.
+  - `src/lib/geo-types.ts` now owns the geospatial vocabulary so `src/lib/lot-map.ts`
+    can be compiled and executed on its own, without pulling the fetch layer in.
+    `lot-map.ts` holds the pure parts: the lat/lng swap, the bounds union, the state
+    colours and the undelimited count.
+  - `src/components/ui/lot-map.tsx` is the Leaflet map, loaded through `next/dynamic`
+    with `ssr: false` because Leaflet touches `window` at import time. Leaflet's
+    stylesheet moved into `src/app/layout.tsx`, the canonical App Router place for a
+    global CSS import, plus a small override so the container inherits the app's font
+    and background instead of Leaflet's grey.
+  - The mock is gone: `SatelliteMap` was deleted from `charts.tsx` (33 lines), and the
+    fake zoom buttons, the `transform: scale()` and both the "no representa la
+    geometría real" and "Proximamente" labels went with it, because the thing they
+    disclaimed is now true. The KPI cards, the farm selector and the role scoping are
+    untouched. The NDVI, weather and soil-moisture placeholders stay, because those
+    are still true.
+  - Evidence: `pnpm --filter nextjs build` exits 0 with type checking **active** —
+    `next.config.ts` sets neither `ignoreBuildErrors` nor `ignoreDuringBuilds` — and
+    Leaflet really is in the bundle (a 152K JS chunk and an 88K CSS chunk). The pure
+    helpers were compiled with `tsc` and executed with `node` against 8 assertions, the
+    only part of a UI change that can be checked without a browser. See L24.
+  - Runtime acceptance was later confirmed by the user at T09; individual browser
+    observations were not recorded by the agent. See L25 and L32.
+  - Commit: `6d03dae`, plus `ff2a426` for the defect L26 records.
 
-- [ ] **T07 — Drawing capture** (S7, S9)
-  - Route: inline.
-  - Draw/edit tools saving against T03's endpoint.
-  - Check: draw, save, reload, same position, area computed from geometry.
-  - Commit: _pending_.
+- [x] **T09 — Verify the viewer in a browser** (S3, human acceptance)
+  - Route: user-performed browser acceptance, confirmed in L32. The agent did not
+    observe or independently record each interaction; do not invent per-case results.
+  - What to check on `/dashboard/mi-campo`, with an ADMIN user and with a PRODUCTOR
+    user: that the imagery tiles load; that a lot with a polygon is drawn in its real
+    position and not in the ocean; that its fill follows the derived state; that
+    clicking a polygon selects the lot; that switching farm re-frames the map without
+    a reload; and that the PRODUCTOR sees only their own client's lots.
+  - Prerequisite: the seeded lots have **no polygons**, so a fresh database shows only
+    the empty state. Either finish T07 and draw one, or `PUT /lots/:id` with a
+    hand-written polygon for a smoke test.
+  - Commit: none expected; this is a human check.
 
-- [ ] **T08 — Cross-ring polygon validity** (S9, accepted debt)
+- [x] **T07 — Drawing capture** (S1, S4, S7, S9, S12)
+  - Route: two disjoint work units: backend-derived area and Next.js drawing UI.
+  - Draw/edit tools save against T03's endpoint. Only ADMIN and SUPERVISOR can save in this increment; PRODUCTOR and CONTRATISTA retain read-only access (S12).
+  - The backend derives `area` from a newly saved polygon, rather than trusting the browser; existing area-only updates keep their current behavior.
+  - Checks observed: backend RED on trusting a conflicting area, then 104 suites / 1003 tests green; `node --experimental-strip-types --test packages/nextjs/test/lot-map.test.mjs` passes three permanent helper tests; Next.js typecheck and build pass. The targeted ESLint run fails only on `react-hooks/set-state-in-effect` in `page.tsx`, reproduced identically on HEAD. Independent verification found and then confirmed correction of a false save-error message when PUT succeeded and GET refresh failed.
+  - Browser acceptance: user confirmed completion in L32 after the requested
+    manual test. No per-interaction trace was provided to the agent.
+  - Implementation commit: `8a9c73e` (backend tests and permanent Node geometry test).
+
+- [-] **T08 — Cross-ring polygon validity** (S9, accepted debt outside this delivery)
   - Route: inline, deferred.
   - A hole that touches or crosses the exterior ring is currently accepted because
     rings are validated independently. Close it when a real polygon editor makes it
     reachable: the drawing tool of T07 cannot produce a hole today.
-  - Check (RED first): a polygon whose hole shares a vertex with the exterior ring is
-    rejected.
-  - Commit: _pending_.
+  - Dropped from this closed feature, not implemented: the current editor cannot
+    create holes. Reopen as separate work if hole editing becomes in scope; the
+    known acceptance gap remains documented, not falsely marked as fixed.
+  - Commit: none.
+
+- [x] **T10 — Guarded physical lot deletion** (S13-S14, S10, S12)
+  - Route: backend work unit. Tenant-scoped `DELETE /lots/:id` for ADMIN/SUPERVISOR.
+    A single Prisma transaction locks the tenant-scoped Lot row (`FOR UPDATE OF l`),
+    checks every direct association without status/deleted filters, then deletes.
+    Missing/cross-tenant returns 404; associated records return 409; successful
+    physical deletion returns 204. No related record is deleted.
+  - Check: 3 focused suites / 56 tests, full backend suite 104 suites / 1020
+    tests and `pnpm --filter backend build` passed. `node test/lot-delete.integration.cjs`
+    from `packages/backend` (after build) passed against a uniquely named scratch
+    PostgreSQL database, then dropped it: real HTTP 404/409/204, lot/livestock
+    unchanged after rejection, and FK key-share contention with `FOR UPDATE`
+    prevents an association after deletion. Development records were untouched.
+    Independent verifier found no code blocker; it correctly noted that mock
+    unit/HTTP tests alone had not established DB semantics, motivating the scratch
+    check. The initial 30-second focused Jest attempt timed out before the fix;
+    the subsequent focused and full runs passed. No RED observed for T10.
+  - Commit: `8665ed6`. Human browser acceptance recorded under T09/L32.
+
+- [x] **T11 — Add/remove controls in Mi Campo** (S13-S14, S12)
+  - Route: Next.js work unit. Add lot with name and positive declared area using
+    existing POST, confirm physical delete, display server rejection without
+    removing the lot locally, and refresh on success. Never expose write controls
+    to read-only roles.
+  - Check: typed UI, API shape and failed/success feedback inspected; Next.js
+    typecheck passed. No Next.js build while the dev server owns `.next`; browser
+    creation/rejection/success and roles were deferred to human acceptance T09;
+    no per-case result was supplied to the agent.
+  - Commit: `d3bc4ff` (shared frontend work unit with T12).
+
+- [x] **T12 — Remove individual draft vertices** (S13, S9, S12)
+  - Route: Next.js map editor. Let the user remove a chosen vertex from the
+    unsaved exterior-ring draft; keep other points, refuse save with fewer than
+    three distinct positions, and preserve Cancel. Do not mutate storage until
+    Save.
+  - Check: pure Node geometry tests 4/4 passed and Next.js typecheck passed;
+    browser acceptance is recorded at T09 without an agent-observed trace.
+  - Commit: `d3bc4ff` (shared frontend work unit with T11).
 
 ## Log
 
@@ -469,3 +562,147 @@ documents. `S#` are frozen: a task may only be reopened by appending the change 
   now together with `state`, because T06 is the first consumer of both, and a silently
   missing field in a hand-maintained DTO is the kind of thing that surfaces as
   `undefined` at render time rather than as a compile error.
+
+- **L24 — T06: the map library, and what the standalone compile caught** (2026-10-12):
+  chose **Leaflet 1.9 + react-leaflet 5** over MapLibre GL. Raster tiles need no key,
+  the API is small enough to review, and the drawing tools T07 needs are mature.
+  MapLibre renders vectors better and is the stronger long-term answer, but it needs a
+  tile source with a token, and that is a decision for the team with a budget rather
+  than something to slip into a sprint. Imagery is Esri World Imagery, the same
+  "satellite" intent the mock announced, and it is documented as needing a real tile
+  contract before production.
+
+  Adding a runtime dependency is Risk item 5 and the only part of this corte that
+  touches the build.
+
+  The pure helpers were compiled with `tsc` into a scratch directory and executed with
+  `node` under 8 assertions. That caught two things `next build` would not have: a
+  missing `GeoJsonPosition` import, and `countUndelimited` returning 1 where I expected
+  2, because an absent `polygon` is `undefined` and not `null`. The second was both my
+  assertion being wrong about the world and the function being wrong about its
+  contract — a counter that under-reports when a field is absent is a quietly wrong
+  number — so it now treats absent and null alike.
+
+- **L25 — declared runtime verification gap for T06** (2026-10-12): `packages/nextjs`
+  has no test runner, so nothing about the viewer's behaviour is asserted: tiles
+  rendering, fit-bounds, click-to-select and colour are verified by compilation and by
+  reading, never by execution. I cannot open a browser, so this needs a human pass on
+  `/dashboard/mi-campo` with an ADMIN user and with a PRODUCTOR user before the corte
+  can be called done. The previous sprint carried the same kind of gap on its admin
+  screens, so it is recorded rather than hidden.
+
+  Practical consequence: the seeded lots have display-only `coords` and **no
+  polygons**, so a fresh database shows the viewer's empty state and nothing else.
+  Seed polygons were deliberately **not** invented, because a drawn polygon's computed
+  area would contradict the declared `area` on every demo lot and there is still no
+  decision about which of the two wins. Two ways to see it work: finish T07 and draw
+  one, or `PUT /lots/:id` with a hand-written polygon for a smoke test.
+
+- **L26 — T06 verified, one real defect found and fixed** (2026-10-12): an independent
+  verifier confirmed the highest-risk line with a worked example rather than by reading
+  variable names. The square fixture reaches Leaflet as latitude −33.4..−33.3 and
+  longitude −62.3..−62.2, which is Argentina and consistent with the seed's
+  `33° 23' S · 62° 18' O`, so the swap is correct. It also confirmed the empty state is
+  honest, Leaflet's stylesheet is imported exactly once, the React 19 peers resolve in
+  the lockfile, and `charts.tsx` lost nothing but `SatelliteMap`.
+
+  It found **one reproducible defect**. The reframe key was built from lot ids and
+  derived states, so a polygon whose coordinates changed while its id and state stayed
+  the same left the map framed on the old shape. That is precisely what drawing and
+  adjusting a polygon does, which means the bug was scheduled to land with T07. Fixed
+  in `ff2a426` by keying on the signature of the framed box itself: when the box does
+  not change, reframing would be a no-op anyway. The regression is now asserted in the
+  pure helper check, which runs 11 assertions.
+
+  It judged the `bounds` prop on `MapContainer` together with `FitBounds`'s `fitBounds`
+  as harmless redundancy rather than a defect, because the prop prevents an initial
+  render at zoom 0. A comment now says so, so a reviewer does not read it as an
+  accident.
+
+- **L27 — resumed T07 / user decision** (2026-10-16): the Notion task remains marked
+  `Sin empezar` although the repository records T01–T06 as complete; Notion's technical
+  approach page predates these commits and still promises an impossible `coords` backfill.
+  The user's current request was, verbatim: "Continuemos con el trabajo que veniamos
+  haciendo sobre el modulo sig que habia pendiente en notion". Asked who can save
+  drawings because S1 includes PRODUCTOR/CONTRATISTA but `PUT /lots/:id` permits only
+  ADMIN/SUPERVISOR. The user chose, verbatim: "Solo ADMIN y SUPERVISOR por ahora".
+  S12 freezes that limit; no role-guard relaxation is authorized. The drawing feature
+  must work when no lot has a polygon yet, and area is computed server-side from the
+  validated polygon, while existing explicit area-only edits remain unchanged.
+
+- **L28 — T07 implementation and verification gap** (2026-10-16): backend area is
+  derived by `LotPolygon.areaHectares()` when updating a non-null polygon; explicit
+  area-only updates retain their old behavior. The backend test observed RED first
+  (provided area `1` incorrectly persisted instead of approximately `10328.282`),
+  then the lot suite passed 107/107 and the full backend suite passed 104 suites /
+  1003 tests. Next.js has a manual Leaflet vertex editor that works on an empty map,
+  converts lat/lng into a deduplicated closed GeoJSON ring, saves via PUT, and refreshes
+  from the server. A permanent Node test now checks the pure conversion, boundaries
+  and fallback location (3/3 green); it was added after the implementation, so it is
+  regression proof, not evidence of RED. Next.js typecheck and build passed; the
+  targeted ESLint invocation fails on `react-hooks/set-state-in-effect` in the
+  pre-existing `useEffect(() => void load())`, reproduced on HEAD. An independent
+  verifier found one candidate-caused bug: successful PUT followed by failed GET
+  falsely reported an unsuccessful save. The fix retains the PUT response's polygon
+  and area, leaves editing mode and shows a truthful refresh warning; a narrow
+  read-only re-verification confirmed it. No browser interaction was available, so
+  T09's draw/save/reload and role checks remain unverified and T07 stays open.
+  Implementation work-unit commit: `8a9c73e`.
+
+- **L29 — the user's follow-up, verbatim** (2026-10-16):
+  > Nos faltan las opciones para:
+  > - agregar/quitar lotes -> quitar debe validar que no haya trabajos asociados activos o no
+  > - quitar vertices de un lote
+
+  The existing `POST /lots` needs a positive `area` even without geometry. There
+  is no `DELETE /lots/:id`. `Lot` is referenced by Task, Recipe, DailyReport,
+  Livestock and LivestockMovement; `MachineUsage` refers via Task. The user selected,
+  verbatim: "Borrarlo físicamente solo si no tiene ninguna relación". T10–T12
+  separate deletion integrity, lot UI, and vertex editing; no actual development
+  records are deleted to verify them.
+
+- **L30 — deletion race discovered before accepting T10** (2026-10-16):
+  `packages/backend/prisma/migrations/20260922214007_multifirma_baseline/migration.sql`
+  defines `Livestock_lotId_fkey` as `ON DELETE SET NULL`, unlike the Task,
+  Recipe, DailyReport and LivestockMovement FKs that use `RESTRICT`. A standalone
+  `hasDirectRelations` preflight followed by `deleteMany` and P2003 handling could
+  delete the lot and silently detach a livestock newly linked during that race.
+  T10 now requires a row lock and fresh association check in one transaction, or
+  it must stop blocked; no real database record may be deleted to test it.
+
+- **L31 — T10–T12 checks and integration limits** (2026-10-16):
+  T11–T12 frontend work-unit commit `d3bc4ff`: 4/4 Node helper tests and Next.js
+  typecheck green. The Next.js build was not run because the live dev server uses
+  `.next`; browser creation, guarded delete feedback and vertex editing remain T09.
+  T10 backend commit `8665ed6`: 56 focused tests, full backend suite 104/1020,
+  and Nest build green. A test-created, uniquely named scratch database received
+  the actual Prisma migrations; HTTP exercised 404, 409 and 204, proving that a
+  rejected delete preserves the lot and livestock link. Two PostgreSQL connections
+  demonstrated that a child FK association cannot pass a parent `FOR UPDATE`
+  followed by deletion; after commit it fails without detaching the animal.
+  The scratch database was dropped and no development records were deleted. This
+  tests the FK lock behavior deterministically, not an instrumented interleaving
+  inside the HTTP endpoint. An independent read-only verifier found no code-level
+  blocker, but correctly distinguished that prior mock tests were insufficient.
+  The first Jest attempt exhausted its 30-second foreground limit; its later
+  background focused run and full suite passed. T10 had no observed RED. The
+  backend development server was paused before fixing the unsafe partial route,
+  then restarted after checks; unauthenticated `/lots` responds 401 on port 3001
+  and frontend `/dashboard/mi-campo` responds 200 on port 3002. The user still
+  needs to exercise creation, blocked and successful deletion, and vertex editing
+  in a browser (T09). Native RDD ASSESS of the backend work-unit slice returned
+  `unassessable` because unrelated untracked files require explicit declaration;
+  no untracked files were removed or implicitly included. Its conservative high
+  risk plan's independent verification was performed, but native review itself
+  was unavailable. No PR, push or merge was performed.
+
+- **L32 — user acceptance and delivery request (verbatim):**
+  > levantame nuevamente el back y el front para probarlo y si esta todo en orden cerramos
+  > listo nomas, cerralo y arma la pr
+
+  The user confirmed completion after receiving the manual test checklist. Treat
+  this as owner acceptance of T09/T07 and the lot/vertex UI, **not** as an agent
+  observation of every listed browser scenario. T08 remains an explicitly
+  documented, unimplemented cross-ring debt outside this delivery. PR creation
+  is separate: the branch diff against `dev` is 4,715 changed lines and `gh`
+  returned HTTP 401; no push/PR has been performed at this point.

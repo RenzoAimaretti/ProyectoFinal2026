@@ -20,6 +20,7 @@ import { FindAllLotsUseCase } from './application/use-cases/find-all-lots.use-ca
 import { FindLotUseCase } from './application/use-cases/find-lot.use-case';
 import { CreateLotUseCase } from './application/use-cases/create-lot.use-case';
 import { UpdateLotUseCase } from './application/use-cases/update-lot.use-case';
+import { DeleteLotUseCase } from './application/use-cases/delete-lot.use-case';
 
 @Module({
   imports: [PrismaModule, ClientModule],
@@ -65,6 +66,11 @@ import { UpdateLotUseCase } from './application/use-cases/update-lot.use-case';
       useFactory: (repository: LotRepositoryPort, farmReader: FarmReaderPort) =>
         new CreateLotUseCase(repository, farmReader),
       inject: [LOT_REPOSITORY, FARM_READER],
+    },
+    {
+      provide: DeleteLotUseCase,
+      useFactory: (repository: LotRepositoryPort) => new DeleteLotUseCase(repository),
+      inject: [LOT_REPOSITORY],
     },
     {
       provide: UpdateLotUseCase,

@@ -5,11 +5,13 @@ import {
   EntityNotFoundError,
   InvalidInputError,
   InvalidRelationError,
+  LotHasRelationsError,
 } from '../../domain/errors';
 import type { GeoJsonPolygon } from '../../domain/lot-polygon';
 import { FarmReaderPort, LotRepositoryPort } from '../lot.ports';
 import { CreateLotInput, UpdateLotInput } from '../lot.types';
 import { CreateLotUseCase } from './create-lot.use-case';
+import { DeleteLotUseCase } from './delete-lot.use-case';
 import { FindAllLotsUseCase } from './find-all-lots.use-case';
 import { FindLotUseCase } from './find-lot.use-case';
 import { UpdateLotUseCase } from './update-lot.use-case';
@@ -36,6 +38,7 @@ function createPorts() {
     findByNameAndFarmId: jest.fn(),
     create: jest.fn(),
     updateForTenant: jest.fn(),
+    deleteForTenant: jest.fn(),
   };
 
   const farmReader: jest.Mocked<FarmReaderPort> = {
@@ -56,6 +59,7 @@ describe('Lot use cases', () => {
       'application/lot.types.ts',
       'application/lot.validation.ts',
       'application/use-cases/create-lot.use-case.ts',
+      'application/use-cases/delete-lot.use-case.ts',
       'application/use-cases/derive-lot-states.use-case.ts',
       'application/use-cases/find-all-lots.use-case.ts',
       'application/use-cases/find-lot.use-case.ts',
@@ -69,6 +73,30 @@ describe('Lot use cases', () => {
     expect(contents).not.toContain('@nestjs/common');
     expect(contents).not.toContain('PrismaService');
     expect(contents).not.toContain('prisma/generated');
+  });
+
+  describe('DeleteLotUseCase', () => {
+    it.each(['missing', 'cross-tenant'])('rejects a %s lot without a prior read', async () => {
+      const { repository } = createPorts();
+      repository.deleteForTenant.mockResolvedValue(false);
+      await expect(new DeleteLotUseCase(repository).execute('lot-1', 'tenant-2')).rejects.toThrow('Lot with id lot-1 not found');
+      expect(repository.deleteForTenant).toHaveBeenCalledWith('lot-1', 'tenant-2');
+      expect(repository.findByIdForTenant).not.toHaveBeenCalled();
+    });
+
+    it('propagates a guarded relationship conflict without reading first', async () => {
+      const { repository } = createPorts();
+      repository.deleteForTenant.mockRejectedValue(new LotHasRelationsError('lot-1'));
+      await expect(new DeleteLotUseCase(repository).execute('lot-1', 'tenant-1')).rejects.toBeInstanceOf(LotHasRelationsError);
+      expect(repository.findByIdForTenant).not.toHaveBeenCalled();
+    });
+
+    it('deletes only an unreferenced tenant lot', async () => {
+      const { repository } = createPorts();
+      repository.deleteForTenant.mockResolvedValue(true);
+      await expect(new DeleteLotUseCase(repository).execute('lot-1', 'tenant-1')).resolves.toBeUndefined();
+      expect(repository.deleteForTenant).toHaveBeenCalledWith('lot-1', 'tenant-1');
+    });
   });
 
   describe('FindAllLotsUseCase', () => {
@@ -449,7 +477,7 @@ describe('Lot use cases', () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
-    it('updates a lot with a polygon', async () => {
+    it('derives area from a saved polygon instead of trusting a supplied area', async () => {
       const { repository, farmReader } = createPorts();
       repository.findByIdForTenant.mockResolvedValue(baseLot);
       repository.updateForTenant.mockResolvedValue({
@@ -459,14 +487,38 @@ describe('Lot use cases', () => {
 
       const useCase = new UpdateLotUseCase(repository, farmReader);
 
-      await expect(
-        useCase.execute('lot-1', 'company-1', { polygon: square }),
-      ).resolves.toEqual({ ...baseLot, polygon: square });
+      await useCase.execute('lot-1', 'company-1', {
+        polygon: square,
+        area: 1,
+      });
+
+      const radians = (degrees: number) => (degrees * Math.PI) / 180;
+      const expectedHectares =
+        (6_371_008.8 ** 2 *
+          radians(0.1) *
+          (Math.sin(radians(-33.3)) - Math.sin(radians(-33.4)))) /
+        10_000;
+      expect(repository.updateForTenant).toHaveBeenCalledWith(
+        'lot-1',
+        'company-1',
+        { polygon: square, area: expect.any(Number) },
+      );
+      const [, , update] = repository.updateForTenant.mock.calls[0];
+      expect(update.area).toBeCloseTo(expectedHectares, 6);
+    });
+
+    it('keeps an explicit area-only update without changing the polygon', async () => {
+      const { repository, farmReader } = createPorts();
+      repository.findByIdForTenant.mockResolvedValue(baseLot);
+      repository.updateForTenant.mockResolvedValue({ ...baseLot, area: 20 });
+
+      const useCase = new UpdateLotUseCase(repository, farmReader);
+      await useCase.execute('lot-1', 'company-1', { area: 20 });
 
       expect(repository.updateForTenant).toHaveBeenCalledWith(
         'lot-1',
         'company-1',
-        { polygon: square },
+        { area: 20 },
       );
     });
 

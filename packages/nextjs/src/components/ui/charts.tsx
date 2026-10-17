@@ -10,7 +10,7 @@
 // - Designed charts: `TrendChart` (multi-series area) and `BarChart` (grouped
 //   bars), both responsive, with real axis labels, gridlines, gradient fills,
 //   hover tooltips and designed empty states.
-// - Illustrative SVG: `WindRose`, `SatelliteMap`.
+// - Illustrative SVG: `WindRose`.
 //
 // Palette is colorblind-safe (green / terracotta / blue / wheat) so series stay
 // distinguishable without relying on hue alone.
@@ -774,36 +774,3 @@ export function WindRose({
   );
 }
 
-/** SatelliteMap: texto de campo satelital con parcelas superpuestas. */
-export function SatelliteMap({
-  className = "",
-}: {
-  className?: string;
-}) {
-  return (
-    <svg viewBox="0 0 600 360" preserveAspectRatio="xMidYMid slice" className={className} aria-hidden>
-      {/* Textura de prado */}
-      <defs>
-        <radialGradient id="sat-glow" cx="40%" cy="30%" r="90%">
-          <stop offset="0%" style={{ stopColor: "var(--color-agro-olive)" }} />
-          <stop offset="45%" style={{ stopColor: "var(--color-agro-green)" }} />
-          <stop offset="80%" style={{ stopColor: "var(--color-agro-forest)" }} />
-          <stop offset="100%" style={{ stopColor: "var(--color-agro-green-deep)" }} />
-        </radialGradient>
-      </defs>
-      <rect width={600} height={360} fill="url(#sat-glow)" />
-      {/* Caminos/acequias */}
-      <path d="M0 190 Q 150 210 300 195 T 600 200" fill="none" stroke="var(--color-agro-green-deep)" strokeWidth={7} strokeLinecap="round" />
-      <path d="M260 0 Q 250 120 290 360" fill="none" stroke="var(--color-agro-green-deep)" strokeWidth={5} strokeLinecap="round" />
-      {/* Parcelas con distinto índice NDVI */}
-      <polygon points="60,40 250,50 240,175 50,160" fill="var(--color-agro-olive)" opacity={0.5} stroke="var(--color-agro-green-soft)" strokeWidth={2} />
-      <polygon points="270,55 420,40 430,140 300,150" fill="var(--color-agro-green)" opacity={0.55} stroke="var(--color-agro-green-soft)" strokeWidth={2} />
-      <polygon points="440,45 580,60 575,150 465,135" fill="var(--color-agro-ochre)" opacity={0.45} stroke="var(--color-agro-green-soft)" strokeWidth={2} />
-      <polygon points="50,180 245,190 230,340 60,320" fill="var(--color-agro-green)" opacity={0.5} stroke="var(--color-agro-green-soft)" strokeWidth={2} />
-      <polygon points="300,175 430,160 450,300 320,320" fill="var(--color-agro-olive)" opacity={0.5} stroke="var(--color-agro-green-soft)" strokeWidth={2} />
-      <polygon points="475,175 585,170 580,300 470,330" fill="var(--color-agro-earth)" opacity={0.4} stroke="var(--color-agro-green-soft)" strokeWidth={2} />
-      {/* Overlay de calor sutíl */}
-      <polygon points="300,175 430,160 450,300 320,320" fill="var(--color-agro-mustard)" opacity={0.12} />
-    </svg>
-  );
-}
