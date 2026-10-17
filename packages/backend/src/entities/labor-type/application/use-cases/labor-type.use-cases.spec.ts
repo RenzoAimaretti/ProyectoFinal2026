@@ -2,18 +2,19 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DuplicateEntityError, EntityNotFoundError, InvalidInputError } from '../../domain/errors';
 import { TaskReaderPort, LaborTypeRepositoryPort } from '../labor-type.ports';
-import { CreateLaborTypeInput, UpdateLaborTypeInput } from '../labor-type.types';
+import { CreateLaborTypeInput, LaborTypeRecord, UpdateLaborTypeInput } from '../labor-type.types';
 import { CreateLaborTypeUseCase } from './create-labor-type.use-case';
 import { DeleteLaborTypeUseCase } from './delete-labor-type.use-case';
 import { FindAllLaborTypesUseCase } from './find-all-labor-types.use-case';
 import { FindLaborTypeUseCase } from './find-labor-type.use-case';
 import { UpdateLaborTypeUseCase } from './update-labor-type.use-case';
 
-const baseLaborType = {
+const baseLaborType: LaborTypeRecord = {
   id: 'labor-type-1',
   tenantId: 'company-1',
   name: 'Mantenimiento',
   description: 'Rutina de mantenimiento',
+  kind: 'OTRO',
 };
 
 const otherTenantLaborType = {
@@ -45,6 +46,7 @@ describe('Labor type use cases', () => {
     const basePath = join(process.cwd(), 'src/entities/labor-type');
     const files = [
       'domain/errors.ts',
+      'domain/labor-kind.ts',
       'application/labor-type.ports.ts',
       'application/labor-type.types.ts',
       'application/labor-type.validation.ts',
@@ -164,6 +166,7 @@ describe('Labor type use cases', () => {
         name: 'Mantenimiento',
         description: 'Rutina de mantenimiento',
         tenantId: 'company-1',
+        kind: 'OTRO',
       });
     });
 
@@ -284,6 +287,116 @@ describe('Labor type use cases', () => {
         message: 'Labor type with id labor-type-1 deleted successfully',
       });
       expect(repository.deleteForTenant).toHaveBeenCalledWith('labor-type-1', 'company-1');
+    });
+  });
+
+  describe('Labor kind contract', () => {
+    let repository: jest.Mocked<LaborTypeRepositoryPort>;
+    let taskReader: jest.Mocked<TaskReaderPort>;
+    let createUseCase: CreateLaborTypeUseCase;
+    let updateUseCase: UpdateLaborTypeUseCase;
+
+    beforeEach(() => {
+      ({ repository, taskReader } = createPorts());
+      createUseCase = new CreateLaborTypeUseCase(repository);
+      updateUseCase = new UpdateLaborTypeUseCase(repository, taskReader);
+    });
+
+    it('creates a labor type with the kind the admin chose', async () => {
+      repository.findByNameAndTenantId.mockResolvedValue(null);
+      repository.create.mockResolvedValue({ ...baseLaborType, kind: 'SIEMBRA' });
+
+      await expect(
+        createUseCase.execute('company-1', {
+          name: 'Siembra gruesa',
+          kind: 'SIEMBRA',
+        }),
+      ).resolves.toEqual({ ...baseLaborType, kind: 'SIEMBRA' });
+
+      expect(repository.create).toHaveBeenCalledWith({
+        tenantId: 'company-1',
+        name: 'Siembra gruesa',
+        description: undefined,
+        kind: 'SIEMBRA',
+      });
+    });
+
+    it('falls back to OTRO when the admin does not classify the labor type', async () => {
+      repository.findByNameAndTenantId.mockResolvedValue(null);
+      repository.create.mockResolvedValue(baseLaborType);
+
+      await createUseCase.execute('company-1', { name: 'Mantenimiento' });
+
+      expect(repository.create).toHaveBeenCalledWith({
+        tenantId: 'company-1',
+        name: 'Mantenimiento',
+        description: undefined,
+        kind: 'OTRO',
+      });
+    });
+
+    it('rejects an unknown kind on create with the exact message and writes nothing', async () => {
+      repository.findByNameAndTenantId.mockResolvedValue(null);
+
+      const error = await createUseCase
+        .execute('company-1', { name: 'Labranza', kind: 'LABRANZA' })
+        .catch((thrown: unknown) => thrown);
+
+      expect(error).toBeInstanceOf(InvalidInputError);
+      expect((error as Error).message).toBe(
+        'kind must be one of SIEMBRA, PULVERIZACION, FERTILIZACION, COSECHA, OTRO',
+      );
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('reclassifies an existing labor type', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseLaborType);
+      repository.updateForTenant.mockResolvedValue({
+        ...baseLaborType,
+        kind: 'COSECHA',
+      });
+
+      await expect(
+        updateUseCase.execute('labor-type-1', 'company-1', { kind: 'COSECHA' }),
+      ).resolves.toEqual({ ...baseLaborType, kind: 'COSECHA' });
+
+      expect(repository.updateForTenant).toHaveBeenCalledWith(
+        'labor-type-1',
+        'company-1',
+        { kind: 'COSECHA' },
+      );
+    });
+
+    it('rejects an unknown kind on update with the exact message and writes nothing', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseLaborType);
+
+      const error = await updateUseCase
+        .execute('labor-type-1', 'company-1', { kind: 'LABRANZA' })
+        .catch((thrown: unknown) => thrown);
+
+      expect(error).toBeInstanceOf(InvalidInputError);
+      expect((error as Error).message).toBe(
+        'kind must be one of SIEMBRA, PULVERIZACION, FERTILIZACION, COSECHA, OTRO',
+      );
+      expect(repository.updateForTenant).not.toHaveBeenCalled();
+    });
+
+    it('leaves the kind alone when the update omits it', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseLaborType);
+      repository.updateForTenant.mockResolvedValue({
+        ...baseLaborType,
+        name: 'Otro nombre',
+      });
+
+      await updateUseCase.execute('labor-type-1', 'company-1', {
+        name: 'Otro nombre',
+      });
+
+      expect(repository.updateForTenant).toHaveBeenCalledWith(
+        'labor-type-1',
+        'company-1',
+        { name: 'Otro nombre' },
+      );
     });
   });
 });
