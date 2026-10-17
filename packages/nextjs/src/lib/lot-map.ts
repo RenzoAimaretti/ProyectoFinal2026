@@ -45,6 +45,50 @@ export function polygonToLatLngs(polygon: GeoJsonPolygon): LatLngTuple[][] {
   return polygon.coordinates.map(ringToLatLngs);
 }
 
+/** Remove only the chosen unsaved vertex; the stored polygon is never touched. */
+export function removeDraftVertex(vertices: readonly LatLngTuple[], index: number): LatLngTuple[] {
+  return vertices.filter((_, vertexIndex) => vertexIndex !== index);
+}
+
+/** Number of distinct draft positions; saving needs at least three. */
+export function distinctDraftVertexCount(vertices: readonly LatLngTuple[]): number {
+  return new Set(vertices.map(([lat, lng]) => `${lat},${lng}`)).size;
+}
+
+/** Build a single-ring GeoJSON polygon from Leaflet vertices, without zero-length edges. */
+export function latLngsToPolygon(vertices: readonly LatLngTuple[]): GeoJsonPolygon {
+  const ring: GeoJsonPosition[] = [];
+  for (const [latitude, longitude] of vertices) {
+    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 ||
+        !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      throw new Error("Las coordenadas deben ser latitud y longitud válidas.");
+    }
+    const last = ring[ring.length - 1];
+    if (!last || last[0] !== longitude || last[1] !== latitude) {
+      ring.push([longitude, latitude]);
+    }
+  }
+  // An explicit click on the first vertex closes the ring; do not store it twice.
+  if (ring.length > 1 && ring[0][0] === ring[ring.length - 1][0] &&
+      ring[0][1] === ring[ring.length - 1][1]) {
+    ring.pop();
+  }
+  if (new Set(ring.map(([lng, lat]) => `${lng},${lat}`)).size < 3) {
+    throw new Error("Marcá al menos tres puntos distintos para delimitar el lote.");
+  }
+  return { type: "Polygon", coordinates: [[...ring, [...ring[0]]]] };
+}
+
+/** Only numeric coordinates can be treated as a farm location; a place name is not a point. */
+export function farmMapCenter(location: string | null): LatLngTuple | null {
+  const match = location?.trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+  if (!match) return null;
+  const latitude = Number(match[1]);
+  const longitude = Number(match[2]);
+  return Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180
+    ? [latitude, longitude] : null;
+}
+
 /**
  * Bounds of everything that has a polygon, or `null` when nothing does, so the
  * caller can tell "no geometry yet" from "geometry at the origin".

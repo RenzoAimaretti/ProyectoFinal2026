@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { MapContainer, Polygon, TileLayer, useMap } from "react-leaflet";
+import { divIcon } from "leaflet";
+import { MapContainer, Marker, Polygon, Polyline, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
 import {
   LOT_STATE_COLORS,
   boundsForPolygons,
   boundsSignature,
   polygonToLatLngs,
+  type LatLngTuple,
   type LatLngBoundsTuple,
 } from "@/lib/lot-map";
 
@@ -33,13 +35,30 @@ export type LotMapProps = {
   selectedLotId: string | null;
   onSelectLot: (lotId: string) => void;
   emptyLabel: string;
+  farmId: string;
+  fallbackCenter: LatLngTuple;
+  editing: boolean;
+  draft: readonly LatLngTuple[];
+  onDraftChange: (vertices: LatLngTuple[]) => void;
 };
+
+const vertexIcon = divIcon({
+  className: "",
+  html: '<span style="display:block;width:16px;height:16px;border:3px solid white;border-radius:50%;background:#1a3323;box-shadow:0 1px 5px #0008"></span>',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
 
 export function LotMap({
   lots,
   selectedLotId,
   onSelectLot,
   emptyLabel,
+  farmId,
+  fallbackCenter,
+  editing,
+  draft,
+  onDraftChange,
 }: LotMapProps) {
   // Only the lots that can actually be drawn, so the map never invents a shape.
   const drawable = useMemo(
@@ -57,23 +76,38 @@ export function LotMap({
 
   const boundsKey = boundsSignature(bounds);
 
-  if (drawable.length === 0) {
-    return (
-      <div className="flex h-80 w-full items-center justify-center border-t border-agro-border bg-base-subtle px-6 text-center text-sm text-ink-soft">
-        {emptyLabel}
-      </div>
-    );
-  }
-
   return (
+    <div className="relative">
     <MapContainer
-      // The initial frame, so the map never renders at zoom 0 before FitBounds runs.
+      // Never infer a farm point from a free-text location; use the regional fallback.
+      center={fallbackCenter}
+      zoom={bounds ? undefined : 11}
       bounds={bounds ?? undefined}
       scrollWheelZoom
       className="h-80 w-full"
     >
       <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
-      <FitBounds bounds={bounds} boundsKey={boundsKey} />
+      <FitBounds bounds={bounds} boundsKey={`${farmId}:${boundsKey}`} fallbackCenter={fallbackCenter} />
+      <DrawVertices enabled={editing} vertices={draft} onChange={onDraftChange} />
+      {editing && draft.length >= 3 && (
+        <Polygon positions={[...draft]} pathOptions={{ color: "#1a3323", weight: 3, fillOpacity: 0.25 }} />
+      )}
+      {editing && draft.length === 2 && <Polyline positions={[...draft]} pathOptions={{ color: "#1a3323" }} />}
+      {editing && draft.map((point, index) => (
+        <Marker
+          key={index}
+          position={point}
+          icon={vertexIcon}
+          draggable
+          eventHandlers={{
+            dragend: (event) => {
+              const position = event.target.getLatLng();
+              onDraftChange(draft.map((vertex, i) => i === index ? [position.lat, position.lng] : vertex));
+            },
+            click: (event) => event.originalEvent.stopPropagation(),
+          }}
+        />
+      ))}
       {drawable.map(({ lot, polygon }) => {
         const selected = lot.id === selectedLotId;
 
@@ -87,12 +121,29 @@ export function LotMap({
               fillColor: LOT_STATE_COLORS[lot.state],
               fillOpacity: selected ? 0.55 : 0.35,
             }}
-            eventHandlers={{ click: () => onSelectLot(lot.id) }}
+            eventHandlers={{ click: () => { if (!editing) onSelectLot(lot.id); } }}
           />
         );
       })}
     </MapContainer>
+    {drawable.length === 0 && !editing && (
+      <div className="pointer-events-none absolute left-3 top-3 z-[400] max-w-xs rounded-lg bg-white/90 px-3 py-2 text-xs text-ink-soft shadow-sm">
+        {emptyLabel}
+      </div>
+    )}
+    </div>
   );
+}
+
+function DrawVertices({ enabled, vertices, onChange }: {
+  enabled: boolean;
+  vertices: readonly LatLngTuple[];
+  onChange: (vertices: LatLngTuple[]) => void;
+}) {
+  useMapEvents({ click: (event) => {
+    if (enabled) onChange([...vertices, [event.latlng.lat, event.latlng.lng]]);
+  } });
+  return null;
 }
 
 /**
@@ -103,19 +154,27 @@ export function LotMap({
 function FitBounds({
   bounds,
   boundsKey,
+  fallbackCenter,
 }: {
   bounds: LatLngBoundsTuple | null;
   boundsKey: string;
+  fallbackCenter: LatLngTuple;
 }) {
   const map = useMap();
   const boundsRef = useRef(bounds);
-  boundsRef.current = bounds;
+  const centerRef = useRef(fallbackCenter);
+  useEffect(() => {
+    boundsRef.current = bounds;
+    centerRef.current = fallbackCenter;
+  }, [bounds, fallbackCenter]);
 
   useEffect(() => {
     const current = boundsRef.current;
 
     if (current) {
       map.fitBounds(current, { padding: [24, 24] });
+    } else {
+      map.setView(centerRef.current, 11);
     }
   }, [map, boundsKey]);
 

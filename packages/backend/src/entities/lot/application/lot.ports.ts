@@ -21,6 +21,8 @@ export interface LotRepositoryPort {
   ): Promise<LotRecord | null>;
   findByNameAndFarmId(name: string, farmId: string): Promise<LotRecord | null>;
   create(data: CreateLotInput): Promise<LotRecord>;
+  /** Locks and checks all direct relations within the tenant-scoped delete transaction; false if absent. */
+  deleteForTenant(id: string, tenantId: string): Promise<boolean>;
   updateForTenant(
     id: string,
     tenantId: string,
