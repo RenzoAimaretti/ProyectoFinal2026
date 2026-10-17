@@ -114,3 +114,14 @@ export const InputUnit = {
 } as const
 
 export type InputUnit = (typeof InputUnit)[keyof typeof InputUnit]
+
+
+export const LaborKind = {
+  SIEMBRA: 'SIEMBRA',
+  PULVERIZACION: 'PULVERIZACION',
+  FERTILIZACION: 'FERTILIZACION',
+  COSECHA: 'COSECHA',
+  OTRO: 'OTRO'
+} as const
+
+export type LaborKind = (typeof LaborKind)[keyof typeof LaborKind]
