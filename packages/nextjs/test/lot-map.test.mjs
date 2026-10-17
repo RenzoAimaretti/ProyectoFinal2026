@@ -5,6 +5,8 @@ import {
   farmMapCenter,
   latLngsToPolygon,
   ringToLatLngs,
+  removeDraftVertex,
+  distinctDraftVertexCount,
 } from '../src/lib/lot-map.ts';
 
 test('drawing converts Leaflet vertices to a closed GeoJSON ring without zero-length edges', () => {
@@ -40,6 +42,20 @@ test('drawing rejects fewer than three distinct vertices and invalid coordinates
     () => latLngsToPolygon([[91, 0], [0, 0], [0, 1]]),
     { message: 'Las coordenadas deben ser latitud y longitud válidas.' },
   );
+});
+
+test('removing a chosen draft vertex preserves order and never changes the original', () => {
+  const stored = [[0, 0], [0, 1], [1, 1], [1, 0]];
+  const three = removeDraftVertex(stored, 1);
+  assert.deepEqual(three, [[0, 0], [1, 1], [1, 0]]);
+  assert.deepEqual(stored, [[0, 0], [0, 1], [1, 1], [1, 0]]);
+  const two = removeDraftVertex(three, 0);
+  assert.deepEqual(two, [[1, 1], [1, 0]]);
+  assert.equal(distinctDraftVertexCount(two), 2);
+  assert.throws(() => latLngsToPolygon(two), { message: 'Marcá al menos tres puntos distintos para delimitar el lote.' });
+  assert.equal(distinctDraftVertexCount([[0, 0], [0, 0], [1, 1]]), 2);
+  assert.equal(distinctDraftVertexCount(three), 3);
+  assert.deepEqual(latLngsToPolygon(three).coordinates[0][0], [0, 0]);
 });
 
 test('a farm center only uses valid numeric coordinates', () => {
