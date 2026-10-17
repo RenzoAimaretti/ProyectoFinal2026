@@ -53,7 +53,7 @@ describe('PrismaLaborTypeRepository', () => {
       repository.findByIdsForTenant(['task-1'], 'tenant-1'),
     ).resolves.toEqual([{ id: 'task-1' }]);
     await expect(
-      repository.create({ tenantId: 'tenant-1', name: 'Mantenimiento' }),
+      repository.create({ tenantId: 'tenant-1', name: 'Mantenimiento', kind: 'OTRO' }),
     ).resolves.toEqual({ id: 'labor-type-2' });
     await expect(
       repository.updateForTenant('labor-type-2', 'tenant-1', { name: 'Nuevo nombre' }),
@@ -65,7 +65,7 @@ describe('PrismaLaborTypeRepository', () => {
       select: { id: true },
     });
     expect(prisma.laborType.create).toHaveBeenCalledWith({
-      data: { tenantId: 'tenant-1', name: 'Mantenimiento' },
+      data: { tenantId: 'tenant-1', name: 'Mantenimiento', kind: 'OTRO' },
     });
     expect(prisma.laborType.update).toHaveBeenCalledWith({
       where: { id: 'labor-type-1' },
@@ -73,6 +73,29 @@ describe('PrismaLaborTypeRepository', () => {
     });
     expect(prisma.laborType.delete).toHaveBeenCalledWith({
       where: { id: 'labor-type-1' },
+    });
+  });
+
+  it('forwards the labor kind to Prisma on create and on update', async () => {
+    prisma.laborType.create.mockResolvedValue({ id: 'labor-type-2' });
+    prisma.laborType.findFirst.mockResolvedValue({ id: 'labor-type-1' });
+    prisma.laborType.update.mockResolvedValue({ id: 'labor-type-1' });
+
+    await repository.create({
+      tenantId: 'tenant-1',
+      name: 'Siembra gruesa',
+      kind: 'SIEMBRA',
+    });
+    await repository.updateForTenant('labor-type-1', 'tenant-1', {
+      kind: 'COSECHA',
+    });
+
+    expect(prisma.laborType.create).toHaveBeenCalledWith({
+      data: { tenantId: 'tenant-1', name: 'Siembra gruesa', kind: 'SIEMBRA' },
+    });
+    expect(prisma.laborType.update).toHaveBeenCalledWith({
+      where: { id: 'labor-type-1' },
+      data: { kind: 'COSECHA' },
     });
   });
 });

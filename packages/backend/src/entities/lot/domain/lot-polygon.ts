@@ -75,6 +75,26 @@ function assertRingHasThreeDistinctPositions(ring: GeoJsonPosition[]): void {
   }
 }
 
+/**
+ * A repeated consecutive position is a zero-length edge. It cannot contact
+ * anything other than the two edges it meets, and those pairs are excluded as
+ * adjacent, so the self-intersection test can never see it. Reject it here.
+ */
+function assertRingHasNoRepeatedConsecutivePosition(
+  ring: GeoJsonPosition[],
+): void {
+  for (let index = 0; index < ring.length - 1; index += 1) {
+    const [longitude1, latitude1] = ring[index];
+    const [longitude2, latitude2] = ring[index + 1];
+
+    if (longitude1 === longitude2 && latitude1 === latitude2) {
+      throw new InvalidInputError(
+        'polygon ring must not repeat a position consecutively',
+      );
+    }
+  }
+}
+
 function assertRingIsClosed(ring: GeoJsonPosition[]): void {
   const first = ring[0];
   const last = ring[ring.length - 1];
@@ -97,12 +117,27 @@ function orientation(
   );
 }
 
+function isOnSegment(
+  start: GeoJsonPosition,
+  end: GeoJsonPosition,
+  point: GeoJsonPosition,
+): boolean {
+  return (
+    Math.min(start[0], end[0]) <= point[0] &&
+    point[0] <= Math.max(start[0], end[0]) &&
+    Math.min(start[1], end[1]) <= point[1] &&
+    point[1] <= Math.max(start[1], end[1])
+  );
+}
+
 /**
- * Only proper crossings count. Touching endpoints and collinear overlap are left
- * alone on purpose: adjacent edges share a vertex, and rejecting them would make
- * every ring invalid.
+ * Two edges of a simple ring may only share the vertex they are adjacent
+ * through, and the caller excludes those pairs. Any other contact breaks the
+ * ring, and there are three ways it can happen: a proper crossing, an endpoint
+ * landing on the other edge, or a collinear overlap. Checking only the strict
+ * sign changes would let a pinched ring through.
  */
-function segmentsProperlyIntersect(
+function segmentsIntersect(
   firstStart: GeoJsonPosition,
   firstEnd: GeoJsonPosition,
   secondStart: GeoJsonPosition,
@@ -116,7 +151,23 @@ function segmentsProperlyIntersect(
   const straddlesFirst = (d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0);
   const straddlesSecond = (d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0);
 
-  return straddlesFirst && straddlesSecond;
+  if (straddlesFirst && straddlesSecond) {
+    return true;
+  }
+
+  if (d1 === 0 && isOnSegment(secondStart, secondEnd, firstStart)) {
+    return true;
+  }
+
+  if (d2 === 0 && isOnSegment(secondStart, secondEnd, firstEnd)) {
+    return true;
+  }
+
+  if (d3 === 0 && isOnSegment(firstStart, firstEnd, secondStart)) {
+    return true;
+  }
+
+  return d4 === 0 && isOnSegment(firstStart, firstEnd, secondEnd);
 }
 
 function assertRingDoesNotSelfIntersect(ring: GeoJsonPosition[]): void {
@@ -134,7 +185,7 @@ function assertRingDoesNotSelfIntersect(ring: GeoJsonPosition[]): void {
       }
 
       if (
-        segmentsProperlyIntersect(
+        segmentsIntersect(
           positions[first],
           positions[(first + 1) % count],
           positions[second],
@@ -156,7 +207,7 @@ function ringSquareMeters(ring: GeoJsonPosition[]): number {
 
     sum +=
       toRadians(longitude2 - longitude1) *
-      (2 + Math.sin(toRadians(latitude1)) + Math.sin(toRadians(latitude2)));
+      (Math.sin(toRadians(latitude1)) + Math.sin(toRadians(latitude2)));
   }
 
   return (sum * EARTH_RADIUS_METERS * EARTH_RADIUS_METERS) / 2;
@@ -178,6 +229,7 @@ export class LotPolygon {
 
     for (const ring of rings) {
       assertRingHasThreeDistinctPositions(ring);
+      assertRingHasNoRepeatedConsecutivePosition(ring);
       assertRingIsClosed(ring);
     }
 

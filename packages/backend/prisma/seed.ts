@@ -176,6 +176,7 @@ async function main(): Promise<void> {
         tenantId: TENANT_ID,
         name: 'Pulverización',
         description: 'Aplicación de fitosanitarios',
+        kind: 'PULVERIZACION',
       },
     });
     const laborTypeFertilizacion = await prisma.laborType.create({
@@ -184,6 +185,7 @@ async function main(): Promise<void> {
         tenantId: TENANT_ID,
         name: 'Fertilización',
         description: 'Aporte de nutrientes',
+        kind: 'FERTILIZACION',
       },
     });
     const laborTypeSiembra = await prisma.laborType.create({
@@ -192,6 +194,7 @@ async function main(): Promise<void> {
         tenantId: TENANT_ID,
         name: 'Siembra',
         description: 'Implantación de cultivo',
+        kind: 'SIEMBRA',
       },
     });
     const laborTypeArranque = await prisma.laborType.create({
@@ -200,6 +203,8 @@ async function main(): Promise<void> {
         tenantId: TENANT_ID,
         name: 'Arranque de equipo',
         description: 'Puesta en marcha y checklist',
+        // Equipo, no cultivo: no se clasifica en lugar de adivinar por el nombre.
+        kind: 'OTRO',
       },
     });
     const laborTypeTraslado = await prisma.laborType.create({
@@ -208,6 +213,7 @@ async function main(): Promise<void> {
         tenantId: TENANT_ID,
         name: 'Traslado',
         description: 'Movimiento de hacienda',
+        kind: 'OTRO',
       },
     });
     const laborTypePesaje = await prisma.laborType.create({
@@ -216,6 +222,7 @@ async function main(): Promise<void> {
         tenantId: TENANT_ID,
         name: 'Pesaje',
         description: 'Registro de peso',
+        kind: 'OTRO',
       },
     });
 

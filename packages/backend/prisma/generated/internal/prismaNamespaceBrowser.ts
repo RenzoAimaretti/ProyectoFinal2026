@@ -237,6 +237,7 @@ export const LaborTypeScalarFieldEnum = {
   tenantId: 'tenantId',
   name: 'name',
   description: 'description',
+  kind: 'kind',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   version: 'version',
