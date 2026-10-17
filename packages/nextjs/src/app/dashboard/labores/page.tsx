@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/ui/layout";
-import { Button, Card, EmptyState, Modal, PageHeader } from "@/components/ui/primitives";
+import { Button, Badge, Card, EmptyState, Modal, PageHeader } from "@/components/ui/primitives";
 import { DataTable, type DataTableColumn } from "@/components/ui/table";
-import { CheckboxGroup, TextField, TextareaField } from "@/components/ui/form";
+import { CheckboxGroup, SelectField, TextField, TextareaField } from "@/components/ui/form";
 import { Alert, useToast } from "@/components/ui/feedback";
 import { ProductionIcon } from "@/components/ui/icons";
 import { navItems } from "@/components/ui/nav";
@@ -12,8 +12,22 @@ import { catalogErrorMessage } from "@/api/error-message";
 import {
   createLaborType, listInputCategories, listLaborTypeCategories, listLaborTypes,
   replaceLaborTypeCategories, updateLaborType,
-  type InputCategoryDTO, type LaborTypeDTO,
+  type InputCategoryDTO, type LaborKind, type LaborTypeDTO,
 } from "@/api/client";
+
+/** `OTRO` reads as "Sin clasificar" for the admin, which is what it means. */
+const LABOR_KIND_LABELS: Record<LaborKind, string> = {
+  SIEMBRA: "Siembra",
+  PULVERIZACION: "Pulverización",
+  FERTILIZACION: "Fertilización",
+  COSECHA: "Cosecha",
+  OTRO: "Sin clasificar",
+};
+
+const LABOR_KIND_OPTIONS = (Object.keys(LABOR_KIND_LABELS) as LaborKind[]).map((kind) => ({
+  value: kind,
+  label: LABOR_KIND_LABELS[kind],
+}));
 
 export default function LaboresPage() {
   const toast = useToast();
@@ -26,6 +40,7 @@ export default function LaboresPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [kind, setKind] = useState<LaborKind>("OTRO");
   const [formError, setFormError] = useState<string | null>(null);
   const [selected, setSelected] = useState<LaborTypeDTO | null>(null);
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
@@ -63,6 +78,7 @@ export default function LaboresPage() {
     setEditing(labor);
     setName(labor?.name ?? "");
     setDescription(labor?.description ?? "");
+    setKind(labor?.kind ?? "OTRO");
     setFormError(null);
     setFormOpen(true);
   }
@@ -73,8 +89,8 @@ export default function LaboresPage() {
     setBusy(true);
     setFormError(null);
     try {
-      if (editing) await updateLaborType(editing.id, { name: name.trim(), description: description.trim() });
-      else await createLaborType({ name: name.trim(), description: description.trim() });
+      if (editing) await updateLaborType(editing.id, { name: name.trim(), description: description.trim(), kind });
+      else await createLaborType({ name: name.trim(), description: description.trim(), kind });
       setFormOpen(false);
       toast.success(editing ? "Labor actualizada" : "Labor creada");
       refresh();
@@ -103,6 +119,15 @@ export default function LaboresPage() {
 
   const columns: DataTableColumn<LaborTypeDTO>[] = [
     { key: "name", header: "Labor", render: (row) => <span className="font-medium text-ink">{row.name}</span> },
+    {
+      key: "kind",
+      header: "Tipo",
+      render: (row) => (
+        <Badge tone={row.kind === "OTRO" ? "slate" : "green"}>
+          {LABOR_KIND_LABELS[row.kind] ?? row.kind}
+        </Badge>
+      ),
+    },
     { key: "description", header: "Descripción", render: (row) => <span className="text-ink-soft">{row.description || "—"}</span> },
     { key: "actions", header: "Acciones", render: (row) => <div className="flex flex-wrap gap-1"><Button variant="ghost" onClick={() => openForm(row)}>Editar</Button><Button variant="secondary" onClick={() => openCategories(row)}>Categorías</Button></div> },
   ];
@@ -113,7 +138,7 @@ export default function LaboresPage() {
       {loadError && <Alert tone="error" className="mb-5">{loadError} <Button variant="secondary" onClick={refresh}>Reintentar</Button></Alert>}
       <Card className="overflow-hidden"><DataTable columns={columns} data={labors} rowKey={(row) => row.id} loading={loading} emptyState={<EmptyState icon={<ProductionIcon />} title="Sin labores" subtitle="Creá una labor para comenzar." />} /></Card>
       <Modal open={formOpen} onClose={() => { if (!busy) setFormOpen(false); }} title={editing ? "Editar labor" : "Nueva labor"} footer={<div className="flex justify-end gap-2"><Button variant="secondary" disabled={busy} onClick={() => setFormOpen(false)}>Cancelar</Button><Button disabled={busy} onClick={() => void save()}>{busy ? "Guardando…" : "Guardar"}</Button></div>}>
-        <div className="space-y-4">{formError && <Alert tone="error">{formError}</Alert>}<TextField label="Nombre" required value={name} onChange={(event) => setName(event.target.value)} disabled={busy} /><TextareaField label="Descripción" value={description} onChange={(event) => setDescription(event.target.value)} disabled={busy} /></div>
+        <div className="space-y-4">{formError && <Alert tone="error">{formError}</Alert>}<TextField label="Nombre" required value={name} onChange={(event) => setName(event.target.value)} disabled={busy} /><SelectField label="Tipo" hint="Define el color del lote en el mapa. «Sin clasificar» no aporta color." value={kind} onChange={(event) => setKind(event.target.value as LaborKind)} disabled={busy} options={LABOR_KIND_OPTIONS} /><TextareaField label="Descripción" value={description} onChange={(event) => setDescription(event.target.value)} disabled={busy} /></div>
       </Modal>
       <Modal open={Boolean(selected)} onClose={() => { if (!busy) setSelected(null); }} title={`Categorías de ${selected?.name ?? "la labor"}`} subtitle="Definí qué categorías de insumos se pueden usar en esta labor." footer={<div className="flex justify-end gap-2"><Button variant="secondary" disabled={busy} onClick={() => setSelected(null)}>Cancelar</Button><Button disabled={busy || assignmentLoading || Boolean(assignmentError)} onClick={() => void saveCategories()}>{busy ? "Guardando…" : "Guardar categorías"}</Button></div>}>
         <div className="space-y-4">

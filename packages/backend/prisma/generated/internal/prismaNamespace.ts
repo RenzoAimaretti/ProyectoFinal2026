@@ -2756,6 +2756,7 @@ export const LaborTypeScalarFieldEnum = {
   tenantId: 'tenantId',
   name: 'name',
   description: 'description',
+  kind: 'kind',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   version: 'version',
@@ -3177,6 +3178,20 @@ export type EnumInputUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
  * Reference to a field of type 'InputUnit[]'
  */
 export type ListEnumInputUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InputUnit[]'>
+    
+
+
+/**
+ * Reference to a field of type 'LaborKind'
+ */
+export type EnumLaborKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LaborKind'>
+    
+
+
+/**
+ * Reference to a field of type 'LaborKind[]'
+ */
+export type ListEnumLaborKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LaborKind[]'>
     
 
 

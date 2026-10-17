@@ -39,6 +39,7 @@ export type LaborTypeMinAggregateOutputType = {
   tenantId: string | null
   name: string | null
   description: string | null
+  kind: $Enums.LaborKind | null
   createdAt: Date | null
   updatedAt: Date | null
   version: number | null
@@ -50,6 +51,7 @@ export type LaborTypeMaxAggregateOutputType = {
   tenantId: string | null
   name: string | null
   description: string | null
+  kind: $Enums.LaborKind | null
   createdAt: Date | null
   updatedAt: Date | null
   version: number | null
@@ -61,6 +63,7 @@ export type LaborTypeCountAggregateOutputType = {
   tenantId: number
   name: number
   description: number
+  kind: number
   createdAt: number
   updatedAt: number
   version: number
@@ -82,6 +85,7 @@ export type LaborTypeMinAggregateInputType = {
   tenantId?: true
   name?: true
   description?: true
+  kind?: true
   createdAt?: true
   updatedAt?: true
   version?: true
@@ -93,6 +97,7 @@ export type LaborTypeMaxAggregateInputType = {
   tenantId?: true
   name?: true
   description?: true
+  kind?: true
   createdAt?: true
   updatedAt?: true
   version?: true
@@ -104,6 +109,7 @@ export type LaborTypeCountAggregateInputType = {
   tenantId?: true
   name?: true
   description?: true
+  kind?: true
   createdAt?: true
   updatedAt?: true
   version?: true
@@ -202,6 +208,7 @@ export type LaborTypeGroupByOutputType = {
   tenantId: string
   name: string
   description: string | null
+  kind: $Enums.LaborKind
   createdAt: Date
   updatedAt: Date
   version: number
@@ -236,6 +243,7 @@ export type LaborTypeWhereInput = {
   tenantId?: Prisma.StringFilter<"LaborType"> | string
   name?: Prisma.StringFilter<"LaborType"> | string
   description?: Prisma.StringNullableFilter<"LaborType"> | string | null
+  kind?: Prisma.EnumLaborKindFilter<"LaborType"> | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
   version?: Prisma.IntFilter<"LaborType"> | number
@@ -251,6 +259,7 @@ export type LaborTypeOrderByWithRelationInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -270,6 +279,7 @@ export type LaborTypeWhereUniqueInput = Prisma.AtLeast<{
   tenantId?: Prisma.StringFilter<"LaborType"> | string
   name?: Prisma.StringFilter<"LaborType"> | string
   description?: Prisma.StringNullableFilter<"LaborType"> | string | null
+  kind?: Prisma.EnumLaborKindFilter<"LaborType"> | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
   version?: Prisma.IntFilter<"LaborType"> | number
@@ -285,6 +295,7 @@ export type LaborTypeOrderByWithAggregationInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -304,6 +315,7 @@ export type LaborTypeScalarWhereWithAggregatesInput = {
   tenantId?: Prisma.StringWithAggregatesFilter<"LaborType"> | string
   name?: Prisma.StringWithAggregatesFilter<"LaborType"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"LaborType"> | string | null
+  kind?: Prisma.EnumLaborKindWithAggregatesFilter<"LaborType"> | $Enums.LaborKind
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"LaborType"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"LaborType"> | Date | string
   version?: Prisma.IntWithAggregatesFilter<"LaborType"> | number
@@ -314,6 +326,7 @@ export type LaborTypeCreateInput = {
   id?: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -329,6 +342,7 @@ export type LaborTypeUncheckedCreateInput = {
   tenantId: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -342,6 +356,7 @@ export type LaborTypeUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -357,6 +372,7 @@ export type LaborTypeUncheckedUpdateInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -371,6 +387,7 @@ export type LaborTypeCreateManyInput = {
   tenantId: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -381,6 +398,7 @@ export type LaborTypeUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -392,6 +410,7 @@ export type LaborTypeUncheckedUpdateManyInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -418,6 +437,7 @@ export type LaborTypeCountOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -433,6 +453,7 @@ export type LaborTypeMaxOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -444,6 +465,7 @@ export type LaborTypeMinOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -501,6 +523,10 @@ export type LaborTypeUncheckedUpdateManyWithoutTenantNestedInput = {
   deleteMany?: Prisma.LaborTypeScalarWhereInput | Prisma.LaborTypeScalarWhereInput[]
 }
 
+export type EnumLaborKindFieldUpdateOperationsInput = {
+  set?: $Enums.LaborKind
+}
+
 export type LaborTypeCreateNestedOneWithoutCategoriesInput = {
   create?: Prisma.XOR<Prisma.LaborTypeCreateWithoutCategoriesInput, Prisma.LaborTypeUncheckedCreateWithoutCategoriesInput>
   connectOrCreate?: Prisma.LaborTypeCreateOrConnectWithoutCategoriesInput
@@ -547,6 +573,7 @@ export type LaborTypeCreateWithoutTenantInput = {
   id?: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -560,6 +587,7 @@ export type LaborTypeUncheckedCreateWithoutTenantInput = {
   id?: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -603,6 +631,7 @@ export type LaborTypeScalarWhereInput = {
   tenantId?: Prisma.StringFilter<"LaborType"> | string
   name?: Prisma.StringFilter<"LaborType"> | string
   description?: Prisma.StringNullableFilter<"LaborType"> | string | null
+  kind?: Prisma.EnumLaborKindFilter<"LaborType"> | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
   version?: Prisma.IntFilter<"LaborType"> | number
@@ -613,6 +642,7 @@ export type LaborTypeCreateWithoutCategoriesInput = {
   id?: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -627,6 +657,7 @@ export type LaborTypeUncheckedCreateWithoutCategoriesInput = {
   tenantId: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -655,6 +686,7 @@ export type LaborTypeUpdateWithoutCategoriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -669,6 +701,7 @@ export type LaborTypeUncheckedUpdateWithoutCategoriesInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -681,6 +714,7 @@ export type LaborTypeCreateWithoutTasksInput = {
   id?: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -695,6 +729,7 @@ export type LaborTypeUncheckedCreateWithoutTasksInput = {
   tenantId: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -723,6 +758,7 @@ export type LaborTypeUpdateWithoutTasksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -737,6 +773,7 @@ export type LaborTypeUncheckedUpdateWithoutTasksInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -749,6 +786,7 @@ export type LaborTypeCreateWithoutDailyReportsInput = {
   id?: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -763,6 +801,7 @@ export type LaborTypeUncheckedCreateWithoutDailyReportsInput = {
   tenantId: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -791,6 +830,7 @@ export type LaborTypeUpdateWithoutDailyReportsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -805,6 +845,7 @@ export type LaborTypeUncheckedUpdateWithoutDailyReportsInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -817,6 +858,7 @@ export type LaborTypeCreateManyTenantInput = {
   id?: string
   name: string
   description?: string | null
+  kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
@@ -827,6 +869,7 @@ export type LaborTypeUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -840,6 +883,7 @@ export type LaborTypeUncheckedUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -853,6 +897,7 @@ export type LaborTypeUncheckedUpdateManyWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -913,6 +958,7 @@ export type LaborTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  kind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   version?: boolean
@@ -929,6 +975,7 @@ export type LaborTypeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  kind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   version?: boolean
@@ -941,6 +988,7 @@ export type LaborTypeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  kind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   version?: boolean
@@ -953,13 +1001,14 @@ export type LaborTypeSelectScalar = {
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  kind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   version?: boolean
   deleted?: boolean
 }
 
-export type LaborTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "name" | "description" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["laborType"]>
+export type LaborTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "name" | "description" | "kind" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["laborType"]>
 export type LaborTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   tasks?: boolean | Prisma.LaborType$tasksArgs<ExtArgs>
@@ -987,6 +1036,7 @@ export type $LaborTypePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     tenantId: string
     name: string
     description: string | null
+    kind: $Enums.LaborKind
     createdAt: Date
     updatedAt: Date
     version: number
@@ -1422,6 +1472,7 @@ export interface LaborTypeFieldRefs {
   readonly tenantId: Prisma.FieldRef<"LaborType", 'String'>
   readonly name: Prisma.FieldRef<"LaborType", 'String'>
   readonly description: Prisma.FieldRef<"LaborType", 'String'>
+  readonly kind: Prisma.FieldRef<"LaborType", 'LaborKind'>
   readonly createdAt: Prisma.FieldRef<"LaborType", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"LaborType", 'DateTime'>
   readonly version: Prisma.FieldRef<"LaborType", 'Int'>

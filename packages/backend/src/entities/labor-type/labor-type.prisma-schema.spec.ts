@@ -25,4 +25,26 @@ describe('Labor type Prisma schema and generated client', () => {
     expect(laborTypeGenerated).toContain('LaborTypeTenantIdNameCompoundUniqueInput');
     expect(tenantGenerated).toContain('laborTypes?: Prisma.LaborTypeCreateNestedManyWithoutTenantInput');
   });
+
+  it('declares the labor kind vocabulary and its default in the Prisma schema', () => {
+    const schema = readFileSync(schemaPath, 'utf8').replace(/\s+/g, ' ');
+
+    expect(schema).toContain('enum LaborKind {');
+    expect(schema).toContain('kind LaborKind @default(OTRO)');
+    for (const member of ['SIEMBRA', 'PULVERIZACION', 'FERTILIZACION', 'COSECHA', 'OTRO']) {
+      expect(schema).toContain(member);
+    }
+  });
+
+  it('exposes the labor kind in the generated Prisma client', () => {
+    const generatedEnums = readFileSync(
+      join(process.cwd(), 'prisma', 'generated', 'enums.ts'),
+      'utf8',
+    );
+    const laborTypeGenerated = readFileSync(laborTypeGeneratedPath, 'utf8');
+
+    expect(generatedEnums).toContain('LaborKind');
+    expect(generatedEnums).toContain('SIEMBRA');
+    expect(laborTypeGenerated).toContain('kind');
+  });
 });

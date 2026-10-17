@@ -1,6 +1,11 @@
 import { DuplicateEntityError, EntityNotFoundError } from '../../domain/errors';
+import { assertLaborKind } from '../../domain/labor-kind';
 import { TaskReaderPort, LaborTypeRepositoryPort } from '../labor-type.ports';
-import { LaborTypeRecord, UpdateLaborTypeInput } from '../labor-type.types';
+import {
+  LaborTypeRecord,
+  UpdateLaborTypeData,
+  UpdateLaborTypeInput,
+} from '../labor-type.types';
 import { assertNonEmptyObject, normalizeOptionalString } from '../labor-type.validation';
 
 export class UpdateLaborTypeUseCase {
@@ -17,7 +22,7 @@ export class UpdateLaborTypeUseCase {
       throw new EntityNotFoundError(`Labor type with id ${id} not found`);
     }
 
-    const data: UpdateLaborTypeInput = {};
+    const data: UpdateLaborTypeData = {};
 
     if ('name' in payload) {
       data.name = normalizeOptionalString(payload.name, 'name');
@@ -25,6 +30,10 @@ export class UpdateLaborTypeUseCase {
 
     if ('description' in payload) {
       data.description = normalizeOptionalString(payload.description, 'description');
+    }
+
+    if ('kind' in payload) {
+      data.kind = assertLaborKind(payload.kind);
     }
 
     if ('taskIds' in payload) {

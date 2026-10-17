@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { ToastProvider, Toaster } from "@/components/ui/feedback";
 import "./globals.css";
+// Leaflet ships its own stylesheet and there is no scoped variant of it, so it is a
+// global import. It must land after the app's globals for the theme to win.
+import "leaflet/dist/leaflet.css";
 
 const inter = Inter({
   variable: "--font-inter",
