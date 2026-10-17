@@ -54,6 +54,7 @@ export class PrismaLaborTypeRepository implements LaborTypeRepositoryPort {
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.kind !== undefined ? { kind: data.kind } : {}),
         ...(data.taskIds !== undefined
           ? { tasks: { set: data.taskIds.map((taskId) => ({ id: taskId })) } }
           : {}),

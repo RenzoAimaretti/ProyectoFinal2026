@@ -1,6 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
+  HttpCode,
+  HttpStatus,
   Get,
   Param,
   Put,
@@ -54,6 +57,14 @@ export class LotController {
       ...(data.polygon !== undefined ? { polygon: data.polygon } : {}),
       area: data.area,
     });
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR')
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  delete(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.service.delete(id, req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
