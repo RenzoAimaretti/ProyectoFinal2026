@@ -1,4 +1,5 @@
 import type { GeoJsonPolygon } from '../domain/lot-polygon';
+import type { LotState } from '../domain/lot-state';
 
 export type LotRecord = {
   id: string;
@@ -39,3 +40,6 @@ export type UpdateLotInput = {
   active?: boolean;
   companyId?: string;
 };
+
+/** A read projection. The state is derived from history, never stored. */
+export type LotWithState = LotRecord & { state: LotState };

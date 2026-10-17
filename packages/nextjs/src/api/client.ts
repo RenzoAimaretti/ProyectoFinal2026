@@ -303,13 +303,20 @@ export type FarmDTO = {
   surface: number;
 };
 
+import type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
+
+export type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
+
 export type LotDTO = {
   id: string;
   farmId: string;
   name: string;
   coords: string | null;
+  /** GeoJSON polygon, or null until the lot has been delimited. */
+  polygon: GeoJsonPolygon | null;
   area: number;
   active: boolean;
+  state: LotState;
 };
 
 /**
