@@ -781,6 +781,7 @@ export type MachineActivityDTO = {
   date: string;
   liters: number | null;
   receipt: string | null;
+  hasReceipt?: boolean;
   cost: number | null;
   spareParts: string | null;
   usageHours: number | null;
@@ -812,6 +813,23 @@ export function createMachineActivity(
   body: CreateMachineActivityBody,
 ): Promise<MachineActivityDTO> {
   return apiPost<MachineActivityDTO>("/machine-activities", body);
+}
+
+export function attachFuelReceipt(activityId: string, dataUrl: string): Promise<{ attached: true }> {
+  return apiPost(`/machine-activities/${encodeURIComponent(activityId)}/receipt`, { dataUrl });
+}
+
+/** Downloads protected bytes with the same bearer token as the JSON API. */
+export async function downloadFuelReceipt(activityId: string): Promise<Blob> {
+  const path = `/machine-activities/${encodeURIComponent(activityId)}/receipt`;
+  const token = getToken();
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    cache: "no-store",
+  });
+  if (res.status === 401) handleUnauthorized();
+  if (!res.ok) throw new ApiError(res.status, `GET ${path} -> ${res.status}`, await parseBody(res));
+  return res.blob();
 }
 
 /* ------------------------------------------------------------------ */

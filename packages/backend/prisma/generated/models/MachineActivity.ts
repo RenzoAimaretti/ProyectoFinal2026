@@ -49,6 +49,8 @@ export type MachineActivityMinAggregateOutputType = {
   date: Date | null
   liters: number | null
   receipt: string | null
+  receiptFileKey: string | null
+  receiptMimeType: string | null
   cost: number | null
   spareParts: string | null
   usageHours: number | null
@@ -67,6 +69,8 @@ export type MachineActivityMaxAggregateOutputType = {
   date: Date | null
   liters: number | null
   receipt: string | null
+  receiptFileKey: string | null
+  receiptMimeType: string | null
   cost: number | null
   spareParts: string | null
   usageHours: number | null
@@ -85,6 +89,8 @@ export type MachineActivityCountAggregateOutputType = {
   date: number
   liters: number
   receipt: number
+  receiptFileKey: number
+  receiptMimeType: number
   cost: number
   spareParts: number
   usageHours: number
@@ -119,6 +125,8 @@ export type MachineActivityMinAggregateInputType = {
   date?: true
   liters?: true
   receipt?: true
+  receiptFileKey?: true
+  receiptMimeType?: true
   cost?: true
   spareParts?: true
   usageHours?: true
@@ -137,6 +145,8 @@ export type MachineActivityMaxAggregateInputType = {
   date?: true
   liters?: true
   receipt?: true
+  receiptFileKey?: true
+  receiptMimeType?: true
   cost?: true
   spareParts?: true
   usageHours?: true
@@ -155,6 +165,8 @@ export type MachineActivityCountAggregateInputType = {
   date?: true
   liters?: true
   receipt?: true
+  receiptFileKey?: true
+  receiptMimeType?: true
   cost?: true
   spareParts?: true
   usageHours?: true
@@ -260,6 +272,8 @@ export type MachineActivityGroupByOutputType = {
   date: Date
   liters: number | null
   receipt: string | null
+  receiptFileKey: string | null
+  receiptMimeType: string | null
   cost: number | null
   spareParts: string | null
   usageHours: number | null
@@ -301,6 +315,8 @@ export type MachineActivityWhereInput = {
   date?: Prisma.DateTimeFilter<"MachineActivity"> | Date | string
   liters?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   receipt?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
+  receiptFileKey?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
+  receiptMimeType?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   cost?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   spareParts?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   usageHours?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
@@ -321,6 +337,8 @@ export type MachineActivityOrderByWithRelationInput = {
   date?: Prisma.SortOrder
   liters?: Prisma.SortOrderInput | Prisma.SortOrder
   receipt?: Prisma.SortOrderInput | Prisma.SortOrder
+  receiptFileKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  receiptMimeType?: Prisma.SortOrderInput | Prisma.SortOrder
   cost?: Prisma.SortOrderInput | Prisma.SortOrder
   spareParts?: Prisma.SortOrderInput | Prisma.SortOrder
   usageHours?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -334,6 +352,7 @@ export type MachineActivityOrderByWithRelationInput = {
 
 export type MachineActivityWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  receiptFileKey?: string
   AND?: Prisma.MachineActivityWhereInput | Prisma.MachineActivityWhereInput[]
   OR?: Prisma.MachineActivityWhereInput[]
   NOT?: Prisma.MachineActivityWhereInput | Prisma.MachineActivityWhereInput[]
@@ -344,6 +363,7 @@ export type MachineActivityWhereUniqueInput = Prisma.AtLeast<{
   date?: Prisma.DateTimeFilter<"MachineActivity"> | Date | string
   liters?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   receipt?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
+  receiptMimeType?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   cost?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   spareParts?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   usageHours?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
@@ -353,7 +373,7 @@ export type MachineActivityWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"MachineActivity"> | Date | string
   machine?: Prisma.XOR<Prisma.MachineScalarRelationFilter, Prisma.MachineWhereInput>
   company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
-}, "id">
+}, "id" | "receiptFileKey">
 
 export type MachineActivityOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -364,6 +384,8 @@ export type MachineActivityOrderByWithAggregationInput = {
   date?: Prisma.SortOrder
   liters?: Prisma.SortOrderInput | Prisma.SortOrder
   receipt?: Prisma.SortOrderInput | Prisma.SortOrder
+  receiptFileKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  receiptMimeType?: Prisma.SortOrderInput | Prisma.SortOrder
   cost?: Prisma.SortOrderInput | Prisma.SortOrder
   spareParts?: Prisma.SortOrderInput | Prisma.SortOrder
   usageHours?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -390,6 +412,8 @@ export type MachineActivityScalarWhereWithAggregatesInput = {
   date?: Prisma.DateTimeWithAggregatesFilter<"MachineActivity"> | Date | string
   liters?: Prisma.FloatNullableWithAggregatesFilter<"MachineActivity"> | number | null
   receipt?: Prisma.StringNullableWithAggregatesFilter<"MachineActivity"> | string | null
+  receiptFileKey?: Prisma.StringNullableWithAggregatesFilter<"MachineActivity"> | string | null
+  receiptMimeType?: Prisma.StringNullableWithAggregatesFilter<"MachineActivity"> | string | null
   cost?: Prisma.FloatNullableWithAggregatesFilter<"MachineActivity"> | number | null
   spareParts?: Prisma.StringNullableWithAggregatesFilter<"MachineActivity"> | string | null
   usageHours?: Prisma.FloatNullableWithAggregatesFilter<"MachineActivity"> | number | null
@@ -406,6 +430,8 @@ export type MachineActivityCreateInput = {
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -426,6 +452,8 @@ export type MachineActivityUncheckedCreateInput = {
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -442,6 +470,8 @@ export type MachineActivityUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -462,6 +492,8 @@ export type MachineActivityUncheckedUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -480,6 +512,8 @@ export type MachineActivityCreateManyInput = {
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -496,6 +530,8 @@ export type MachineActivityUpdateManyMutationInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -514,6 +550,8 @@ export type MachineActivityUncheckedUpdateManyInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -542,6 +580,8 @@ export type MachineActivityCountOrderByAggregateInput = {
   date?: Prisma.SortOrder
   liters?: Prisma.SortOrder
   receipt?: Prisma.SortOrder
+  receiptFileKey?: Prisma.SortOrder
+  receiptMimeType?: Prisma.SortOrder
   cost?: Prisma.SortOrder
   spareParts?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
@@ -567,6 +607,8 @@ export type MachineActivityMaxOrderByAggregateInput = {
   date?: Prisma.SortOrder
   liters?: Prisma.SortOrder
   receipt?: Prisma.SortOrder
+  receiptFileKey?: Prisma.SortOrder
+  receiptMimeType?: Prisma.SortOrder
   cost?: Prisma.SortOrder
   spareParts?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
@@ -585,6 +627,8 @@ export type MachineActivityMinOrderByAggregateInput = {
   date?: Prisma.SortOrder
   liters?: Prisma.SortOrder
   receipt?: Prisma.SortOrder
+  receiptFileKey?: Prisma.SortOrder
+  receiptMimeType?: Prisma.SortOrder
   cost?: Prisma.SortOrder
   spareParts?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
@@ -700,6 +744,8 @@ export type MachineActivityCreateWithoutCompanyInput = {
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -718,6 +764,8 @@ export type MachineActivityUncheckedCreateWithoutCompanyInput = {
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -765,6 +813,8 @@ export type MachineActivityScalarWhereInput = {
   date?: Prisma.DateTimeFilter<"MachineActivity"> | Date | string
   liters?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   receipt?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
+  receiptFileKey?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
+  receiptMimeType?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   cost?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   spareParts?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   usageHours?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
@@ -781,6 +831,8 @@ export type MachineActivityCreateWithoutMachineInput = {
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -799,6 +851,8 @@ export type MachineActivityUncheckedCreateWithoutMachineInput = {
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -842,6 +896,8 @@ export type MachineActivityCreateManyCompanyInput = {
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -858,6 +914,8 @@ export type MachineActivityUpdateWithoutCompanyInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -876,6 +934,8 @@ export type MachineActivityUncheckedUpdateWithoutCompanyInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -893,6 +953,8 @@ export type MachineActivityUncheckedUpdateManyWithoutCompanyInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -910,6 +972,8 @@ export type MachineActivityCreateManyMachineInput = {
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -926,6 +990,8 @@ export type MachineActivityUpdateWithoutMachineInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -944,6 +1010,8 @@ export type MachineActivityUncheckedUpdateWithoutMachineInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -961,6 +1029,8 @@ export type MachineActivityUncheckedUpdateManyWithoutMachineInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -981,6 +1051,8 @@ export type MachineActivitySelect<ExtArgs extends runtime.Types.Extensions.Inter
   date?: boolean
   liters?: boolean
   receipt?: boolean
+  receiptFileKey?: boolean
+  receiptMimeType?: boolean
   cost?: boolean
   spareParts?: boolean
   usageHours?: boolean
@@ -1001,6 +1073,8 @@ export type MachineActivitySelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   date?: boolean
   liters?: boolean
   receipt?: boolean
+  receiptFileKey?: boolean
+  receiptMimeType?: boolean
   cost?: boolean
   spareParts?: boolean
   usageHours?: boolean
@@ -1021,6 +1095,8 @@ export type MachineActivitySelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   date?: boolean
   liters?: boolean
   receipt?: boolean
+  receiptFileKey?: boolean
+  receiptMimeType?: boolean
   cost?: boolean
   spareParts?: boolean
   usageHours?: boolean
@@ -1041,6 +1117,8 @@ export type MachineActivitySelectScalar = {
   date?: boolean
   liters?: boolean
   receipt?: boolean
+  receiptFileKey?: boolean
+  receiptMimeType?: boolean
   cost?: boolean
   spareParts?: boolean
   usageHours?: boolean
@@ -1050,7 +1128,7 @@ export type MachineActivitySelectScalar = {
   updatedAt?: boolean
 }
 
-export type MachineActivityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "machineId" | "companyId" | "type" | "fuelMovement" | "date" | "liters" | "receipt" | "cost" | "spareParts" | "usageHours" | "hectares" | "observations" | "createdAt" | "updatedAt", ExtArgs["result"]["machineActivity"]>
+export type MachineActivityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "machineId" | "companyId" | "type" | "fuelMovement" | "date" | "liters" | "receipt" | "receiptFileKey" | "receiptMimeType" | "cost" | "spareParts" | "usageHours" | "hectares" | "observations" | "createdAt" | "updatedAt", ExtArgs["result"]["machineActivity"]>
 export type MachineActivityInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
@@ -1079,6 +1157,8 @@ export type $MachineActivityPayload<ExtArgs extends runtime.Types.Extensions.Int
     date: Date
     liters: number | null
     receipt: string | null
+    receiptFileKey: string | null
+    receiptMimeType: string | null
     cost: number | null
     spareParts: string | null
     usageHours: number | null
@@ -1519,6 +1599,8 @@ export interface MachineActivityFieldRefs {
   readonly date: Prisma.FieldRef<"MachineActivity", 'DateTime'>
   readonly liters: Prisma.FieldRef<"MachineActivity", 'Float'>
   readonly receipt: Prisma.FieldRef<"MachineActivity", 'String'>
+  readonly receiptFileKey: Prisma.FieldRef<"MachineActivity", 'String'>
+  readonly receiptMimeType: Prisma.FieldRef<"MachineActivity", 'String'>
   readonly cost: Prisma.FieldRef<"MachineActivity", 'Float'>
   readonly spareParts: Prisma.FieldRef<"MachineActivity", 'String'>
   readonly usageHours: Prisma.FieldRef<"MachineActivity", 'Float'>

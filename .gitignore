@@ -7,3 +7,6 @@
 
 # Uploaded files
 uploads/
+# Private receipts never served from /uploads
+.private-receipts/
+.private-receipts-test-*/

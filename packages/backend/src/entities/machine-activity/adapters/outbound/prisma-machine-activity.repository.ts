@@ -17,6 +17,7 @@ type MachineActivityRow = {
   date: Date;
   liters: number | null;
   receipt: string | null;
+  receiptFileKey?: string | null;
   cost: number | null;
   spareParts: string | null;
   usageHours: number | null;
@@ -77,6 +78,23 @@ export class PrismaMachineActivityRepository
     );
   }
 
+  async attachReceiptIfAbsent(id: string, companyId: string, key: string, mimeType: string): Promise<boolean> {
+    const result = await this.prisma.machineActivity.updateMany({
+      where: { id, companyId, type: 'COMBUSTIBLE', receiptFileKey: null },
+      data: { receiptFileKey: key, receiptMimeType: mimeType },
+    });
+    return result.count === 1;
+  }
+
+  async findReceiptForCompany(id: string, companyId: string): Promise<{ key: string; mimeType: string } | null> {
+    const activity = await this.prisma.machineActivity.findFirst({
+      where: { id, companyId, type: 'COMBUSTIBLE' },
+      select: { receiptFileKey: true, receiptMimeType: true },
+    });
+    if (!activity?.receiptFileKey || !activity.receiptMimeType) return null;
+    return { key: activity.receiptFileKey, mimeType: activity.receiptMimeType };
+  }
+
   private toMachineActivityRecord(
     activity: MachineActivityRow,
   ): MachineActivityRecord {
@@ -89,6 +107,7 @@ export class PrismaMachineActivityRepository
       date: activity.date,
       liters: activity.liters,
       receipt: activity.receipt,
+      hasReceipt: Boolean(activity.receiptFileKey),
       cost: activity.cost,
       spareParts: activity.spareParts,
       usageHours: activity.usageHours,

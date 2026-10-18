@@ -51,6 +51,8 @@ function createRepository(): jest.Mocked<MachineActivityRepositoryPort> {
     create: jest.fn(),
     findByIdForCompany: jest.fn(),
     findAllByCompany: jest.fn(),
+    attachReceiptIfAbsent: jest.fn(),
+    findReceiptForCompany: jest.fn(),
   };
 }
 

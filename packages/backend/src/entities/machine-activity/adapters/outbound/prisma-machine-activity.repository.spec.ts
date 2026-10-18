@@ -30,6 +30,7 @@ const expectedRecord: MachineActivityRecord = {
   date: new Date('2026-03-09T00:00:00.000Z'),
   liters: 120,
   receipt: 'A-0001',
+  hasReceipt: false,
   cost: null,
   spareParts: null,
   usageHours: null,
@@ -45,6 +46,7 @@ describe('PrismaMachineActivityRepository', () => {
       create: jest.fn(),
       findFirst: jest.fn(),
       findMany: jest.fn(),
+      updateMany: jest.fn(),
     },
   };
 
@@ -118,6 +120,30 @@ describe('PrismaMachineActivityRepository', () => {
       where: { companyId: 'company-1' },
       orderBy: [{ date: 'desc' }, { id: 'asc' }],
     });
+  });
+
+  it('attaches a receipt once with a conditional company and type scoped update', async () => {
+    prisma.machineActivity.updateMany.mockResolvedValue({ count: 1 });
+    await expect(repository.attachReceiptIfAbsent('activity-1', 'company-1', 'key-1', 'application/pdf')).resolves.toBe(true);
+    expect(prisma.machineActivity.updateMany).toHaveBeenCalledWith({
+      where: { id: 'activity-1', companyId: 'company-1', type: 'COMBUSTIBLE', receiptFileKey: null },
+      data: { receiptFileKey: 'key-1', receiptMimeType: 'application/pdf' },
+    });
+    prisma.machineActivity.updateMany.mockResolvedValue({ count: 0 });
+    await expect(repository.attachReceiptIfAbsent('activity-1', 'company-2', 'key-2', 'application/pdf')).resolves.toBe(false);
+  });
+
+  it('loads only scoped fuel receipt metadata and never exposes the file key on activity reads', async () => {
+    prisma.machineActivity.findFirst.mockResolvedValue({ receiptFileKey: 'key-1', receiptMimeType: 'application/pdf' });
+    await expect(repository.findReceiptForCompany('activity-1', 'company-1')).resolves.toEqual({ key: 'key-1', mimeType: 'application/pdf' });
+    expect(prisma.machineActivity.findFirst).toHaveBeenCalledWith({
+      where: { id: 'activity-1', companyId: 'company-1', type: 'COMBUSTIBLE' },
+      select: { receiptFileKey: true, receiptMimeType: true },
+    });
+    prisma.machineActivity.findFirst.mockResolvedValue({ ...persistedActivity, receiptFileKey: 'key-1' });
+    const row = await repository.findByIdForCompany('activity-1', 'company-1');
+    expect(row).toEqual(expect.objectContaining({ hasReceipt: true }));
+    expect(row).not.toHaveProperty('receiptFileKey');
   });
 
   it('returns an empty list when the company has no activity', async () => {

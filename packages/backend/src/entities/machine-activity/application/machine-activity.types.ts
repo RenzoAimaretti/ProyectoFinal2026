@@ -10,6 +10,7 @@ export type MachineActivityRecord = {
   date: Date;
   liters: number | null;
   receipt: string | null;
+  hasReceipt?: boolean;
   cost: number | null;
   spareParts: string | null;
   usageHours: number | null;

@@ -440,6 +440,8 @@ export const MachineActivityScalarFieldEnum = {
   date: 'date',
   liters: 'liters',
   receipt: 'receipt',
+  receiptFileKey: 'receiptFileKey',
+  receiptMimeType: 'receiptMimeType',
   cost: 'cost',
   spareParts: 'spareParts',
   usageHours: 'usageHours',
