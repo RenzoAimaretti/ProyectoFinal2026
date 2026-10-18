@@ -13,14 +13,15 @@ describe('Task-linked machine usage (HTTP)', () => {
   let usage: Record<string, unknown> | null;
   const repository = {
     create: jest.fn(async (data: Record<string, unknown>) => {
-      usage = { id: 'usage-a', ...data };
+      usage = { id: 'usage-a', initialFuel: null, usageHours: null, hectares: null, ...data };
+      if (usage.initialFuel === undefined) usage.initialFuel = null;
       return usage;
     }),
     updateForCompany: jest.fn(async (_id: string, _company: string, data: Record<string, unknown>) => {
       usage = { ...usage, ...data };
       return usage;
     }),
-    findByIdForCompany: jest.fn(async (_id: string, company: string) => company === 'company-a' ? usage : null),
+    findByIdForCompany: jest.fn(async (id: string, company: string) => company === 'company-a' && usage?.id === id ? usage : null),
     findAllByCompanyId: jest.fn(async (company: string) => company === 'company-a' && usage ? [usage] : []),
   };
   const activityRepository = {
@@ -47,7 +48,7 @@ describe('Task-linked machine usage (HTTP)', () => {
         canActivate: (context: { switchToHttp: () => { getRequest: () => { headers: Record<string, string>; user?: unknown } } }) => {
           const req = context.switchToHttp().getRequest();
           if (req.headers.authorization !== 'Bearer isolated-test') throw new UnauthorizedException();
-          req.user = { firmaId: req.headers['x-test-company'], role: 'ADMIN' };
+          req.user = { firmaId: req.headers['x-test-company'], role: req.headers['x-test-role'] ?? 'ADMIN', id: req.headers['x-test-user'] ?? 'admin-a' };
           return true;
         },
       }).compile();
@@ -56,6 +57,31 @@ describe('Task-linked machine usage (HTTP)', () => {
   });
   beforeEach(() => { usage = null; jest.clearAllMocks(); });
   afterAll(async () => { await app?.close(); });
+
+  it('allows only an assigned OPERARIO to submit their own usage; rejects forged operators without writes', async () => {
+    const server = app.getHttpServer();
+    const operator = { ...asCompany(), 'x-test-role': 'OPERARIO', 'x-test-user': 'operator-a' };
+    const input = { machineId: 'machine-a', taskId: 'task-a', operatorId: 'operator-a', usageHours: 2, hectares: 7 };
+    await request(server).post('/machine-usages').set({ ...operator, 'x-test-user': 'other-operator' }).send(input).expect(403);
+    await request(server).post('/machine-usages').set(operator).send({ ...input, operatorId: 'other-operator' }).expect(403);
+    expect(repository.create).not.toHaveBeenCalled();
+    await request(server).post('/machine-usages').set(operator).send(input).expect(201);
+    expect(repository.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the same usage for a repeated client ID and rejects a changed payload without writing', async () => {
+    const server = app.getHttpServer();
+    const id = '41340853-9aa7-464c-98e7-6ea5d03faec1';
+    const input = { id, machineId: 'machine-a', taskId: 'task-a', operatorId: 'operator-a', usageHours: 2, hectares: 7 };
+    const first = await request(server).post('/machine-usages').set(asCompany()).send(input).expect(201);
+    const retry = await request(server).post('/machine-usages').set(asCompany()).send(input).expect(201);
+    expect(retry.body.id).toBe(first.body.id);
+    await request(server).post('/machine-usages').set(asCompany()).send({ ...input, id: id.toUpperCase() }).expect(201);
+    expect(repository.create).toHaveBeenCalledTimes(1);
+    await request(server).post('/machine-usages').set(asCompany()).send({ ...input, usageHours: 3 }).expect(409);
+    await request(server).post('/machine-usages').set(asCompany()).send({ ...input, id: 'not-a-uuid' }).expect(400);
+    expect(repository.create).toHaveBeenCalledTimes(1);
+  });
 
   it('accepts scoped task metrics and keeps independent historical activity read-only', async () => {
     const server = app.getHttpServer();

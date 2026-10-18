@@ -2945,6 +2945,7 @@ export const MachineUsageScalarFieldEnum = {
   usageHours: 'usageHours',
   hectares: 'hectares',
   observations: 'observations',
+  operatorId: 'operatorId',
   createdAt: 'createdAt'
 } as const
 

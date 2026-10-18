@@ -1,3 +1,5 @@
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { DuplicateUsageIdError } from '../../domain/errors';
 import { PrismaMachineUsageRepository } from './prisma-machine-usage.repository';
 
 describe('PrismaMachineUsageRepository', () => {
@@ -46,6 +48,13 @@ describe('PrismaMachineUsageRepository', () => {
     prisma.machineUsage.create.mockResolvedValue({ id: 'usage-1', hectares: 7 });
     await expect(repository.create({ machineId: 'machine-1', taskId: 'task-1', usageHours: 2, hectares: 7 })).resolves.toEqual({ id: 'usage-1', hectares: 7 });
     expect(prisma.machineUsage.create).toHaveBeenCalledWith({ data: { machineId: 'machine-1', taskId: 'task-1', usageHours: 2, hectares: 7 } });
+  });
+
+  it('maps a duplicate client ID to a domain conflict while preserving the first row', async () => {
+    const duplicate = new PrismaClientKnownRequestError('Unique constraint failed', { code: 'P2002', clientVersion: '7.8.0' });
+    prisma.machineUsage.create.mockRejectedValue(duplicate);
+    await expect(repository.create({ id: '41340853-9aa7-464c-98e7-6ea5d03faec1', machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1' })).rejects.toBeInstanceOf(DuplicateUsageIdError);
+    expect(prisma.machineUsage.create).toHaveBeenCalledTimes(1);
   });
 
   it('writes updates after validating the company-scoped machine usage', async () => {

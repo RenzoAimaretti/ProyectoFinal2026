@@ -66,13 +66,18 @@ describe('MachineUsageController', () => {
     }
   });
 
+  it('allows OPERARIO create but keeps update limited to ADMIN/SUPERVISOR', () => {
+    expect(Reflect.getMetadata(ROLES_KEY, MachineUsageController.prototype.create)).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO']);
+    expect(Reflect.getMetadata(ROLES_KEY, MachineUsageController.prototype.update)).toEqual(['ADMIN', 'SUPERVISOR']);
+  });
+
   it('delegates tenant-scoped requests using req.user.firmaId', async () => {
     service.findAll.mockResolvedValue([{ id: 'usage-1' }]);
     service.findOne.mockResolvedValue({ id: 'usage-1' });
     service.create.mockResolvedValue({ id: 'usage-2' });
     service.update.mockResolvedValue({ id: 'usage-1', finalFuel: 8 });
 
-    const req = { user: { firmaId: 'company-1' } };
+    const req = { user: { firmaId: 'company-1', id: 'admin-1', role: 'ADMIN' } };
 
     await expect((controller as any).findAll(req)).resolves.toEqual([{ id: 'usage-1' }]);
     await expect((controller as any).findOne('usage-1', req)).resolves.toEqual({ id: 'usage-1' });
@@ -95,7 +100,7 @@ describe('MachineUsageController', () => {
       taskId: 'task-1',
       operatorId: 'user-1',
       intialFuel: 12,
-    });
+    }, req.user);
     expect(service.update).toHaveBeenCalledWith('usage-1', 'company-1', {
       initialFuel: 11,
       finalFuel: 8,

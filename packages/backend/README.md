@@ -23,7 +23,7 @@
 
 ## Task-linked machine usage
 
-All new field usage belongs to a task: `POST /machine-usages` accepts optional positive `usageHours` and `hectares` along with its existing machine, task and operator identifiers; `PUT /machine-usages/:id` may record or correct either positive measurement within the active company. `POST /machine-activities` no longer accepts `USO_CAMPO` (400). Historical `USO_CAMPO` rows remain readable and unchanged; do not sum them with task-linked usage because the same work may have been recorded twice.
+All new field usage belongs to a task: `POST /machine-usages` accepts optional positive `usageHours` and `hectares` along with its existing machine, task and operator identifiers. Offline clients may include a stable UUID `id`: repeating the same ID and payload within the company returns the existing usage (201), while reusing it with changed values returns 409; malformed IDs return 400. `OPERARIO` may create only their own assigned-task usage; ADMIN/SUPERVISOR retain existing creation and update permissions, and only those roles may use `PUT /machine-usages/:id` to correct either positive measurement within the active company. `POST /machine-activities` no longer accepts `USO_CAMPO` (400). Historical `USO_CAMPO` rows remain readable and unchanged; do not sum them with task-linked usage because the same work may have been recorded twice.
 
 ## Machine fuel activity API
 

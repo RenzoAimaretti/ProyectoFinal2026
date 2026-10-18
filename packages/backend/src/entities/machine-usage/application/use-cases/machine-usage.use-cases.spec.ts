@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { EntityNotFoundError, InvalidInputError, InvalidRelationError } from '../../domain/errors';
+import { DuplicateUsageIdError, EntityNotFoundError, InvalidInputError, InvalidRelationError } from '../../domain/errors';
 import { CreateMachineUsageInput, MachineStatusValue, UpdateMachineUsageInput } from '../machine-usage.types';
 import { CreateMachineUsageUseCase } from './create-machine-usage.use-case';
 import { FindAllMachineUsagesUseCase } from './find-all-machine-usages.use-case';
@@ -16,6 +16,7 @@ const baseMachineUsage = {
   usageHours: 2,
   hectares: null,
   observations: 'ok',
+  operatorId: null,
   createdAt: new Date('2026-01-11T00:00:00.000Z'),
 };
 
@@ -200,7 +201,7 @@ describe('Machine usage use cases', () => {
       await useCase.execute('company-1', {
         machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', usageHours: 2, hectares: 7,
       });
-      expect(repository.create).toHaveBeenCalledWith({ machineId: 'machine-1', taskId: 'task-1', initialFuel: undefined, usageHours: 2, hectares: 7 });
+      expect(repository.create).toHaveBeenCalledWith({ machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', initialFuel: undefined, usageHours: 2, hectares: 7 });
       repository.create.mockClear();
       await expect(useCase.execute('company-1', {
         machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', hectares: -1,
@@ -235,8 +236,45 @@ describe('Machine usage use cases', () => {
       expect(repository.create).toHaveBeenCalledWith({
         machineId: 'machine-1',
         taskId: 'task-1',
+        operatorId: 'user-1',
         initialFuel: 12,
       });
+    });
+  });
+
+  describe('Idempotent task usage', () => {
+    const id = '41340853-9aa7-464c-98e7-6ea5d03faec1';
+    const input = { id, machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', usageHours: 2 };
+    const existing = { ...baseMachineUsage, id, operatorId: 'user-1', initialFuel: null, usageHours: 2 };
+    const setup = () => {
+      const { repository, machineReader, taskReader, userReader } = createPorts();
+      machineReader.findByIdForCompany.mockResolvedValue({ id: 'machine-1', status: 'ACTIVA' });
+      taskReader.findByIdWithOperatorsForCompany.mockResolvedValue({ id: 'task-1', operators: [{ id: 'user-1' }] });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1' });
+      return { repository, useCase: new CreateMachineUsageUseCase(repository, machineReader, taskReader, userReader) };
+    };
+
+    it('rejects another operator identity before reading or writing anything', async () => {
+      const { repository, useCase } = setup();
+      await expect(useCase.execute('company-1', input, { id: 'other-user', role: 'OPERARIO' })).rejects.toBeInstanceOf(InvalidRelationError);
+      expect(repository.findByIdForCompany).not.toHaveBeenCalled();
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('returns a verified retry without another write and rejects a changed payload', async () => {
+      const { repository, useCase } = setup();
+      repository.findByIdForCompany.mockResolvedValue(existing);
+      await expect(useCase.execute('company-1', input, { id: 'user-1', role: 'OPERARIO' })).resolves.toEqual(existing);
+      await expect(useCase.execute('company-1', { ...input, usageHours: 3 })).rejects.toThrow('Usage ID already exists with different data');
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('reconciles a simultaneous duplicate after the unique ID constraint without duplicating', async () => {
+      const { repository, useCase } = setup();
+      repository.findByIdForCompany.mockResolvedValueOnce(null).mockResolvedValueOnce(existing);
+      repository.create.mockRejectedValue(new DuplicateUsageIdError());
+      await expect(useCase.execute('company-1', input)).resolves.toEqual(existing);
+      expect(repository.create).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -480,6 +480,7 @@ model MachineUsage {
   usageHours   Float?
   hectares     Float?
   observations String?
+  operatorId   String?
   createdAt    DateTime @default(now())
 
   machine Machine @relation(fields: [machineId], references: [id])
