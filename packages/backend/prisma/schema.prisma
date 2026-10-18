@@ -478,6 +478,7 @@ model MachineUsage {
   initialFuel  Float?
   finalFuel    Float?
   usageHours   Float?
+  hectares     Float?
   observations String?
   createdAt    DateTime @default(now())
 

@@ -2943,6 +2943,7 @@ export const MachineUsageScalarFieldEnum = {
   initialFuel: 'initialFuel',
   finalFuel: 'finalFuel',
   usageHours: 'usageHours',
+  hectares: 'hectares',
   observations: 'observations',
   createdAt: 'createdAt'
 } as const

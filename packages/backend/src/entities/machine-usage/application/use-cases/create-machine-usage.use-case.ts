@@ -6,7 +6,7 @@ import {
   UserReaderPort,
 } from '../machine-usage.ports';
 import { CreateMachineUsageInput, MachineUsageRecord } from '../machine-usage.types';
-import { assertRequiredString } from '../machine-usage.validation';
+import { assertOptionalPositiveNumber, assertRequiredString } from '../machine-usage.validation';
 
 export class CreateMachineUsageUseCase {
   constructor(
@@ -20,6 +20,8 @@ export class CreateMachineUsageUseCase {
     const machineId = assertRequiredString(input?.machineId, 'machineId');
     const taskId = assertRequiredString(input?.taskId, 'taskId');
     const operatorId = assertRequiredString(input?.operatorId, 'operatorId');
+    const usageHours = assertOptionalPositiveNumber(input?.usageHours, 'usageHours');
+    const hectares = assertOptionalPositiveNumber(input?.hectares, 'hectares');
 
     const machine = await this.machineReader.findByIdForCompany(machineId, companyId);
     if (!machine) {
@@ -60,6 +62,8 @@ export class CreateMachineUsageUseCase {
       machineId,
       taskId,
       initialFuel: input?.intialFuel,
+      ...(usageHours !== undefined ? { usageHours } : {}),
+      ...(hectares !== undefined ? { hectares } : {}),
     });
   }
 }

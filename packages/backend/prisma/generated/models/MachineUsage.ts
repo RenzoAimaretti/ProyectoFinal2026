@@ -30,12 +30,14 @@ export type MachineUsageAvgAggregateOutputType = {
   initialFuel: number | null
   finalFuel: number | null
   usageHours: number | null
+  hectares: number | null
 }
 
 export type MachineUsageSumAggregateOutputType = {
   initialFuel: number | null
   finalFuel: number | null
   usageHours: number | null
+  hectares: number | null
 }
 
 export type MachineUsageMinAggregateOutputType = {
@@ -45,6 +47,7 @@ export type MachineUsageMinAggregateOutputType = {
   initialFuel: number | null
   finalFuel: number | null
   usageHours: number | null
+  hectares: number | null
   observations: string | null
   createdAt: Date | null
 }
@@ -56,6 +59,7 @@ export type MachineUsageMaxAggregateOutputType = {
   initialFuel: number | null
   finalFuel: number | null
   usageHours: number | null
+  hectares: number | null
   observations: string | null
   createdAt: Date | null
 }
@@ -67,6 +71,7 @@ export type MachineUsageCountAggregateOutputType = {
   initialFuel: number
   finalFuel: number
   usageHours: number
+  hectares: number
   observations: number
   createdAt: number
   _all: number
@@ -77,12 +82,14 @@ export type MachineUsageAvgAggregateInputType = {
   initialFuel?: true
   finalFuel?: true
   usageHours?: true
+  hectares?: true
 }
 
 export type MachineUsageSumAggregateInputType = {
   initialFuel?: true
   finalFuel?: true
   usageHours?: true
+  hectares?: true
 }
 
 export type MachineUsageMinAggregateInputType = {
@@ -92,6 +99,7 @@ export type MachineUsageMinAggregateInputType = {
   initialFuel?: true
   finalFuel?: true
   usageHours?: true
+  hectares?: true
   observations?: true
   createdAt?: true
 }
@@ -103,6 +111,7 @@ export type MachineUsageMaxAggregateInputType = {
   initialFuel?: true
   finalFuel?: true
   usageHours?: true
+  hectares?: true
   observations?: true
   createdAt?: true
 }
@@ -114,6 +123,7 @@ export type MachineUsageCountAggregateInputType = {
   initialFuel?: true
   finalFuel?: true
   usageHours?: true
+  hectares?: true
   observations?: true
   createdAt?: true
   _all?: true
@@ -212,6 +222,7 @@ export type MachineUsageGroupByOutputType = {
   initialFuel: number | null
   finalFuel: number | null
   usageHours: number | null
+  hectares: number | null
   observations: string | null
   createdAt: Date
   _count: MachineUsageCountAggregateOutputType | null
@@ -246,6 +257,7 @@ export type MachineUsageWhereInput = {
   initialFuel?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   finalFuel?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   usageHours?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
+  hectares?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   observations?: Prisma.StringNullableFilter<"MachineUsage"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MachineUsage"> | Date | string
   machine?: Prisma.XOR<Prisma.MachineScalarRelationFilter, Prisma.MachineWhereInput>
@@ -259,6 +271,7 @@ export type MachineUsageOrderByWithRelationInput = {
   initialFuel?: Prisma.SortOrderInput | Prisma.SortOrder
   finalFuel?: Prisma.SortOrderInput | Prisma.SortOrder
   usageHours?: Prisma.SortOrderInput | Prisma.SortOrder
+  hectares?: Prisma.SortOrderInput | Prisma.SortOrder
   observations?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   machine?: Prisma.MachineOrderByWithRelationInput
@@ -275,6 +288,7 @@ export type MachineUsageWhereUniqueInput = Prisma.AtLeast<{
   initialFuel?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   finalFuel?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   usageHours?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
+  hectares?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   observations?: Prisma.StringNullableFilter<"MachineUsage"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MachineUsage"> | Date | string
   machine?: Prisma.XOR<Prisma.MachineScalarRelationFilter, Prisma.MachineWhereInput>
@@ -288,6 +302,7 @@ export type MachineUsageOrderByWithAggregationInput = {
   initialFuel?: Prisma.SortOrderInput | Prisma.SortOrder
   finalFuel?: Prisma.SortOrderInput | Prisma.SortOrder
   usageHours?: Prisma.SortOrderInput | Prisma.SortOrder
+  hectares?: Prisma.SortOrderInput | Prisma.SortOrder
   observations?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.MachineUsageCountOrderByAggregateInput
@@ -307,6 +322,7 @@ export type MachineUsageScalarWhereWithAggregatesInput = {
   initialFuel?: Prisma.FloatNullableWithAggregatesFilter<"MachineUsage"> | number | null
   finalFuel?: Prisma.FloatNullableWithAggregatesFilter<"MachineUsage"> | number | null
   usageHours?: Prisma.FloatNullableWithAggregatesFilter<"MachineUsage"> | number | null
+  hectares?: Prisma.FloatNullableWithAggregatesFilter<"MachineUsage"> | number | null
   observations?: Prisma.StringNullableWithAggregatesFilter<"MachineUsage"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"MachineUsage"> | Date | string
 }
@@ -316,6 +332,7 @@ export type MachineUsageCreateInput = {
   initialFuel?: number | null
   finalFuel?: number | null
   usageHours?: number | null
+  hectares?: number | null
   observations?: string | null
   createdAt?: Date | string
   machine: Prisma.MachineCreateNestedOneWithoutUsagesInput
@@ -329,6 +346,7 @@ export type MachineUsageUncheckedCreateInput = {
   initialFuel?: number | null
   finalFuel?: number | null
   usageHours?: number | null
+  hectares?: number | null
   observations?: string | null
   createdAt?: Date | string
 }
@@ -338,6 +356,7 @@ export type MachineUsageUpdateInput = {
   initialFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   finalFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hectares?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   machine?: Prisma.MachineUpdateOneRequiredWithoutUsagesNestedInput
@@ -351,6 +370,7 @@ export type MachineUsageUncheckedUpdateInput = {
   initialFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   finalFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hectares?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -362,6 +382,7 @@ export type MachineUsageCreateManyInput = {
   initialFuel?: number | null
   finalFuel?: number | null
   usageHours?: number | null
+  hectares?: number | null
   observations?: string | null
   createdAt?: Date | string
 }
@@ -371,6 +392,7 @@ export type MachineUsageUpdateManyMutationInput = {
   initialFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   finalFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hectares?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -382,6 +404,7 @@ export type MachineUsageUncheckedUpdateManyInput = {
   initialFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   finalFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hectares?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -403,6 +426,7 @@ export type MachineUsageCountOrderByAggregateInput = {
   initialFuel?: Prisma.SortOrder
   finalFuel?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
+  hectares?: Prisma.SortOrder
   observations?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -411,6 +435,7 @@ export type MachineUsageAvgOrderByAggregateInput = {
   initialFuel?: Prisma.SortOrder
   finalFuel?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
+  hectares?: Prisma.SortOrder
 }
 
 export type MachineUsageMaxOrderByAggregateInput = {
@@ -420,6 +445,7 @@ export type MachineUsageMaxOrderByAggregateInput = {
   initialFuel?: Prisma.SortOrder
   finalFuel?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
+  hectares?: Prisma.SortOrder
   observations?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -431,6 +457,7 @@ export type MachineUsageMinOrderByAggregateInput = {
   initialFuel?: Prisma.SortOrder
   finalFuel?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
+  hectares?: Prisma.SortOrder
   observations?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -439,6 +466,7 @@ export type MachineUsageSumOrderByAggregateInput = {
   initialFuel?: Prisma.SortOrder
   finalFuel?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
+  hectares?: Prisma.SortOrder
 }
 
 export type MachineUsageCreateNestedManyWithoutTaskInput = {
@@ -530,6 +558,7 @@ export type MachineUsageCreateWithoutTaskInput = {
   initialFuel?: number | null
   finalFuel?: number | null
   usageHours?: number | null
+  hectares?: number | null
   observations?: string | null
   createdAt?: Date | string
   machine: Prisma.MachineCreateNestedOneWithoutUsagesInput
@@ -541,6 +570,7 @@ export type MachineUsageUncheckedCreateWithoutTaskInput = {
   initialFuel?: number | null
   finalFuel?: number | null
   usageHours?: number | null
+  hectares?: number | null
   observations?: string | null
   createdAt?: Date | string
 }
@@ -581,6 +611,7 @@ export type MachineUsageScalarWhereInput = {
   initialFuel?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   finalFuel?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   usageHours?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
+  hectares?: Prisma.FloatNullableFilter<"MachineUsage"> | number | null
   observations?: Prisma.StringNullableFilter<"MachineUsage"> | string | null
   createdAt?: Prisma.DateTimeFilter<"MachineUsage"> | Date | string
 }
@@ -590,6 +621,7 @@ export type MachineUsageCreateWithoutMachineInput = {
   initialFuel?: number | null
   finalFuel?: number | null
   usageHours?: number | null
+  hectares?: number | null
   observations?: string | null
   createdAt?: Date | string
   task: Prisma.TaskCreateNestedOneWithoutMachineLogsInput
@@ -601,6 +633,7 @@ export type MachineUsageUncheckedCreateWithoutMachineInput = {
   initialFuel?: number | null
   finalFuel?: number | null
   usageHours?: number | null
+  hectares?: number | null
   observations?: string | null
   createdAt?: Date | string
 }
@@ -637,6 +670,7 @@ export type MachineUsageCreateManyTaskInput = {
   initialFuel?: number | null
   finalFuel?: number | null
   usageHours?: number | null
+  hectares?: number | null
   observations?: string | null
   createdAt?: Date | string
 }
@@ -646,6 +680,7 @@ export type MachineUsageUpdateWithoutTaskInput = {
   initialFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   finalFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hectares?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   machine?: Prisma.MachineUpdateOneRequiredWithoutUsagesNestedInput
@@ -657,6 +692,7 @@ export type MachineUsageUncheckedUpdateWithoutTaskInput = {
   initialFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   finalFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hectares?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -667,6 +703,7 @@ export type MachineUsageUncheckedUpdateManyWithoutTaskInput = {
   initialFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   finalFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hectares?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -677,6 +714,7 @@ export type MachineUsageCreateManyMachineInput = {
   initialFuel?: number | null
   finalFuel?: number | null
   usageHours?: number | null
+  hectares?: number | null
   observations?: string | null
   createdAt?: Date | string
 }
@@ -686,6 +724,7 @@ export type MachineUsageUpdateWithoutMachineInput = {
   initialFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   finalFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hectares?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   task?: Prisma.TaskUpdateOneRequiredWithoutMachineLogsNestedInput
@@ -697,6 +736,7 @@ export type MachineUsageUncheckedUpdateWithoutMachineInput = {
   initialFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   finalFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hectares?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -707,6 +747,7 @@ export type MachineUsageUncheckedUpdateManyWithoutMachineInput = {
   initialFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   finalFuel?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  hectares?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -720,6 +761,7 @@ export type MachineUsageSelect<ExtArgs extends runtime.Types.Extensions.Internal
   initialFuel?: boolean
   finalFuel?: boolean
   usageHours?: boolean
+  hectares?: boolean
   observations?: boolean
   createdAt?: boolean
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
@@ -733,6 +775,7 @@ export type MachineUsageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   initialFuel?: boolean
   finalFuel?: boolean
   usageHours?: boolean
+  hectares?: boolean
   observations?: boolean
   createdAt?: boolean
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
@@ -746,6 +789,7 @@ export type MachineUsageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   initialFuel?: boolean
   finalFuel?: boolean
   usageHours?: boolean
+  hectares?: boolean
   observations?: boolean
   createdAt?: boolean
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
@@ -759,11 +803,12 @@ export type MachineUsageSelectScalar = {
   initialFuel?: boolean
   finalFuel?: boolean
   usageHours?: boolean
+  hectares?: boolean
   observations?: boolean
   createdAt?: boolean
 }
 
-export type MachineUsageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "taskId" | "machineId" | "initialFuel" | "finalFuel" | "usageHours" | "observations" | "createdAt", ExtArgs["result"]["machineUsage"]>
+export type MachineUsageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "taskId" | "machineId" | "initialFuel" | "finalFuel" | "usageHours" | "hectares" | "observations" | "createdAt", ExtArgs["result"]["machineUsage"]>
 export type MachineUsageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
   task?: boolean | Prisma.TaskDefaultArgs<ExtArgs>
@@ -790,6 +835,7 @@ export type $MachineUsagePayload<ExtArgs extends runtime.Types.Extensions.Intern
     initialFuel: number | null
     finalFuel: number | null
     usageHours: number | null
+    hectares: number | null
     observations: string | null
     createdAt: Date
   }, ExtArgs["result"]["machineUsage"]>
@@ -1223,6 +1269,7 @@ export interface MachineUsageFieldRefs {
   readonly initialFuel: Prisma.FieldRef<"MachineUsage", 'Float'>
   readonly finalFuel: Prisma.FieldRef<"MachineUsage", 'Float'>
   readonly usageHours: Prisma.FieldRef<"MachineUsage", 'Float'>
+  readonly hectares: Prisma.FieldRef<"MachineUsage", 'Float'>
   readonly observations: Prisma.FieldRef<"MachineUsage", 'String'>
   readonly createdAt: Prisma.FieldRef<"MachineUsage", 'DateTime'>
 }

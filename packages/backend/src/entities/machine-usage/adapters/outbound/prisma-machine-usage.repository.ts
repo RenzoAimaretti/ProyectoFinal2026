@@ -58,6 +58,7 @@ export class PrismaMachineUsageRepository implements MachineUsageRepositoryPort 
         ...(data.initialFuel !== undefined ? { initialFuel: data.initialFuel } : {}),
         ...(data.finalFuel !== undefined ? { finalFuel: data.finalFuel } : {}),
         ...(data.usageHours !== undefined ? { usageHours: data.usageHours } : {}),
+        ...(data.hectares !== undefined ? { hectares: data.hectares } : {}),
         ...(data.observations !== undefined ? { observations: data.observations } : {}),
       },
     });

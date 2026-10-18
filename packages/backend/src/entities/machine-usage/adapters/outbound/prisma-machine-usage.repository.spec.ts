@@ -42,6 +42,12 @@ describe('PrismaMachineUsageRepository', () => {
     });
   });
 
+  it('persists task-linked hours and hectares on create', async () => {
+    prisma.machineUsage.create.mockResolvedValue({ id: 'usage-1', hectares: 7 });
+    await expect(repository.create({ machineId: 'machine-1', taskId: 'task-1', usageHours: 2, hectares: 7 })).resolves.toEqual({ id: 'usage-1', hectares: 7 });
+    expect(prisma.machineUsage.create).toHaveBeenCalledWith({ data: { machineId: 'machine-1', taskId: 'task-1', usageHours: 2, hectares: 7 } });
+  });
+
   it('writes updates after validating the company-scoped machine usage', async () => {
     prisma.machineUsage.findFirst.mockResolvedValue({ id: 'usage-1' });
     prisma.machineUsage.update.mockResolvedValue({ id: 'usage-1', finalFuel: 8 });
@@ -51,6 +57,7 @@ describe('PrismaMachineUsageRepository', () => {
         initialFuel: 11,
         finalFuel: 8,
         usageHours: 2.5,
+        hectares: 7,
         observations: 'updated',
       }),
     ).resolves.toEqual({ id: 'usage-1', finalFuel: 8 });
@@ -69,6 +76,7 @@ describe('PrismaMachineUsageRepository', () => {
         initialFuel: 11,
         finalFuel: 8,
         usageHours: 2.5,
+        hectares: 7,
         observations: 'updated',
       },
     });

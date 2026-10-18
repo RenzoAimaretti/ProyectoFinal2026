@@ -1,4 +1,4 @@
-import { InvalidRelationError } from '../../domain/errors';
+import { InvalidInputError, InvalidRelationError } from '../../domain/errors';
 import { resolveFuelMovement } from '../../domain/fuel-movement';
 import {
   assertMachineActivityFields,
@@ -34,6 +34,9 @@ export class RegisterMachineActivityUseCase {
     const company = assertRequiredString(companyId, 'companyId');
     const machineId = assertRequiredString(data.machineId, 'machineId');
     const type = assertMachineActivityType(data.type);
+    if (type === 'USO_CAMPO') {
+      throw new InvalidInputError('Field usage must be recorded against a task');
+    }
     const fuelMovement = resolveFuelMovement(type, data.fuelMovement);
     const date = assertRequiredDate(data.date, 'date');
     const liters = assertOptionalNumber(data.liters, 'liters');

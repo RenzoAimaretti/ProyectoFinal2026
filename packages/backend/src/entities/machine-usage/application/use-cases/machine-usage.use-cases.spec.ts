@@ -14,6 +14,7 @@ const baseMachineUsage = {
   initialFuel: 12,
   finalFuel: 10,
   usageHours: 2,
+  hectares: null,
   observations: 'ok',
   createdAt: new Date('2026-01-11T00:00:00.000Z'),
 };
@@ -191,6 +192,22 @@ describe('Machine usage use cases', () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
+    it('records hours and hectares on the task-linked usage and rejects invalid area without creating', async () => {
+      machineReader.findByIdForCompany.mockResolvedValue({ id: 'machine-1', status: 'ACTIVA' });
+      taskReader.findByIdWithOperatorsForCompany.mockResolvedValue({ id: 'task-1', operators: [{ id: 'user-1' }] });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1' });
+      repository.create.mockResolvedValue({ ...baseMachineUsage, hectares: 7 });
+      await useCase.execute('company-1', {
+        machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', usageHours: 2, hectares: 7,
+      });
+      expect(repository.create).toHaveBeenCalledWith({ machineId: 'machine-1', taskId: 'task-1', initialFuel: undefined, usageHours: 2, hectares: 7 });
+      repository.create.mockClear();
+      await expect(useCase.execute('company-1', {
+        machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', hectares: -1,
+      })).rejects.toBeInstanceOf(InvalidInputError);
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
     it('creates a machine usage inside the current company scope', async () => {
       machineReader.findByIdForCompany.mockResolvedValue({ id: 'machine-1', status: 'ACTIVA' });
       taskReader.findByIdWithOperatorsForCompany.mockResolvedValue({
@@ -239,6 +256,17 @@ describe('Machine usage use cases', () => {
         EntityNotFoundError,
       );
       expect(repository.findByIdForCompany).toHaveBeenCalledWith('usage-1', 'company-2');
+    });
+
+    it('records task-linked hectares and rejects invalid area without writing', async () => {
+      repository.findByIdForCompany.mockResolvedValue(baseMachineUsage);
+      repository.updateForCompany.mockResolvedValue({ ...baseMachineUsage, hectares: 12.5 });
+      await useCase.execute('usage-1', 'company-1', { hectares: 12.5 } as unknown as UpdateMachineUsageInput);
+      expect(repository.updateForCompany).toHaveBeenCalledWith('usage-1', 'company-1', { hectares: 12.5 });
+
+      repository.updateForCompany.mockClear();
+      await expect(useCase.execute('usage-1', 'company-1', { hectares: -1 } as unknown as UpdateMachineUsageInput)).rejects.toBeInstanceOf(InvalidInputError);
+      expect(repository.updateForCompany).not.toHaveBeenCalled();
     });
 
     it('updates a machine usage inside the current company scope', async () => {

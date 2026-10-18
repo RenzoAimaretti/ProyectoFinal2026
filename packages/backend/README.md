@@ -21,6 +21,10 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+## Task-linked machine usage
+
+All new field usage belongs to a task: `POST /machine-usages` accepts optional positive `usageHours` and `hectares` along with its existing machine, task and operator identifiers; `PUT /machine-usages/:id` may record or correct either positive measurement within the active company. `POST /machine-activities` no longer accepts `USO_CAMPO` (400). Historical `USO_CAMPO` rows remain readable and unchanged; do not sum them with task-linked usage because the same work may have been recorded twice.
+
 ## Machine fuel activity API
 
 `POST /machine-activities` accepts `type: "COMBUSTIBLE"`, positive `liters`, and optional `fuelMovement: "INCOME" | "CONSUMPTION"`. Omitting it retains the previous income behavior. Historical `COMBUSTIBLE` rows with a null movement are read as income without rewriting them. Other activity types cannot specify a fuel movement. Company scope comes from the authenticated `firmaId`, and the machine must belong to that company. ADMIN and SUPERVISOR may register any activity; OPERARIO may register fuel only. Income minus consumption is a historical ledger balance, not a verified physical tank balance when prior consumption is missing.

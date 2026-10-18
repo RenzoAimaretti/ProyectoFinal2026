@@ -9,6 +9,7 @@ export type MachineUsageRecord = {
   initialFuel: number | null;
   finalFuel: number | null;
   usageHours: number | null;
+  hectares: number | null;
   observations: string | null;
   createdAt: Date;
 };
@@ -18,12 +19,15 @@ export type CreateMachineUsageInput = {
   taskId: string;
   operatorId: string;
   intialFuel?: number;
+  usageHours?: number;
+  hectares?: number;
 };
 
 export type UpdateMachineUsageInput = {
   initialFuel?: number;
   finalFuel?: number;
   usageHours?: number;
+  hectares?: number;
   observations?: string;
 };
 
@@ -31,12 +35,15 @@ export type CreateMachineUsageData = {
   machineId: string;
   taskId: string;
   initialFuel?: number;
+  usageHours?: number;
+  hectares?: number;
 };
 
 export type UpdateMachineUsageData = {
   initialFuel?: number;
   finalFuel?: number;
   usageHours?: number;
+  hectares?: number;
   observations?: string;
 };
 
