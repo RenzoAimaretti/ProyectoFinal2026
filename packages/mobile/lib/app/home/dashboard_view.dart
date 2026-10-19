@@ -12,6 +12,8 @@ import '../machinery/machine_activities_view.dart';
 import '../machinery/machine_activities_view_model.dart';
 import '../machinery/machine_activity_form_view.dart';
 import '../machinery/machine_activity_form_view_model.dart';
+import '../machinery/machine_usage_form_view.dart';
+import '../machinery/machine_usage_form_view_model.dart';
 import '../receptions/reception_form_view.dart';
 import '../receptions/reception_form_view_model.dart';
 import '../receptions/receptions_view.dart';
@@ -49,6 +51,7 @@ class DashboardView extends StatefulWidget {
     required this.receptionFormViewModel,
     required this.machineActivitiesViewModel,
     required this.machineActivityFormViewModel,
+    required this.machineUsageFormViewModel,
   });
 
   final Session session;
@@ -72,6 +75,7 @@ class DashboardView extends StatefulWidget {
   final ReceptionFormViewModel receptionFormViewModel;
   final MachineActivitiesViewModel machineActivitiesViewModel;
   final MachineActivityFormViewModel machineActivityFormViewModel;
+  final MachineUsageFormViewModel machineUsageFormViewModel;
 
   @override
   State<DashboardView> createState() => _DashboardViewState();
@@ -145,16 +149,49 @@ class _DashboardViewState extends State<DashboardView> {
       return;
     }
     if (_selectedIndex == 3) {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => MachineActivityFormView(
-            viewModel: widget.machineActivityFormViewModel,
-          ),
-        ),
-      );
+      _openMachineryFlow();
       return;
     }
     _showComingSoon();
+  }
+
+  /// Maquinaria: el uso en campo se registra sobre una tarea; el combustible se
+  /// registra como compra (ingreso) y los mantenimientos como gasto.
+  Future<void> _openMachineryFlow() async {
+    final destination = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.assignment_outlined),
+              title: const Text('Uso por tarea'),
+              subtitle: const Text('Horas y/o hectáreas trabajadas'),
+              onTap: () => Navigator.pop(sheetContext, 'usage'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.local_gas_station),
+              title: const Text('Combustible o mantenimiento'),
+              subtitle: const Text('Compra/ingreso de combustible y gastos'),
+              onTap: () => Navigator.pop(sheetContext, 'activity'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (destination == null || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => destination == 'usage'
+            ? MachineUsageFormView(
+                viewModel: widget.machineUsageFormViewModel,
+              )
+            : MachineActivityFormView(
+                viewModel: widget.machineActivityFormViewModel,
+              ),
+      ),
+    );
   }
 
   /// Selector global de firma (post-login). Lista las razones sociales reales

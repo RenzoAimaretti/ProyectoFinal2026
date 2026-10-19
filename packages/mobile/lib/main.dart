@@ -8,6 +8,7 @@ import 'app/auth/login_view_model.dart';
 import 'app/home/dashboard_view.dart';
 import 'app/machinery/machine_activities_view_model.dart';
 import 'app/machinery/machine_activity_form_view_model.dart';
+import 'app/machinery/machine_usage_form_view_model.dart';
 import 'app/receptions/reception_form_view_model.dart';
 import 'app/receptions/receptions_view_model.dart';
 import 'app/reports/daily_report_form_view_model.dart';
@@ -19,6 +20,7 @@ import 'data/repositories/daily_report_sync_handler.dart';
 import 'data/repositories/drift_catalog_readers.dart';
 import 'data/repositories/drift_daily_report_repository.dart';
 import 'data/repositories/drift_machine_activity_repository.dart';
+import 'data/repositories/drift_machine_usage_repository.dart';
 import 'data/repositories/drift_photo_repository.dart';
 import 'data/repositories/drift_reception_repository.dart';
 import 'data/repositories/drift_session_repository.dart';
@@ -51,6 +53,7 @@ import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
 import 'domain/services/sync_engine.dart';
 import 'domain/usecases/register_machine_activity_usecase.dart';
+import 'domain/usecases/register_machine_usage_usecase.dart';
 import 'domain/usecases/restore_session_usecase.dart';
 import 'presentation/preview/components_preview_screen.dart';
 
@@ -84,6 +87,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final ReceptionFormViewModel _receptionFormViewModel;
   late final MachineActivitiesViewModel _machineActivitiesViewModel;
   late final MachineActivityFormViewModel _machineActivityFormViewModel;
+  late final MachineUsageFormViewModel _machineUsageFormViewModel;
   late final RestoreSessionUseCase _restoreSessionUseCase;
 
   /// Motor de sincronización (Sprint 2) + gate de conectividad.
@@ -234,6 +238,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       machineReader: machineReader,
       companyReader: companyReader,
     );
+
+    // Uso por tarea (R021): persistencia local + cola MACHINE_USAGE idempotente.
+    final machineUsageRepository = DriftMachineUsageRepository(_database);
+    final registerMachineUsageUseCase = RegisterMachineUsageUseCase(
+      machineUsageRepository,
+      taskReader,
+    );
+    _machineUsageFormViewModel = MachineUsageFormViewModel(
+      registerUseCase: registerMachineUsageUseCase,
+      taskReader: taskReader,
+      machineReader: machineReader,
+      // El operario de la sesión se fija al iniciar; el demo usa su propio id.
+      operatorId: _session?.userId ?? 'demo-operario',
+    );
   }
 
   /// Composition root del motor de sincronización (Sprint 2).
@@ -316,6 +334,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         _session = session;
         _restoringSession = false;
       });
+      if (session != null) {
+        _machineUsageFormViewModel.setOperator(session.userId);
+        _machineUsageFormViewModel.setCompany(session.companyId);
+      }
     }
     unawaited(_maybeRunSync());
   }
@@ -330,6 +352,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _dailyReportFormViewModel.dispose();
     _receptionFormViewModel.dispose();
     _machineActivityFormViewModel.dispose();
+    _machineUsageFormViewModel.dispose();
     if (widget.database == null) {
       _database.close();
     }
@@ -344,6 +367,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final updated = session.copyWith(companyId: companyId);
     _dailyReportsViewModel.setCompany(companyId);
     _machineActivitiesViewModel.setCompany(companyId);
+    _machineUsageFormViewModel.setCompany(companyId);
     setState(() => _session = updated);
     // Persistencia local best-effort: no bloquea la UI.
     unawaited(_sessionRepository.save(updated));
@@ -381,6 +405,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       receptionFormViewModel: _receptionFormViewModel,
                       machineActivitiesViewModel: _machineActivitiesViewModel,
                       machineActivityFormViewModel: _machineActivityFormViewModel,
+                      machineUsageFormViewModel: _machineUsageFormViewModel,
                     )
                   : LoginView(
                       viewModel: _loginViewModel,
@@ -388,6 +413,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                         final session = _loginViewModel.session;
                         if (session != null) {
                           setState(() => _session = session);
+                          _machineUsageFormViewModel.setOperator(session.userId);
+                          _machineUsageFormViewModel.setCompany(session.companyId);
                           unawaited(_maybeRunSync());
                         }
                       },
