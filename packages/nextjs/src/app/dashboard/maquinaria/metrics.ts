@@ -52,3 +52,15 @@ export function machineTypeOptions(known: (string | null | undefined)[]): string
 
   return [...canonical.values()].sort((a, b) => a.localeCompare(b, "es"));
 }
+
+/** Sentinel option value that reveals a free-text input for a brand-new type. */
+export const NEW_MACHINE_TYPE_OPTION = "__new__";
+
+/**
+ * Resolves the type to persist from the select value plus the optional
+ * free-text input shown for `NEW_MACHINE_TYPE_OPTION`. Trims the value and
+ * returns an empty string when nothing usable was chosen.
+ */
+export function resolveMachineType(selection: string, custom: string): string {
+  return (selection === NEW_MACHINE_TYPE_OPTION ? custom : selection).trim();
+}

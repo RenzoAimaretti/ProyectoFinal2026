@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/primitives";
 import { Alert, useToast } from "@/components/ui/feedback";
 import { SelectField, TextField } from "@/components/ui/form";
+import { MachineTypeSelect } from "./MachineTypeSelect";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { MachineIcon, PlusIcon } from "@/components/ui/icons";
 import { isAdminRole, navItems } from "@/components/ui/nav";
@@ -138,6 +139,7 @@ export default function MaquinariaPage() {
   const [savingThreshold, setSavingThreshold] = useState(false);
   const [typeEditing, setTypeEditing] = useState<string | null>(null);
   const [typeValue, setTypeValue] = useState("");
+  const [thresholdFormKey, setThresholdFormKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -351,12 +353,13 @@ export default function MaquinariaPage() {
                     <p className="text-sm text-ink-soft">{machine.brand ?? "Sin marca"} · {machine.type || "Sin tipo"}</p>
                     {typeEditing === machine.id ? (
                       <div className="flex flex-wrap items-end gap-2 pt-2">
-                        <SelectField
-                          label="Tipo de máquina"
-                          aria-label={`Tipo de ${machine.name}`}
+                        <MachineTypeSelect
+                          key={machine.id}
+                          ariaLabel={`Tipo de ${machine.name}`}
                           value={typeValue}
-                          onChange={e => setTypeValue(e.target.value)}
-                          options={[{ value: "", label: "Sin tipo" }, ...typeOptions.map(type => ({ value: type, label: type }))]}
+                          onChange={setTypeValue}
+                          options={typeOptions}
+                          allowEmpty
                         />
                         <Button onClick={() => void saveType(machine.id)}>Guardar tipo</Button>
                         <Button variant="secondary" onClick={() => setTypeEditing(null)}>Cancelar</Button>
@@ -448,7 +451,7 @@ export default function MaquinariaPage() {
         <h2 className="font-display text-lg font-semibold">Configurar umbrales por tipo de máquina</h2>
         <p className="text-sm text-ink-soft">Solo ADMIN. Indicá al menos un límite positivo; cada tipo tiene su propia configuración.</p>
         <form onSubmit={saveThreshold} className="mt-4 flex flex-wrap items-end gap-3">
-          <SelectField label="Tipo de máquina" required value={thresholdForm.machineType} onChange={e => setThresholdForm(f => ({ ...f, machineType: e.target.value }))} disabled={savingThreshold} options={[{ value: "", label: "Seleccioná un tipo" }, ...typeOptions.map(type => ({ value: type, label: type }))]} />
+          <MachineTypeSelect key={thresholdFormKey} required label="Tipo de máquina" value={thresholdForm.machineType} onChange={value => setThresholdForm(f => ({ ...f, machineType: value }))} options={typeOptions} disabled={savingThreshold} />
           <TextField label="Límite de horas" type="number" value={thresholdForm.hoursLimit} onChange={e => setThresholdForm(f => ({ ...f, hoursLimit: e.target.value }))} disabled={savingThreshold} />
           <TextField label="Límite de hectáreas" type="number" value={thresholdForm.hectaresLimit} onChange={e => setThresholdForm(f => ({ ...f, hectaresLimit: e.target.value }))} disabled={savingThreshold} />
           <Button type="submit" disabled={savingThreshold}>{savingThreshold ? "Guardando…" : "Guardar umbral"}</Button>
@@ -456,7 +459,7 @@ export default function MaquinariaPage() {
         {thresholds.length === 0 ? <p className="mt-4 text-sm text-ink-soft">No hay umbrales configurados.</p> :
           <ul className="mt-4 space-y-2">{thresholds.map(threshold => <li key={threshold.machineType} className="flex flex-wrap items-center justify-between gap-2 border-b border-agro-border pb-2 text-sm">
             <span><strong>{threshold.machineType}</strong> · {threshold.hoursLimit === null ? "Sin límite de horas" : `${fmtNumber(threshold.hoursLimit)} h`} · {threshold.hectaresLimit === null ? "Sin límite de hectáreas" : `${fmtNumber(threshold.hectaresLimit)} ha`}</span>
-            <span className="flex gap-2"><Button variant="secondary" onClick={() => setThresholdForm({ machineType: threshold.machineType, hoursLimit: threshold.hoursLimit?.toString() || "", hectaresLimit: threshold.hectaresLimit?.toString() || "" })}>Editar</Button>
+            <span className="flex gap-2"><Button variant="secondary" onClick={() => { setThresholdForm({ machineType: threshold.machineType, hoursLimit: threshold.hoursLimit?.toString() || "", hectaresLimit: threshold.hectaresLimit?.toString() || "" }); setThresholdFormKey((k) => k + 1); }}>Editar</Button>
             <Button variant="secondary" onClick={() => void removeThreshold(threshold.machineType)}>Eliminar</Button></span>
           </li>)}</ul>}
       </Card>}
@@ -516,11 +519,12 @@ export default function MaquinariaPage() {
             placeholder="Ej: John Deere"
             disabled={submitting}
           />
-          <SelectField
+          <MachineTypeSelect
             label="Tipo de máquina"
             value={form.type}
-            onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-            options={[{ value: "", label: "Sin tipo" }, ...typeOptions.map(type => ({ value: type, label: type }))]}
+            onChange={(value) => setForm((f) => ({ ...f, type: value }))}
+            options={typeOptions}
+            allowEmpty
             disabled={submitting}
           />
           <TextField
