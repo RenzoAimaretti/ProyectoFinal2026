@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../domain/models/catalogs.dart';
 import '../../domain/models/machine_usage.dart';
-import '../../domain/models/task.dart';
 import '../../presentation/components/buttons/primary_button.dart';
 import '../../presentation/components/inputs/custom_dropdown.dart';
 import '../../presentation/components/inputs/custom_text_field.dart';
@@ -197,20 +196,20 @@ class _MachineUsageFormViewState extends State<MachineUsageFormView> {
   }
 
   Widget _taskDropdown() {
-    return StreamBuilder<List<Task>>(
-      stream: widget.viewModel.assignedTasks,
+    return StreamBuilder<List<MachineUsageTaskOption>>(
+      stream: widget.viewModel.taskOptions,
       builder: (context, snapshot) {
-        final tasks = snapshot.data ?? const <Task>[];
+        final options = snapshot.data ?? const <MachineUsageTaskOption>[];
         return CustomDropdown<String>(
           label: 'Tarea',
-          hint: tasks.isEmpty
+          hint: options.isEmpty
               ? 'No tenés tareas asignadas'
               : 'Seleccionar tarea...',
-          items: tasks
+          items: options
               .map(
-                (task) => DropdownMenuItem<String>(
-                  value: task.id,
-                  child: Text(_taskLabel(task)),
+                (option) => DropdownMenuItem<String>(
+                  value: option.task.id,
+                  child: Text(option.label),
                 ),
               )
               .toList(),
@@ -220,14 +219,6 @@ class _MachineUsageFormViewState extends State<MachineUsageFormView> {
         );
       },
     );
-  }
-
-  /// Etiqueta legible de la tarea. Los nombres de lote/labor llegan con el
-  /// pull de catálogo real; mientras tanto se muestra un identificador corto.
-  static String _taskLabel(Task task) {
-    final id = task.id ?? '';
-    final short = id.length > 8 ? id.substring(0, 8) : id;
-    return 'Tarea $short';
   }
 
   Widget _machineDropdown() {

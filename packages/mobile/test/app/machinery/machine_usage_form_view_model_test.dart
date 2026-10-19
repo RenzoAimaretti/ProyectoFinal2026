@@ -50,6 +50,24 @@ void main() {
     expect(tasks.single.id, 'task-1');
   });
 
+  test('usa id corto si falta el nombre del lote aunque haya lectores', () async {
+    final labors = FakeLaborTypeReader()
+      ..seed(LaborType(
+        id: 'labor-1', name: 'Siembra', createdAt: DateTime(2026),
+        updatedAt: DateTime(2026), version: 1, deleted: false,
+      ));
+    final namedViewModel = MachineUsageFormViewModel(
+      registerUseCase: RegisterMachineUsageUseCase(repository, taskReader),
+      taskReader: taskReader,
+      machineReader: machineReader,
+      lotReader: FakeLotReader(),
+      laborTypeReader: labors,
+      operatorId: 'operator-1',
+    );
+
+    expect((await namedViewModel.taskOptions.first).single.label, 'Tarea task-1');
+  });
+
   test('expone las máquinas de la firma activa', () async {
     final machines = await viewModel.machines.first;
 
