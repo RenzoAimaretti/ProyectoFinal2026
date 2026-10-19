@@ -50,6 +50,7 @@ export class LaborTypeController {
     return this.service.create(req.user.tenantId, {
       name: data.name,
       ...(data.description !== undefined ? { description: data.description } : {}),
+      ...(data.kind !== undefined ? { kind: data.kind } : {}),
     });
   }
 
@@ -60,6 +61,7 @@ export class LaborTypeController {
     return this.service.update(id, req.user.tenantId, {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.description !== undefined ? { description: data.description } : {}),
+      ...(data.kind !== undefined ? { kind: data.kind } : {}),
       ...(data.taskIds !== undefined ? { taskIds: data.taskIds } : {}),
     });
   }

@@ -303,16 +303,43 @@ export type FarmDTO = {
   surface: number;
 };
 
+import type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
+
+export type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
+
 export type LotDTO = {
   id: string;
   farmId: string;
   name: string;
   coords: string | null;
+  /** GeoJSON polygon, or null until the lot has been delimited. */
+  polygon: GeoJsonPolygon | null;
   area: number;
   active: boolean;
+  state: LotState;
 };
 
-export type LaborTypeDTO = { id: string; name: string; description: string | null };
+/**
+ * Semantic class of a labour. `OTRO` means unclassified: the map colour for a lot
+ * must not guess from the labour's name, which the tenant can rename.
+ */
+export type LaborKind =
+  | "SIEMBRA"
+  | "PULVERIZACION"
+  | "FERTILIZACION"
+  | "COSECHA"
+  | "OTRO";
+
+export type LaborTypeDTO = {
+  id: string;
+  name: string;
+  description: string | null;
+  /**
+   * Always present: the column is NOT NULL with a default, so a missing value
+   * here is a wiring bug and is typed as one instead of a silent fallback.
+   */
+  kind: LaborKind;
+};
 
 export type TaskOperatorDTO = {
   id: string;
@@ -374,11 +401,11 @@ export function listLaborTypes(): Promise<LaborTypeDTO[]> {
   return apiGet<LaborTypeDTO[]>("/labor-types");
 }
 
-export function createLaborType(body: { name: string; description?: string }): Promise<LaborTypeDTO> {
+export function createLaborType(body: { name: string; description?: string; kind?: LaborKind }): Promise<LaborTypeDTO> {
   return apiPost<LaborTypeDTO>("/labor-types", body);
 }
 
-export function updateLaborType(id: string, body: { name?: string; description?: string }): Promise<LaborTypeDTO> {
+export function updateLaborType(id: string, body: { name?: string; description?: string; kind?: LaborKind }): Promise<LaborTypeDTO> {
   return apiPut<LaborTypeDTO>(`/labor-types/${encodeURIComponent(id)}`, body);
 }
 

@@ -116,4 +116,22 @@ describe('LaborTypeController', () => {
     });
     expect(service.delete).toHaveBeenCalledWith('labor-type-1', 'tenant-1');
   });
+
+  it('forwards the labor kind to the service on create and on update', async () => {
+    service.create.mockResolvedValue({ id: 'labor-type-2' });
+    service.update.mockResolvedValue({ id: 'labor-type-1' });
+
+    const req = { user: { tenantId: 'tenant-1' } };
+
+    await controller.create(req, { name: 'Siembra gruesa', kind: 'SIEMBRA' });
+    await controller.update('labor-type-1', req, { kind: 'COSECHA' });
+
+    expect(service.create).toHaveBeenCalledWith('tenant-1', {
+      name: 'Siembra gruesa',
+      kind: 'SIEMBRA',
+    });
+    expect(service.update).toHaveBeenCalledWith('labor-type-1', 'tenant-1', {
+      kind: 'COSECHA',
+    });
+  });
 });
