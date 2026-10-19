@@ -15,7 +15,7 @@ describe('PrismaFieldCatalogRepository', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('scopes company and machines to the firma and taxonomy to the tenant', async () => {
-    prisma.company.findFirst.mockResolvedValue({ id: 'company-1', name: 'Eliggi' });
+    prisma.company.findFirst.mockResolvedValue({ id: 'company-1', name: 'Eliggi', cuit: '30-1-1' });
     prisma.client.findMany.mockResolvedValue([]);
     prisma.farm.findMany.mockResolvedValue([]);
     prisma.lot.findMany.mockResolvedValue([]);
@@ -32,13 +32,13 @@ describe('PrismaFieldCatalogRepository', () => {
       companyId: 'company-1',
     });
 
-    expect(catalog.companies).toEqual([{ id: 'company-1', name: 'Eliggi' }]);
+    expect(catalog.companies).toEqual([{ id: 'company-1', name: 'Eliggi', cuit: '30-1-1' }]);
     expect(catalog.machines).toHaveLength(1);
     expect(catalog.tasks[0].operators).toEqual([{ id: 'u-1' }]);
 
     expect(prisma.company.findFirst).toHaveBeenCalledWith({
       where: { id: 'company-1', tenantId: 'tenant-1' },
-      select: { id: true, name: true },
+      select: { id: true, name: true, cuit: true },
     });
     expect(prisma.machine.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { companyId: 'company-1' } }),

@@ -19,7 +19,7 @@ export class PrismaFieldCatalogRepository implements FieldCatalogRepositoryPort 
       await Promise.all([
         this.prisma.company.findFirst({
           where: { id: scope.companyId, tenantId: scope.tenantId },
-          select: { id: true, name: true },
+          select: { id: true, name: true, cuit: true },
         }),
         this.prisma.client.findMany({
           where: { tenantId: scope.tenantId },

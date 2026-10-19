@@ -1,6 +1,6 @@
 export const FIELD_CATALOG_REPOSITORY = Symbol('FIELD_CATALOG_REPOSITORY');
 
-export type FieldCatalogCompany = { id: string; name: string };
+export type FieldCatalogCompany = { id: string; name: string; cuit: string };
 export type FieldCatalogClient = { id: string; name: string };
 export type FieldCatalogFarm = {
   id: string;
