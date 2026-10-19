@@ -20,6 +20,7 @@ import { LaborTypeModule } from './entities/labor-type/labor-type.module';
 import { TaskModule } from './entities/task/task.module';
 import { MachineModule } from './entities/machine/machine.module';
 import { MachineUsageModule } from './entities/machine-usage/machine-usage.module';
+import { FieldCatalogModule } from './entities/field-catalog/field-catalog.module';
 import { AuthModule } from './auth/auth.module';
 import { RbacModule } from './auth/rbac.module';
 
@@ -47,7 +48,8 @@ import { RbacModule } from './auth/rbac.module';
     LaborTypeModule,
     TaskModule,
     MachineModule,
-    MachineUsageModule
+    MachineUsageModule,
+    FieldCatalogModule,
   ],
   controllers: [],
   providers: [],
