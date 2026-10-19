@@ -403,6 +403,7 @@ export type MachineDTO = {
   companyId: string;
   name: string;
   brand: string | null;
+  type?: string | null;
   status: "ACTIVA" | "MANTENIMIENTO" | "FUERA_SERVICIO";
 };
 
@@ -809,6 +810,71 @@ export function listMachineActivities(): Promise<MachineActivityDTO[]> {
   return apiGet<MachineActivityDTO[]>("/machine-activities");
 }
 
+export type MachineUsageDTO = {
+  id: string;
+  taskId: string;
+  machineId: string;
+  usageHours: number | null;
+  hectares: number | null;
+  workDate: string | null;
+  observations: string | null;
+  createdAt: string;
+};
+
+export function listMachineUsages(): Promise<MachineUsageDTO[]> {
+  return apiGet<MachineUsageDTO[]>("/machine-usages");
+}
+
+export type MachineAlertDTO = MachineDTO & {
+  usageHours: number;
+  hectares: number;
+  hoursLimit: number | null;
+  hectaresLimit: number | null;
+  due: boolean;
+  reasons: ("HOURS" | "HECTARES")[];
+};
+
+export function listMachineAlerts(): Promise<MachineAlertDTO[]> {
+  return apiGet<MachineAlertDTO[]>("/machines/alerts");
+}
+
+export type MaintenanceThresholdDTO = {
+  companyId: string;
+  machineType: string;
+  hoursLimit: number | null;
+  hectaresLimit: number | null;
+};
+
+export function listMaintenanceThresholds(): Promise<MaintenanceThresholdDTO[]> {
+  return apiGet<MaintenanceThresholdDTO[]>("/maintenance-thresholds");
+}
+
+export function saveMaintenanceThreshold(machineType: string, body: { hoursLimit?: number; hectaresLimit?: number }): Promise<MaintenanceThresholdDTO> {
+  return apiPut(`/maintenance-thresholds/${encodeURIComponent(machineType)}`, body);
+}
+
+export function deleteMaintenanceThreshold(machineType: string): Promise<void> {
+  return apiDelete(`/maintenance-thresholds/${encodeURIComponent(machineType)}`);
+}
+
+export type CompanyMachineMetrics = {
+  fuelPurchasedLiters: number;
+  fuelConsumedLiters: number;
+  fuelBalanceLiters: number;
+  usageHours: number;
+  hectares: number;
+  maintenanceCost: number;
+  repairCost: number;
+};
+export type ConsolidatedMachineReportDTO = {
+  rows: (CompanyMachineMetrics & { companyId: string; companyName: string })[];
+  totals: CompanyMachineMetrics;
+};
+
+export function getConsolidatedMachineReport(): Promise<ConsolidatedMachineReportDTO> {
+  return apiGet<ConsolidatedMachineReportDTO>("/machine-reports/consolidated");
+}
+
 export function createMachineActivity(
   body: CreateMachineActivityBody,
 ): Promise<MachineActivityDTO> {
@@ -918,8 +984,13 @@ export type CreateMachineBody = {
   name: string;
   brand: string;
   entryDate: string;
+  type?: string | null;
   companyId?: string;
 };
+
+export function updateMachine(id: string, body: { type: string | null }): Promise<MachineDTO> {
+  return apiPut<MachineDTO>(`/machines/${encodeURIComponent(id)}`, body);
+}
 
 export function createMachine(body: CreateMachineBody): Promise<MachineDTO> {
   return apiPost<MachineDTO>("/machines", body);

@@ -17,14 +17,29 @@ import { Alert, useToast } from "@/components/ui/feedback";
 import { SelectField, TextField } from "@/components/ui/form";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { MachineIcon, PlusIcon } from "@/components/ui/icons";
-import { navItems } from "@/components/ui/nav";
+import { isAdminRole, navItems } from "@/components/ui/nav";
+import { canManageFleet, legacyFieldHistory, summarizeUsage } from "./metrics";
 import {
   ApiError,
   apiGet,
   createMachine,
+  deleteMaintenanceThreshold,
+  getConsolidatedMachineReport,
+  getStoredUser,
   listMachineActivities,
+  listMachineAlerts,
+  listMachineUsages,
+  listMaintenanceThresholds,
+  listTasks,
+  saveMaintenanceThreshold,
+  updateMachine,
   MACHINE_STATUS_LABELS,
   type MachineActivityDTO,
+  type MachineAlertDTO,
+  type MachineUsageDTO,
+  type MaintenanceThresholdDTO,
+  type ConsolidatedMachineReportDTO,
+  type TaskDTO,
   type MachineDTO,
   type MachineStatus,
 } from "@/api/client";
@@ -43,12 +58,16 @@ const dateFmt = new Intl.DateTimeFormat("es-AR", {
 
 function fmtDate(value: string | null | undefined): string {
   if (!value) return "—";
-  const d = new Date(value);
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00`) : new Date(value);
   return Number.isNaN(d.getTime()) ? value.slice(0, 10) : dateFmt.format(d);
 }
 
+function fmtNumber(value: number): string {
+  return value.toLocaleString("es-AR", { maximumFractionDigits: 2 });
+}
+
 function fmtLiters(value: number): string {
-  return `${value.toLocaleString("es-AR", { maximumFractionDigits: 1 })} L`;
+  return `${fmtNumber(value)} L`;
 }
 
 function describeError(err: unknown): string {
@@ -64,6 +83,7 @@ type MachineSummary = {
   machine: MachineDTO;
   fuelLiters: number;
   usageHours: number;
+  hectares: number;
   activityCount: number;
   lastActivityAt: string | null;
   lastServiceAt: string | null;
@@ -74,14 +94,12 @@ function latestDate(dates: string[]): string | null {
   return dates.reduce((a, b) => (+new Date(a) >= +new Date(b) ? a : b));
 }
 
-function summarize(machine: MachineDTO, activities: MachineActivityDTO[]): MachineSummary {
+function summarize(machine: MachineDTO, activities: MachineActivityDTO[], usages: MachineUsageDTO[]): MachineSummary {
   const own = activities.filter((a) => a.machineId === machine.id);
   const fuelLiters = own
     .filter((a) => a.type === "COMBUSTIBLE" && a.fuelMovement !== "CONSUMPTION" && typeof a.liters === "number")
     .reduce((sum, a) => sum + (a.liters as number), 0);
-  const usageHours = own
-    .filter((a) => typeof a.usageHours === "number")
-    .reduce((sum, a) => sum + (a.usageHours as number), 0);
+  const { usageHours, hectares } = summarizeUsage(machine.id, usages);
   const lastActivityAt = latestDate(own.map((a) => a.date));
   const lastServiceAt = latestDate(
     own
@@ -93,6 +111,7 @@ function summarize(machine: MachineDTO, activities: MachineActivityDTO[]): Machi
     machine,
     fuelLiters,
     usageHours,
+    hectares,
     activityCount: own.length,
     lastActivityAt,
     lastServiceAt,
@@ -104,11 +123,22 @@ export default function MaquinariaPage() {
 
   const [machines, setMachines] = useState<MachineDTO[]>([]);
   const [activities, setActivities] = useState<MachineActivityDTO[]>([]);
+  const [usages, setUsages] = useState<MachineUsageDTO[]>([]);
+  const [tasks, setTasks] = useState<TaskDTO[]>([]);
+  const [alerts, setAlerts] = useState<MachineAlertDTO[]>([]);
+  const [thresholds, setThresholds] = useState<MaintenanceThresholdDTO[]>([]);
+  const [report, setReport] = useState<ConsolidatedMachineReportDTO | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const adminVisible = isAdmin && canManageFleet(getStoredUser()?.role);
+  const [thresholdForm, setThresholdForm] = useState({ machineType: "", hoursLimit: "", hectaresLimit: "" });
+  const [savingThreshold, setSavingThreshold] = useState(false);
+  const [typeEditing, setTypeEditing] = useState<string | null>(null);
+  const [typeValue, setTypeValue] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", brand: "", entryDate: today() });
+  const [form, setForm] = useState({ name: "", brand: "", type: "", entryDate: today() });
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -116,12 +146,25 @@ export default function MaquinariaPage() {
     setLoading(true);
     setLoadError(null);
     try {
-      const [machineData, activityData] = await Promise.all([
+      // Read the persisted session (as on the dashboard) before issuing privileged requests.
+      const admin = isAdminRole(getStoredUser()?.role);
+      setIsAdmin(admin);
+      const [machineData, activityData, usageData, taskData, alertData, thresholdData, reportData] = await Promise.all([
         apiGet<MachineDTO[]>("/machines"),
         listMachineActivities(),
+        listMachineUsages(),
+        listTasks(),
+        listMachineAlerts(),
+        admin ? listMaintenanceThresholds() : Promise.resolve([]),
+        admin ? getConsolidatedMachineReport() : Promise.resolve(null),
       ]);
       setMachines(machineData);
       setActivities(activityData);
+      setUsages(usageData);
+      setTasks(taskData);
+      setAlerts(alertData);
+      setThresholds(thresholdData);
+      setReport(reportData);
     } catch (err) {
       setLoadError(describeError(err));
     } finally {
@@ -130,12 +173,15 @@ export default function MaquinariaPage() {
   }, []);
 
   useEffect(() => {
-    void load();
+    // Defer the initial refresh so the effect does not synchronously update render state.
+    let active = true;
+    queueMicrotask(() => { if (active) void load(); });
+    return () => { active = false; };
   }, [load]);
 
   const summaries = useMemo(
-    () => machines.map((m) => summarize(m, activities)),
-    [machines, activities],
+    () => machines.map((m) => summarize(m, activities, usages)),
+    [machines, activities, usages],
   );
 
   const totalFuel = useMemo(
@@ -147,7 +193,7 @@ export default function MaquinariaPage() {
   );
 
   const openModal = useCallback(() => {
-    setForm({ name: "", brand: "", entryDate: today() });
+    setForm({ name: "", brand: "", type: "", entryDate: today() });
     setFormError(null);
     setModalOpen(true);
   }, []);
@@ -176,6 +222,7 @@ export default function MaquinariaPage() {
         await createMachine({
           name: form.name.trim(),
           brand: form.brand.trim(),
+          type: form.type.trim() || null,
           entryDate: form.entryDate,
         });
         success("Máquina registrada.", "Maquinaria");
@@ -192,6 +239,55 @@ export default function MaquinariaPage() {
     [form, load, submitting, success, toastError],
   );
 
+  const saveThreshold = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!canManageFleet(getStoredUser()?.role)) return;
+    const machineType = thresholdForm.machineType.trim();
+    const hours = thresholdForm.hoursLimit.trim();
+    const hectares = thresholdForm.hectaresLimit.trim();
+    if (!machineType || (!hours && !hectares) ||
+        (hours && (!Number.isFinite(Number(hours)) || Number(hours) <= 0)) ||
+        (hectares && (!Number.isFinite(Number(hectares)) || Number(hectares) <= 0))) {
+      toastError("Indicá un tipo y al menos un límite positivo.", "Umbrales");
+      return;
+    }
+    setSavingThreshold(true);
+    try {
+      await saveMaintenanceThreshold(machineType, {
+        ...(hours ? { hoursLimit: Number(hours) } : {}),
+        ...(hectares ? { hectaresLimit: Number(hectares) } : {}),
+      });
+      success("Umbral guardado.", "Mantenimiento");
+      setThresholdForm({ machineType: "", hoursLimit: "", hectaresLimit: "" });
+      await load();
+    } catch (err) { toastError(describeError(err), "No se pudo guardar el umbral"); }
+    finally { setSavingThreshold(false); }
+  };
+
+  const removeThreshold = async (machineType: string) => {
+    if (!canManageFleet(getStoredUser()?.role)) return;
+    try {
+      await deleteMaintenanceThreshold(machineType);
+      success("Umbral eliminado.", "Mantenimiento");
+      await load();
+    } catch (err) { toastError(describeError(err), "No se pudo eliminar el umbral"); }
+  };
+
+  const saveType = async (machineId: string) => {
+    if (!["ADMIN", "SUPERVISOR"].includes(getStoredUser()?.role || "")) return;
+    try {
+      await updateMachine(machineId, { type: typeValue.trim() || null });
+      setTypeEditing(null);
+      success("Tipo actualizado.", "Maquinaria");
+      await load();
+    } catch (err) { toastError(describeError(err), "No se pudo actualizar el tipo"); }
+  };
+
+  const taskLabel = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    return task ? `${task.laborTypeName || "Tarea"} · ${task.lotName || task.lotId} (${taskId.slice(0, 8)})` : `Tarea ${taskId}`;
+  };
+
   return (
     <DashboardLayout
       title="Maquinaria"
@@ -201,7 +297,7 @@ export default function MaquinariaPage() {
       <HeroBand
         kicker="Flota, combustible y mantenimiento"
         title="Maquinaria"
-        description="Control de la flota con combustible, horas de uso y mantenimiento registrados por actividad."
+        description="Control de la flota con combustible y mantenimiento por actividad, y uso acumulado por tarea."
         icon={<MachineIcon className="h-6 w-6" />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -239,7 +335,7 @@ export default function MaquinariaPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          {summaries.map(({ machine, fuelLiters, usageHours, activityCount, lastActivityAt, lastServiceAt }) => (
+          {summaries.map(({ machine, fuelLiters, usageHours, hectares, activityCount, lastActivityAt, lastServiceAt }) => (
             <Card key={machine.id} className="stagger-item overflow-hidden">
               <div className="flex items-start justify-between gap-3 p-5">
                 <div className="flex items-center gap-3">
@@ -248,7 +344,14 @@ export default function MaquinariaPage() {
                   </IconTile>
                   <div>
                     <h3 className="font-semibold text-ink">{machine.name}</h3>
-                    <p className="text-sm text-ink-soft">{machine.brand ?? "Sin marca"}</p>
+                    <p className="text-sm text-ink-soft">{machine.brand ?? "Sin marca"} · {machine.type || "Sin tipo"}</p>
+                    {typeEditing === machine.id ? (
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <input aria-label={`Tipo de ${machine.name}`} className="rounded border p-1 text-sm" value={typeValue} onChange={e => setTypeValue(e.target.value)} />
+                        <Button onClick={() => void saveType(machine.id)}>Guardar tipo</Button>
+                        <Button variant="secondary" onClick={() => setTypeEditing(null)}>Cancelar</Button>
+                      </div>
+                    ) : (["ADMIN", "SUPERVISOR"].includes(getStoredUser()?.role || "") && <Button variant="secondary" onClick={() => { setTypeEditing(machine.id); setTypeValue(machine.type || ""); }}>Editar tipo</Button>)}
                   </div>
                 </div>
                 <Badge tone={STATUS_TONE[machine.status]}>
@@ -280,9 +383,9 @@ export default function MaquinariaPage() {
                   },
                   {
                     k: "Horas de uso",
-                    v: usageHours > 0 ? `${usageHours.toLocaleString("es-AR")} h` : "Sin registros",
+                    v: usageHours > 0 ? `${fmtNumber(usageHours)} h` : "Sin registros",
                   },
-                  { k: "Última actividad", v: fmtDate(lastActivityAt) },
+                  { k: "Hectáreas de uso", v: hectares > 0 ? `${fmtNumber(hectares)} ha` : "Sin registros" },
                   { k: "Último service", v: fmtDate(lastServiceAt) },
                 ].map((d) => (
                   <div key={d.k} className="bg-card px-4 py-3">
@@ -295,6 +398,68 @@ export default function MaquinariaPage() {
           ))}
         </div>
       )}
+
+      {!loading && !loadError && <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <Card className="p-5">
+          <h2 className="font-display text-lg font-semibold">Uso por tarea</h2>
+          <p className="mb-4 text-sm text-ink-soft">Cada registro aporta a las horas y hectáreas acumuladas de su máquina.</p>
+          {usages.length === 0 ? <p className="text-sm text-ink-soft">Todavía no hay usos vinculados a tareas.</p> :
+            <ul className="space-y-3">{usages.map(usage => <li key={usage.id} className="rounded-lg border border-agro-border p-3 text-sm">
+              <p className="font-semibold">{machines.find(m => m.id === usage.machineId)?.name || usage.machineId} · {taskLabel(usage.taskId)}</p>
+              <p className="text-ink-soft">Fecha de trabajo: {usage.workDate ? fmtDate(usage.workDate) : "Sin fecha registrada"} · {fmtNumber(usage.usageHours ?? 0)} h · {fmtNumber(usage.hectares ?? 0)} ha</p>
+              <p className="text-ink-soft">Observaciones: {usage.observations || "Sin observaciones"}</p>
+            </li>)}</ul>}
+        </Card>
+        <Card className="p-5">
+          <h2 className="font-display text-lg font-semibold">Historial de uso anterior</h2>
+          <p className="mb-4 text-sm text-ink-soft">Actividades USO_CAMPO heredadas: solo historial, no se suman al uso acumulado por tarea.</p>
+          {legacyFieldHistory(activities).length === 0 ? <p className="text-sm text-ink-soft">Sin registros históricos de uso en campo.</p> :
+            <ul className="space-y-2">{legacyFieldHistory(activities).map(activity => <li key={activity.id} className="border-b border-agro-border pb-2 text-sm">
+              <strong>{machines.find(m => m.id === activity.machineId)?.name || activity.machineId}</strong> · {fmtDate(activity.date)} · {fmtNumber(activity.usageHours ?? 0)} h · {fmtNumber(activity.hectares ?? 0)} ha
+              {activity.observations && <p>{activity.observations}</p>}
+            </li>)}</ul>}
+        </Card>
+      </div>}
+
+      {!loading && !loadError && <Card className="mt-5 p-5">
+        <h2 className="font-display text-lg font-semibold">Alertas de mantenimiento</h2>
+        {alerts.length === 0 || alerts.every(alert => alert.hoursLimit === null && alert.hectaresLimit === null) ?
+          <p className="mt-3 text-sm text-ink-soft">No hay umbrales configurados para las máquinas de esta firma. No se generan alertas sin límites.</p> :
+          alerts.filter(alert => alert.due).length === 0 ?
+            <p className="mt-3 text-sm text-ink-soft">Ninguna máquina alcanzó sus límites configurados.</p> :
+            <ul className="mt-3 space-y-2">{alerts.filter(alert => alert.due).map(alert => <li key={alert.id} className="rounded-lg border border-agro-border p-3 text-sm">
+              <strong>{alert.name}</strong> ({alert.type || "Sin tipo"}) · {alert.reasons.map(reason => reason === "HOURS" ? "HORAS" : "HECTÁREAS").join(" y ")}
+              <p>Horas: {fmtNumber(alert.usageHours)} h / límite {alert.hoursLimit === null ? "no configurado" : `${fmtNumber(alert.hoursLimit)} h`}</p>
+              <p>Hectáreas: {fmtNumber(alert.hectares)} ha / límite {alert.hectaresLimit === null ? "no configurado" : `${fmtNumber(alert.hectaresLimit)} ha`}</p>
+            </li>)}</ul>}
+      </Card>}
+
+      {!loading && !loadError && adminVisible && <Card className="mt-5 p-5">
+        <h2 className="font-display text-lg font-semibold">Configurar umbrales por tipo de máquina</h2>
+        <p className="text-sm text-ink-soft">Solo ADMIN. Indicá al menos un límite positivo; cada tipo tiene su propia configuración.</p>
+        <form onSubmit={saveThreshold} className="mt-4 flex flex-wrap items-end gap-3">
+          <TextField label="Tipo de máquina" required value={thresholdForm.machineType} onChange={e => setThresholdForm(f => ({ ...f, machineType: e.target.value }))} disabled={savingThreshold} />
+          <TextField label="Límite de horas" type="number" value={thresholdForm.hoursLimit} onChange={e => setThresholdForm(f => ({ ...f, hoursLimit: e.target.value }))} disabled={savingThreshold} />
+          <TextField label="Límite de hectáreas" type="number" value={thresholdForm.hectaresLimit} onChange={e => setThresholdForm(f => ({ ...f, hectaresLimit: e.target.value }))} disabled={savingThreshold} />
+          <Button type="submit" disabled={savingThreshold}>{savingThreshold ? "Guardando…" : "Guardar umbral"}</Button>
+        </form>
+        {thresholds.length === 0 ? <p className="mt-4 text-sm text-ink-soft">No hay umbrales configurados.</p> :
+          <ul className="mt-4 space-y-2">{thresholds.map(threshold => <li key={threshold.machineType} className="flex flex-wrap items-center justify-between gap-2 border-b border-agro-border pb-2 text-sm">
+            <span><strong>{threshold.machineType}</strong> · {threshold.hoursLimit === null ? "Sin límite de horas" : `${fmtNumber(threshold.hoursLimit)} h`} · {threshold.hectaresLimit === null ? "Sin límite de hectáreas" : `${fmtNumber(threshold.hectaresLimit)} ha`}</span>
+            <span className="flex gap-2"><Button variant="secondary" onClick={() => setThresholdForm({ machineType: threshold.machineType, hoursLimit: threshold.hoursLimit?.toString() || "", hectaresLimit: threshold.hectaresLimit?.toString() || "" })}>Editar</Button>
+            <Button variant="secondary" onClick={() => void removeThreshold(threshold.machineType)}>Eliminar</Button></span>
+          </li>)}</ul>}
+      </Card>}
+
+      {!loading && !loadError && adminVisible && report && <Card className="mt-5 overflow-hidden p-5">
+        <h2 className="font-display text-lg font-semibold">Consolidado por firma</h2>
+        {report.rows.length === 0 ? <p className="mt-3 text-sm text-ink-soft">No hay firmas asociadas para mostrar.</p> :
+          <div className="mt-4 overflow-x-auto"><table className="w-full text-left text-sm">
+            <thead><tr className="border-b border-agro-border"><th className="p-2">Firma</th><th className="p-2">Comprado</th><th className="p-2">Consumido</th><th className="p-2">Saldo</th><th className="p-2">Horas</th><th className="p-2">Hectáreas</th><th className="p-2">Mantenimiento</th><th className="p-2">Reparación</th></tr></thead>
+            <tbody>{report.rows.map(row => <tr key={row.companyId} className="border-b border-agro-border"><th className="p-2">{row.companyName}</th>{metricCells(row)}</tr>)}</tbody>
+            <tfoot><tr className="font-semibold"><th className="p-2">Total</th>{metricCells(report.totals)}</tr></tfoot>
+          </table></div>}
+      </Card>}
 
       {/* Pie: resumen real de combustible */}
       <Card className="mt-5 overflow-hidden">
@@ -342,6 +507,13 @@ export default function MaquinariaPage() {
             disabled={submitting}
           />
           <TextField
+            label="Tipo de máquina"
+            value={form.type}
+            onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+            placeholder="Ej: Tractor"
+            disabled={submitting}
+          />
+          <TextField
             label="Fecha de ingreso"
             type="date"
             required
@@ -376,6 +548,18 @@ export default function MaquinariaPage() {
       </Modal>
     </DashboardLayout>
   );
+}
+
+function metricCells(row: NonNullable<ConsolidatedMachineReportDTO>["totals"]) {
+  return <>
+    <td className="p-2">{fmtLiters(row.fuelPurchasedLiters)}</td>
+    <td className="p-2">{fmtLiters(row.fuelConsumedLiters)}</td>
+    <td className="p-2">{fmtLiters(row.fuelBalanceLiters)}</td>
+    <td className="p-2">{fmtNumber(row.usageHours)} h</td>
+    <td className="p-2">{fmtNumber(row.hectares)} ha</td>
+    <td className="p-2">$ {fmtNumber(row.maintenanceCost)}</td>
+    <td className="p-2">$ {fmtNumber(row.repairCost)}</td>
+  </>;
 }
 
 function today(): string {
