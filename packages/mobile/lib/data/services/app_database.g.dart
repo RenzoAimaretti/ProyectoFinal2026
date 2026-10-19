@@ -9845,6 +9845,624 @@ class MachineActivitiesCompanion extends UpdateCompanion<MachineActivity> {
   }
 }
 
+class $MachineUsagesTable extends MachineUsages
+    with TableInfo<$MachineUsagesTable, MachineUsage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MachineUsagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => const Uuid().v4(),
+  );
+  static const VerificationMeta _machineIdMeta = const VerificationMeta(
+    'machineId',
+  );
+  @override
+  late final GeneratedColumn<String> machineId = GeneratedColumn<String>(
+    'machine_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES machines (id)',
+    ),
+  );
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<String> taskId = GeneratedColumn<String>(
+    'task_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tasks (id)',
+    ),
+  );
+  static const VerificationMeta _operatorIdMeta = const VerificationMeta(
+    'operatorId',
+  );
+  @override
+  late final GeneratedColumn<String> operatorId = GeneratedColumn<String>(
+    'operator_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _usageHoursMeta = const VerificationMeta(
+    'usageHours',
+  );
+  @override
+  late final GeneratedColumn<double> usageHours = GeneratedColumn<double>(
+    'usage_hours',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _hectaresMeta = const VerificationMeta(
+    'hectares',
+  );
+  @override
+  late final GeneratedColumn<double> hectares = GeneratedColumn<double>(
+    'hectares',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _workDateMeta = const VerificationMeta(
+    'workDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> workDate = GeneratedColumn<DateTime>(
+    'work_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _observationsMeta = const VerificationMeta(
+    'observations',
+  );
+  @override
+  late final GeneratedColumn<String> observations = GeneratedColumn<String>(
+    'observations',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    machineId,
+    taskId,
+    operatorId,
+    usageHours,
+    hectares,
+    workDate,
+    observations,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'machine_usages';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MachineUsage> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('machine_id')) {
+      context.handle(
+        _machineIdMeta,
+        machineId.isAcceptableOrUnknown(data['machine_id']!, _machineIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_machineIdMeta);
+    }
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskIdMeta);
+    }
+    if (data.containsKey('operator_id')) {
+      context.handle(
+        _operatorIdMeta,
+        operatorId.isAcceptableOrUnknown(data['operator_id']!, _operatorIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_operatorIdMeta);
+    }
+    if (data.containsKey('usage_hours')) {
+      context.handle(
+        _usageHoursMeta,
+        usageHours.isAcceptableOrUnknown(data['usage_hours']!, _usageHoursMeta),
+      );
+    }
+    if (data.containsKey('hectares')) {
+      context.handle(
+        _hectaresMeta,
+        hectares.isAcceptableOrUnknown(data['hectares']!, _hectaresMeta),
+      );
+    }
+    if (data.containsKey('work_date')) {
+      context.handle(
+        _workDateMeta,
+        workDate.isAcceptableOrUnknown(data['work_date']!, _workDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_workDateMeta);
+    }
+    if (data.containsKey('observations')) {
+      context.handle(
+        _observationsMeta,
+        observations.isAcceptableOrUnknown(
+          data['observations']!,
+          _observationsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MachineUsage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MachineUsage(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      machineId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}machine_id'],
+      )!,
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      )!,
+      operatorId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operator_id'],
+      )!,
+      usageHours: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}usage_hours'],
+      ),
+      hectares: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}hectares'],
+      ),
+      workDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}work_date'],
+      )!,
+      observations: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}observations'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MachineUsagesTable createAlias(String alias) {
+    return $MachineUsagesTable(attachedDatabase, alias);
+  }
+}
+
+class MachineUsage extends DataClass implements Insertable<MachineUsage> {
+  final String id;
+  final String machineId;
+  final String taskId;
+  final String operatorId;
+  final double? usageHours;
+  final double? hectares;
+  final DateTime workDate;
+  final String? observations;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const MachineUsage({
+    required this.id,
+    required this.machineId,
+    required this.taskId,
+    required this.operatorId,
+    this.usageHours,
+    this.hectares,
+    required this.workDate,
+    this.observations,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['machine_id'] = Variable<String>(machineId);
+    map['task_id'] = Variable<String>(taskId);
+    map['operator_id'] = Variable<String>(operatorId);
+    if (!nullToAbsent || usageHours != null) {
+      map['usage_hours'] = Variable<double>(usageHours);
+    }
+    if (!nullToAbsent || hectares != null) {
+      map['hectares'] = Variable<double>(hectares);
+    }
+    map['work_date'] = Variable<DateTime>(workDate);
+    if (!nullToAbsent || observations != null) {
+      map['observations'] = Variable<String>(observations);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  MachineUsagesCompanion toCompanion(bool nullToAbsent) {
+    return MachineUsagesCompanion(
+      id: Value(id),
+      machineId: Value(machineId),
+      taskId: Value(taskId),
+      operatorId: Value(operatorId),
+      usageHours: usageHours == null && nullToAbsent
+          ? const Value.absent()
+          : Value(usageHours),
+      hectares: hectares == null && nullToAbsent
+          ? const Value.absent()
+          : Value(hectares),
+      workDate: Value(workDate),
+      observations: observations == null && nullToAbsent
+          ? const Value.absent()
+          : Value(observations),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MachineUsage.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MachineUsage(
+      id: serializer.fromJson<String>(json['id']),
+      machineId: serializer.fromJson<String>(json['machineId']),
+      taskId: serializer.fromJson<String>(json['taskId']),
+      operatorId: serializer.fromJson<String>(json['operatorId']),
+      usageHours: serializer.fromJson<double?>(json['usageHours']),
+      hectares: serializer.fromJson<double?>(json['hectares']),
+      workDate: serializer.fromJson<DateTime>(json['workDate']),
+      observations: serializer.fromJson<String?>(json['observations']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'machineId': serializer.toJson<String>(machineId),
+      'taskId': serializer.toJson<String>(taskId),
+      'operatorId': serializer.toJson<String>(operatorId),
+      'usageHours': serializer.toJson<double?>(usageHours),
+      'hectares': serializer.toJson<double?>(hectares),
+      'workDate': serializer.toJson<DateTime>(workDate),
+      'observations': serializer.toJson<String?>(observations),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MachineUsage copyWith({
+    String? id,
+    String? machineId,
+    String? taskId,
+    String? operatorId,
+    Value<double?> usageHours = const Value.absent(),
+    Value<double?> hectares = const Value.absent(),
+    DateTime? workDate,
+    Value<String?> observations = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => MachineUsage(
+    id: id ?? this.id,
+    machineId: machineId ?? this.machineId,
+    taskId: taskId ?? this.taskId,
+    operatorId: operatorId ?? this.operatorId,
+    usageHours: usageHours.present ? usageHours.value : this.usageHours,
+    hectares: hectares.present ? hectares.value : this.hectares,
+    workDate: workDate ?? this.workDate,
+    observations: observations.present ? observations.value : this.observations,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  MachineUsage copyWithCompanion(MachineUsagesCompanion data) {
+    return MachineUsage(
+      id: data.id.present ? data.id.value : this.id,
+      machineId: data.machineId.present ? data.machineId.value : this.machineId,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      operatorId: data.operatorId.present
+          ? data.operatorId.value
+          : this.operatorId,
+      usageHours: data.usageHours.present
+          ? data.usageHours.value
+          : this.usageHours,
+      hectares: data.hectares.present ? data.hectares.value : this.hectares,
+      workDate: data.workDate.present ? data.workDate.value : this.workDate,
+      observations: data.observations.present
+          ? data.observations.value
+          : this.observations,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MachineUsage(')
+          ..write('id: $id, ')
+          ..write('machineId: $machineId, ')
+          ..write('taskId: $taskId, ')
+          ..write('operatorId: $operatorId, ')
+          ..write('usageHours: $usageHours, ')
+          ..write('hectares: $hectares, ')
+          ..write('workDate: $workDate, ')
+          ..write('observations: $observations, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    machineId,
+    taskId,
+    operatorId,
+    usageHours,
+    hectares,
+    workDate,
+    observations,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MachineUsage &&
+          other.id == this.id &&
+          other.machineId == this.machineId &&
+          other.taskId == this.taskId &&
+          other.operatorId == this.operatorId &&
+          other.usageHours == this.usageHours &&
+          other.hectares == this.hectares &&
+          other.workDate == this.workDate &&
+          other.observations == this.observations &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MachineUsagesCompanion extends UpdateCompanion<MachineUsage> {
+  final Value<String> id;
+  final Value<String> machineId;
+  final Value<String> taskId;
+  final Value<String> operatorId;
+  final Value<double?> usageHours;
+  final Value<double?> hectares;
+  final Value<DateTime> workDate;
+  final Value<String?> observations;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const MachineUsagesCompanion({
+    this.id = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.operatorId = const Value.absent(),
+    this.usageHours = const Value.absent(),
+    this.hectares = const Value.absent(),
+    this.workDate = const Value.absent(),
+    this.observations = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MachineUsagesCompanion.insert({
+    this.id = const Value.absent(),
+    required String machineId,
+    required String taskId,
+    required String operatorId,
+    this.usageHours = const Value.absent(),
+    this.hectares = const Value.absent(),
+    required DateTime workDate,
+    this.observations = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : machineId = Value(machineId),
+       taskId = Value(taskId),
+       operatorId = Value(operatorId),
+       workDate = Value(workDate);
+  static Insertable<MachineUsage> custom({
+    Expression<String>? id,
+    Expression<String>? machineId,
+    Expression<String>? taskId,
+    Expression<String>? operatorId,
+    Expression<double>? usageHours,
+    Expression<double>? hectares,
+    Expression<DateTime>? workDate,
+    Expression<String>? observations,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (machineId != null) 'machine_id': machineId,
+      if (taskId != null) 'task_id': taskId,
+      if (operatorId != null) 'operator_id': operatorId,
+      if (usageHours != null) 'usage_hours': usageHours,
+      if (hectares != null) 'hectares': hectares,
+      if (workDate != null) 'work_date': workDate,
+      if (observations != null) 'observations': observations,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MachineUsagesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? machineId,
+    Value<String>? taskId,
+    Value<String>? operatorId,
+    Value<double?>? usageHours,
+    Value<double?>? hectares,
+    Value<DateTime>? workDate,
+    Value<String?>? observations,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return MachineUsagesCompanion(
+      id: id ?? this.id,
+      machineId: machineId ?? this.machineId,
+      taskId: taskId ?? this.taskId,
+      operatorId: operatorId ?? this.operatorId,
+      usageHours: usageHours ?? this.usageHours,
+      hectares: hectares ?? this.hectares,
+      workDate: workDate ?? this.workDate,
+      observations: observations ?? this.observations,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (machineId.present) {
+      map['machine_id'] = Variable<String>(machineId.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (operatorId.present) {
+      map['operator_id'] = Variable<String>(operatorId.value);
+    }
+    if (usageHours.present) {
+      map['usage_hours'] = Variable<double>(usageHours.value);
+    }
+    if (hectares.present) {
+      map['hectares'] = Variable<double>(hectares.value);
+    }
+    if (workDate.present) {
+      map['work_date'] = Variable<DateTime>(workDate.value);
+    }
+    if (observations.present) {
+      map['observations'] = Variable<String>(observations.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MachineUsagesCompanion(')
+          ..write('id: $id, ')
+          ..write('machineId: $machineId, ')
+          ..write('taskId: $taskId, ')
+          ..write('operatorId: $operatorId, ')
+          ..write('usageHours: $usageHours, ')
+          ..write('hectares: $hectares, ')
+          ..write('workDate: $workDate, ')
+          ..write('observations: $observations, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $PhotosTable extends Photos with TableInfo<$PhotosTable, Photo> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -11089,6 +11707,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StocksTable stocks = $StocksTable(this);
   late final $MachineActivitiesTable machineActivities =
       $MachineActivitiesTable(this);
+  late final $MachineUsagesTable machineUsages = $MachineUsagesTable(this);
   late final $PhotosTable photos = $PhotosTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $TaskOperatorsTable taskOperators = $TaskOperatorsTable(this);
@@ -11148,6 +11767,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_machine_activities_machine_date',
     'CREATE INDEX idx_machine_activities_machine_date ON machine_activities (machine_id, date)',
   );
+  late final Index idxMachineUsagesTaskId = Index(
+    'idx_machine_usages_task_id',
+    'CREATE INDEX idx_machine_usages_task_id ON machine_usages (task_id)',
+  );
+  late final Index idxMachineUsagesMachineId = Index(
+    'idx_machine_usages_machine_id',
+    'CREATE INDEX idx_machine_usages_machine_id ON machine_usages (machine_id)',
+  );
   late final Index idxPhotosEntity = Index(
     'idx_photos_entity',
     'CREATE INDEX idx_photos_entity ON photos (entity_type, entity_id)',
@@ -11189,6 +11816,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final MachineActivitiesDao machineActivitiesDao = MachineActivitiesDao(
     this as AppDatabase,
   );
+  late final MachineUsagesDao machineUsagesDao = MachineUsagesDao(
+    this as AppDatabase,
+  );
   late final PhotosDao photosDao = PhotosDao(this as AppDatabase);
   late final SyncQueueDao syncQueueDao = SyncQueueDao(this as AppDatabase);
   late final TasksDao tasksDao = TasksDao(this as AppDatabase);
@@ -11216,6 +11846,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     receptionItems,
     stocks,
     machineActivities,
+    machineUsages,
     photos,
     syncQueue,
     taskOperators,
@@ -11233,6 +11864,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxReceptionItemsReceptionId,
     uniqueStocksClientInput,
     idxMachineActivitiesMachineDate,
+    idxMachineUsagesTaskId,
+    idxMachineUsagesMachineId,
     idxPhotosEntity,
     idxSyncQueueStatusCreated,
     idxTasksLotId,
@@ -15719,6 +16352,24 @@ final class $$MachinesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$MachineUsagesTable, List<MachineUsage>>
+  _machineUsagesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.machineUsages,
+    aliasName: 'machines__id__machine_usages__machine_id',
+  );
+
+  $$MachineUsagesTableProcessedTableManager get machineUsagesRefs {
+    final manager = $$MachineUsagesTableTableManager(
+      $_db,
+      $_db.machineUsages,
+    ).filter((f) => f.machineId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_machineUsagesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$MachinesTableFilterComposer
@@ -15819,6 +16470,31 @@ class $$MachinesTableFilterComposer
           }) => $$MachineActivitiesTableFilterComposer(
             $db: $db,
             $table: $db.machineActivities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> machineUsagesRefs(
+    Expression<bool> Function($$MachineUsagesTableFilterComposer f) f,
+  ) {
+    final $$MachineUsagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.machineUsages,
+      getReferencedColumn: (t) => t.machineId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MachineUsagesTableFilterComposer(
+            $db: $db,
+            $table: $db.machineUsages,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -16001,6 +16677,31 @@ class $$MachinesTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> machineUsagesRefs<T extends Object>(
+    Expression<T> Function($$MachineUsagesTableAnnotationComposer a) f,
+  ) {
+    final $$MachineUsagesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.machineUsages,
+      getReferencedColumn: (t) => t.machineId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MachineUsagesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.machineUsages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$MachinesTableTableManager
@@ -16016,7 +16717,11 @@ class $$MachinesTableTableManager
           $$MachinesTableUpdateCompanionBuilder,
           (Machine, $$MachinesTableReferences),
           Machine,
-          PrefetchHooks Function({bool companyId, bool machineActivitiesRefs})
+          PrefetchHooks Function({
+            bool companyId,
+            bool machineActivitiesRefs,
+            bool machineUsagesRefs,
+          })
         > {
   $$MachinesTableTableManager(_$AppDatabase db, $MachinesTable table)
     : super(
@@ -16094,11 +16799,16 @@ class $$MachinesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({companyId = false, machineActivitiesRefs = false}) {
+              ({
+                companyId = false,
+                machineActivitiesRefs = false,
+                machineUsagesRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (machineActivitiesRefs) db.machineActivities,
+                    if (machineUsagesRefs) db.machineUsages,
                   ],
                   addJoins:
                       <
@@ -16155,6 +16865,27 @@ class $$MachinesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (machineUsagesRefs)
+                        await $_getPrefetchedData<
+                          Machine,
+                          $MachinesTable,
+                          MachineUsage
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MachinesTableReferences
+                              ._machineUsagesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MachinesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).machineUsagesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.machineId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -16175,7 +16906,11 @@ typedef $$MachinesTableProcessedTableManager =
       $$MachinesTableUpdateCompanionBuilder,
       (Machine, $$MachinesTableReferences),
       Machine,
-      PrefetchHooks Function({bool companyId, bool machineActivitiesRefs})
+      PrefetchHooks Function({
+        bool companyId,
+        bool machineActivitiesRefs,
+        bool machineUsagesRefs,
+      })
     >;
 typedef $$SessionsTableCreateCompanionBuilder =
     SessionsCompanion Function({
@@ -17403,6 +18138,24 @@ final class $$TasksTableReferences
     );
   }
 
+  static MultiTypedResultKey<$MachineUsagesTable, List<MachineUsage>>
+  _machineUsagesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.machineUsages,
+    aliasName: 'tasks__id__machine_usages__task_id',
+  );
+
+  $$MachineUsagesTableProcessedTableManager get machineUsagesRefs {
+    final manager = $$MachineUsagesTableTableManager(
+      $_db,
+      $_db.machineUsages,
+    ).filter((f) => f.taskId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_machineUsagesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$TaskOperatorsTable, List<TaskOperator>>
   _taskOperatorsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.taskOperators,
@@ -17527,6 +18280,31 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
           }) => $$DailyReportsTableFilterComposer(
             $db: $db,
             $table: $db.dailyReports,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> machineUsagesRefs(
+    Expression<bool> Function($$MachineUsagesTableFilterComposer f) f,
+  ) {
+    final $$MachineUsagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.machineUsages,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MachineUsagesTableFilterComposer(
+            $db: $db,
+            $table: $db.machineUsages,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -17758,6 +18536,31 @@ class $$TasksTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> machineUsagesRefs<T extends Object>(
+    Expression<T> Function($$MachineUsagesTableAnnotationComposer a) f,
+  ) {
+    final $$MachineUsagesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.machineUsages,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MachineUsagesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.machineUsages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> taskOperatorsRefs<T extends Object>(
     Expression<T> Function($$TaskOperatorsTableAnnotationComposer a) f,
   ) {
@@ -17801,6 +18604,7 @@ class $$TasksTableTableManager
             bool lotId,
             bool laborTypeId,
             bool dailyReportsRefs,
+            bool machineUsagesRefs,
             bool taskOperatorsRefs,
           })
         > {
@@ -17874,12 +18678,14 @@ class $$TasksTableTableManager
                 lotId = false,
                 laborTypeId = false,
                 dailyReportsRefs = false,
+                machineUsagesRefs = false,
                 taskOperatorsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (dailyReportsRefs) db.dailyReports,
+                    if (machineUsagesRefs) db.machineUsages,
                     if (taskOperatorsRefs) db.taskOperators,
                   ],
                   addJoins:
@@ -17950,6 +18756,27 @@ class $$TasksTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (machineUsagesRefs)
+                        await $_getPrefetchedData<
+                          Task,
+                          $TasksTable,
+                          MachineUsage
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TasksTableReferences
+                              ._machineUsagesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TasksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).machineUsagesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.taskId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (taskOperatorsRefs)
                         await $_getPrefetchedData<
                           Task,
@@ -17995,6 +18822,7 @@ typedef $$TasksTableProcessedTableManager =
         bool lotId,
         bool laborTypeId,
         bool dailyReportsRefs,
+        bool machineUsagesRefs,
         bool taskOperatorsRefs,
       })
     >;
@@ -21210,6 +22038,514 @@ typedef $$MachineActivitiesTableProcessedTableManager =
       MachineActivity,
       PrefetchHooks Function({bool machineId, bool companyId})
     >;
+typedef $$MachineUsagesTableCreateCompanionBuilder =
+    MachineUsagesCompanion Function({
+      Value<String> id,
+      required String machineId,
+      required String taskId,
+      required String operatorId,
+      Value<double?> usageHours,
+      Value<double?> hectares,
+      required DateTime workDate,
+      Value<String?> observations,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$MachineUsagesTableUpdateCompanionBuilder =
+    MachineUsagesCompanion Function({
+      Value<String> id,
+      Value<String> machineId,
+      Value<String> taskId,
+      Value<String> operatorId,
+      Value<double?> usageHours,
+      Value<double?> hectares,
+      Value<DateTime> workDate,
+      Value<String?> observations,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$MachineUsagesTableReferences
+    extends BaseReferences<_$AppDatabase, $MachineUsagesTable, MachineUsage> {
+  $$MachineUsagesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $MachinesTable _machineIdTable(_$AppDatabase db) =>
+      db.machines.createAlias('machine_usages__machine_id__machines__id');
+
+  $$MachinesTableProcessedTableManager get machineId {
+    final $_column = $_itemColumn<String>('machine_id')!;
+
+    final manager = $$MachinesTableTableManager(
+      $_db,
+      $_db.machines,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_machineIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $TasksTable _taskIdTable(_$AppDatabase db) =>
+      db.tasks.createAlias('machine_usages__task_id__tasks__id');
+
+  $$TasksTableProcessedTableManager get taskId {
+    final $_column = $_itemColumn<String>('task_id')!;
+
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MachineUsagesTableFilterComposer
+    extends Composer<_$AppDatabase, $MachineUsagesTable> {
+  $$MachineUsagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get operatorId => $composableBuilder(
+    column: $table.operatorId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get usageHours => $composableBuilder(
+    column: $table.usageHours,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get hectares => $composableBuilder(
+    column: $table.hectares,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get workDate => $composableBuilder(
+    column: $table.workDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get observations => $composableBuilder(
+    column: $table.observations,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$MachinesTableFilterComposer get machineId {
+    final $$MachinesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.machineId,
+      referencedTable: $db.machines,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MachinesTableFilterComposer(
+            $db: $db,
+            $table: $db.machines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TasksTableFilterComposer get taskId {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MachineUsagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MachineUsagesTable> {
+  $$MachineUsagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get operatorId => $composableBuilder(
+    column: $table.operatorId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get usageHours => $composableBuilder(
+    column: $table.usageHours,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get hectares => $composableBuilder(
+    column: $table.hectares,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get workDate => $composableBuilder(
+    column: $table.workDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get observations => $composableBuilder(
+    column: $table.observations,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MachinesTableOrderingComposer get machineId {
+    final $$MachinesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.machineId,
+      referencedTable: $db.machines,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MachinesTableOrderingComposer(
+            $db: $db,
+            $table: $db.machines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TasksTableOrderingComposer get taskId {
+    final $$TasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MachineUsagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MachineUsagesTable> {
+  $$MachineUsagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get operatorId => $composableBuilder(
+    column: $table.operatorId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get usageHours => $composableBuilder(
+    column: $table.usageHours,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get hectares =>
+      $composableBuilder(column: $table.hectares, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get workDate =>
+      $composableBuilder(column: $table.workDate, builder: (column) => column);
+
+  GeneratedColumn<String> get observations => $composableBuilder(
+    column: $table.observations,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$MachinesTableAnnotationComposer get machineId {
+    final $$MachinesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.machineId,
+      referencedTable: $db.machines,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MachinesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.machines,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TasksTableAnnotationComposer get taskId {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MachineUsagesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MachineUsagesTable,
+          MachineUsage,
+          $$MachineUsagesTableFilterComposer,
+          $$MachineUsagesTableOrderingComposer,
+          $$MachineUsagesTableAnnotationComposer,
+          $$MachineUsagesTableCreateCompanionBuilder,
+          $$MachineUsagesTableUpdateCompanionBuilder,
+          (MachineUsage, $$MachineUsagesTableReferences),
+          MachineUsage,
+          PrefetchHooks Function({bool machineId, bool taskId})
+        > {
+  $$MachineUsagesTableTableManager(_$AppDatabase db, $MachineUsagesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MachineUsagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MachineUsagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MachineUsagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> machineId = const Value.absent(),
+                Value<String> taskId = const Value.absent(),
+                Value<String> operatorId = const Value.absent(),
+                Value<double?> usageHours = const Value.absent(),
+                Value<double?> hectares = const Value.absent(),
+                Value<DateTime> workDate = const Value.absent(),
+                Value<String?> observations = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MachineUsagesCompanion(
+                id: id,
+                machineId: machineId,
+                taskId: taskId,
+                operatorId: operatorId,
+                usageHours: usageHours,
+                hectares: hectares,
+                workDate: workDate,
+                observations: observations,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String machineId,
+                required String taskId,
+                required String operatorId,
+                Value<double?> usageHours = const Value.absent(),
+                Value<double?> hectares = const Value.absent(),
+                required DateTime workDate,
+                Value<String?> observations = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MachineUsagesCompanion.insert(
+                id: id,
+                machineId: machineId,
+                taskId: taskId,
+                operatorId: operatorId,
+                usageHours: usageHours,
+                hectares: hectares,
+                workDate: workDate,
+                observations: observations,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MachineUsagesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({machineId = false, taskId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (machineId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.machineId,
+                                referencedTable: $$MachineUsagesTableReferences
+                                    ._machineIdTable(db),
+                                referencedColumn: $$MachineUsagesTableReferences
+                                    ._machineIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (taskId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.taskId,
+                                referencedTable: $$MachineUsagesTableReferences
+                                    ._taskIdTable(db),
+                                referencedColumn: $$MachineUsagesTableReferences
+                                    ._taskIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MachineUsagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MachineUsagesTable,
+      MachineUsage,
+      $$MachineUsagesTableFilterComposer,
+      $$MachineUsagesTableOrderingComposer,
+      $$MachineUsagesTableAnnotationComposer,
+      $$MachineUsagesTableCreateCompanionBuilder,
+      $$MachineUsagesTableUpdateCompanionBuilder,
+      (MachineUsage, $$MachineUsagesTableReferences),
+      MachineUsage,
+      PrefetchHooks Function({bool machineId, bool taskId})
+    >;
 typedef $$PhotosTableCreateCompanionBuilder =
     PhotosCompanion Function({
       Value<String> id,
@@ -22029,6 +23365,8 @@ class $AppDatabaseManager {
       $$StocksTableTableManager(_db, _db.stocks);
   $$MachineActivitiesTableTableManager get machineActivities =>
       $$MachineActivitiesTableTableManager(_db, _db.machineActivities);
+  $$MachineUsagesTableTableManager get machineUsages =>
+      $$MachineUsagesTableTableManager(_db, _db.machineUsages);
   $$PhotosTableTableManager get photos =>
       $$PhotosTableTableManager(_db, _db.photos);
   $$SyncQueueTableTableManager get syncQueue =>
