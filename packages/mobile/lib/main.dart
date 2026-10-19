@@ -23,10 +23,12 @@ import 'data/repositories/drift_photo_repository.dart';
 import 'data/repositories/drift_reception_repository.dart';
 import 'data/repositories/drift_session_repository.dart';
 import 'data/repositories/drift_sync_queue_store.dart';
+import 'data/repositories/machine_usage_sync_handler.dart';
 import 'data/repositories/drift_task_reader.dart';
 import 'data/repositories/flutter_sync_delayer.dart';
 import 'data/repositories/http_auth_repository.dart';
 import 'data/repositories/http_daily_report_repository.dart';
+import 'data/repositories/http_machine_usage_repository.dart';
 import 'data/repositories/path_provider_photo_storage_repository.dart';
 import 'data/repositories/sync_queue_writer.dart';
 import 'data/repositories/token_refresher.dart';
@@ -251,9 +253,18 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       sessionRepository: sessionRepository,
       tokenRefresher: tokenRefresher,
     );
+    final machineUsageHandler = MachineUsageSyncHandler(
+      db: _database,
+      remoteRepository: HttpMachineUsageRepository(),
+      sessionRepository: sessionRepository,
+      tokenRefresher: tokenRefresher,
+    );
     _syncEngine = SyncEngine(
       queue: store,
-      handlers: {SyncEntity.dailyReport: dailyReportHandler},
+      handlers: {
+        SyncEntity.dailyReport: dailyReportHandler,
+        SyncEntity.machineUsage: machineUsageHandler,
+      },
       delayer: FlutterSyncDelayer(),
     );
   }
