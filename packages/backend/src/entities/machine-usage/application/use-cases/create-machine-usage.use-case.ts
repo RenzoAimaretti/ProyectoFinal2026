@@ -6,7 +6,7 @@ import {
   UserReaderPort,
 } from '../machine-usage.ports';
 import { CreateMachineUsageInput, MachineUsageRecord } from '../machine-usage.types';
-import { assertOptionalClientId, assertOptionalPositiveNumber, assertRequiredString } from '../machine-usage.validation';
+import { assertOptionalClientId, assertOptionalNotes, assertOptionalPositiveNumber, assertOptionalWorkDate, assertRequiredString } from '../machine-usage.validation';
 
 export class CreateMachineUsageUseCase {
   constructor(
@@ -26,6 +26,8 @@ export class CreateMachineUsageUseCase {
     }
     const usageHours = assertOptionalPositiveNumber(input?.usageHours, 'usageHours');
     const hectares = assertOptionalPositiveNumber(input?.hectares, 'hectares');
+    const workDate = assertOptionalWorkDate(input?.workDate);
+    const observations = assertOptionalNotes(input?.observations);
 
     const machine = await this.machineReader.findByIdForCompany(machineId, companyId);
     if (!machine) {
@@ -61,7 +63,9 @@ export class CreateMachineUsageUseCase {
     const matchesRetry = (existing: MachineUsageRecord | null): existing is MachineUsageRecord =>
       existing !== null && existing.machineId === machineId && existing.taskId === taskId &&
       existing.operatorId === operatorId && existing.initialFuel === (input?.intialFuel ?? null) &&
-      existing.usageHours === (usageHours ?? null) && existing.hectares === (hectares ?? null);
+      existing.usageHours === (usageHours ?? null) && existing.hectares === (hectares ?? null) &&
+      (existing.workDate?.getTime() ?? null) === (workDate?.getTime() ?? null) &&
+      existing.observations === (observations ?? null);
 
     if (id) {
       const existing = await this.repository.findByIdForCompany(id, companyId);
@@ -84,6 +88,8 @@ export class CreateMachineUsageUseCase {
         initialFuel: input?.intialFuel,
         ...(usageHours !== undefined ? { usageHours } : {}),
         ...(hectares !== undefined ? { hectares } : {}),
+        ...(workDate !== undefined ? { workDate } : {}),
+        ...(observations !== undefined ? { observations } : {}),
       });
     } catch (error) {
       if (id && error instanceof DuplicateUsageIdError) {

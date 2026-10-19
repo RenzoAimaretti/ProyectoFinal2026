@@ -72,13 +72,17 @@ describe('Task-linked machine usage (HTTP)', () => {
   it('returns the same usage for a repeated client ID and rejects a changed payload without writing', async () => {
     const server = app.getHttpServer();
     const id = '41340853-9aa7-464c-98e7-6ea5d03faec1';
-    const input = { id, machineId: 'machine-a', taskId: 'task-a', operatorId: 'operator-a', usageHours: 2, hectares: 7 };
+    const input = { id, machineId: 'machine-a', taskId: 'task-a', operatorId: 'operator-a', usageHours: 2, hectares: 7, workDate: '2026-03-08', observations: 'Turno noche' };
     const first = await request(server).post('/machine-usages').set(asCompany()).send(input).expect(201);
     const retry = await request(server).post('/machine-usages').set(asCompany()).send(input).expect(201);
     expect(retry.body.id).toBe(first.body.id);
+    expect(retry.body.workDate).toBe(first.body.workDate);
+    expect(retry.body.observations).toBe('Turno noche');
     await request(server).post('/machine-usages').set(asCompany()).send({ ...input, id: id.toUpperCase() }).expect(201);
     expect(repository.create).toHaveBeenCalledTimes(1);
     await request(server).post('/machine-usages').set(asCompany()).send({ ...input, usageHours: 3 }).expect(409);
+    await request(server).post('/machine-usages').set(asCompany()).send({ ...input, observations: 'Otro turno' }).expect(409);
+    await request(server).post('/machine-usages').set(asCompany()).send({ ...input, workDate: 'ayer' }).expect(400);
     await request(server).post('/machine-usages').set(asCompany()).send({ ...input, id: 'not-a-uuid' }).expect(400);
     expect(repository.create).toHaveBeenCalledTimes(1);
   });

@@ -12,6 +12,7 @@ export type MachineUsageRecord = {
   hectares: number | null;
   observations: string | null;
   operatorId: string | null;
+  workDate: Date | null;
   createdAt: Date;
 };
 
@@ -23,6 +24,8 @@ export type CreateMachineUsageInput = {
   intialFuel?: number;
   usageHours?: number;
   hectares?: number;
+  workDate?: string;
+  observations?: string;
 };
 
 export type UpdateMachineUsageInput = {
@@ -41,6 +44,8 @@ export type CreateMachineUsageData = {
   initialFuel?: number;
   usageHours?: number;
   hectares?: number;
+  workDate?: Date;
+  observations?: string | null;
 };
 
 export type UpdateMachineUsageData = {

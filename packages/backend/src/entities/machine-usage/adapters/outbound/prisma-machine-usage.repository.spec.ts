@@ -50,6 +50,13 @@ describe('PrismaMachineUsageRepository', () => {
     expect(prisma.machineUsage.create).toHaveBeenCalledWith({ data: { machineId: 'machine-1', taskId: 'task-1', usageHours: 2, hectares: 7 } });
   });
 
+  it('persists the captured work date and notes on create', async () => {
+    const workDate = new Date('2026-03-08T00:00:00.000Z');
+    prisma.machineUsage.create.mockResolvedValue({ id: 'usage-1', workDate, observations: 'Turno noche' });
+    await repository.create({ id: '41340853-9aa7-464c-98e7-6ea5d03faec1', machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', workDate, observations: 'Turno noche' });
+    expect(prisma.machineUsage.create).toHaveBeenCalledWith({ data: { id: '41340853-9aa7-464c-98e7-6ea5d03faec1', machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', workDate, observations: 'Turno noche' } });
+  });
+
   it('maps a duplicate client ID to a domain conflict while preserving the first row', async () => {
     const duplicate = new PrismaClientKnownRequestError('Unique constraint failed', { code: 'P2002', clientVersion: '7.8.0' });
     prisma.machineUsage.create.mockRejectedValue(duplicate);
