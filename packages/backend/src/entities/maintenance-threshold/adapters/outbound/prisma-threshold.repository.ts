@@ -17,15 +17,38 @@ export class PrismaThresholdRepository implements ThresholdRepositoryPort {
     });
   }
 
-  upsert(
+  /// Reuses an existing row when the type differs only in case or spacing, so a
+  /// dropdown selection never creates a near-duplicate threshold.
+  async upsert(
     companyId: string,
     machineType: string,
     limits: ThresholdLimits,
   ): Promise<Threshold> {
-    return this.prisma.maintenanceThreshold.upsert({
-      where: { companyId_machineType: { companyId, machineType } },
-      create: { companyId, machineType, ...limits },
-      update: limits,
+    const matching = await this.prisma.maintenanceThreshold.findMany({
+      where: {
+        companyId,
+        machineType: { equals: machineType.trim(), mode: 'insensitive' },
+      },
+      select: { id: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (matching.length > 0) {
+      const [keep, ...duplicates] = matching;
+      if (duplicates.length > 0) {
+        // Legacy rows saved with different casing collapse into the kept one.
+        await this.prisma.maintenanceThreshold.deleteMany({
+          where: { id: { in: duplicates.map((row) => row.id) } },
+        });
+      }
+      return this.prisma.maintenanceThreshold.update({
+        where: { id: keep.id },
+        data: limits,
+      });
+    }
+
+    return this.prisma.maintenanceThreshold.create({
+      data: { companyId, machineType: machineType.trim(), ...limits },
     });
   }
 

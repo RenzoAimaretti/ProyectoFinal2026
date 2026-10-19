@@ -14,10 +14,19 @@ export class ListMachineAlertsUseCase {
       this.thresholds.findAll(company),
       this.usages.totalsForCompany(company),
     ]);
-    const limitsByType = new Map(thresholds.filter(row => row.companyId === company).map(row => [row.machineType, row]));
+    // Machine types are free text: compare trimmed and case-insensitively so a
+    // threshold configured as "Tractor" still applies to a machine typed "tractor".
+    const typeKey = (value: string) => value.trim().toLocaleLowerCase('es');
+    const limitsByType = new Map(
+      thresholds
+        .filter(row => row.companyId === company && row.machineType.trim())
+        .map(row => [typeKey(row.machineType), row]),
+    );
     const totalsByMachine = new Map(totals.map(row => [row.machineId, row]));
     return machines.filter(machine => machine.companyId === company).map(machine => {
-      const limits = machine.type ? limitsByType.get(machine.type) : undefined;
+      const limits = machine.type && machine.type.trim()
+        ? limitsByType.get(typeKey(machine.type))
+        : undefined;
       const usage = totalsByMachine.get(machine.id);
       const usageHours = usage?.usageHours ?? 0;
       const hectares = usage?.hectares ?? 0;

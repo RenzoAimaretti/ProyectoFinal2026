@@ -69,6 +69,28 @@ describe('maintenance thresholds and machine alerts', () => {
     expect(usages.totalsForCompany).toHaveBeenCalledWith('a');
   });
 
+  it('matches machine types ignoring case and surrounding spaces', async () => {
+    machines.findAllByCompanyId.mockResolvedValue([
+      { id: 'm1', companyId: 'a', type: ' tractor ' },
+      { id: 'm2', companyId: 'a', type: 'Pulverizadora' },
+    ]);
+    thresholds.findAll.mockResolvedValue([
+      { companyId: 'a', machineType: 'Tractor', hoursLimit: 5, hectaresLimit: null },
+      { companyId: 'a', machineType: 'pulverizadora', hoursLimit: null, hectaresLimit: 2 },
+    ]);
+    usages.totalsForCompany.mockResolvedValue([
+      { machineId: 'm1', usageHours: 6, hectares: 0 },
+      { machineId: 'm2', usageHours: 0, hectares: 3 },
+    ]);
+
+    const rows = await new ListMachineAlertsUseCase(machines as never, thresholds as never, usages as never).execute('a');
+
+    expect(rows.map(row => [row.id, row.due, row.reasons])).toEqual([
+      ['m1', true, ['HOURS']],
+      ['m2', true, ['HECTARES']],
+    ]);
+  });
+
   it('accepts optional free-text machine types and permits clearing them', async () => {
     const repo = { create: jest.fn(async (data: unknown) => data), findByIdForCompany: jest.fn(async () => ({ id: 'm', type: 'Tractor' })), updateForCompany: jest.fn(async (_id: string, _company: string, data: unknown) => data) };
     const create = new CreateMachineUseCase(repo as never, { findById: async () => ({ id: 'a' }) });
