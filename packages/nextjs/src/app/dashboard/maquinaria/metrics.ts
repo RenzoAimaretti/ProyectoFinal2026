@@ -18,3 +18,37 @@ export function summarizeUsage(machineId: string, usages: Pick<MachineUsageDTO, 
 export function canManageFleet(role?: string | null): boolean {
   return role === 'ADMIN';
 }
+
+/**
+ * Common machine types offered in the panel. They are suggestions, not a closed
+ * enum: any type already used by a machine or a threshold is merged in too.
+ */
+export const MACHINE_TYPE_DEFAULTS = [
+  "Tractor",
+  "Pulverizadora",
+  "Sembradora",
+  "Cosechadora",
+  "Camioneta",
+  "Acoplado",
+  "Implemento",
+] as const;
+
+/**
+ * Options for the machine-type and threshold-type selects. Values are trimmed
+ * and deduplicated case-insensitively (keeping the first spelling), defaults
+ * keep their curated order, and any other known type follows alphabetically.
+ */
+export function machineTypeOptions(known: (string | null | undefined)[]): string[] {
+  const canonical = new Map<string, string>();
+  const remember = (value: string | null | undefined) => {
+    const trimmed = (value ?? "").trim();
+    if (!trimmed) return;
+    const key = trimmed.toLocaleLowerCase("es");
+    if (!canonical.has(key)) canonical.set(key, trimmed);
+  };
+
+  MACHINE_TYPE_DEFAULTS.forEach(remember);
+  known.forEach(remember);
+
+  return [...canonical.values()].sort((a, b) => a.localeCompare(b, "es"));
+}

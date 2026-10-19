@@ -18,7 +18,7 @@ import { SelectField, TextField } from "@/components/ui/form";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { MachineIcon, PlusIcon } from "@/components/ui/icons";
 import { isAdminRole, navItems } from "@/components/ui/nav";
-import { canManageFleet, legacyFieldHistory, summarizeUsage } from "./metrics";
+import { canManageFleet, legacyFieldHistory, machineTypeOptions, summarizeUsage } from "./metrics";
 import {
   ApiError,
   apiGet,
@@ -130,6 +130,10 @@ export default function MaquinariaPage() {
   const [report, setReport] = useState<ConsolidatedMachineReportDTO | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const adminVisible = isAdmin && canManageFleet(getStoredUser()?.role);
+  const typeOptions = useMemo(
+    () => machineTypeOptions([...machines.map((m) => m.type), ...thresholds.map((t) => t.machineType)]),
+    [machines, thresholds],
+  );
   const [thresholdForm, setThresholdForm] = useState({ machineType: "", hoursLimit: "", hectaresLimit: "" });
   const [savingThreshold, setSavingThreshold] = useState(false);
   const [typeEditing, setTypeEditing] = useState<string | null>(null);
@@ -346,8 +350,14 @@ export default function MaquinariaPage() {
                     <h3 className="font-semibold text-ink">{machine.name}</h3>
                     <p className="text-sm text-ink-soft">{machine.brand ?? "Sin marca"} · {machine.type || "Sin tipo"}</p>
                     {typeEditing === machine.id ? (
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        <input aria-label={`Tipo de ${machine.name}`} className="rounded border p-1 text-sm" value={typeValue} onChange={e => setTypeValue(e.target.value)} />
+                      <div className="flex flex-wrap items-end gap-2 pt-2">
+                        <SelectField
+                          label="Tipo de máquina"
+                          aria-label={`Tipo de ${machine.name}`}
+                          value={typeValue}
+                          onChange={e => setTypeValue(e.target.value)}
+                          options={[{ value: "", label: "Sin tipo" }, ...typeOptions.map(type => ({ value: type, label: type }))]}
+                        />
                         <Button onClick={() => void saveType(machine.id)}>Guardar tipo</Button>
                         <Button variant="secondary" onClick={() => setTypeEditing(null)}>Cancelar</Button>
                       </div>
@@ -438,7 +448,7 @@ export default function MaquinariaPage() {
         <h2 className="font-display text-lg font-semibold">Configurar umbrales por tipo de máquina</h2>
         <p className="text-sm text-ink-soft">Solo ADMIN. Indicá al menos un límite positivo; cada tipo tiene su propia configuración.</p>
         <form onSubmit={saveThreshold} className="mt-4 flex flex-wrap items-end gap-3">
-          <TextField label="Tipo de máquina" required value={thresholdForm.machineType} onChange={e => setThresholdForm(f => ({ ...f, machineType: e.target.value }))} disabled={savingThreshold} />
+          <SelectField label="Tipo de máquina" required value={thresholdForm.machineType} onChange={e => setThresholdForm(f => ({ ...f, machineType: e.target.value }))} disabled={savingThreshold} options={[{ value: "", label: "Seleccioná un tipo" }, ...typeOptions.map(type => ({ value: type, label: type }))]} />
           <TextField label="Límite de horas" type="number" value={thresholdForm.hoursLimit} onChange={e => setThresholdForm(f => ({ ...f, hoursLimit: e.target.value }))} disabled={savingThreshold} />
           <TextField label="Límite de hectáreas" type="number" value={thresholdForm.hectaresLimit} onChange={e => setThresholdForm(f => ({ ...f, hectaresLimit: e.target.value }))} disabled={savingThreshold} />
           <Button type="submit" disabled={savingThreshold}>{savingThreshold ? "Guardando…" : "Guardar umbral"}</Button>
@@ -506,11 +516,11 @@ export default function MaquinariaPage() {
             placeholder="Ej: John Deere"
             disabled={submitting}
           />
-          <TextField
+          <SelectField
             label="Tipo de máquina"
             value={form.type}
             onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-            placeholder="Ej: Tractor"
+            options={[{ value: "", label: "Sin tipo" }, ...typeOptions.map(type => ({ value: type, label: type }))]}
             disabled={submitting}
           />
           <TextField

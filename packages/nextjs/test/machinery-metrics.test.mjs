@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { summarizeUsage, legacyFieldHistory, canManageFleet } from '../src/app/dashboard/maquinaria/metrics.ts';
+import { summarizeUsage, legacyFieldHistory, canManageFleet, machineTypeOptions, MACHINE_TYPE_DEFAULTS } from '../src/app/dashboard/maquinaria/metrics.ts';
 
 test('usage totals come only from task-linked usages, never legacy activities', () => {
   const usages = [
@@ -20,4 +20,13 @@ test('only ADMIN may see management sections', () => {
   for (const role of ['SUPERVISOR', 'OPERARIO', undefined, null]) {
     assert.equal(canManageFleet(role), false);
   }
+});
+
+test('machine type options are deduplicated case-insensitively and keep known types', () => {
+  const options = machineTypeOptions([' tractor ', 'Tractor', 'Pulverizadora', null, '', 'Acoplado']);
+  assert.equal(options.filter(type => type.toLowerCase() === 'tractor').length, 1);
+  assert.ok(options.includes('Pulverizadora'));
+  assert.ok(options.includes('Acoplado'));
+  assert.ok(options.includes(MACHINE_TYPE_DEFAULTS[0]));
+  assert.deepEqual([...options].sort(), options, 'options stay sorted');
 });
