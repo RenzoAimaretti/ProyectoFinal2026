@@ -20,6 +20,7 @@ import 'data/repositories/daily_report_sync_handler.dart';
 import 'data/repositories/drift_catalog_readers.dart';
 import 'data/repositories/drift_daily_report_repository.dart';
 import 'data/repositories/drift_machine_activity_repository.dart';
+import 'data/repositories/drift_field_catalog_repository.dart';
 import 'data/repositories/drift_machine_usage_repository.dart';
 import 'data/repositories/drift_photo_repository.dart';
 import 'data/repositories/drift_reception_repository.dart';
@@ -37,6 +38,7 @@ import 'data/repositories/token_refresher.dart';
 import 'data/services/app_database.dart';
 import 'data/services/auth_api_service.dart';
 import 'data/services/catalog_seeder.dart';
+import 'data/services/field_catalog_api_service.dart';
 import 'data/services/photo_picker_service.dart';
 import 'domain/models/catalogs.dart' as domain;
 import 'domain/models/session.dart';
@@ -53,6 +55,7 @@ import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
 import 'domain/services/sync_engine.dart';
 import 'domain/usecases/register_machine_activity_usecase.dart';
+import 'domain/usecases/refresh_field_catalog_usecase.dart';
 import 'domain/usecases/register_machine_usage_usecase.dart';
 import 'domain/usecases/restore_session_usecase.dart';
 import 'presentation/preview/components_preview_screen.dart';
@@ -89,6 +92,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final MachineActivityFormViewModel _machineActivityFormViewModel;
   late final MachineUsageFormViewModel _machineUsageFormViewModel;
   late final RestoreSessionUseCase _restoreSessionUseCase;
+
+  /// Catálogo de campo autenticado (tareas, máquinas y taxonomía del tenant).
+  RefreshFieldCatalogUseCase? _refreshFieldCatalogUseCase;
 
   /// Motor de sincronización (Sprint 2) + gate de conectividad.
   SyncEngine? _syncEngine;
@@ -252,6 +258,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       // El operario de la sesión se fija al iniciar; el demo usa su propio id.
       operatorId: _session?.userId ?? 'demo-operario',
     );
+
+    _refreshFieldCatalogUseCase = RefreshFieldCatalogUseCase(
+      apiService: FieldCatalogApiService(),
+      cache: DriftFieldCatalogRepository(_database),
+      sessionRepository: sessionRepository,
+    );
   }
 
   /// Composition root del motor de sincronización (Sprint 2).
@@ -311,6 +323,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_maybeRunSync());
+      unawaited(_refreshFieldCatalog());
     }
   }
 
@@ -340,6 +353,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       }
     }
     unawaited(_maybeRunSync());
+    unawaited(_refreshFieldCatalog());
+  }
+
+  /// Pull best-effort del catálogo de campo: una falla de red no bloquea la app,
+  /// que sigue operando con lo ya cacheado.
+  Future<void> _refreshFieldCatalog() async {
+    try {
+      await _refreshFieldCatalogUseCase?.execute();
+    } catch (e) {
+      debugPrint('Actualización de catálogo de campo falló: $e');
+    }
   }
 
   @override
@@ -416,6 +440,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                           _machineUsageFormViewModel.setOperator(session.userId);
                           _machineUsageFormViewModel.setCompany(session.companyId);
                           unawaited(_maybeRunSync());
+                          unawaited(_refreshFieldCatalog());
                         }
                       },
                     ),
