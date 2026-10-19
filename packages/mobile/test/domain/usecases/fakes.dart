@@ -6,6 +6,7 @@ import 'package:mobile/domain/models/daily_report_summary.dart';
 import 'package:mobile/domain/models/enums.dart';
 import 'package:mobile/domain/models/machine_activity.dart';
 import 'package:mobile/domain/models/machine_activity_summary.dart';
+import 'package:mobile/domain/models/machine_usage.dart';
 import 'package:mobile/domain/models/photo.dart';
 import 'package:mobile/domain/models/reception.dart';
 import 'package:mobile/domain/models/reception_summary.dart';
@@ -15,6 +16,7 @@ import 'package:mobile/domain/models/task.dart';
 import 'package:mobile/domain/repositories/auth_repository.dart';
 import 'package:mobile/domain/repositories/daily_report_repository.dart';
 import 'package:mobile/domain/repositories/machine_activity_repository.dart';
+import 'package:mobile/domain/repositories/machine_usage_repository.dart';
 import 'package:mobile/domain/repositories/photo_repository.dart';
 import 'package:mobile/domain/repositories/photo_storage_repository.dart';
 import 'package:mobile/domain/repositories/client_reader.dart';
@@ -567,4 +569,31 @@ class FakeTaskReader implements TaskReader {
     }
     return null;
   }
+}
+
+// ─── MachineUsage ────────────────────────────────────────────────────────────
+
+class FakeMachineUsageRepository implements MachineUsageRepository {
+  final List<MachineUsage> _usages = [];
+
+  @override
+  Future<void> create(MachineUsage usage) async {
+    _usages.add(usage);
+  }
+
+  @override
+  Stream<List<MachineUsage>> watchByTask(String taskId) {
+    return Stream.value(_usages.where((u) => u.taskId == taskId).toList());
+  }
+
+  @override
+  Stream<List<MachineUsage>> watchByMachine(String machineId) {
+    return Stream.value(_usages.where((u) => u.machineId == machineId).toList());
+  }
+
+  @override
+  Stream<List<MachineUsage>> watchAll() =>
+      Stream.value(List.unmodifiable(_usages));
+
+  List<MachineUsage> get usages => List.unmodifiable(_usages);
 }

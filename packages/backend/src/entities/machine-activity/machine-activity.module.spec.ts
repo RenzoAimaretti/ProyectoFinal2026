@@ -8,6 +8,8 @@ import {
 import { FindAllMachineActivitiesUseCase } from './application/use-cases/find-all-machine-activities.use-case';
 import { FindMachineActivityUseCase } from './application/use-cases/find-machine-activity.use-case';
 import { RegisterMachineActivityUseCase } from './application/use-cases/register-machine-activity.use-case';
+import { AttachFuelReceiptUseCase } from './application/use-cases/attach-fuel-receipt.use-case';
+import { ReadFuelReceiptUseCase } from './application/use-cases/read-fuel-receipt.use-case';
 import { MachineActivityModule } from './machine-activity.module';
 
 describe('MachineActivityModule', () => {
@@ -44,6 +46,8 @@ describe('MachineActivityModule', () => {
     expect(moduleRef.get(RegisterMachineActivityUseCase)).toBeInstanceOf(
       RegisterMachineActivityUseCase,
     );
+    expect(moduleRef.get(AttachFuelReceiptUseCase)).toBeInstanceOf(AttachFuelReceiptUseCase);
+    expect(moduleRef.get(ReadFuelReceiptUseCase)).toBeInstanceOf(ReadFuelReceiptUseCase);
 
     await expect(
       moduleRef.get(FindAllMachineActivitiesUseCase).execute('company-1'),

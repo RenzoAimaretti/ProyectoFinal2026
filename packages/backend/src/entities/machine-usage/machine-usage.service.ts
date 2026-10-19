@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -9,7 +10,7 @@ import { CreateMachineUsageUseCase } from './application/use-cases/create-machin
 import { FindAllMachineUsagesUseCase } from './application/use-cases/find-all-machine-usages.use-case';
 import { FindMachineUsageUseCase } from './application/use-cases/find-machine-usage.use-case';
 import { UpdateMachineUsageUseCase } from './application/use-cases/update-machine-usage.use-case';
-import { EntityNotFoundError, InvalidInputError, InvalidRelationError } from './domain/errors';
+import { DuplicateUsageIdError, EntityNotFoundError, InvalidInputError, InvalidRelationError } from './domain/errors';
 
 @Injectable()
 export class MachineUsageService {
@@ -28,8 +29,8 @@ export class MachineUsageService {
     return this.handle(() => this.findOneUseCase.execute(id, companyId), 'finding machine usage');
   }
 
-  async create(companyId: string, data: CreateMachineUsageInput) {
-    return this.handle(() => this.createUseCase.execute(companyId, data), 'creating machine usage');
+  async create(companyId: string, data: CreateMachineUsageInput, actor?: { id: string; role: string }) {
+    return this.handle(() => this.createUseCase.execute(companyId, data, actor), 'creating machine usage');
   }
 
   async update(id: string, companyId: string, data: UpdateMachineUsageInput) {
@@ -47,6 +48,10 @@ export class MachineUsageService {
   private translateError(error: unknown, action: string): Error {
     if (error instanceof EntityNotFoundError) {
       return new NotFoundException(error.message);
+    }
+
+    if (error instanceof DuplicateUsageIdError) {
+      return new ConflictException(error.message);
     }
 
     if (error instanceof InvalidInputError || error instanceof InvalidRelationError) {

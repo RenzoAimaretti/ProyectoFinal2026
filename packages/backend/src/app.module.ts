@@ -20,6 +20,9 @@ import { LaborTypeModule } from './entities/labor-type/labor-type.module';
 import { TaskModule } from './entities/task/task.module';
 import { MachineModule } from './entities/machine/machine.module';
 import { MachineUsageModule } from './entities/machine-usage/machine-usage.module';
+import { MaintenanceThresholdModule } from './entities/maintenance-threshold/maintenance-threshold.module';
+import { MachineReportModule } from './entities/machine-report/machine-report.module';
+import { FieldCatalogModule } from './entities/field-catalog/field-catalog.module';
 import { AuthModule } from './auth/auth.module';
 import { RbacModule } from './auth/rbac.module';
 
@@ -46,8 +49,13 @@ import { RbacModule } from './auth/rbac.module';
     WeightRecordModule,
     LaborTypeModule,
     TaskModule,
+    // Registered before MachineModule so `GET /machines/alerts` wins over
+    // `GET /machines/:id`.
+    MaintenanceThresholdModule,
     MachineModule,
-    MachineUsageModule
+    MachineUsageModule,
+    MachineReportModule,
+    FieldCatalogModule,
   ],
   controllers: [],
   providers: [],

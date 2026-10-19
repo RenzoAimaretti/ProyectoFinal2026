@@ -73,6 +73,7 @@ export const ModelName = {
   ReceptionItem: 'ReceptionItem',
   Stock: 'Stock',
   Machine: 'Machine',
+  MaintenanceThreshold: 'MaintenanceThreshold',
   MachineUsage: 'MachineUsage',
   MachineActivity: 'MachineActivity',
   Photo: 'Photo',
@@ -406,6 +407,7 @@ export const MachineScalarFieldEnum = {
   id: 'id',
   companyId: 'companyId',
   name: 'name',
+  type: 'type',
   brand: 'brand',
   status: 'status',
   entryDate: 'entryDate',
@@ -419,6 +421,19 @@ export const MachineScalarFieldEnum = {
 export type MachineScalarFieldEnum = (typeof MachineScalarFieldEnum)[keyof typeof MachineScalarFieldEnum]
 
 
+export const MaintenanceThresholdScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  machineType: 'machineType',
+  hoursLimit: 'hoursLimit',
+  hectaresLimit: 'hectaresLimit',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MaintenanceThresholdScalarFieldEnum = (typeof MaintenanceThresholdScalarFieldEnum)[keyof typeof MaintenanceThresholdScalarFieldEnum]
+
+
 export const MachineUsageScalarFieldEnum = {
   id: 'id',
   taskId: 'taskId',
@@ -426,7 +441,10 @@ export const MachineUsageScalarFieldEnum = {
   initialFuel: 'initialFuel',
   finalFuel: 'finalFuel',
   usageHours: 'usageHours',
+  hectares: 'hectares',
   observations: 'observations',
+  operatorId: 'operatorId',
+  workDate: 'workDate',
   createdAt: 'createdAt'
 } as const
 
@@ -438,9 +456,12 @@ export const MachineActivityScalarFieldEnum = {
   machineId: 'machineId',
   companyId: 'companyId',
   type: 'type',
+  fuelMovement: 'fuelMovement',
   date: 'date',
   liters: 'liters',
   receipt: 'receipt',
+  receiptFileKey: 'receiptFileKey',
+  receiptMimeType: 'receiptMimeType',
   cost: 'cost',
   spareParts: 'spareParts',
   usageHours: 'usageHours',

@@ -34,18 +34,17 @@ const List<ActivityTypeOption> activityTypeOptions = [
     label: 'Reparación',
     icon: Icons.construction,
   ),
-  ActivityTypeOption(
-    type: MachineActivityType.FIELD_USAGE,
-    label: 'Uso en campo',
-    icon: Icons.agriculture,
-  ),
 ];
 
 /// Selector del tipo de actividad de maquinaria.
 ///
-/// Usa un [Wrap] de [ChoiceChip]s (Material 3) para que las 4 opciones
+/// Usa un [Wrap] de [ChoiceChip]s (Material 3) para que las opciones
 /// se acomoden bien en ancho móvil. Expone `selected` y `onChanged` para
 /// que el formulario CUU08 reaccione dinámicamente al tipo elegido.
+///
+/// `FIELD_USAGE` ya no se ofrece: todo el uso en campo se registra como uso
+/// ligado a una tarea (`MachineUsageFormView`). Las filas historicas siguen
+/// visibles en el historial.
 class ActivityTypeSelector extends StatelessWidget {
   const ActivityTypeSelector({
     super.key,

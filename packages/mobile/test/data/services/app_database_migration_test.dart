@@ -53,6 +53,44 @@ void main() {
     );
   });
 
+  test('version 5 declares task-linked machine usage without touching history', () async {
+    expect(await tableNames(), contains('machine_usages'));
+
+    final columns = await db.customSelect('PRAGMA table_info(machine_usages)').get();
+    final names = columns.map((row) => row.data['name']).toList();
+    expect(
+      names,
+      containsAll(<String>[
+        'id',
+        'machine_id',
+        'task_id',
+        'operator_id',
+        'usage_hours',
+        'hectares',
+        'work_date',
+        'observations',
+      ]),
+    );
+
+    final hours = columns.firstWhere((row) => row.data['name'] == 'usage_hours');
+    final hectares = columns.firstWhere((row) => row.data['name'] == 'hectares');
+    expect(hours.data['notnull'], 0);
+    expect(hectares.data['notnull'], 0);
+
+    // Historical standalone activities stay declared and readable.
+    expect(await tableNames(), contains('machine_activities'));
+  });
+
+  test('a machine usage cannot reference an unknown task', () async {
+    await expectLater(
+      db.customStatement(
+        "INSERT INTO machine_usages (id, machine_id, task_id, operator_id, work_date, created_at, updated_at) "
+        "VALUES ('u-1', 'machine-x', 'task-x', 'op-1', 0, 0, 0)",
+      ),
+      throwsA(anything),
+    );
+  });
+
   test('an input category link is nullable, because cached rows predate it', () async {
     final columns = await db.customSelect('PRAGMA table_info(inputs)').get();
     final categoryId = columns.firstWhere(

@@ -12,6 +12,7 @@ import 'daos/labor_type_categories_dao.dart';
 import 'daos/labor_types_dao.dart';
 import 'daos/lots_dao.dart';
 import 'daos/machine_activities_dao.dart';
+import 'daos/machine_usages_dao.dart';
 import 'daos/machines_dao.dart';
 import 'daos/photos_dao.dart';
 import 'daos/receptions_dao.dart';
@@ -50,6 +51,7 @@ part 'app_database.g.dart';
     ReceptionItems,
     Stocks,
     MachineActivities,
+    MachineUsages,
     Photos,
     SyncQueue,
     Tasks,
@@ -70,6 +72,7 @@ part 'app_database.g.dart';
     ReceptionsDao,
     StocksDao,
     MachineActivitiesDao,
+    MachineUsagesDao,
     PhotosDao,
     SyncQueueDao,
     TasksDao,
@@ -82,7 +85,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -100,6 +103,11 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(inputCategories);
             await m.createTable(laborTypeCategories);
             await m.addColumn(inputs, inputs.categoryId);
+          }
+          if (from < 5) {
+            // Uso ligado a tarea (R021). Las actividades historicas, incluidos
+            // los USO_CAMPO antiguos, se conservan sin reescribirse.
+            await m.createTable(machineUsages);
           }
         },
         beforeOpen: (details) async {

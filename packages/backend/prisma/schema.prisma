@@ -55,6 +55,7 @@ model Company {
   tenant            Tenant            @relation(fields: [tenantId], references: [id])
   userCompanies     UserCompany[]
   machines          Machine[]
+  maintenanceThresholds MaintenanceThreshold[]
   machineActivities MachineActivity[]
   dailyReports      DailyReport[]
   livestock         Livestock[]
@@ -465,6 +466,7 @@ model Machine {
   id              String        @id @default(uuid())
   companyId       String
   name            String
+  type            String?
   brand           String?
   status          MachineStatus @default(ACTIVA)
   entryDate       DateTime?
@@ -481,6 +483,20 @@ model Machine {
   @@index([companyId])
 }
 
+model MaintenanceThreshold {
+  id            String   @id @default(uuid())
+  companyId     String
+  machineType   String
+  hoursLimit    Float?
+  hectaresLimit Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, machineType])
+}
+
 model MachineUsage {
   id           String   @id @default(uuid())
   taskId       String
@@ -488,7 +504,10 @@ model MachineUsage {
   initialFuel  Float?
   finalFuel    Float?
   usageHours   Float?
+  hectares     Float?
   observations String?
+  operatorId   String?
+  workDate     DateTime?
   createdAt    DateTime @default(now())
 
   machine Machine @relation(fields: [machineId], references: [id])
@@ -506,9 +525,12 @@ model MachineActivity {
   machineId    String
   companyId    String
   type         MachineActivityType
+  fuelMovement FuelMovement?
   date         DateTime
   liters       Float?
   receipt      String?
+  receiptFileKey String? @unique
+  receiptMimeType String?
   cost         Float?
   spareParts   String?
   usageHours   Float?
@@ -676,6 +698,11 @@ enum MachineActivityType {
   MANTENIMIENTO
   REPARACION
   USO_CAMPO
+}
+
+enum FuelMovement {
+  INCOME
+  CONSUMPTION
 }
 
 enum PhotoEntityType {

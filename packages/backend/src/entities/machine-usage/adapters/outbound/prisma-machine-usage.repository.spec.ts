@@ -1,3 +1,5 @@
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { DuplicateUsageIdError } from '../../domain/errors';
 import { PrismaMachineUsageRepository } from './prisma-machine-usage.repository';
 
 describe('PrismaMachineUsageRepository', () => {
@@ -42,6 +44,26 @@ describe('PrismaMachineUsageRepository', () => {
     });
   });
 
+  it('persists task-linked hours and hectares on create', async () => {
+    prisma.machineUsage.create.mockResolvedValue({ id: 'usage-1', hectares: 7 });
+    await expect(repository.create({ machineId: 'machine-1', taskId: 'task-1', usageHours: 2, hectares: 7 })).resolves.toEqual({ id: 'usage-1', hectares: 7 });
+    expect(prisma.machineUsage.create).toHaveBeenCalledWith({ data: { machineId: 'machine-1', taskId: 'task-1', usageHours: 2, hectares: 7 } });
+  });
+
+  it('persists the captured work date and notes on create', async () => {
+    const workDate = new Date('2026-03-08T00:00:00.000Z');
+    prisma.machineUsage.create.mockResolvedValue({ id: 'usage-1', workDate, observations: 'Turno noche' });
+    await repository.create({ id: '41340853-9aa7-464c-98e7-6ea5d03faec1', machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', workDate, observations: 'Turno noche' });
+    expect(prisma.machineUsage.create).toHaveBeenCalledWith({ data: { id: '41340853-9aa7-464c-98e7-6ea5d03faec1', machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', workDate, observations: 'Turno noche' } });
+  });
+
+  it('maps a duplicate client ID to a domain conflict while preserving the first row', async () => {
+    const duplicate = new PrismaClientKnownRequestError('Unique constraint failed', { code: 'P2002', clientVersion: '7.8.0' });
+    prisma.machineUsage.create.mockRejectedValue(duplicate);
+    await expect(repository.create({ id: '41340853-9aa7-464c-98e7-6ea5d03faec1', machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1' })).rejects.toBeInstanceOf(DuplicateUsageIdError);
+    expect(prisma.machineUsage.create).toHaveBeenCalledTimes(1);
+  });
+
   it('writes updates after validating the company-scoped machine usage', async () => {
     prisma.machineUsage.findFirst.mockResolvedValue({ id: 'usage-1' });
     prisma.machineUsage.update.mockResolvedValue({ id: 'usage-1', finalFuel: 8 });
@@ -51,6 +73,7 @@ describe('PrismaMachineUsageRepository', () => {
         initialFuel: 11,
         finalFuel: 8,
         usageHours: 2.5,
+        hectares: 7,
         observations: 'updated',
       }),
     ).resolves.toEqual({ id: 'usage-1', finalFuel: 8 });
@@ -69,6 +92,7 @@ describe('PrismaMachineUsageRepository', () => {
         initialFuel: 11,
         finalFuel: 8,
         usageHours: 2.5,
+        hectares: 7,
         observations: 'updated',
       },
     });

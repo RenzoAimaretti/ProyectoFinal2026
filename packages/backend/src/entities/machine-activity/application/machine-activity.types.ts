@@ -1,13 +1,16 @@
 import { MachineActivityType } from '../domain/machine-activity-type';
+import { FuelMovement } from '../domain/fuel-movement';
 
 export type MachineActivityRecord = {
   id: string;
   machineId: string;
   companyId: string;
   type: MachineActivityType;
+  fuelMovement?: FuelMovement | null;
   date: Date;
   liters: number | null;
   receipt: string | null;
+  hasReceipt?: boolean;
   cost: number | null;
   spareParts: string | null;
   usageHours: number | null;
@@ -24,6 +27,7 @@ export type MachineActivityRecord = {
 export type RegisterMachineActivityInput = {
   machineId: string;
   type: MachineActivityType | string;
+  fuelMovement?: FuelMovement | string | null;
   date: string;
   liters?: number | null;
   receipt?: string | null;
@@ -38,6 +42,7 @@ export type RegisterMachineActivityData = {
   machineId: string;
   companyId: string;
   type: MachineActivityType;
+  fuelMovement?: FuelMovement | null;
   date: Date;
   liters: number | null;
   receipt: string | null;

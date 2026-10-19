@@ -406,6 +406,7 @@ export const ModelName = {
   ReceptionItem: 'ReceptionItem',
   Stock: 'Stock',
   Machine: 'Machine',
+  MaintenanceThreshold: 'MaintenanceThreshold',
   MachineUsage: 'MachineUsage',
   MachineActivity: 'MachineActivity',
   Photo: 'Photo',
@@ -428,7 +429,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "tenant" | "company" | "userCompany" | "user" | "refreshToken" | "module" | "client" | "inputCategory" | "input" | "laborType" | "laborTypeCategory" | "farm" | "lot" | "task" | "recipe" | "recipeItem" | "dailyReport" | "dailyReportItem" | "reception" | "receptionItem" | "stock" | "machine" | "machineUsage" | "machineActivity" | "photo" | "livestock" | "livestockEvent" | "weightRecord" | "livestockMovement"
+    modelProps: "tenant" | "company" | "userCompany" | "user" | "refreshToken" | "module" | "client" | "inputCategory" | "input" | "laborType" | "laborTypeCategory" | "farm" | "lot" | "task" | "recipe" | "recipeItem" | "dailyReport" | "dailyReportItem" | "reception" | "receptionItem" | "stock" | "machine" | "maintenanceThreshold" | "machineUsage" | "machineActivity" | "photo" | "livestock" | "livestockEvent" | "weightRecord" | "livestockMovement"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2060,6 +2061,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MaintenanceThreshold: {
+      payload: Prisma.$MaintenanceThresholdPayload<ExtArgs>
+      fields: Prisma.MaintenanceThresholdFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MaintenanceThresholdFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MaintenanceThresholdFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload>
+        }
+        findFirst: {
+          args: Prisma.MaintenanceThresholdFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MaintenanceThresholdFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload>
+        }
+        findMany: {
+          args: Prisma.MaintenanceThresholdFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload>[]
+        }
+        create: {
+          args: Prisma.MaintenanceThresholdCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload>
+        }
+        createMany: {
+          args: Prisma.MaintenanceThresholdCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MaintenanceThresholdCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload>[]
+        }
+        delete: {
+          args: Prisma.MaintenanceThresholdDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload>
+        }
+        update: {
+          args: Prisma.MaintenanceThresholdUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload>
+        }
+        deleteMany: {
+          args: Prisma.MaintenanceThresholdDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MaintenanceThresholdUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MaintenanceThresholdUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload>[]
+        }
+        upsert: {
+          args: Prisma.MaintenanceThresholdUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MaintenanceThresholdPayload>
+        }
+        aggregate: {
+          args: Prisma.MaintenanceThresholdAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMaintenanceThreshold>
+        }
+        groupBy: {
+          args: Prisma.MaintenanceThresholdGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MaintenanceThresholdGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MaintenanceThresholdCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MaintenanceThresholdCountAggregateOutputType> | number
+        }
+      }
+    }
     MachineUsage: {
       payload: Prisma.$MachineUsagePayload<ExtArgs>
       fields: Prisma.MachineUsageFieldRefs
@@ -2925,6 +3000,7 @@ export const MachineScalarFieldEnum = {
   id: 'id',
   companyId: 'companyId',
   name: 'name',
+  type: 'type',
   brand: 'brand',
   status: 'status',
   entryDate: 'entryDate',
@@ -2938,6 +3014,19 @@ export const MachineScalarFieldEnum = {
 export type MachineScalarFieldEnum = (typeof MachineScalarFieldEnum)[keyof typeof MachineScalarFieldEnum]
 
 
+export const MaintenanceThresholdScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  machineType: 'machineType',
+  hoursLimit: 'hoursLimit',
+  hectaresLimit: 'hectaresLimit',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MaintenanceThresholdScalarFieldEnum = (typeof MaintenanceThresholdScalarFieldEnum)[keyof typeof MaintenanceThresholdScalarFieldEnum]
+
+
 export const MachineUsageScalarFieldEnum = {
   id: 'id',
   taskId: 'taskId',
@@ -2945,7 +3034,10 @@ export const MachineUsageScalarFieldEnum = {
   initialFuel: 'initialFuel',
   finalFuel: 'finalFuel',
   usageHours: 'usageHours',
+  hectares: 'hectares',
   observations: 'observations',
+  operatorId: 'operatorId',
+  workDate: 'workDate',
   createdAt: 'createdAt'
 } as const
 
@@ -2957,9 +3049,12 @@ export const MachineActivityScalarFieldEnum = {
   machineId: 'machineId',
   companyId: 'companyId',
   type: 'type',
+  fuelMovement: 'fuelMovement',
   date: 'date',
   liters: 'liters',
   receipt: 'receipt',
+  receiptFileKey: 'receiptFileKey',
+  receiptMimeType: 'receiptMimeType',
   cost: 'cost',
   spareParts: 'spareParts',
   usageHours: 'usageHours',
@@ -3294,6 +3389,20 @@ export type ListEnumMachineActivityTypeFieldRefInput<$PrismaModel> = FieldRefInp
 
 
 /**
+ * Reference to a field of type 'FuelMovement'
+ */
+export type EnumFuelMovementFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FuelMovement'>
+    
+
+
+/**
+ * Reference to a field of type 'FuelMovement[]'
+ */
+export type ListEnumFuelMovementFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'FuelMovement[]'>
+    
+
+
+/**
  * Reference to a field of type 'PhotoEntityType'
  */
 export type EnumPhotoEntityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PhotoEntityType'>
@@ -3466,6 +3575,7 @@ export type GlobalOmitConfig = {
   receptionItem?: Prisma.ReceptionItemOmit
   stock?: Prisma.StockOmit
   machine?: Prisma.MachineOmit
+  maintenanceThreshold?: Prisma.MaintenanceThresholdOmit
   machineUsage?: Prisma.MachineUsageOmit
   machineActivity?: Prisma.MachineActivityOmit
   photo?: Prisma.PhotoOmit

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import {
   CreateMachineUsageData,
@@ -6,6 +7,7 @@ import {
   UpdateMachineUsageData,
 } from '../../application/machine-usage.types';
 import { MachineUsageRepositoryPort } from '../../application/machine-usage.ports';
+import { DuplicateUsageIdError } from '../../domain/errors';
 
 @Injectable()
 export class PrismaMachineUsageRepository implements MachineUsageRepositoryPort {
@@ -30,8 +32,15 @@ export class PrismaMachineUsageRepository implements MachineUsageRepositoryPort 
     });
   }
 
-  create(data: CreateMachineUsageData): Promise<MachineUsageRecord> {
-    return this.prisma.machineUsage.create({ data });
+  async create(data: CreateMachineUsageData): Promise<MachineUsageRecord> {
+    try {
+      return await this.prisma.machineUsage.create({ data });
+    } catch (error) {
+      if (data.id && error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new DuplicateUsageIdError();
+      }
+      throw error;
+    }
   }
 
   async updateForCompany(
@@ -58,6 +67,7 @@ export class PrismaMachineUsageRepository implements MachineUsageRepositoryPort 
         ...(data.initialFuel !== undefined ? { initialFuel: data.initialFuel } : {}),
         ...(data.finalFuel !== undefined ? { finalFuel: data.finalFuel } : {}),
         ...(data.usageHours !== undefined ? { usageHours: data.usageHours } : {}),
+        ...(data.hectares !== undefined ? { hectares: data.hectares } : {}),
         ...(data.observations !== undefined ? { observations: data.observations } : {}),
       },
     });

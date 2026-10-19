@@ -21,6 +21,24 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+## Task-linked machine usage
+
+All new field usage belongs to a task: `POST /machine-usages` accepts optional positive `usageHours` and `hectares` along with its existing machine, task and operator identifiers. Offline clients may include a stable UUID `id`: repeating the same ID and payload within the company returns the existing usage (201), while reusing it with changed values returns 409; malformed IDs return 400. `OPERARIO` may create only their own assigned-task usage; ADMIN/SUPERVISOR retain existing creation and update permissions, and only those roles may use `PUT /machine-usages/:id` to correct either positive measurement within the active company. The optional `workDate` (`YYYY-MM-DD` or full ISO date-time) and `observations` (trimmed, at most 1000 characters) preserve the date and notes captured in the field; both participate in retry equality, and historical rows keep `NULL` (metrics fall back to `createdAt`). `POST /machine-activities` no longer accepts `USO_CAMPO` (400). Historical `USO_CAMPO` rows remain readable and unchanged; do not sum them with task-linked usage because the same work may have been recorded twice.
+
+## Consolidated machine report
+
+`GET /machine-reports/consolidated` requires ADMIN and returns `{ rows, totals }`. Each row represents an active membership (`UserCompany`) in the caller's tenant, not every tenant company or only the active firma. Rows include company ID/name, purchased and consumed fuel liters, their difference (`fuelBalanceLiters`), task-linked usage hours/hectares, and maintenance/repair costs; `totals` sums the numeric row fields. Historical null fuel movement counts as purchased (`INCOME`); `CONSUMPTION` counts as consumed. Companies without membership are omitted, and other roles receive 403.
+
+## Mobile field catalog
+
+`GET /catalog/field` (ADMIN, SUPERVISOR, OPERARIO) returns one read-only payload for the mobile field flow: the caller's own firma in `companies`, the tenant's `clients`, `farms`, `lots` and `laborTypes`, the firma's `machines`, and the tenant's `tasks` with their operator ids. It is additive and role-safe: it never exposes another firma and does not widen `/companies`, which stays ADMIN/SUPERVISOR only.
+
+## Machine fuel activity API
+
+`POST /machine-activities` accepts `type: "COMBUSTIBLE"`, positive `liters`, and optional `fuelMovement: "INCOME" | "CONSUMPTION"`. Omitting it retains the previous income behavior. Historical `COMBUSTIBLE` rows with a null movement are read as income without rewriting them. Other activity types cannot specify a fuel movement. Company scope comes from the authenticated `firmaId`, and the machine must belong to that company. ADMIN and SUPERVISOR may register any activity; OPERARIO may register fuel only. Income minus consumption is a historical ledger balance, not a verified physical tank balance when prior consumption is missing.
+
+A fuel movement may be created before its receipt is attached. `POST /machine-activities/:id/receipt` accepts `{ "dataUrl": "data:application/pdf;base64,..." }` (PDF, PNG, JPEG or WebP; maximum 6 MB decoded) and attaches exactly one immutable file. A duplicate attachment returns 409; a foreign or non-fuel activity returns 404. `GET /machine-activities/:id/receipt` streams the attachment only with an authorized bearer token for the active company; it returns 404 when absent. Activity JSON exposes `hasReceipt`, never the private storage key. Files live under the backend's `.private-receipts/`, **not** the public `/uploads` route. Back up this directory with the database and restrict filesystem access in deployment.
+
 ## Description
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.

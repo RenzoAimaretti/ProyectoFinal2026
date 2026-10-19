@@ -430,6 +430,7 @@ export type MachineDTO = {
   companyId: string;
   name: string;
   brand: string | null;
+  type?: string | null;
   status: "ACTIVA" | "MANTENIMIENTO" | "FUERA_SERVICIO";
 };
 
@@ -804,9 +805,11 @@ export type MachineActivityDTO = {
   machineId: string;
   companyId: string;
   type: MachineActivityType;
+  fuelMovement?: "INCOME" | "CONSUMPTION" | null;
   date: string;
   liters: number | null;
   receipt: string | null;
+  hasReceipt?: boolean;
   cost: number | null;
   spareParts: string | null;
   usageHours: number | null;
@@ -819,6 +822,7 @@ export type MachineActivityDTO = {
 export type CreateMachineActivityBody = {
   machineId: string;
   type: MachineActivityType;
+  fuelMovement?: "INCOME" | "CONSUMPTION";
   date: string;
   liters?: number | null;
   receipt?: string | null;
@@ -833,10 +837,92 @@ export function listMachineActivities(): Promise<MachineActivityDTO[]> {
   return apiGet<MachineActivityDTO[]>("/machine-activities");
 }
 
+export type MachineUsageDTO = {
+  id: string;
+  taskId: string;
+  machineId: string;
+  usageHours: number | null;
+  hectares: number | null;
+  workDate: string | null;
+  observations: string | null;
+  createdAt: string;
+};
+
+export function listMachineUsages(): Promise<MachineUsageDTO[]> {
+  return apiGet<MachineUsageDTO[]>("/machine-usages");
+}
+
+export type MachineAlertDTO = MachineDTO & {
+  usageHours: number;
+  hectares: number;
+  hoursLimit: number | null;
+  hectaresLimit: number | null;
+  due: boolean;
+  reasons: ("HOURS" | "HECTARES")[];
+};
+
+export function listMachineAlerts(): Promise<MachineAlertDTO[]> {
+  return apiGet<MachineAlertDTO[]>("/machines/alerts");
+}
+
+export type MaintenanceThresholdDTO = {
+  companyId: string;
+  machineType: string;
+  hoursLimit: number | null;
+  hectaresLimit: number | null;
+};
+
+export function listMaintenanceThresholds(): Promise<MaintenanceThresholdDTO[]> {
+  return apiGet<MaintenanceThresholdDTO[]>("/maintenance-thresholds");
+}
+
+export function saveMaintenanceThreshold(machineType: string, body: { hoursLimit?: number; hectaresLimit?: number }): Promise<MaintenanceThresholdDTO> {
+  return apiPut(`/maintenance-thresholds/${encodeURIComponent(machineType)}`, body);
+}
+
+export function deleteMaintenanceThreshold(machineType: string): Promise<void> {
+  return apiDelete(`/maintenance-thresholds/${encodeURIComponent(machineType)}`);
+}
+
+export type CompanyMachineMetrics = {
+  fuelPurchasedLiters: number;
+  fuelConsumedLiters: number;
+  fuelBalanceLiters: number;
+  usageHours: number;
+  hectares: number;
+  maintenanceCost: number;
+  repairCost: number;
+};
+export type ConsolidatedMachineReportDTO = {
+  rows: (CompanyMachineMetrics & { companyId: string; companyName: string })[];
+  totals: CompanyMachineMetrics;
+};
+
+export function getConsolidatedMachineReport(): Promise<ConsolidatedMachineReportDTO> {
+  return apiGet<ConsolidatedMachineReportDTO>("/machine-reports/consolidated");
+}
+
 export function createMachineActivity(
   body: CreateMachineActivityBody,
 ): Promise<MachineActivityDTO> {
   return apiPost<MachineActivityDTO>("/machine-activities", body);
+}
+
+export function attachFuelReceipt(activityId: string, dataUrl: string): Promise<{ attached: true }> {
+  return apiPost(`/machine-activities/${encodeURIComponent(activityId)}/receipt`, { dataUrl });
+}
+
+/** Downloads protected bytes with the same bearer token as the JSON API. */
+export async function downloadFuelReceipt(activityId: string): Promise<Blob> {
+  const path = `/machine-activities/${encodeURIComponent(activityId)}/receipt`;
+  const token = getToken();
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    cache: "no-store",
+  });
+  if (res.status === 401) handleUnauthorized();
+  if (!res.ok) throw new ApiError(res.status, `GET ${path} -> ${res.status}`, await parseBody(res));
+  return res.blob();
 }
 
 /* ------------------------------------------------------------------ */
@@ -925,8 +1011,13 @@ export type CreateMachineBody = {
   name: string;
   brand: string;
   entryDate: string;
+  type?: string | null;
   companyId?: string;
 };
+
+export function updateMachine(id: string, body: { type: string | null }): Promise<MachineDTO> {
+  return apiPut<MachineDTO>(`/machines/${encodeURIComponent(id)}`, body);
+}
 
 export function createMachine(body: CreateMachineBody): Promise<MachineDTO> {
   return apiPost<MachineDTO>("/machines", body);

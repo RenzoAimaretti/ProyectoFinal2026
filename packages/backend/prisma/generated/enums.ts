@@ -90,6 +90,14 @@ export const MachineActivityType = {
 export type MachineActivityType = (typeof MachineActivityType)[keyof typeof MachineActivityType]
 
 
+export const FuelMovement = {
+  INCOME: 'INCOME',
+  CONSUMPTION: 'CONSUMPTION'
+} as const
+
+export type FuelMovement = (typeof FuelMovement)[keyof typeof FuelMovement]
+
+
 export const PhotoEntityType = {
   PARTE_DIARIO: 'PARTE_DIARIO',
   RECEPCION: 'RECEPCION',

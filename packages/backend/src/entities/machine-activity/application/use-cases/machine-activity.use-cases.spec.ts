@@ -51,6 +51,8 @@ function createRepository(): jest.Mocked<MachineActivityRepositoryPort> {
     create: jest.fn(),
     findByIdForCompany: jest.fn(),
     findAllByCompany: jest.fn(),
+    attachReceiptIfAbsent: jest.fn(),
+    findReceiptForCompany: jest.fn(),
   };
 }
 
@@ -148,6 +150,17 @@ describe('Machine activity use cases', () => {
         { ...fuelInput, liters: -5 },
       ],
       [
+        'unknown movement',
+        'company-1',
+        { ...fuelInput, fuelMovement: 'TRANSFER' },
+      ],
+      [
+        'movement on maintenance',
+        'company-1',
+        { machineId: 'machine-1', type: 'MANTENIMIENTO', date: activityDate,
+          cost: 10, spareParts: 'Filter', fuelMovement: 'INCOME' },
+      ],
+      [
         'maintenance without a cost',
         'company-1',
         {
@@ -239,6 +252,24 @@ describe('Machine activity use cases', () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
+    it('persists explicit fuel consumption without changing its company scope', async () => {
+      repository.create.mockResolvedValue(baseRecord);
+
+      await useCase.execute('company-1', {
+        ...fuelInput,
+        fuelMovement: 'CONSUMPTION',
+      } as RegisterMachineActivityInput);
+
+      expect(repository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          companyId: 'company-1',
+          type: 'COMBUSTIBLE',
+          fuelMovement: 'CONSUMPTION',
+          liters: 120,
+        }),
+      );
+    });
+
     it('persists a fuel activity scoped to the company', async () => {
       repository.create.mockResolvedValue(baseRecord);
 
@@ -250,6 +281,7 @@ describe('Machine activity use cases', () => {
         machineId: 'machine-1',
         companyId: 'company-1',
         type: 'COMBUSTIBLE',
+        fuelMovement: 'INCOME',
         date: new Date(activityDate),
         liters: 120,
         receipt: 'A-0001',
@@ -262,7 +294,15 @@ describe('Machine activity use cases', () => {
       expect(clock.now).toHaveBeenCalled();
     });
 
-    it.each(['COMBUSTIBLE', 'MANTENIMIENTO', 'REPARACION', 'USO_CAMPO'] as const)(
+    it('rejects standalone field usage and leaves activity storage unchanged', async () => {
+      await expect(useCase.execute('company-1', {
+        machineId: 'machine-1', type: 'USO_CAMPO', date: activityDate,
+        usageHours: 4, hectares: 10,
+      })).rejects.toBeInstanceOf(InvalidInputError);
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it.each(['COMBUSTIBLE', 'MANTENIMIENTO', 'REPARACION'] as const)(
       'persists a %s activity without inventing missing values',
       async (type) => {
         const input: RegisterMachineActivityInput = {
@@ -273,7 +313,6 @@ describe('Machine activity use cases', () => {
           ...(type === 'MANTENIMIENTO' || type === 'REPARACION'
             ? { cost: 1000, spareParts: 'Trabajo' }
             : {}),
-          ...(type === 'USO_CAMPO' ? { usageHours: 4, hectares: 10 } : {}),
         };
         repository.create.mockResolvedValue(baseRecord);
 
@@ -289,8 +328,8 @@ describe('Machine activity use cases', () => {
               type === 'MANTENIMIENTO' || type === 'REPARACION'
                 ? 'Trabajo'
                 : null,
-            usageHours: type === 'USO_CAMPO' ? 4 : null,
-            hectares: type === 'USO_CAMPO' ? 10 : null,
+            usageHours: null,
+            hectares: null,
           }),
         );
       },

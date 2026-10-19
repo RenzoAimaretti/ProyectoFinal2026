@@ -128,6 +128,11 @@ export type Stock = Prisma.StockModel
  */
 export type Machine = Prisma.MachineModel
 /**
+ * Model MaintenanceThreshold
+ * 
+ */
+export type MaintenanceThreshold = Prisma.MaintenanceThresholdModel
+/**
  * Model MachineUsage
  * 
  */
