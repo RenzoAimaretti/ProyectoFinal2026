@@ -50,6 +50,7 @@ import 'domain/usecases/demo_login_usecase.dart';
 import 'domain/usecases/list_assigned_tasks_usecase.dart';
 import 'domain/usecases/list_daily_reports_usecase.dart';
 import 'domain/usecases/list_machine_activities_usecase.dart';
+import 'domain/usecases/list_machine_history_usecase.dart';
 import 'domain/usecases/list_receptions_usecase.dart';
 import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
@@ -237,8 +238,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final registerMachineActivityUseCase =
         RegisterMachineActivityUseCase(machineActivityRepository);
 
-    _machineActivitiesViewModel =
-        MachineActivitiesViewModel(listMachineActivitiesUseCase);
+    final machineUsageRepository = DriftMachineUsageRepository(_database);
+    _machineActivitiesViewModel = MachineActivitiesViewModel(
+      listMachineActivitiesUseCase,
+      ListMachineHistoryUseCase(
+        listMachineActivitiesUseCase, machineUsageRepository, machineReader,
+      ),
+    );
     _machineActivityFormViewModel = MachineActivityFormViewModel(
       registerUseCase: registerMachineActivityUseCase,
       machineReader: machineReader,
@@ -246,7 +252,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
 
     // Uso por tarea (R021): persistencia local + cola MACHINE_USAGE idempotente.
-    final machineUsageRepository = DriftMachineUsageRepository(_database);
     final registerMachineUsageUseCase = RegisterMachineUsageUseCase(
       machineUsageRepository,
       taskReader,
@@ -255,6 +260,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       registerUseCase: registerMachineUsageUseCase,
       taskReader: taskReader,
       machineReader: machineReader,
+      lotReader: lotReader,
+      laborTypeReader: laborTypeReader,
       // El operario de la sesión se fija al iniciar; el demo usa su propio id.
       operatorId: _session?.userId ?? 'demo-operario',
     );
