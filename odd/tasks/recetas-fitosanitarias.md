@@ -453,3 +453,25 @@ V2 still NOT verified:
    warning) would catch it, but the limits are an agronomic decision, not ours.
 2. `RecipeItem.unit` on already-saved rows keeps the raw value (`L`). If the owner wants
    the stored data itself corrected, that is a one-off backfill, not part of this phase.
+
+### Owner decision — no range validation
+
+The owner explicitly REJECTED a sanity range for the caldo rate. Do not add a
+plausible-range check or warning on `sprayVolume`. The nonsense value found in his own
+recipe is corrected by the reworked form, not by a validator. Out of scope, permanently
+unless he asks again.
+
+### V2 state after the owner's manual test
+
+Checked live: 13 tasks (`CON_RECETA=3`, `NO_REQUIERE=9`, `SIN_RECETA=1`) and 2 recipes.
+
+- The seeded demo recipe (70 ha, 120 L/ha) and the owner's recipe (96 ha, caldo 3 L/ha)
+  were both saved BEFORE U1 reached the backend (it restarted at 17:54), so both still
+  show the raw stored unit `L`. That is expected, not a defect: the normalisation happens
+  on write.
+- The activity the owner created last (**Pulverización en Lote A, 150 ha**, assigned to
+  `martinOperario`) is still `SIN_RECETA` and has NO recipe. So the new form plus the new
+  backend has NOT yet been exercised on a save.
+- Consequence: `normalizeDosageUnit` on the write path remains covered by unit tests only.
+  V2 stays open until one recipe is saved through the reworked form; then confirm the
+  stored unit reads `L/ha` / `L/100 L`.
