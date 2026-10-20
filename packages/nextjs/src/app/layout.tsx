@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Fraunces, Inter, Public_Sans, Spectral } from "next/font/google";
+import {
+  Archivo,
+  Fraunces,
+  Inter,
+  Public_Sans,
+  Spectral,
+} from "next/font/google";
 import { ToastProvider, Toaster } from "@/components/ui/feedback";
 import "./globals.css";
 
@@ -50,7 +56,7 @@ export const metadata: Metadata = {
   applicationName: "Agro Trazabilidad",
   title: {
     default: "Agro Trazabilidad",
-    template: "%s · Agro Trazabilidad",
+    template: "%s — Agro Trazabilidad",
   },
   description:
     "Plataforma de trazabilidad agropecuaria con captura offline-first en el lote, para la gestión de campos, partes de trabajo e insumos.",
@@ -75,11 +81,41 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f5f1" },
-    { media: "(prefers-color-scheme: dark)", color: "#0d1117" },
+    { media: "(prefers-color-scheme: light)", color: "#f1f3f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#121915" },
   ],
   colorScheme: "light dark",
 };
+
+/**
+ * Runs before the landing content is parsed:
+ * - restores the manual theme without a flash;
+ * - marks the document as motion-capable for the CSS reveal system;
+ * - installs a short fail-safe. If React has not hydrated within 2.5s, the
+ *   class is removed so every block is visible even while JS is still loading.
+ */
+const motionBoot = `
+(function () {
+  try {
+    var saved = window.localStorage.getItem("agro-theme");
+    if (saved === "dark" || saved === "light") {
+      document.documentElement.setAttribute("data-theme", saved);
+    }
+  } catch (error) {}
+
+  if (window.location.pathname !== "/" && window.location.pathname !== "") {
+    return;
+  }
+
+  document.body.classList.add("alm-js");
+  window.__almMotionTimer = window.setTimeout(function () {
+    if (!document.body.classList.contains("alm-ready")) {
+      document.body.classList.remove("alm-js");
+      document.body.setAttribute("data-alm-fallback", "1");
+    }
+  }, 2500);
+})();
+`;
 
 export default function RootLayout({
   children,
@@ -90,8 +126,10 @@ export default function RootLayout({
     <html
       lang="es"
       className={`${inter.variable} ${fraunces.variable} ${almanacSerif.variable} ${almanacSans.variable} ${operateSans.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full">
+      <body className="min-h-full" suppressHydrationWarning>
+        <script dangerouslySetInnerHTML={{ __html: motionBoot }} />
         <ToastProvider>
           {children}
           <Toaster />
