@@ -386,12 +386,12 @@ keep BOTH dosage bases and rebuild the form so it fills in and reads properly.
 
 ### Tasks
 
-- [ ] U1 [backend] derived `perHectare` / `per100L` per row in the totals output,
+- [x] U1 [backend] derived `perHectare` / `per100L` per row in the totals output,
       unit normalisation by basis, and the validation that goes with them (TDD).
-- [ ] U2 [web] rebuild the editor: products -> caldo -> live results below, the
+- [x] U2 [web] rebuild the editor: products -> caldo -> live results below, the
       equivalence shown on every row, unit driven by the basis, and clearer
       Spanish labels for the agronomist.
-- [ ] U3 [web] make the read-only recipe view read like a real prescription:
+- [x] U3 [web] make the read-only recipe view read like a real prescription:
       lot and surface, caldo per hectare and total, then each product with its
       rate, basis, total amount, equivalence per 100 L and load order.
 - [ ] V2 verify: backend suite, `next build`, and a LIVE end-to-end run against
@@ -410,4 +410,46 @@ keep BOTH dosage bases and rebuild the form so it fills in and reads properly.
 
 ### Status
 
-Awaiting the owner's go-ahead to start with U1.
+U1, U2 and U3 implemented and committed (`f6f5253`, `c16fb38`). V2 is PARTIAL.
+
+### Progress log — Phase 2
+
+U1 (`f6f5253`): 100 suites / 1075 tests green, `nest build` exit 0, `tsc` exit 0.
+New `domain/dosage-unit.ts` with a tolerant, idempotent `normalizeDosageUnit`;
+`spray-calculation` now returns `total` / `perHectare` / `per100L` derived from the
+exact unrounded values; `assertFiniteDerivedValue` guards non-finite output.
+
+U2/U3 (`c16fb38`): console rebuilt in the owner's order (datos -> productos ->
+caldo -> resultados). `next build` exit 0, `tsc` exit 0, `lint` still exactly the 3
+pre-existing findings, and the dev-server routes answer 200.
+
+V2 so far — verified LIVE against the running Postgres and backend:
+
+- `GET /recipes/:id` returns `caldoTotal` plus per-row `total`, `perHectare` and
+  `per100L`, all mathematically consistent. Checked on the seeded recipe
+  (70 ha, 120 L/ha, caldo 8400): a `POR_HECTAREA` row of 3 gives 210 / 3 / 2.5 and a
+  `CONCENTRACION` row of 1 gives 84 / 1.2 / 1. Verified on the owner's own recipe
+  too (96 ha, caldo 288): a `CONCENTRACION` row of 10 gives 28.8 / 0.3 / 10 and a
+  `POR_HECTAREA` row of 1 gives 96 / 1 / 33.33.
+- The dev server serves `/dashboard/recetas` and `/dashboard/produccion` with 200.
+
+V2 still NOT verified:
+
+- **The write path has not been exercised live.** No recipe has been saved since U1,
+  so `normalizeDosageUnit` on save is covered by unit tests only.
+- **The browser interaction is not exercised** (no test runner in the console; the
+  editor is a client component behind user interaction).
+- Existing rows still hold the OLD raw unit string (`L`) in the database, because
+  the normalisation happens on write. Display derives the rate unit, so the UI reads
+  correctly, but the stored value stays stale until the row is saved again.
+
+### Findings from the live check that need the owner's decision
+
+1. **The owner's own recipe has `caldo = 3 L/ha`** (96 ha, caldo total 288 L). That is
+   almost certainly the product's dose typed into the caldo field, not a spray rate:
+   three litres of water per hectare is not a real application. It is concrete evidence
+   that the previous form caused exactly this confusion. Consequence: the caldo rate has
+   NO sanity range, so nonsense values are accepted. A plausible range check (or a
+   warning) would catch it, but the limits are an agronomic decision, not ours.
+2. `RecipeItem.unit` on already-saved rows keeps the raw value (`L`). If the owner wants
+   the stored data itself corrected, that is a one-off backfill, not part of this phase.
