@@ -8,11 +8,10 @@ import {
   updateMyClient,
   updateStoredUser,
 } from "@/api/client";
-import { Button } from "@/components/ui/primitives";
 import { Alert, useToast } from "@/components/ui/feedback";
 import { TextField } from "@/components/ui/form";
 import { Spinner } from "@/components/ui/spinner";
-import { LogoWordmark } from "@/components/ui/logo";
+import { LogoMark } from "@/components/ui/logo";
 import { homePathForRole } from "@/components/ui/nav";
 import { useAuth } from "@/components/ui/auth";
 
@@ -44,7 +43,7 @@ function describeError(err: unknown): string {
 export default function OnboardingPage() {
   const router = useRouter();
   const toast = useToast();
-  const { user, ready, isAuthenticated } = useAuth();
+  const { user, ready, isAuthenticated, logout } = useAuth();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -116,18 +115,27 @@ export default function OnboardingPage() {
 
   if (!ready || !isAuthenticated || (user && !user.mustChangePassword)) {
     return (
-      <div className="app-canvas flex min-h-screen items-center justify-center p-4">
+      <div className="operate-world op-canvas flex min-h-screen items-center justify-center p-4">
         <Spinner label="Cargando…" />
       </div>
     );
   }
 
   return (
-    <div className="app-canvas flex min-h-screen items-center justify-center p-4 sm:p-6">
-      <div className="animate-fade-in-up w-full max-w-xl rounded-card-lg border border-agro-border bg-card p-8 shadow-float sm:p-10">
-        <LogoWordmark size={40} subtitle="Trazabilidad agropecuaria" />
+    <div className="operate-world op-canvas flex min-h-screen items-center justify-center p-4 sm:p-6">
+      <div className="op-plate animate-fade-in-up w-full max-w-xl p-8 sm:p-10">
+        <span className="flex items-center gap-3">
+          <LogoMark size={34} />
+          <span className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate text-sm font-semibold tracking-tight text-ink">
+              Agro Trazabilidad
+            </span>
+            <span className="op-label">Alta de cuenta</span>
+          </span>
+        </span>
 
-        <h1 className="mt-6 text-2xl font-bold tracking-tight text-ink">
+        <p className="op-label mt-6">Primer ingreso</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">
           Completá tu cuenta
         </h1>
         <p className="mt-1 text-sm text-ink-soft">
@@ -195,10 +203,24 @@ export default function OnboardingPage() {
 
           {error && <Alert tone="error">{error}</Alert>}
 
-          <Button type="submit" disabled={submitting} className="w-full">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="op-btn op-btn--primary w-full"
+          >
             {submitting ? "Guardando…" : "Guardar y continuar"}
-          </Button>
+          </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-ink-soft">
+          <button
+            type="button"
+            onClick={logout}
+            className="font-medium text-ink underline decoration-agro-border underline-offset-4 transition-colors hover:decoration-ink"
+          >
+            Cerrar sesión y entrar con otra cuenta
+          </button>
+        </p>
       </div>
     </div>
   );

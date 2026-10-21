@@ -7,7 +7,6 @@ import {
   Button,
   Card,
   EmptyState,
-  HeroBand,
   Modal,
 } from "@/components/ui/primitives";
 import { Alert, useToast } from "@/components/ui/feedback";
@@ -243,38 +242,44 @@ export default function ClientesPage() {
       sidebarItems={navItems}
       breadcrumb="Cartera de productores y accesos"
     >
-      <HeroBand
-        kicker="Gestión de clientes"
-        title="Clientes"
-        description="Cartera de productores del tenant. Creá un cliente con su campo, lotes y acceso propio."
-        icon={<PeopleIcon className="h-6 w-6" />}
-        metric={clients.length}
-        metricLabel="Clientes"
-        metricHint="En la cartera"
-        actions={
+      <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
+        <div className="min-w-0">
+          <p className="op-label">Gestión de clientes</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Clientes</h2>
+          <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+            Cartera de productores del tenant. Creá un cliente con su campo, lotes y acceso propio.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="text-right">
+            {loading ? (
+              <div className="skeleton ml-auto h-8 w-14" aria-hidden="true" />
+            ) : (
+              <p className="op-num text-3xl font-bold leading-none text-ink">{clients.length}</p>
+            )}
+            <p className="op-label mt-1">Clientes</p>
+            <p className="op-caption mt-0.5">En la cartera</p>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={refresh}
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60"
+              className="op-btn"
+              aria-busy={loading}
             >
               <RefreshIcon className="h-4 w-4" />
-              Actualizar
+              {loading ? "Actualizando…" : "Actualizar"}
             </button>
             {isAdmin && (
-              <button
-                type="button"
-                onClick={openCreate}
-                className="inline-flex items-center gap-2 rounded-lg bg-white/95 px-4 py-2.5 text-sm font-semibold text-agro-green-deep transition-colors hover:bg-white"
-              >
+              <button type="button" onClick={openCreate} className="op-btn op-btn--primary">
                 <PlusIcon className="h-4 w-4" />
                 Nuevo cliente
               </button>
             )}
           </div>
-        }
-      />
+        </div>
+      </section>
 
       {loadError && (
         <Alert tone="error" title="No se pudieron cargar los clientes" className="mb-5">
@@ -378,7 +383,7 @@ export default function ClientesPage() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-sm font-display font-semibold text-ink">Lotes</h4>
+              <h4 className="text-sm font-semibold text-ink">Lotes</h4>
               <Button variant="secondary" onClick={addLot} disabled={creating}>
                 <PlusIcon className="h-4 w-4" />
                 Agregar lote

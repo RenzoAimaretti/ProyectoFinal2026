@@ -2831,6 +2831,7 @@ export const LaborTypeScalarFieldEnum = {
   tenantId: 'tenantId',
   name: 'name',
   description: 'description',
+  requiresPrescription: 'requiresPrescription',
   kind: 'kind',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -2886,6 +2887,7 @@ export const TaskScalarFieldEnum = {
   lotId: 'lotId',
   laborTypeId: 'laborTypeId',
   status: 'status',
+  prescriptionStatus: 'prescriptionStatus',
   startedAt: 'startedAt',
   finishedAt: 'finishedAt',
   updatedTaskAt: 'updatedTaskAt',
@@ -2901,9 +2903,14 @@ export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof Task
 export const RecipeScalarFieldEnum = {
   id: 'id',
   lotId: 'lotId',
+  taskId: 'taskId',
   date: 'date',
   status: 'status',
   observations: 'observations',
+  pest: 'pest',
+  crop: 'crop',
+  reapplicationIntervalDays: 'reapplicationIntervalDays',
+  reapplicationDate: 'reapplicationDate',
   sprayVolume: 'sprayVolume',
   sprayVolumeUnit: 'sprayVolumeUnit',
   createdAt: 'createdAt',
@@ -2918,6 +2925,7 @@ export const RecipeItemScalarFieldEnum = {
   recipeId: 'recipeId',
   inputId: 'inputId',
   dose: 'dose',
+  dosageBasis: 'dosageBasis',
   unit: 'unit',
   loadOrder: 'loadOrder'
 } as const
@@ -3319,6 +3327,20 @@ export type ListEnumTaskStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
+ * Reference to a field of type 'PrescriptionStatus'
+ */
+export type EnumPrescriptionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrescriptionStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PrescriptionStatus[]'
+ */
+export type ListEnumPrescriptionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PrescriptionStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'RecipeStatus'
  */
 export type EnumRecipeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecipeStatus'>
@@ -3329,6 +3351,20 @@ export type EnumRecipeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'RecipeStatus[]'
  */
 export type ListEnumRecipeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecipeStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DosageBasis'
+ */
+export type EnumDosageBasisFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DosageBasis'>
+    
+
+
+/**
+ * Reference to a field of type 'DosageBasis[]'
+ */
+export type ListEnumDosageBasisFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DosageBasis[]'>
     
 
 

@@ -51,8 +51,8 @@ describe('LaborTypeController', () => {
     }
   });
 
-  it('restricts reads to ADMIN, SUPERVISOR and OPERARIO so PRODUCTOR gets 403', () => {
-    for (const method of ['findAll', 'findOne', 'findCategories'] as const) {
+  it('allows ADMIN, SUPERVISOR, OPERARIO and INGENIERO to read labor types so PRODUCTOR gets 403', () => {
+    for (const method of ['findAll', 'findOne'] as const) {
       const guards = Reflect.getMetadata(
         GUARDS_METADATA,
         LaborTypeController.prototype[method],
@@ -63,9 +63,16 @@ describe('LaborTypeController', () => {
         ROLES_KEY,
         LaborTypeController.prototype[method],
       ) as string[] | undefined;
-      expect(roles).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO']);
+      expect(roles).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO', 'INGENIERO']);
       expect(roles).not.toContain('PRODUCTOR');
     }
+
+    const categoryRoles = Reflect.getMetadata(
+      ROLES_KEY,
+      LaborTypeController.prototype.findCategories,
+    ) as string[] | undefined;
+    expect(categoryRoles).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO']);
+    expect(categoryRoles).not.toContain('PRODUCTOR');
   });
 
   it('scopes category routes to caller tenant and limits replacement to admin or supervisor', async () => {

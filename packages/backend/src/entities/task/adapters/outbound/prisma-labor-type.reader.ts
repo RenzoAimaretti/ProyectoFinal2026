@@ -9,7 +9,7 @@ export class PrismaLaborTypeReader implements LaborTypeReaderPort {
   findByIdForTenant(id: string, tenantId: string) {
     return this.prisma.laborType.findFirst({
       where: { id, tenantId },
-      select: { id: true },
+      select: { id: true, requiresPrescription: true },
     });
   }
 }

@@ -47,7 +47,7 @@ export function Field({
       )}
       {children}
       {error ? (
-        <p id={htmlFor ? `${htmlFor}-error` : undefined} role="alert" className="mt-1.5 text-xs font-medium text-agro-earth-dark">
+        <p id={htmlFor ? `${htmlFor}-error` : undefined} role="alert" className="mt-1.5 text-xs font-medium text-agro-earth-text">
           {error}
         </p>
       ) : hint ? (

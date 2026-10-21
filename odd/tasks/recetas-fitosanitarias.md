@@ -1,0 +1,477 @@
+# Feature: Phytosanitary prescription editor & spray-volume / dose calculation
+
+An **agronomist** (`INGENIERO`) user type writes a phytosanitary prescription
+(receta) for each task (actividad) the administrator creates in Producción. Until
+that prescription exists, the task is flagged as "sin receta" and cannot be
+executed. The prescription carries the crop, the target pest, the spray volume
+and the per-input dose and load order, and the console computes the total spray
+volume and the total amount of each product from the lot surface area.
+
+Confirmed by reconnaissance: **no agronomist role and no agronomist view exist
+today**. `UserRole` has no `INGENIERO`; the Next.js console has no `/dashboard`
+route for it; `Recipe` exists in the schema and has a full hexagon but is
+**lot-scoped, has no create endpoint**, and is not linked to any task. There is
+also **no notification system of any kind** in the repository.
+
+## Requirements
+
+- R1 — A new `INGENIERO` role can log into the console and only sees the
+  prescription module (plus read access to tasks and inputs).
+- R2 — A task whose `TaskType` requires a prescription is born `SIN_RECETA` and
+  becomes `CON_RECETA` once a prescription is attached. Task types that do not
+  require one stay `NO_REQUIERE` and are unaffected.
+- R3 — The agronomist has an inbox of tasks pending a prescription
+  (in-app, derived by query) and a counter in the navigation.
+- R4 — The agronomist writes the prescription: date, target pest, crop,
+  observations, spray volume, and one row per input with dose, dosage basis,
+  unit and load order. An optional re-application plan (R010) can be recorded.
+- R5 — The editor computes, live and on the server, the total spray volume (L)
+  for the lot and the total amount of each product.
+- R6 — A prescription is valid as soon as it is created; there is no
+  administrator approval step.
+- R7 — A prescription is editable until its task starts; once the task is
+  `EN_PROGRESO` or `FINALIZADA` it is frozen and can only be archived.
+- R8 — Existing lot-scoped recipe reads (`GET /recipes?lotId=`) keep working for
+  the mobile app; new fields are additive.
+
+## Design decisions (approved)
+
+| # | Decision |
+|---|----------|
+| 1 | "Actividad" is the existing `Task` of the Producción module. No parallel entity. |
+| 2 | The editor lives in the Next.js console at `/dashboard/recetas`. |
+| 3 | The agronomist is a new `INGENIERO` role in `UserRole` / `AUTH_USER_ROLES` / `MODULES_BY_ROLE` / seed. |
+| 4 | "Sin receta" is a dedicated `Task.prescriptionStatus` field, orthogonal to `TaskStatus` (execution progress). Only phytosanitary task types require a prescription. |
+| 5 | One prescription per task (`Recipe.taskId @unique`). |
+| 6 | Dosage basis is per row: `POR_HECTAREA` or `CONCENTRACION`. |
+| 7 | Notifications are an in-app derived inbox plus a navigation counter. No new infrastructure. |
+| 8 | Target pest, crop and the re-application plan are added to `Recipe`. |
+| 9 | The calculation returns the total spray volume and the total amount per product only. No tank split. |
+| 10 | Editable until the task starts; frozen and archivable afterwards. |
+| 11 | Valid as soon as it is created. No approval step. |
+
+Detecting whether a task type requires a prescription uses an explicit
+`TaskType.requiresPrescription` flag, not a name/description match.
+
+Out of scope: R011 (weather at the moment of spraying) — the spec ties it to the
+operator's spraying event, not to the agronomist. Mobile is untouched.
+
+## Frozen contract
+
+Enums:
+
+```prisma
+enum UserRole { ADMIN OPERARIO SUPERVISOR PRODUCTOR CONTRATISTA VETERINARIO INGENIERO }
+enum PrescriptionStatus { NO_REQUIERE SIN_RECETA CON_RECETA }
+enum DosageBasis { POR_HECTAREA CONCENTRACION }
+```
+
+Schema additions:
+
+```prisma
+TaskType:   + requiresPrescription Boolean @default(false)
+Task:       + prescriptionStatus PrescriptionStatus @default(NO_REQUIERE)
+            + recipe Recipe?
+Recipe:     + taskId String? @unique
+            + pest String?
+            + crop String?
+            + reapplicationIntervalDays Int?
+            + reapplicationDate DateTime?
+RecipeItem: + dosageBasis DosageBasis @default(POR_HECTAREA)
+```
+
+Domain rule: `recipe.lotId` must equal `task.lotId`. `Recipe.lotId` is kept
+because mobile and `GET /recipes?lotId=` depend on it.
+
+Calculation:
+
+- `sprayVolume` is a rate in `sprayVolumeUnit` (default `L/ha`).
+- `caldoTotal` (L) = `sprayVolume` × `lot.area`.
+- `POR_HECTAREA`: row total = `dose` × `lot.area`, expressed in the row `unit`.
+- `CONCENTRACION`: `dose` is the amount per 100 L of water, so row total =
+  `dose` × `caldoTotal` / 100, expressed in the row `unit`. A 1% v/v mix is
+  entered as `1` L per 100 L.
+
+Endpoints:
+
+- `POST /recipes` → 201. Body `{ taskId, date, pest?, crop?, observations?,
+  sprayVolume, sprayVolumeUnit, reapplicationIntervalDays?, reapplicationDate?,
+  items: [{ inputId, dose, dosageBasis, unit?, loadOrder }] }`. Side effect:
+  `task.prescriptionStatus = CON_RECETA`.
+- `PUT /recipes/:id` → 200. Same body minus `taskId`. Rejected when the task has
+  already started.
+- `GET /recipes/:id` → unchanged shape plus the new fields and the computed
+  totals.
+- `GET /recipes?lotId=` → unchanged, additive fields only.
+- `GET /tasks`, `GET /tasks/:id` → include `prescriptionStatus`.
+- `GET /prescriptions/pending` → tasks with `prescriptionStatus = SIN_RECETA`
+  for the caller's tenant, with `lotName`, `farmName` and `taskTypeName`.
+  Scoping note: `Task` has no firm/company column, so this read is tenant-scoped
+  through the existing `Task -> Lot -> Farm -> Client` chain, exactly like
+  `GET /tasks`. It is NOT firma-scoped.
+
+Roles: `POST`/`PUT /recipes` restricted to `INGENIERO` (and `ADMIN`). Reads open
+to `ADMIN`, `SUPERVISOR`, `INGENIERO`, `OPERARIO`, `CONTRATISTA`.
+
+## Tasks
+
+- [x] B1 [backend] schema: `INGENIERO` role, `PrescriptionStatus`, `DosageBasis`,
+      `TaskType.requiresPrescription`, `Task.prescriptionStatus`, `Recipe.taskId`
+      + pest/crop/re-application, `RecipeItem.dosageBasis`; hand-authored
+      migration; `AUTH_USER_ROLES` mirror; seed (agronomist user, prescription
+      flag on application task types, one pending and one prescribed task).
+- [x] B2 [backend] prescription domain rules and the calculation, pure and unit
+      tested: dosage basis validation, load order, lot/task consistency, freeze
+      after the task starts, spray-volume and per-product totals.
+- [x] B3 [backend] recipe hexagon: `CreateRecipe` / `UpdateRecipe` use cases,
+      ports, adapters, DTOs, and the missing `POST /recipes` / `PUT /recipes/:id`
+      routing with role enforcement.
+- [x] B4 [backend] `GET /prescriptions/pending` and `prescriptionStatus` on task
+      reads.
+- [x] W1 [web] `INGENIERO` in `MODULES_BY_ROLE`, `ROLE_LABELS`,
+      `homePathForRole`, and the route guard.
+- [x] W2 [web] `/dashboard/recetas`: pending prescription inbox plus the
+      navigation counter.
+- [x] W3 [web] prescription editor with the live spray-volume / dose panel and
+      the re-application plan.
+- [x] W4 [web] Producción integration: sin receta / con receta badge, prescription
+      view, edit while the task has not started.
+- [x] V1 verify: backend jest + `next build` + lint + honest reporting of what
+      could not be run.
+
+## Acceptance
+
+- `pnpm --filter backend test` green, including new unit tests for the
+  calculation and the domain rules.
+- `prisma validate` and `prisma generate` green.
+- `next build` green for the console.
+- An `INGENIERO` can log in, see only the prescription module, find a pending
+  task, write its prescription and see the computed totals.
+- The task leaves `SIN_RECETA` and shows `CON_RECETA` in Producción.
+- A prescribed task that already started rejects edits.
+- No fabricated verification: anything that cannot be run in this environment is
+  reported as not run, with the reason.
+
+## Environment constraints
+
+Postgres is not reachable in this workspace: the backend datasource points at
+`localhost:5433`, nothing listens there, and the Docker daemon is not running.
+Consequences:
+
+- The migration is **authored, not applied** (this matches the repository's
+  existing convention: `20260925130000_add_reception_validated_quantity` states
+  "No migration is applied to any database by this change").
+- Backend verification relies on the fully mocked jest suite (baseline: 92
+  suites / 875 tests green with no database), plus `prisma validate`,
+  `prisma generate` and `nest build`.
+- DB-backed smoke tests and the console's live end-to-end flow are pending until
+  Postgres on `5433` is available.
+
+## Delivery
+
+One branch, `RecetasFitosanitarias`, with one work-unit commit per task. No push,
+no pull request, no merge — the owner opens the PR against main.
+
+## Progress log
+
+- Recon complete; plan and decisions approved by the owner.
+- Environment baseline captured: backend jest green with no database; datasource
+  `localhost:5433` unreachable. ODD doc created before the first source write.
+
+### B1 — schema, role and seed (commit `e6e5c5a`)
+
+Verification, run for real:
+
+- `npx prisma validate`: `The schema at prisma\schema.prisma is valid`
+- `npx prisma generate`: generated Prisma Client 7.8.0 into `prisma/generated`
+- `pnpm test`: 92 suites / 875 tests, all passing
+- `npx tsc --noEmit -p tsconfig.json`: exit 0
+- `pnpm build` (`nest build`): exit 0
+
+The role list was hardcoded in three places and widening the Prisma enum broke
+compilation in the task module (`TS2416` in `prisma-user.reader.ts`). Fixed by
+adding `INGENIERO` to `USER_ROLE_VALUES` in both `entities/user/application/user.types.ts`
+and `entities/task/application/task.types.ts`, mirroring `AUTH_USER_ROLES`.
+
+Independent verification (read-only, high risk tier because the commit touches
+the auth hot path) returned PASS with no blockers. Non-blocking findings carried
+forward:
+
+1. `recipe.controller.ts` still gates reads with `@Roles('ADMIN','SUPERVISOR')`,
+   so `INGENIERO` is 403 on `GET /recipes` until B3.
+2. Next.js `modulesForRole` returns **every** module for a role it does not know,
+   so an `INGENIERO` would see the whole sidebar until W1.
+3. Next.js `api/client.ts` `UserRole` union is missing `INGENIERO` (stale typed
+   boundary, runtime unaffected) — W1.
+4. Future migrations must not both add and use an enum value in the same file:
+   Prisma runs a migration file in one transaction and `55P04` would trigger.
+
+Environment notes for the owner:
+
+- The seed now requires a new `SEED_INGENIERO_PASSWORD` environment variable
+  (no hardcoded fallback, same convention as `SEED_ADMIN_PASSWORD`). `db:seed`
+  fails loudly without it.
+- The migration is authored but NOT applied. To materialise it, bring Postgres
+  up at `localhost:5433` and run `pnpm --filter backend db:reset` (or
+  `migrate deploy`).
+- `prettier --check` fails on untouched files too, so the repository is not
+  Prettier-formatted. Formatting was deliberately NOT run: it is not convergent
+  and would rewrite the whole repository.
+
+### B2 — domain rules and the calculation
+
+New: `entities/recipe/domain/spray-calculation.ts` (+ spec) and
+`domain/dosage-basis.ts`. Extended: `domain/recipe.rules.ts` (+ spec),
+`domain/errors.ts` (`PrescriptionFrozenError`),
+`application/recipe.types.ts`.
+
+Formulas: `caldoTotal = sprayVolume × lotArea`; `POR_HECTAREA` row =
+`dose × lotArea`; `CONCENTRACION` row = `dose × caldoTotal / 100` (dose is the
+amount per 100 L, so a 1% v/v mix is entered as `1`). Row totals use the exact
+unrounded caldo and are then rounded, as is the caldo total, to 2 decimals.
+
+Strict TDD evidence — captured BEFORE implementing (behavioural failures, not a
+compile error): `Test Suites: 2 failed, 2 total / Tests: 82 failed, 46 passed,
+128 total`. After implementing: `2 passed` / `128 passed`.
+
+Verification re-run by the orchestrator:
+
+- `pnpm test`: 93 suites / 958 tests, all passing (baseline was 92 / 875, so
+  +1 suite and +83 tests, with no baseline test weakened)
+- `npx tsc --noEmit -p tsconfig.json`: exit 0
+- `pnpm build` (`nest build`): exit 0
+
+The `PrescriptionFrozenError` has no HTTP mapping yet on purpose: the recipe
+controller's `translate()` ends in `throw error` and still compiles, so
+`PrescriptionFrozenError -> 409` is deferred to B3 as planned. New record fields
+stay optional so the additive-only rule (R8) and the existing typed spec literals
+keep working.
+
+### B3 — prescription endpoints and RBAC (commit `569e57a`)
+
+Added `CreatePrescriptionUseCase` and `UpdateRecipeUseCase`, a task-prescription
+port and its Prisma adapter, DTO-less request typing that mirrors the module's
+existing pattern, a shared recipe mapper, and the routes:
+
+| Route | Roles |
+|---|---|
+| `GET /recipes?lotId=` | ADMIN, SUPERVISOR, INGENIERO, OPERARIO, CONTRATISTA |
+| `GET /recipes/:id` | ADMIN, SUPERVISOR, INGENIERO, OPERARIO, CONTRATISTA |
+| `POST /recipes` | INGENIERO, ADMIN |
+| `PUT /recipes/:id` | INGENIERO, ADMIN |
+
+`POST /recipes` writes the recipe and flips the task to `CON_RECETA` inside ONE
+`prisma.$transaction`, so the two writes cannot half-apply; the application layer
+never sees a transaction handle. `PrescriptionFrozenError -> 409`.
+
+Decision recorded: `TaskType.requiresPrescription` means the prescription is
+REQUIRED, never RESTRICTED. A prescription is accepted on any task, because a
+fertilization task needs a caldo/dose calculation too.
+
+TDD evidence: use cases RED `37 failed / 37 total` -> GREEN `37 passed`; controller
+RED `4 failed, 7 passed` -> GREEN `11 passed`. Full suite: 96 suites / 1013 tests.
+
+### B4 — pending inbox and `SIN_RECETA` (commit `361ea7e`)
+
+`GET /prescriptions/pending` (INGENIERO, ADMIN, SUPERVISOR) returns the
+`SIN_RECETA` tasks, tenant-scoped through `Task -> Lot -> Farm -> Client`, exactly
+like `GET /tasks`. A task whose type requires a prescription is now created
+`SIN_RECETA` (driven by the `TaskType.requiresPrescription` column, never by name
+matching), and `prescriptionStatus` is exposed on task reads.
+
+TDD evidence: RED captured in the mapper and the create-task use case before
+implementing. Full suite: 98 suites / 1027 tests.
+
+Honest note: the `GET /tasks` and `GET /tasks/:id` reads use Prisma `include`,
+which already returned every scalar column, so `prescriptionStatus` was already
+present at runtime; B4's work there was typing, explicit mapping and a locking
+test rather than a behaviour change.
+
+### Integration gaps found while wiring the console
+
+Three real gaps that the original plan did not anticipate, all found by building
+against the API instead of assuming it:
+
+1. **`lotArea` was missing from the pending inbox** while the editor needs it for
+   the live calculation. Fixed additively in commit `6b8bc7a`.
+2. **`INGENIERO` got HTTP 403 on `GET /tasks` and `GET /task-types`**, so the
+   agronomist could not read the very activities the feature is about. Fixed in
+   commit `61f0504`. Write routes were deliberately NOT widened, and `GET /users`
+   was deliberately left at ADMIN/SUPERVISOR.
+3. **A pre-existing bug in `/dashboard/produccion`**: its `Promise.all` had no
+   failure handling, and `GET /users` is ADMIN/SUPERVISOR-only, so the whole board
+   rendered nothing for OPERARIO (and would have for INGENIERO). Fixed in commit
+   `cf3957f`: `listTasks` is the only required fetch; the auxiliary collections
+   degrade individually and the user is told honestly when data is partial.
+
+### V1 — final verification (run, not assumed)
+
+Backend, from `packages/backend`:
+
+- `pnpm test`: 98 suites / 1027 tests, all passing (baseline was 92 / 875)
+- `npx prisma validate`: the schema is valid
+- `pnpm build` (`nest build`): exit 0
+- `npx tsc --noEmit -p tsconfig.json`: exit 0
+
+Console, from `packages/nextjs`:
+
+- `pnpm build`: exit 0
+- `npx tsc --noEmit`: exit 0
+- `pnpm lint`: exit 1 with exactly 3 PRE-EXISTING findings (1 error in
+  `reveal.tsx:62`, 2 warnings in `api/client.ts:99` and `ui/auth.tsx:26`) and zero
+  introduced by this work
+
+### NOT verified, and why
+
+- **Nothing that needs the database.** Postgres at `localhost:5433` is unreachable
+  and Docker is down, so the migration was never applied, the seed was never run,
+  and no HTTP request was ever made against a live backend. The end-to-end flow
+  (agronomist logs in, sees the inbox, writes a prescription, the task flips to
+  `CON_RECETA`) is reasoned and type-checked but NOT executed.
+- **`packages/nextjs` has no test runner**, so the console has no automated tests.
+  None were invented; verification is build + tsc + lint + review.
+
+### Outstanding items for the owner
+
+- Set `SEED_INGENIERO_PASSWORD` (the seed now fails loudly without it).
+- Apply the migration once Postgres is up: `pnpm --filter backend db:reset`.
+- Pre-existing, out of scope, NOT fixed: `CONTRATISTA` gets 403 on `GET /tasks`, so
+  the Producción board still errors for that role; and `SUPERVISOR` has write
+  permission on tasks but the "Nueva tarea" button is gated to ADMIN only.
+- Dead code: the recipe module still carries the legacy lot-scoped
+  `CreateRecipeUseCase`, which is wired but has no route. It is now superseded by
+  `CreatePrescriptionUseCase`; removing it is a small, isolated cleanup.
+- The role list is hand-duplicated in `AUTH_USER_ROLES`, `user.types.ts` and
+  `task.types.ts`. Adding a role means touching all three; a single source would
+  remove the trap.
+
+## Phase 2 — recipe form rework
+
+Owner feedback after testing the live flow: the form is confusing, and it never
+shows how the caldo and the products relate to each other. Direction approved:
+keep BOTH dosage bases and rebuild the form so it fills in and reads properly.
+
+### Requirements
+
+- The form follows the agronomist's sequence: add each product with its rate,
+  then declare the caldo per hectare, then see the computed amounts below.
+- Every row shows BOTH the total amount for the lot AND its equivalent rate, so
+  the contractor loading the tank knows the proportion. Today a `POR_HECTAREA`
+  row shows no concentration at all — that is the real gap.
+- The caldo per hectare stays a first-class, required input: it is what turns a
+  concentration into an absolute amount.
+- Both bases stay: `POR_HECTAREA` (labels that state "3 L/ha") and
+  `CONCENTRACION` (mixes stated per 100 L of water).
+
+### Design decisions
+
+| # | Decision |
+|---|----------|
+| 12 | Both dosage bases are kept. |
+| 13 | A row's unit is derived from its basis and the input's catalogue unit: `POR_HECTAREA` -> `<unit>/ha`, `CONCENTRACION` -> `<unit>/100 L`. Today `RecipeItem.unit` is copied raw from `Input.unit` (e.g. "L"), which is ambiguous next to a basis. No schema change. |
+| 14 | The totals output gains, per row, the derived `perHectare` and `per100L` amounts, so the saved recipe is authoritative instead of the console inventing the numbers. Additive change. |
+| 15 | The caldo per hectare stays REQUIRED (`Recipe.sprayVolume` is NOT NULL). No migration. |
+| 16 | Form order: products -> caldo -> live results below (the owner's stated order). The saved recipe still READS caldo-first, which is the classic prescription format. |
+
+### Formulas (same arithmetic, now expressed both ways)
+
+- `caldoTotal` (L) = `sprayVolume` (L/ha) x `lotArea` (ha)
+- `POR_HECTAREA`: row total = `dose` x `lotArea`
+- `CONCENTRACION`: row total = `dose` x `caldoTotal` / 100 (dose is per 100 L)
+- Derived, for display on every row regardless of basis:
+  - `perHectare` = row total / `lotArea`
+  - `per100L` = row total x 100 / `caldoTotal`
+- Row totals are computed from the EXACT unrounded caldo; everything is rounded
+  to 2 decimals only for output, and the console mirrors the same functions.
+
+### Tasks
+
+- [x] U1 [backend] derived `perHectare` / `per100L` per row in the totals output,
+      unit normalisation by basis, and the validation that goes with them (TDD).
+- [x] U2 [web] rebuild the editor: products -> caldo -> live results below, the
+      equivalence shown on every row, unit driven by the basis, and clearer
+      Spanish labels for the agronomist.
+- [x] U3 [web] make the read-only recipe view read like a real prescription:
+      lot and surface, caldo per hectare and total, then each product with its
+      rate, basis, total amount, equivalence per 100 L and load order.
+- [ ] V2 verify: backend suite, `next build`, and a LIVE end-to-end run against
+      the running Postgres and backend (this time it can be executed, not just
+      reasoned).
+
+### Acceptance
+
+- With 96 ha and 120 L/ha of caldo, a 3 L/ha row shows 288 L total
+  (= 3 L/ha, = 2.5 L/100 L) and a 1.5-per-100 L row shows 172.8 L total
+  (= 1.8 L/ha, = 1.5 L/100 L).
+- A single row's `total`, `perHectare` and `per100L` are mutually consistent.
+- The console's live panel and the saved recipe agree exactly.
+- Nothing changes for the existing endpoints' consumers: the additions are
+  additive and `GET /recipes?lotId=` keeps its shape.
+
+### Status
+
+U1, U2 and U3 implemented and committed (`f6f5253`, `c16fb38`). V2 is PARTIAL.
+
+### Progress log — Phase 2
+
+U1 (`f6f5253`): 100 suites / 1075 tests green, `nest build` exit 0, `tsc` exit 0.
+New `domain/dosage-unit.ts` with a tolerant, idempotent `normalizeDosageUnit`;
+`spray-calculation` now returns `total` / `perHectare` / `per100L` derived from the
+exact unrounded values; `assertFiniteDerivedValue` guards non-finite output.
+
+U2/U3 (`c16fb38`): console rebuilt in the owner's order (datos -> productos ->
+caldo -> resultados). `next build` exit 0, `tsc` exit 0, `lint` still exactly the 3
+pre-existing findings, and the dev-server routes answer 200.
+
+V2 so far — verified LIVE against the running Postgres and backend:
+
+- `GET /recipes/:id` returns `caldoTotal` plus per-row `total`, `perHectare` and
+  `per100L`, all mathematically consistent. Checked on the seeded recipe
+  (70 ha, 120 L/ha, caldo 8400): a `POR_HECTAREA` row of 3 gives 210 / 3 / 2.5 and a
+  `CONCENTRACION` row of 1 gives 84 / 1.2 / 1. Verified on the owner's own recipe
+  too (96 ha, caldo 288): a `CONCENTRACION` row of 10 gives 28.8 / 0.3 / 10 and a
+  `POR_HECTAREA` row of 1 gives 96 / 1 / 33.33.
+- The dev server serves `/dashboard/recetas` and `/dashboard/produccion` with 200.
+
+V2 still NOT verified:
+
+- **The write path has not been exercised live.** No recipe has been saved since U1,
+  so `normalizeDosageUnit` on save is covered by unit tests only.
+- **The browser interaction is not exercised** (no test runner in the console; the
+  editor is a client component behind user interaction).
+- Existing rows still hold the OLD raw unit string (`L`) in the database, because
+  the normalisation happens on write. Display derives the rate unit, so the UI reads
+  correctly, but the stored value stays stale until the row is saved again.
+
+### Findings from the live check that need the owner's decision
+
+1. **The owner's own recipe has `caldo = 3 L/ha`** (96 ha, caldo total 288 L). That is
+   almost certainly the product's dose typed into the caldo field, not a spray rate:
+   three litres of water per hectare is not a real application. It is concrete evidence
+   that the previous form caused exactly this confusion. Consequence: the caldo rate has
+   NO sanity range, so nonsense values are accepted. A plausible range check (or a
+   warning) would catch it, but the limits are an agronomic decision, not ours.
+2. `RecipeItem.unit` on already-saved rows keeps the raw value (`L`). If the owner wants
+   the stored data itself corrected, that is a one-off backfill, not part of this phase.
+
+### Owner decision — no range validation
+
+The owner explicitly REJECTED a sanity range for the caldo rate. Do not add a
+plausible-range check or warning on `sprayVolume`. The nonsense value found in his own
+recipe is corrected by the reworked form, not by a validator. Out of scope, permanently
+unless he asks again.
+
+### V2 state after the owner's manual test
+
+Checked live: 13 tasks (`CON_RECETA=3`, `NO_REQUIERE=9`, `SIN_RECETA=1`) and 2 recipes.
+
+- The seeded demo recipe (70 ha, 120 L/ha) and the owner's recipe (96 ha, caldo 3 L/ha)
+  were both saved BEFORE U1 reached the backend (it restarted at 17:54), so both still
+  show the raw stored unit `L`. That is expected, not a defect: the normalisation happens
+  on write.
+- The activity the owner created last (**Pulverización en Lote A, 150 ha**, assigned to
+  `martinOperario`) is still `SIN_RECETA` and has NO recipe. So the new form plus the new
+  backend has NOT yet been exercised on a save.
+- Consequence: `normalizeDosageUnit` on the write path remains covered by unit tests only.
+  V2 stays open until one recipe is saved through the reworked form; then confirm the
+  stored unit reads `L/ha` / `L/100 L`.

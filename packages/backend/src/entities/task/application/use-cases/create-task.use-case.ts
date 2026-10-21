@@ -30,10 +30,17 @@ export class CreateTaskUseCase {
       );
     }
 
+    // R2: whether a task needs a phytosanitary prescription is driven by the
+    // LaborType.requiresPrescription column (never a name/description match). A
+    // task that requires one is born SIN_RECETA; any other keeps the model
+    // default (NO_REQUIERE), so the field is only sent when it must be set.
+    const requiresPrescription = laborType.requiresPrescription === true;
+
     return this.repository.create({
       lotId,
       laborTypeId,
       startedAt,
+      ...(requiresPrescription ? { prescriptionStatus: 'SIN_RECETA' as const } : {}),
     });
   }
 }

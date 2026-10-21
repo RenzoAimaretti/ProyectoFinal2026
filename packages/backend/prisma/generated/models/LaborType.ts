@@ -39,6 +39,7 @@ export type LaborTypeMinAggregateOutputType = {
   tenantId: string | null
   name: string | null
   description: string | null
+  requiresPrescription: boolean | null
   kind: $Enums.LaborKind | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,6 +52,7 @@ export type LaborTypeMaxAggregateOutputType = {
   tenantId: string | null
   name: string | null
   description: string | null
+  requiresPrescription: boolean | null
   kind: $Enums.LaborKind | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -63,6 +65,7 @@ export type LaborTypeCountAggregateOutputType = {
   tenantId: number
   name: number
   description: number
+  requiresPrescription: number
   kind: number
   createdAt: number
   updatedAt: number
@@ -85,6 +88,7 @@ export type LaborTypeMinAggregateInputType = {
   tenantId?: true
   name?: true
   description?: true
+  requiresPrescription?: true
   kind?: true
   createdAt?: true
   updatedAt?: true
@@ -97,6 +101,7 @@ export type LaborTypeMaxAggregateInputType = {
   tenantId?: true
   name?: true
   description?: true
+  requiresPrescription?: true
   kind?: true
   createdAt?: true
   updatedAt?: true
@@ -109,6 +114,7 @@ export type LaborTypeCountAggregateInputType = {
   tenantId?: true
   name?: true
   description?: true
+  requiresPrescription?: true
   kind?: true
   createdAt?: true
   updatedAt?: true
@@ -208,6 +214,7 @@ export type LaborTypeGroupByOutputType = {
   tenantId: string
   name: string
   description: string | null
+  requiresPrescription: boolean
   kind: $Enums.LaborKind
   createdAt: Date
   updatedAt: Date
@@ -243,6 +250,7 @@ export type LaborTypeWhereInput = {
   tenantId?: Prisma.StringFilter<"LaborType"> | string
   name?: Prisma.StringFilter<"LaborType"> | string
   description?: Prisma.StringNullableFilter<"LaborType"> | string | null
+  requiresPrescription?: Prisma.BoolFilter<"LaborType"> | boolean
   kind?: Prisma.EnumLaborKindFilter<"LaborType"> | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
@@ -259,6 +267,7 @@ export type LaborTypeOrderByWithRelationInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  requiresPrescription?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -279,6 +288,7 @@ export type LaborTypeWhereUniqueInput = Prisma.AtLeast<{
   tenantId?: Prisma.StringFilter<"LaborType"> | string
   name?: Prisma.StringFilter<"LaborType"> | string
   description?: Prisma.StringNullableFilter<"LaborType"> | string | null
+  requiresPrescription?: Prisma.BoolFilter<"LaborType"> | boolean
   kind?: Prisma.EnumLaborKindFilter<"LaborType"> | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
@@ -295,6 +305,7 @@ export type LaborTypeOrderByWithAggregationInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  requiresPrescription?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -315,6 +326,7 @@ export type LaborTypeScalarWhereWithAggregatesInput = {
   tenantId?: Prisma.StringWithAggregatesFilter<"LaborType"> | string
   name?: Prisma.StringWithAggregatesFilter<"LaborType"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"LaborType"> | string | null
+  requiresPrescription?: Prisma.BoolWithAggregatesFilter<"LaborType"> | boolean
   kind?: Prisma.EnumLaborKindWithAggregatesFilter<"LaborType"> | $Enums.LaborKind
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"LaborType"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"LaborType"> | Date | string
@@ -326,6 +338,7 @@ export type LaborTypeCreateInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -342,6 +355,7 @@ export type LaborTypeUncheckedCreateInput = {
   tenantId: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -356,6 +370,7 @@ export type LaborTypeUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -372,6 +387,7 @@ export type LaborTypeUncheckedUpdateInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -387,6 +403,7 @@ export type LaborTypeCreateManyInput = {
   tenantId: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -398,6 +415,7 @@ export type LaborTypeUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -410,6 +428,7 @@ export type LaborTypeUncheckedUpdateManyInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -437,6 +456,7 @@ export type LaborTypeCountOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  requiresPrescription?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -453,6 +473,7 @@ export type LaborTypeMaxOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  requiresPrescription?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -465,6 +486,7 @@ export type LaborTypeMinOrderByAggregateInput = {
   tenantId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  requiresPrescription?: Prisma.SortOrder
   kind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -573,6 +595,7 @@ export type LaborTypeCreateWithoutTenantInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -587,6 +610,7 @@ export type LaborTypeUncheckedCreateWithoutTenantInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -631,6 +655,7 @@ export type LaborTypeScalarWhereInput = {
   tenantId?: Prisma.StringFilter<"LaborType"> | string
   name?: Prisma.StringFilter<"LaborType"> | string
   description?: Prisma.StringNullableFilter<"LaborType"> | string | null
+  requiresPrescription?: Prisma.BoolFilter<"LaborType"> | boolean
   kind?: Prisma.EnumLaborKindFilter<"LaborType"> | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LaborType"> | Date | string
@@ -642,6 +667,7 @@ export type LaborTypeCreateWithoutCategoriesInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -657,6 +683,7 @@ export type LaborTypeUncheckedCreateWithoutCategoriesInput = {
   tenantId: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -686,6 +713,7 @@ export type LaborTypeUpdateWithoutCategoriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -701,6 +729,7 @@ export type LaborTypeUncheckedUpdateWithoutCategoriesInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -714,6 +743,7 @@ export type LaborTypeCreateWithoutTasksInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -729,6 +759,7 @@ export type LaborTypeUncheckedCreateWithoutTasksInput = {
   tenantId: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -758,6 +789,7 @@ export type LaborTypeUpdateWithoutTasksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -773,6 +805,7 @@ export type LaborTypeUncheckedUpdateWithoutTasksInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -786,6 +819,7 @@ export type LaborTypeCreateWithoutDailyReportsInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -801,6 +835,7 @@ export type LaborTypeUncheckedCreateWithoutDailyReportsInput = {
   tenantId: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -830,6 +865,7 @@ export type LaborTypeUpdateWithoutDailyReportsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -845,6 +881,7 @@ export type LaborTypeUncheckedUpdateWithoutDailyReportsInput = {
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -858,6 +895,7 @@ export type LaborTypeCreateManyTenantInput = {
   id?: string
   name: string
   description?: string | null
+  requiresPrescription?: boolean
   kind?: $Enums.LaborKind
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -869,6 +907,7 @@ export type LaborTypeUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -883,6 +922,7 @@ export type LaborTypeUncheckedUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -897,6 +937,7 @@ export type LaborTypeUncheckedUpdateManyWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiresPrescription?: Prisma.BoolFieldUpdateOperationsInput | boolean
   kind?: Prisma.EnumLaborKindFieldUpdateOperationsInput | $Enums.LaborKind
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -958,6 +999,7 @@ export type LaborTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  requiresPrescription?: boolean
   kind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -975,6 +1017,7 @@ export type LaborTypeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  requiresPrescription?: boolean
   kind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -988,6 +1031,7 @@ export type LaborTypeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  requiresPrescription?: boolean
   kind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1001,6 +1045,7 @@ export type LaborTypeSelectScalar = {
   tenantId?: boolean
   name?: boolean
   description?: boolean
+  requiresPrescription?: boolean
   kind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1008,7 +1053,7 @@ export type LaborTypeSelectScalar = {
   deleted?: boolean
 }
 
-export type LaborTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "name" | "description" | "kind" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["laborType"]>
+export type LaborTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "name" | "description" | "requiresPrescription" | "kind" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["laborType"]>
 export type LaborTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   tasks?: boolean | Prisma.LaborType$tasksArgs<ExtArgs>
@@ -1036,6 +1081,7 @@ export type $LaborTypePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     tenantId: string
     name: string
     description: string | null
+    requiresPrescription: boolean
     kind: $Enums.LaborKind
     createdAt: Date
     updatedAt: Date
@@ -1472,6 +1518,7 @@ export interface LaborTypeFieldRefs {
   readonly tenantId: Prisma.FieldRef<"LaborType", 'String'>
   readonly name: Prisma.FieldRef<"LaborType", 'String'>
   readonly description: Prisma.FieldRef<"LaborType", 'String'>
+  readonly requiresPrescription: Prisma.FieldRef<"LaborType", 'Boolean'>
   readonly kind: Prisma.FieldRef<"LaborType", 'LaborKind'>
   readonly createdAt: Prisma.FieldRef<"LaborType", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"LaborType", 'DateTime'>

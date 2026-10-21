@@ -238,6 +238,7 @@ export const LaborTypeScalarFieldEnum = {
   tenantId: 'tenantId',
   name: 'name',
   description: 'description',
+  requiresPrescription: 'requiresPrescription',
   kind: 'kind',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -293,6 +294,7 @@ export const TaskScalarFieldEnum = {
   lotId: 'lotId',
   laborTypeId: 'laborTypeId',
   status: 'status',
+  prescriptionStatus: 'prescriptionStatus',
   startedAt: 'startedAt',
   finishedAt: 'finishedAt',
   updatedTaskAt: 'updatedTaskAt',
@@ -308,9 +310,14 @@ export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof Task
 export const RecipeScalarFieldEnum = {
   id: 'id',
   lotId: 'lotId',
+  taskId: 'taskId',
   date: 'date',
   status: 'status',
   observations: 'observations',
+  pest: 'pest',
+  crop: 'crop',
+  reapplicationIntervalDays: 'reapplicationIntervalDays',
+  reapplicationDate: 'reapplicationDate',
   sprayVolume: 'sprayVolume',
   sprayVolumeUnit: 'sprayVolumeUnit',
   createdAt: 'createdAt',
@@ -325,6 +332,7 @@ export const RecipeItemScalarFieldEnum = {
   recipeId: 'recipeId',
   inputId: 'inputId',
   dose: 'dose',
+  dosageBasis: 'dosageBasis',
   unit: 'unit',
   loadOrder: 'loadOrder'
 } as const

@@ -35,7 +35,10 @@ export interface TaskRepositoryPort {
 }
 
 export interface LaborTypeReaderPort {
-  findByIdForTenant(id: string, tenantId: string): Promise<{ id: string } | null>;
+  findByIdForTenant(
+    id: string,
+    tenantId: string,
+  ): Promise<{ id: string; requiresPrescription: boolean } | null>;
 }
 
 export interface LotReaderPort {

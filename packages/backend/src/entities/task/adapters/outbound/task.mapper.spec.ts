@@ -50,4 +50,13 @@ describe('toTaskReadOutput', () => {
     expect(output.laborTypeName).toBeUndefined();
     expect(output.operators).toBeUndefined();
   });
+
+  it('exposes the prescription status stored on the task', () => {
+    const output = toTaskReadOutput({
+      ...baseRow,
+      prescriptionStatus: 'SIN_RECETA',
+    });
+
+    expect(output.prescriptionStatus).toBe('SIN_RECETA');
+  });
 });

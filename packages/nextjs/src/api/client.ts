@@ -354,6 +354,11 @@ export type TaskDTO = {
   startedAt: string | null;
   finishedAt: string | null;
   /**
+   * Enriched by `GET /tasks` and `GET /tasks/:id`. Optional so the UI keeps
+   * working against an older backend that does not return it yet.
+   */
+  prescriptionStatus?: PrescriptionStatus;
+  /**
    * Enriched by `GET /tasks`. Optional so the UI keeps working against an
    * older backend and can fall back to the lot/farm/labor-type catalogues.
    */
@@ -756,27 +761,163 @@ export const RECIPE_STATUS_LABELS: Record<RecipeStatus, string> = {
   ARCHIVADA: "Archivada",
 };
 
-export type RecipeItemDTO = {
-  inputId: string;
-  inputName: string;
-  dose: number;
-  unit: string | null;
-  loadOrder: number;
+/**
+ * How a row dose is expressed. Mirrors the backend `DosageBasis` enum.
+ * `POR_HECTAREA`: the dose is the amount per hectare.
+ * `CONCENTRACION`: the dose is the amount per 100 L of water, so a 1% v/v mix
+ * is entered as `1`.
+ */
+export type DosageBasis = "POR_HECTAREA" | "CONCENTRACION";
+
+export const DOSAGE_BASIS_VALUE_LIST: readonly DosageBasis[] = [
+  "POR_HECTAREA",
+  "CONCENTRACION",
+];
+
+export const DOSAGE_BASIS_LABELS: Record<DosageBasis, string> = {
+  POR_HECTAREA: "Por hectárea",
+  CONCENTRACION: "Concentración (por 100 L de agua)",
 };
 
+/**
+ * A recipe row as returned by the reads. `dosageBasis`, `id` and `recipeId` are
+ * additive fields of the new prescription endpoints. `unit` is normalised by the
+ * server to a rate (`<base>/ha` or `<base>/100 L`). `total`, `perHectare` and
+ * `per100L` are the three faces of the same amount (decision 14) and are present
+ * only on `GET /recipes/:id` when the lot area is known.
+ */
+export type RecipeItemDTO = {
+  id: string;
+  recipeId: string;
+  inputId: string;
+  inputName: string | null;
+  dose: number;
+  dosageBasis: DosageBasis;
+  unit: string | null;
+  loadOrder: number;
+  /** Computed total amount for the whole lot, in the row's base unit. */
+  total?: number;
+  /** The same amount expressed per hectare. Detail read only. */
+  perHectare?: number;
+  /** The same amount expressed per 100 L of caldo. Detail read only. */
+  per100L?: number;
+};
+
+/**
+ * A recipe record. The list read (`GET /recipes?lotId=`) deliberately does NOT
+ * carry the lot area, so it has no computed totals.
+ */
 export type RecipeDTO = {
   id: string;
   lotId: string;
+  taskId: string | null;
   date: string;
   status: RecipeStatus;
+  pest: string | null;
+  crop: string | null;
   observations: string | null;
   sprayVolume: number;
   sprayVolumeUnit: string;
+  reapplicationIntervalDays: number | null;
+  reapplicationDate: string | null;
+  createdAt: string;
+  updatedAt: string;
   items: RecipeItemDTO[];
+};
+
+/**
+ * Single-recipe read (`GET /recipes/:id`): the recipe plus the lot area and the
+ * computed totals it carries. `caldoTotal` and each item `total` are absent when
+ * the lot area is unknown.
+ */
+export type RecipeDetailDTO = RecipeDTO & {
+  lotArea?: number;
+  caldoTotal?: number;
 };
 
 export function listRecipesByLot(lotId: string): Promise<RecipeDTO[]> {
   return apiGet<RecipeDTO[]>(`/recipes?lotId=${encodeURIComponent(lotId)}`);
+}
+
+/** Reads one prescription with its lot area and computed totals. */
+export function getRecipe(id: string): Promise<RecipeDetailDTO> {
+  return apiGet<RecipeDetailDTO>(`/recipes/${encodeURIComponent(id)}`);
+}
+
+export type RecipeItemInputBody = {
+  inputId: string;
+  dose: number;
+  dosageBasis: DosageBasis;
+  unit?: string;
+  loadOrder: number;
+};
+
+/** Body of `POST /recipes`. Creating a prescription flips the task to CON_RECETA. */
+export type CreateRecipeBody = {
+  taskId: string;
+  date: string;
+  pest?: string;
+  crop?: string;
+  observations?: string;
+  sprayVolume: number;
+  sprayVolumeUnit: string;
+  reapplicationIntervalDays?: number;
+  reapplicationDate?: string;
+  items: RecipeItemInputBody[];
+};
+
+/** Body of `PUT /recipes/:id`: the task link is fixed at creation. */
+export type UpdateRecipeBody = Omit<CreateRecipeBody, "taskId">;
+
+export function createRecipe(body: CreateRecipeBody): Promise<RecipeDetailDTO> {
+  return apiPost<RecipeDetailDTO>("/recipes", body);
+}
+
+/** Edits a prescription. Returns 409 when its task has already started. */
+export function updateRecipe(
+  id: string,
+  body: UpdateRecipeBody,
+): Promise<RecipeDetailDTO> {
+  return apiPut<RecipeDetailDTO>(`/recipes/${encodeURIComponent(id)}`, body);
+}
+
+/* ------------------------------------------------------------------ */
+/* Prescriptions (recetas fitosanitarias — agronomist inbox)           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Orthogonal to the execution `TaskStatus`: whether the task needs a
+ * prescription and, if so, whether it already has one.
+ */
+export type PrescriptionStatus = "NO_REQUIERE" | "SIN_RECETA" | "CON_RECETA";
+
+export const PRESCRIPTION_STATUS_LABELS: Record<PrescriptionStatus, string> = {
+  NO_REQUIERE: "No requiere receta",
+  SIN_RECETA: "Sin receta",
+  CON_RECETA: "Con receta",
+};
+
+/**
+ * One row of `GET /prescriptions/pending`: a task still waiting for its
+ * prescription, enriched with the display names the console renders.
+ */
+export type PendingPrescriptionTaskDTO = {
+  id: string;
+  lotId: string;
+  lotName: string;
+  farmName: string;
+  /** Task-lot surface in hectares; the editor computes the caldo live from it. */
+  lotArea: number;
+  laborTypeId: string;
+  laborTypeName: string;
+  status: TaskDTO["status"];
+  startedAt: string | null;
+  prescriptionStatus: PrescriptionStatus;
+};
+
+/** Reads the agronomist inbox (`GET /prescriptions/pending`). */
+export function listPendingPrescriptions(): Promise<PendingPrescriptionTaskDTO[]> {
+  return apiGet<PendingPrescriptionTaskDTO[]>("/prescriptions/pending");
 }
 
 /* ------------------------------------------------------------------ */
@@ -976,7 +1117,8 @@ export type UserRole =
   | "SUPERVISOR"
   | "PRODUCTOR"
   | "CONTRATISTA"
-  | "VETERINARIO";
+  | "VETERINARIO"
+  | "INGENIERO";
 
 export type UserDTO = {
   id: string;
