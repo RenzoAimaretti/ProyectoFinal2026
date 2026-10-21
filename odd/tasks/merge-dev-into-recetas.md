@@ -93,6 +93,10 @@ opening a PR, mobile runtime verification (Flutter SDK not installed here).
   (`proyectofinal_premerge.dump`, custom format, outside the repo), then
   `prisma migrate deploy` applied the 12 pending `dev` migrations. Status is up
   to date and `migrate diff` reports no drift against the merged schema.
+- [x] **T10 — Seed and runtime smoke.** `SEED_INGENIERO_PASSWORD` added to the
+  gitignored `packages/backend/.env`, `npm run db:seed` reseeded the demo data,
+  the stale `dist/main.js` process was replaced with the merged build, and the
+  API was exercised over HTTP.
 
 ## Verification evidence
 
@@ -110,16 +114,17 @@ opening a PR, mobile runtime verification (Flutter SDK not installed here).
 | Frontend types | `npx tsc --noEmit` | clean |
 | Frontend build | `npm run build` | 21 routes, clean |
 | Frontend unit tests | `node --test test/*.test.mjs` | 8/8 passed |
+| Demo seed | `npm run db:seed` | bootstrap OK: 2 clients, 5 inputs, 6 labor types, 2 farms, 7 lots, 12 tasks, 5 daily reports, 10 stocks |
+| Runtime smoke (ADMIN) | `POST /auth/login`, `GET /tasks`, `/lots`, `/prescriptions/pending`, `/labor-types`, `/input-categories` | 200; tasks expose `laborTypeName` + `prescriptionStatus`; lots expose `polygon` + `state`; pending exposes `laborTypeName` |
+| Runtime smoke (INGENIERO) | `POST /auth/login`, `GET /tasks`, `/labor-types`, `/prescriptions/pending` | 200; agronomist reads the inbox and labour catalog |
 
 ## Known gaps
 
 - Flutter SDK is not installed in this environment, so `packages/mobile`
   (changed only by `dev`) was not analysed or tested here.
-- The local database is migrated. Existing demo data predates `dev`'s seed, so
-  every `LaborType.kind` is `OTRO`; running `npm run db:seed` would refresh the
-  demo catalog with the semantic kinds (`PULVERIZACION`, `FERTILIZACION`,
-  `SIEMBRA`) and the new machinery demo rows, but it deletes and recreates the
-  demo data first.
+- The demo seed leaves `MaintenanceThreshold` empty and no lot has a polygon;
+  both are created through the UI (`/dashboard/maquinaria` threshold form and the
+  `mi-campo` drawing tools), which is `dev`'s intended flow.
 - `npm run lint` on `packages/nextjs` reports one pre-existing
   `react-hooks/set-state-in-effect` error in `src/components/ui/reveal.tsx`, a
   file untouched by this merge.
