@@ -243,8 +243,8 @@ export type DailyReportDTO = {
   operatorId: string;
   operatorName: string;
   taskId: string;
-  taskTypeId: string;
-  taskTypeName: string;
+  laborTypeId: string;
+  laborTypeName: string;
   lotId: string;
   lotName: string;
   farmName: string;
@@ -303,16 +303,43 @@ export type FarmDTO = {
   surface: number;
 };
 
+import type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
+
+export type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
+
 export type LotDTO = {
   id: string;
   farmId: string;
   name: string;
   coords: string | null;
+  /** GeoJSON polygon, or null until the lot has been delimited. */
+  polygon: GeoJsonPolygon | null;
   area: number;
   active: boolean;
+  state: LotState;
 };
 
-export type TaskTypeDTO = { id: string; name: string; description: string | null };
+/**
+ * Semantic class of a labour. `OTRO` means unclassified: the map colour for a lot
+ * must not guess from the labour's name, which the tenant can rename.
+ */
+export type LaborKind =
+  | "SIEMBRA"
+  | "PULVERIZACION"
+  | "FERTILIZACION"
+  | "COSECHA"
+  | "OTRO";
+
+export type LaborTypeDTO = {
+  id: string;
+  name: string;
+  description: string | null;
+  /**
+   * Always present: the column is NOT NULL with a default, so a missing value
+   * here is a wiring bug and is typed as one instead of a silent fallback.
+   */
+  kind: LaborKind;
+};
 
 export type TaskOperatorDTO = {
   id: string;
@@ -322,7 +349,7 @@ export type TaskOperatorDTO = {
 export type TaskDTO = {
   id: string;
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   status: "PENDIENTE" | "EN_PROGRESO" | "FINALIZADA" | "CANCELADA";
   startedAt: string | null;
   finishedAt: string | null;
@@ -333,11 +360,11 @@ export type TaskDTO = {
   prescriptionStatus?: PrescriptionStatus;
   /**
    * Enriched by `GET /tasks`. Optional so the UI keeps working against an
-   * older backend and can fall back to the lot/farm/task-type catalogues.
+   * older backend and can fall back to the lot/farm/labor-type catalogues.
    */
   lotName?: string | null;
   farmName?: string | null;
-  taskTypeName?: string | null;
+  laborTypeName?: string | null;
   operators?: TaskOperatorDTO[] | null;
 };
 
@@ -347,7 +374,7 @@ export type TaskDTO = {
 
 export type CreateTaskBody = {
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   /** ISO timestamp built from the chosen date + time. */
   startedAt: string;
 };
@@ -375,8 +402,24 @@ export function assignTaskOperator(
 /* Task types, farms and lots                                          */
 /* ------------------------------------------------------------------ */
 
-export function listTaskTypes(): Promise<TaskTypeDTO[]> {
-  return apiGet<TaskTypeDTO[]>("/task-types");
+export function listLaborTypes(): Promise<LaborTypeDTO[]> {
+  return apiGet<LaborTypeDTO[]>("/labor-types");
+}
+
+export function createLaborType(body: { name: string; description?: string; kind?: LaborKind }): Promise<LaborTypeDTO> {
+  return apiPost<LaborTypeDTO>("/labor-types", body);
+}
+
+export function updateLaborType(id: string, body: { name?: string; description?: string; kind?: LaborKind }): Promise<LaborTypeDTO> {
+  return apiPut<LaborTypeDTO>(`/labor-types/${encodeURIComponent(id)}`, body);
+}
+
+export function listLaborTypeCategories(id: string): Promise<InputCategoryDTO[]> {
+  return apiGet<InputCategoryDTO[]>(`/labor-types/${encodeURIComponent(id)}/categories`);
+}
+
+export function replaceLaborTypeCategories(id: string, categoryIds: string[]): Promise<InputCategoryDTO[]> {
+  return apiPut<InputCategoryDTO[]>(`/labor-types/${encodeURIComponent(id)}/categories`, { categoryIds });
 }
 
 export function listFarms(): Promise<FarmDTO[]> {
@@ -392,6 +435,7 @@ export type MachineDTO = {
   companyId: string;
   name: string;
   brand: string | null;
+  type?: string | null;
   status: "ACTIVA" | "MANTENIMIENTO" | "FUERA_SERVICIO";
 };
 
@@ -430,10 +474,29 @@ export type InputDTO = {
   id: string;
   name: string;
   unit: string;
+  categoryId: string;
 };
 
 export function listInputs(): Promise<InputDTO[]> {
   return apiGet<InputDTO[]>("/inputs");
+}
+
+export type InputCategoryDTO = { id: string; name: string; active: boolean };
+
+export function listInputCategories(): Promise<InputCategoryDTO[]> {
+  return apiGet<InputCategoryDTO[]>("/input-categories");
+}
+
+export function createInputCategory(body: { name: string }): Promise<InputCategoryDTO> {
+  return apiPost<InputCategoryDTO>("/input-categories", body);
+}
+
+export function updateInputCategory(id: string, body: { name?: string; active?: boolean }): Promise<InputCategoryDTO> {
+  return apiPut<InputCategoryDTO>(`/input-categories/${encodeURIComponent(id)}`, body);
+}
+
+export function deleteInputCategory(id: string): Promise<{ message: string }> {
+  return apiDelete<{ message: string }>(`/input-categories/${encodeURIComponent(id)}`);
 }
 
 /* ------------------------------------------------------------------ */
@@ -845,8 +908,8 @@ export type PendingPrescriptionTaskDTO = {
   farmName: string;
   /** Task-lot surface in hectares; the editor computes the caldo live from it. */
   lotArea: number;
-  taskTypeId: string;
-  taskTypeName: string;
+  laborTypeId: string;
+  laborTypeName: string;
   status: TaskDTO["status"];
   startedAt: string | null;
   prescriptionStatus: PrescriptionStatus;
@@ -883,9 +946,11 @@ export type MachineActivityDTO = {
   machineId: string;
   companyId: string;
   type: MachineActivityType;
+  fuelMovement?: "INCOME" | "CONSUMPTION" | null;
   date: string;
   liters: number | null;
   receipt: string | null;
+  hasReceipt?: boolean;
   cost: number | null;
   spareParts: string | null;
   usageHours: number | null;
@@ -898,6 +963,7 @@ export type MachineActivityDTO = {
 export type CreateMachineActivityBody = {
   machineId: string;
   type: MachineActivityType;
+  fuelMovement?: "INCOME" | "CONSUMPTION";
   date: string;
   liters?: number | null;
   receipt?: string | null;
@@ -912,10 +978,92 @@ export function listMachineActivities(): Promise<MachineActivityDTO[]> {
   return apiGet<MachineActivityDTO[]>("/machine-activities");
 }
 
+export type MachineUsageDTO = {
+  id: string;
+  taskId: string;
+  machineId: string;
+  usageHours: number | null;
+  hectares: number | null;
+  workDate: string | null;
+  observations: string | null;
+  createdAt: string;
+};
+
+export function listMachineUsages(): Promise<MachineUsageDTO[]> {
+  return apiGet<MachineUsageDTO[]>("/machine-usages");
+}
+
+export type MachineAlertDTO = MachineDTO & {
+  usageHours: number;
+  hectares: number;
+  hoursLimit: number | null;
+  hectaresLimit: number | null;
+  due: boolean;
+  reasons: ("HOURS" | "HECTARES")[];
+};
+
+export function listMachineAlerts(): Promise<MachineAlertDTO[]> {
+  return apiGet<MachineAlertDTO[]>("/machines/alerts");
+}
+
+export type MaintenanceThresholdDTO = {
+  companyId: string;
+  machineType: string;
+  hoursLimit: number | null;
+  hectaresLimit: number | null;
+};
+
+export function listMaintenanceThresholds(): Promise<MaintenanceThresholdDTO[]> {
+  return apiGet<MaintenanceThresholdDTO[]>("/maintenance-thresholds");
+}
+
+export function saveMaintenanceThreshold(machineType: string, body: { hoursLimit?: number; hectaresLimit?: number }): Promise<MaintenanceThresholdDTO> {
+  return apiPut(`/maintenance-thresholds/${encodeURIComponent(machineType)}`, body);
+}
+
+export function deleteMaintenanceThreshold(machineType: string): Promise<void> {
+  return apiDelete(`/maintenance-thresholds/${encodeURIComponent(machineType)}`);
+}
+
+export type CompanyMachineMetrics = {
+  fuelPurchasedLiters: number;
+  fuelConsumedLiters: number;
+  fuelBalanceLiters: number;
+  usageHours: number;
+  hectares: number;
+  maintenanceCost: number;
+  repairCost: number;
+};
+export type ConsolidatedMachineReportDTO = {
+  rows: (CompanyMachineMetrics & { companyId: string; companyName: string })[];
+  totals: CompanyMachineMetrics;
+};
+
+export function getConsolidatedMachineReport(): Promise<ConsolidatedMachineReportDTO> {
+  return apiGet<ConsolidatedMachineReportDTO>("/machine-reports/consolidated");
+}
+
 export function createMachineActivity(
   body: CreateMachineActivityBody,
 ): Promise<MachineActivityDTO> {
   return apiPost<MachineActivityDTO>("/machine-activities", body);
+}
+
+export function attachFuelReceipt(activityId: string, dataUrl: string): Promise<{ attached: true }> {
+  return apiPost(`/machine-activities/${encodeURIComponent(activityId)}/receipt`, { dataUrl });
+}
+
+/** Downloads protected bytes with the same bearer token as the JSON API. */
+export async function downloadFuelReceipt(activityId: string): Promise<Blob> {
+  const path = `/machine-activities/${encodeURIComponent(activityId)}/receipt`;
+  const token = getToken();
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    cache: "no-store",
+  });
+  if (res.status === 401) handleUnauthorized();
+  if (!res.ok) throw new ApiError(res.status, `GET ${path} -> ${res.status}`, await parseBody(res));
+  return res.blob();
 }
 
 /* ------------------------------------------------------------------ */
@@ -1005,8 +1153,13 @@ export type CreateMachineBody = {
   name: string;
   brand: string;
   entryDate: string;
+  type?: string | null;
   companyId?: string;
 };
+
+export function updateMachine(id: string, body: { type: string | null }): Promise<MachineDTO> {
+  return apiPut<MachineDTO>(`/machines/${encodeURIComponent(id)}`, body);
+}
 
 export function createMachine(body: CreateMachineBody): Promise<MachineDTO> {
   return apiPost<MachineDTO>("/machines", body);

@@ -64,6 +64,7 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
 
   // ── Paso 2 ──────────────────────────────────────────────────────────────
   List<InputItemValue> _items = const [];
+  late Stream<List<({Input input, bool compatible})>> _inputChoices;
 
   // ── Encabezado (nombres resueltos de la tarea) ──────────────────────────
   String? _lotLabel;
@@ -78,7 +79,17 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
     _dateText = today;
     // Arranca limpio: descarta fotos/flag de un intento previo cancelado.
     widget.viewModel.reset();
+    _inputChoices = widget.viewModel.watchInputChoices(widget.task.laborTypeId);
     _loadTaskLabels();
+  }
+
+  @override
+  void didUpdateWidget(covariant DailyReportFormView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.task.laborTypeId != widget.task.laborTypeId ||
+        oldWidget.viewModel != widget.viewModel) {
+      _inputChoices = widget.viewModel.watchInputChoices(widget.task.laborTypeId);
+    }
   }
 
   @override
@@ -389,13 +400,18 @@ class _DailyReportFormViewState extends State<DailyReportFormView> {
   }
 
   Widget _inputsEditor() {
-    return StreamBuilder<List<Input>>(
-      stream: widget.viewModel.inputs,
+    return StreamBuilder<List<({Input input, bool compatible})>>(
+      stream: _inputChoices,
       builder: (context, snapshot) {
-        final inputs = snapshot.data ?? const <Input>[];
+        final inputs = snapshot.data ?? const <({Input input, bool compatible})>[];
         final options = inputs
             .map(
-              (i) => InputOption(id: i.id, label: i.name, unit: i.unit),
+              (choice) => InputOption(
+                id: choice.input.id,
+                label: choice.input.name,
+                unit: choice.input.unit,
+                compatible: choice.compatible,
+              ),
             )
             .toList();
         return InputItemsEditor(

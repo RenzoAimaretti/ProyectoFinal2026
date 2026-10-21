@@ -48,7 +48,7 @@ export class PrismaTaskPrescriptionAdapter
         lotId: true,
         status: true,
         lot: { select: { area: true } },
-        taskType: { select: { requiresPrescription: true } },
+        laborType: { select: { requiresPrescription: true } },
       },
     });
 
@@ -60,7 +60,7 @@ export class PrismaTaskPrescriptionAdapter
       id: task.id,
       lotId: task.lotId,
       status: task.status,
-      taskTypeRequiresPrescription: task.taskType.requiresPrescription,
+      laborTypeRequiresPrescription: task.laborType.requiresPrescription,
       lotArea: task.lot.area,
     };
   }
@@ -76,12 +76,12 @@ export class PrismaTaskPrescriptionAdapter
       select: {
         id: true,
         lotId: true,
-        taskTypeId: true,
+        laborTypeId: true,
         status: true,
         startedAt: true,
         prescriptionStatus: true,
         lot: { select: { name: true, area: true, farm: { select: { name: true } } } },
-        taskType: { select: { name: true } },
+        laborType: { select: { name: true } },
       },
       orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
     });
@@ -93,8 +93,8 @@ export class PrismaTaskPrescriptionAdapter
         lotName: task.lot.name,
         farmName: task.lot.farm.name,
         lotArea: task.lot.area,
-        taskTypeId: task.taskTypeId,
-        taskTypeName: task.taskType.name,
+        laborTypeId: task.laborTypeId,
+        laborTypeName: task.laborType.name,
         status: task.status,
         startedAt: task.startedAt,
         prescriptionStatus: task.prescriptionStatus,

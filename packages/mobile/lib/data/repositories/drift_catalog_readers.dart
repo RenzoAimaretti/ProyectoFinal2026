@@ -5,6 +5,8 @@ import '../../domain/repositories/client_reader.dart';
 import '../../domain/repositories/company_reader.dart';
 import '../../domain/repositories/farm_reader.dart';
 import '../../domain/repositories/input_reader.dart';
+import '../../domain/repositories/input_category_reader.dart';
+import '../../domain/repositories/labor_type_category_reader.dart';
 import '../../domain/repositories/labor_type_reader.dart';
 import '../../domain/repositories/lot_reader.dart';
 import '../../domain/repositories/machine_reader.dart';
@@ -64,6 +66,25 @@ class DriftLaborTypeReader implements LaborTypeReader {
   @override
   Future<domain.LaborType?> getById(String id) async =>
       (await _db.laborTypesDao.getById(id))?.toDomain();
+}
+
+class DriftInputCategoryReader implements InputCategoryReader {
+  DriftInputCategoryReader(this._db);
+  final AppDatabase _db;
+
+  @override
+  Stream<List<domain.InputCategory>> watchAll() => _db.inputCategoriesDao
+      .watchAll()
+      .map((rows) => rows.map((r) => r.toDomain()).toList());
+}
+
+class DriftLaborTypeCategoryReader implements LaborTypeCategoryReader {
+  DriftLaborTypeCategoryReader(this._db);
+  final AppDatabase _db;
+
+  @override
+  Stream<Set<String>> watchCategoryIds(String laborTypeId) =>
+      _db.laborTypeCategoriesDao.watchCategoryIds(laborTypeId);
 }
 
 class DriftInputReader implements InputReader {

@@ -21,7 +21,7 @@ const taskContext: TaskPrescriptionContext = {
   id: 'task-1',
   lotId: 'lot-1',
   status: 'PENDIENTE',
-  taskTypeRequiresPrescription: true,
+  laborTypeRequiresPrescription: true,
   lotArea: 10,
 };
 
@@ -346,7 +346,7 @@ describe('CreatePrescriptionUseCase', () => {
   it('allows a prescription on a task type that does not require one', async () => {
     taskPrescription.findContextByIdForTenant.mockResolvedValue({
       ...taskContext,
-      taskTypeRequiresPrescription: false,
+      laborTypeRequiresPrescription: false,
     });
 
     await expect(useCase.execute('tenant-1', validInput)).resolves.toEqual(

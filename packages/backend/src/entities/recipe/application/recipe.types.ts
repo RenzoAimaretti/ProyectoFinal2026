@@ -71,7 +71,7 @@ export type RecipeOutput = Omit<RecipeRecord, 'items'> & {
 /**
  * The task facts the prescription lifecycle rules need. `status` decides
  * whether the prescription is frozen and `lotId` must match the prescription
- * lot; `taskTypeRequiresPrescription` tells whether the task was born SIN_RECETA.
+ * lot; `laborTypeRequiresPrescription` tells whether the task was born SIN_RECETA.
  * `lotArea` is the surface of the task lot and feeds the totals calculation
  * without a second round trip.
  */
@@ -79,7 +79,7 @@ export type TaskPrescriptionContext = {
   id: string;
   lotId: string;
   status: TaskStatusValue;
-  taskTypeRequiresPrescription: boolean;
+  laborTypeRequiresPrescription: boolean;
   lotArea: number;
 };
 
@@ -99,8 +99,8 @@ export type PendingPrescriptionTask = {
    * server does, without an extra round trip.
    */
   lotArea: number;
-  taskTypeId: string;
-  taskTypeName: string;
+  laborTypeId: string;
+  laborTypeName: string;
   status: TaskStatusValue;
   startedAt: Date | null;
   prescriptionStatus: PrescriptionStatusValue;

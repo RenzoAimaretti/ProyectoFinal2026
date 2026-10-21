@@ -20,7 +20,7 @@ const taskContext: TaskPrescriptionContext = {
   id: 'task-1',
   lotId: 'lot-1',
   status: 'PENDIENTE',
-  taskTypeRequiresPrescription: true,
+  laborTypeRequiresPrescription: true,
   lotArea: 10,
 };
 

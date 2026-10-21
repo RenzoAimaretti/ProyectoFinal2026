@@ -92,7 +92,7 @@ describe('PrismaTaskPrescriptionAdapter', () => {
         lotId: 'lot-1',
         status: 'PENDIENTE',
         lot: { area: 12.5 },
-        taskType: { requiresPrescription: true },
+        laborType: { requiresPrescription: true },
       });
 
       await expect(
@@ -101,7 +101,7 @@ describe('PrismaTaskPrescriptionAdapter', () => {
         id: 'task-1',
         lotId: 'lot-1',
         status: 'PENDIENTE',
-        taskTypeRequiresPrescription: true,
+        laborTypeRequiresPrescription: true,
         lotArea: 12.5,
       });
 
@@ -116,7 +116,7 @@ describe('PrismaTaskPrescriptionAdapter', () => {
           lotId: true,
           status: true,
           lot: { select: { area: true } },
-          taskType: { select: { requiresPrescription: true } },
+          laborType: { select: { requiresPrescription: true } },
         },
       });
     });
@@ -136,12 +136,12 @@ describe('PrismaTaskPrescriptionAdapter', () => {
         {
           id: 'task-1',
           lotId: 'lot-1',
-          taskTypeId: 'task-type-1',
+          laborTypeId: 'task-type-1',
           status: 'PENDIENTE',
           startedAt: new Date('2026-01-10T00:00:00.000Z'),
           prescriptionStatus: 'SIN_RECETA',
           lot: { name: 'Lote N°1', area: 12.5, farm: { name: 'Agro-Sur' } },
-          taskType: { name: 'Pulverización' },
+          laborType: { name: 'Pulverización' },
         },
       ]);
 
@@ -152,8 +152,8 @@ describe('PrismaTaskPrescriptionAdapter', () => {
           lotName: 'Lote N°1',
           farmName: 'Agro-Sur',
           lotArea: 12.5,
-          taskTypeId: 'task-type-1',
-          taskTypeName: 'Pulverización',
+          laborTypeId: 'task-type-1',
+          laborTypeName: 'Pulverización',
           status: 'PENDIENTE',
           startedAt: new Date('2026-01-10T00:00:00.000Z'),
           prescriptionStatus: 'SIN_RECETA',
@@ -168,14 +168,14 @@ describe('PrismaTaskPrescriptionAdapter', () => {
         select: {
           id: true,
           lotId: true,
-          taskTypeId: true,
+          laborTypeId: true,
           status: true,
           startedAt: true,
           prescriptionStatus: true,
           lot: {
             select: { name: true, area: true, farm: { select: { name: true } } },
           },
-          taskType: { select: { name: true } },
+          laborType: { select: { name: true } },
         },
         orderBy: [{ startedAt: 'asc' }, { id: 'asc' }],
       });

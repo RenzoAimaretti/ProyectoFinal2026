@@ -97,7 +97,9 @@ export const navItems: NavItem[] = [
   },
   { label: "Mi Campo", href: "/dashboard/mi-campo", icon: "field", group: "campo" },
   { label: "Producción", href: "/dashboard/produccion", icon: "production", group: "operacion" },
+  { label: "Labores", href: "/dashboard/labores", icon: "production", group: "operacion" },
   { label: "Insumos", href: "/dashboard/insumos", icon: "inputs", group: "operacion" },
+  { label: "Categorías", href: "/dashboard/categorias", icon: "inputs", group: "operacion" },
   { label: "Maquinaria", href: "/dashboard/maquinaria", icon: "machine", group: "operacion" },
   { label: "Ganadería", href: "/dashboard/ganadero", icon: "livestock", group: "operacion" },
   { label: "Finanzas", href: "/dashboard/finanzas", icon: "finance", group: "administracion" },
@@ -171,14 +173,14 @@ export function roleLabel(role?: string | null): string {
 const MODULES_BY_ROLE: Record<string, string[] | "all"> = {
   ADMIN: "all",
   SUPERVISOR: "all",
-  OPERARIO: ["Mi Campo", "Producción", "Insumos", "Maquinaria"],
+  OPERARIO: ["Mi Campo", "Producción", "Labores", "Insumos", "Maquinaria"],
   // A PRODUCTOR is a client: only their own field and their own inputs.
   PRODUCTOR: ["Mi Campo", "Insumos"],
   CONTRATISTA: ["Producción", "Maquinaria"],
   VETERINARIO: ["Mi Campo", "Ganadería"],
   // An INGENIERO is the agronomist: the prescription inbox plus read-only
   // access to tasks (Producción) and inputs (Insumos). No admin modules.
-  INGENIERO: ["Recetas", "Producción", "Insumos"],
+  INGENIERO: ["Recetas", "Producción", "Labores", "Insumos"],
 };
 
 export function modulesForRole(

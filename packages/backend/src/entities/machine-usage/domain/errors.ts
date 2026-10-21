@@ -12,6 +12,13 @@ export class EntityNotFoundError extends Error {
   }
 }
 
+export class DuplicateUsageIdError extends Error {
+  constructor() {
+    super('Usage ID already exists with different data');
+    this.name = 'DuplicateUsageIdError';
+  }
+}
+
 export class InvalidRelationError extends Error {
   constructor(message: string) {
     super(message);

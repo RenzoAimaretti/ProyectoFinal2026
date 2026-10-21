@@ -58,8 +58,10 @@ export const ModelName = {
   RefreshToken: 'RefreshToken',
   Module: 'Module',
   Client: 'Client',
+  InputCategory: 'InputCategory',
   Input: 'Input',
-  TaskType: 'TaskType',
+  LaborType: 'LaborType',
+  LaborTypeCategory: 'LaborTypeCategory',
   Farm: 'Farm',
   Lot: 'Lot',
   Task: 'Task',
@@ -71,6 +73,7 @@ export const ModelName = {
   ReceptionItem: 'ReceptionItem',
   Stock: 'Stock',
   Machine: 'Machine',
+  MaintenanceThreshold: 'MaintenanceThreshold',
   MachineUsage: 'MachineUsage',
   MachineActivity: 'MachineActivity',
   Photo: 'Photo',
@@ -200,9 +203,24 @@ export const ClientScalarFieldEnum = {
 export type ClientScalarFieldEnum = (typeof ClientScalarFieldEnum)[keyof typeof ClientScalarFieldEnum]
 
 
+export const InputCategoryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  version: 'version',
+  deleted: 'deleted'
+} as const
+
+export type InputCategoryScalarFieldEnum = (typeof InputCategoryScalarFieldEnum)[keyof typeof InputCategoryScalarFieldEnum]
+
+
 export const InputScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
+  categoryId: 'categoryId',
   name: 'name',
   unit: 'unit',
   active: 'active',
@@ -215,19 +233,28 @@ export const InputScalarFieldEnum = {
 export type InputScalarFieldEnum = (typeof InputScalarFieldEnum)[keyof typeof InputScalarFieldEnum]
 
 
-export const TaskTypeScalarFieldEnum = {
+export const LaborTypeScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   name: 'name',
   description: 'description',
   requiresPrescription: 'requiresPrescription',
+  kind: 'kind',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   version: 'version',
   deleted: 'deleted'
 } as const
 
-export type TaskTypeScalarFieldEnum = (typeof TaskTypeScalarFieldEnum)[keyof typeof TaskTypeScalarFieldEnum]
+export type LaborTypeScalarFieldEnum = (typeof LaborTypeScalarFieldEnum)[keyof typeof LaborTypeScalarFieldEnum]
+
+
+export const LaborTypeCategoryScalarFieldEnum = {
+  laborTypeId: 'laborTypeId',
+  categoryId: 'categoryId'
+} as const
+
+export type LaborTypeCategoryScalarFieldEnum = (typeof LaborTypeCategoryScalarFieldEnum)[keyof typeof LaborTypeCategoryScalarFieldEnum]
 
 
 export const FarmScalarFieldEnum = {
@@ -250,6 +277,7 @@ export const LotScalarFieldEnum = {
   farmId: 'farmId',
   name: 'name',
   coords: 'coords',
+  polygon: 'polygon',
   area: 'area',
   active: 'active',
   createdAt: 'createdAt',
@@ -264,7 +292,7 @@ export type LotScalarFieldEnum = (typeof LotScalarFieldEnum)[keyof typeof LotSca
 export const TaskScalarFieldEnum = {
   id: 'id',
   lotId: 'lotId',
-  taskTypeId: 'taskTypeId',
+  laborTypeId: 'laborTypeId',
   status: 'status',
   prescriptionStatus: 'prescriptionStatus',
   startedAt: 'startedAt',
@@ -318,7 +346,7 @@ export const DailyReportScalarFieldEnum = {
   companyId: 'companyId',
   taskId: 'taskId',
   lotId: 'lotId',
-  taskTypeId: 'taskTypeId',
+  laborTypeId: 'laborTypeId',
   date: 'date',
   hectares: 'hectares',
   hours: 'hours',
@@ -376,6 +404,7 @@ export const StockScalarFieldEnum = {
   clientId: 'clientId',
   inputId: 'inputId',
   quantity: 'quantity',
+  unit: 'unit',
   updatedAt: 'updatedAt'
 } as const
 
@@ -386,6 +415,7 @@ export const MachineScalarFieldEnum = {
   id: 'id',
   companyId: 'companyId',
   name: 'name',
+  type: 'type',
   brand: 'brand',
   status: 'status',
   entryDate: 'entryDate',
@@ -399,6 +429,19 @@ export const MachineScalarFieldEnum = {
 export type MachineScalarFieldEnum = (typeof MachineScalarFieldEnum)[keyof typeof MachineScalarFieldEnum]
 
 
+export const MaintenanceThresholdScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  machineType: 'machineType',
+  hoursLimit: 'hoursLimit',
+  hectaresLimit: 'hectaresLimit',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MaintenanceThresholdScalarFieldEnum = (typeof MaintenanceThresholdScalarFieldEnum)[keyof typeof MaintenanceThresholdScalarFieldEnum]
+
+
 export const MachineUsageScalarFieldEnum = {
   id: 'id',
   taskId: 'taskId',
@@ -406,7 +449,10 @@ export const MachineUsageScalarFieldEnum = {
   initialFuel: 'initialFuel',
   finalFuel: 'finalFuel',
   usageHours: 'usageHours',
+  hectares: 'hectares',
   observations: 'observations',
+  operatorId: 'operatorId',
+  workDate: 'workDate',
   createdAt: 'createdAt'
 } as const
 
@@ -418,9 +464,12 @@ export const MachineActivityScalarFieldEnum = {
   machineId: 'machineId',
   companyId: 'companyId',
   type: 'type',
+  fuelMovement: 'fuelMovement',
   date: 'date',
   liters: 'liters',
   receipt: 'receipt',
+  receiptFileKey: 'receiptFileKey',
+  receiptMimeType: 'receiptMimeType',
   cost: 'cost',
   spareParts: 'spareParts',
   usageHours: 'usageHours',
@@ -512,6 +561,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -526,4 +583,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

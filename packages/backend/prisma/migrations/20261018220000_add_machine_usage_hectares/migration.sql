@@ -1,0 +1,1 @@
+ALTER TABLE "MachineUsage" ADD COLUMN "hectares" DOUBLE PRECISION;

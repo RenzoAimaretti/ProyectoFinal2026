@@ -35,7 +35,7 @@ import {
 /** Everything the editor needs to know about the task it prescribes. */
 export type EditorContext = {
   taskId: string;
-  taskTypeName: string;
+  laborTypeName: string;
   farmName: string;
   lotName: string;
   /**
@@ -455,7 +455,7 @@ export function PrescriptionEditor({
         if (!submitting) onClose();
       }}
       title={title}
-      subtitle={`${context.taskTypeName} · ${context.farmName} · ${context.lotName}`}
+      subtitle={`${context.laborTypeName} · ${context.farmName} · ${context.lotName}`}
       widthClass="max-w-2xl"
       footer={footer}
     >

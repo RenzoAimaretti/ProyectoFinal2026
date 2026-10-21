@@ -25,7 +25,7 @@ const pendingReport: DailyReportRecord = {
   companyId: 'company-1',
   taskId: 'task-1',
   lotId: 'lot-1',
-  taskTypeId: 'task-type-1',
+  laborTypeId: 'labor-type-1',
   date: new Date('2026-05-03T00:00:00.000Z'),
   hectares: 12.5,
   hours: 6,

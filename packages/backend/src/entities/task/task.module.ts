@@ -4,11 +4,11 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import {
   LOT_READER,
   TASK_REPOSITORY,
-  TASK_TYPE_READER,
+  LABOR_TYPE_READER,
   USER_READER,
   LotReaderPort,
   TaskRepositoryPort,
-  TaskTypeReaderPort,
+  LaborTypeReaderPort,
   UserReaderPort,
 } from './application/task.ports';
 import { AddTaskOperatorUseCase } from './application/use-cases/add-task-operator.use-case';
@@ -20,7 +20,7 @@ import { RemoveTaskOperatorUseCase } from './application/use-cases/remove-task-o
 import { UpdateTaskUseCase } from './application/use-cases/update-task.use-case';
 import { PrismaLotReader } from './adapters/outbound/prisma-lot.reader';
 import { PrismaTaskRepository } from './adapters/outbound/prisma-task.repository';
-import { PrismaTaskTypeReader } from './adapters/outbound/prisma-task-type.reader';
+import { PrismaLaborTypeReader } from './adapters/outbound/prisma-labor-type.reader';
 import { PrismaUserReader } from './adapters/outbound/prisma-user.reader';
 import { TaskService } from './task.service';
 
@@ -31,7 +31,7 @@ import { TaskService } from './task.service';
     TaskService,
     { provide: TASK_REPOSITORY, useClass: PrismaTaskRepository },
     { provide: LOT_READER, useClass: PrismaLotReader },
-    { provide: TASK_TYPE_READER, useClass: PrismaTaskTypeReader },
+    { provide: LABOR_TYPE_READER, useClass: PrismaLaborTypeReader },
     { provide: USER_READER, useClass: PrismaUserReader },
     {
       provide: FindAllTasksUseCase,
@@ -48,9 +48,9 @@ import { TaskService } from './task.service';
       useFactory: (
         repository: TaskRepositoryPort,
         lotReader: LotReaderPort,
-        taskTypeReader: TaskTypeReaderPort,
-      ) => new CreateTaskUseCase(repository, lotReader, taskTypeReader),
-      inject: [TASK_REPOSITORY, LOT_READER, TASK_TYPE_READER],
+        laborTypeReader: LaborTypeReaderPort,
+      ) => new CreateTaskUseCase(repository, lotReader, laborTypeReader),
+      inject: [TASK_REPOSITORY, LOT_READER, LABOR_TYPE_READER],
     },
     {
       provide: UpdateTaskUseCase,

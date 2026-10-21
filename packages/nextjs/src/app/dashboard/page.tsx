@@ -893,7 +893,7 @@ export default function Dashboard() {
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-ink">
-                            {report.taskTypeName}
+                            {report.laborTypeName}
                           </p>
                           <p className="truncate text-xs text-ink-soft">{report.operatorName}</p>
                         </div>

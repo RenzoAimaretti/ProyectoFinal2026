@@ -31,7 +31,7 @@ import {
  * use case reads the task facts through the task port, applies the domain rules
  * (lot consistency and editability) and delegates the single atomic write.
  *
- * `TaskType.requiresPrescription` marks the prescription as REQUIRED; it never
+ * `LaborType.requiresPrescription` marks the prescription as REQUIRED; it never
  * restricts who may be prescribed, so a task that does not require one is still
  * accepted (a fertilization task also needs a caldo/dose calculation).
  */

@@ -17,7 +17,7 @@ export class PrismaDailyReportTaskReader
       select: {
         id: true,
         lotId: true,
-        taskTypeId: true,
+        laborTypeId: true,
         lot: {
           select: {
             farm: { select: { client: { select: { tenantId: true } } } },
@@ -33,7 +33,7 @@ export class PrismaDailyReportTaskReader
     return {
       id: task.id,
       lotId: task.lotId,
-      taskTypeId: task.taskTypeId,
+      laborTypeId: task.laborTypeId,
       tenantId: task.lot.farm.client.tenantId,
     };
   }

@@ -21,12 +21,12 @@ import {
  */
 export function PrescriptionDetail({
   recipe,
-  taskTypeName,
+  laborTypeName,
   farmName,
   lotName,
 }: {
   recipe: RecipeDetailDTO;
-  taskTypeName: string;
+  laborTypeName: string;
   farmName: string;
   lotName: string;
 }) {
@@ -48,7 +48,7 @@ export function PrescriptionDetail({
       {/* Actividad prescripta */}
       <div>
         <p className="op-label">Actividad</p>
-        <p className="mt-1 text-sm font-semibold text-ink">{taskTypeName}</p>
+        <p className="mt-1 text-sm font-semibold text-ink">{laborTypeName}</p>
         <p className="mt-0.5 text-sm text-ink-soft">
           {farmName} <span className="text-ink-faint">·</span> {lotName}
         </p>

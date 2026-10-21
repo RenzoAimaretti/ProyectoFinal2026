@@ -57,6 +57,24 @@ Invoke the matching skill first when the task clearly fits one of these cases:
 4. Keep changes consistent with the existing project structure and naming.
 5. If a task crosses Flutter, backend, and database concerns, align the layers instead of mixing them in one file.
 
+## Branching and Review Flow
+
+Three branch tiers, from most stable to most volatile:
+
+| Branch | Role |
+|--------|------|
+| `main` | Stable, released work. Never commit directly. |
+| `dev` | Sprint integration branch. Receives task branches by pull request. |
+| `<task>` | One branch per sprint task, cut from `dev`. |
+
+Rules:
+
+1. Cut every task branch from an up-to-date `dev` (`git switch dev && git pull`).
+2. Land task work in `dev` **only** through a pull request. Never push task commits straight into `dev`.
+3. Open the PR against `dev`, not `main`. Keep each PR scoped to a single task so it stays reviewable.
+4. `dev` moves to `main` once and only once, when the whole sprint is reviewed and tested. Do not merge partial sprint work into `main`.
+5. `main` only ever advances by that sprint promotion. Emergency hotfixes are the exception and must be merged back into `dev` afterwards.
+
 ## Repository Notes
 
 - Skills live under [.agents/skills](.agents/skills), not under a top-level `skills/` folder.

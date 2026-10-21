@@ -101,7 +101,7 @@ export default function RecetasPage() {
   const openEditor = useCallback((task: PendingPrescriptionTaskDTO) => {
     setEditorContext({
       taskId: task.id,
-      taskTypeName: task.taskTypeName,
+      laborTypeName: task.laborTypeName,
       farmName: task.farmName,
       lotName: task.lotName,
       lotArea: typeof task.lotArea === "number" ? task.lotArea : null,
@@ -215,7 +215,7 @@ export default function RecetasPage() {
                           aria-hidden="true"
                         />
                         <p className="truncate text-sm font-semibold text-ink">
-                          {task.taskTypeName}
+                          {task.laborTypeName}
                         </p>
                         <span className="op-label">{meta.label}</span>
                       </div>

@@ -4,11 +4,13 @@ import { StockRepositoryPort } from '../../application/stock.ports';
 import { StockRecord } from '../../application/stock.types';
 
 /**
- * The list read always joins the catalogue input so the inbound adapter can
- * expose `inputName` and `unit` without an extra round trip.
+ * The list read joins the catalogue input so the inbound adapter can expose
+ * `inputName` without an extra round trip. The unit is NOT joined: it comes
+ * from the stock row's own snapshot, which the unit-change guard keeps equal
+ * to the catalogue for any non-zero balance.
  */
 const STOCK_QUERY_INCLUDE = {
-  input: { select: { name: true as const, unit: true as const } },
+  input: { select: { name: true as const } },
 };
 
 type StockRow = {
@@ -16,8 +18,9 @@ type StockRow = {
   clientId: string;
   inputId: string;
   quantity: number;
+  unit: string;
   updatedAt: Date;
-  input?: { name: string; unit: string } | null;
+  input?: { name: string } | null;
 };
 
 function toStockRecord(stock: StockRow): StockRecord {
@@ -26,9 +29,9 @@ function toStockRecord(stock: StockRow): StockRecord {
     clientId: stock.clientId,
     inputId: stock.inputId,
     quantity: stock.quantity,
+    unit: stock.unit,
     updatedAt: stock.updatedAt,
     inputName: stock.input?.name,
-    unit: stock.input?.unit,
   };
 }
 

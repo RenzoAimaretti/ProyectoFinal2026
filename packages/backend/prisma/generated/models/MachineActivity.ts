@@ -45,9 +45,12 @@ export type MachineActivityMinAggregateOutputType = {
   machineId: string | null
   companyId: string | null
   type: $Enums.MachineActivityType | null
+  fuelMovement: $Enums.FuelMovement | null
   date: Date | null
   liters: number | null
   receipt: string | null
+  receiptFileKey: string | null
+  receiptMimeType: string | null
   cost: number | null
   spareParts: string | null
   usageHours: number | null
@@ -62,9 +65,12 @@ export type MachineActivityMaxAggregateOutputType = {
   machineId: string | null
   companyId: string | null
   type: $Enums.MachineActivityType | null
+  fuelMovement: $Enums.FuelMovement | null
   date: Date | null
   liters: number | null
   receipt: string | null
+  receiptFileKey: string | null
+  receiptMimeType: string | null
   cost: number | null
   spareParts: string | null
   usageHours: number | null
@@ -79,9 +85,12 @@ export type MachineActivityCountAggregateOutputType = {
   machineId: number
   companyId: number
   type: number
+  fuelMovement: number
   date: number
   liters: number
   receipt: number
+  receiptFileKey: number
+  receiptMimeType: number
   cost: number
   spareParts: number
   usageHours: number
@@ -112,9 +121,12 @@ export type MachineActivityMinAggregateInputType = {
   machineId?: true
   companyId?: true
   type?: true
+  fuelMovement?: true
   date?: true
   liters?: true
   receipt?: true
+  receiptFileKey?: true
+  receiptMimeType?: true
   cost?: true
   spareParts?: true
   usageHours?: true
@@ -129,9 +141,12 @@ export type MachineActivityMaxAggregateInputType = {
   machineId?: true
   companyId?: true
   type?: true
+  fuelMovement?: true
   date?: true
   liters?: true
   receipt?: true
+  receiptFileKey?: true
+  receiptMimeType?: true
   cost?: true
   spareParts?: true
   usageHours?: true
@@ -146,9 +161,12 @@ export type MachineActivityCountAggregateInputType = {
   machineId?: true
   companyId?: true
   type?: true
+  fuelMovement?: true
   date?: true
   liters?: true
   receipt?: true
+  receiptFileKey?: true
+  receiptMimeType?: true
   cost?: true
   spareParts?: true
   usageHours?: true
@@ -250,9 +268,12 @@ export type MachineActivityGroupByOutputType = {
   machineId: string
   companyId: string
   type: $Enums.MachineActivityType
+  fuelMovement: $Enums.FuelMovement | null
   date: Date
   liters: number | null
   receipt: string | null
+  receiptFileKey: string | null
+  receiptMimeType: string | null
   cost: number | null
   spareParts: string | null
   usageHours: number | null
@@ -290,9 +311,12 @@ export type MachineActivityWhereInput = {
   machineId?: Prisma.StringFilter<"MachineActivity"> | string
   companyId?: Prisma.StringFilter<"MachineActivity"> | string
   type?: Prisma.EnumMachineActivityTypeFilter<"MachineActivity"> | $Enums.MachineActivityType
+  fuelMovement?: Prisma.EnumFuelMovementNullableFilter<"MachineActivity"> | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFilter<"MachineActivity"> | Date | string
   liters?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   receipt?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
+  receiptFileKey?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
+  receiptMimeType?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   cost?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   spareParts?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   usageHours?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
@@ -309,9 +333,12 @@ export type MachineActivityOrderByWithRelationInput = {
   machineId?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  fuelMovement?: Prisma.SortOrderInput | Prisma.SortOrder
   date?: Prisma.SortOrder
   liters?: Prisma.SortOrderInput | Prisma.SortOrder
   receipt?: Prisma.SortOrderInput | Prisma.SortOrder
+  receiptFileKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  receiptMimeType?: Prisma.SortOrderInput | Prisma.SortOrder
   cost?: Prisma.SortOrderInput | Prisma.SortOrder
   spareParts?: Prisma.SortOrderInput | Prisma.SortOrder
   usageHours?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -325,15 +352,18 @@ export type MachineActivityOrderByWithRelationInput = {
 
 export type MachineActivityWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  receiptFileKey?: string
   AND?: Prisma.MachineActivityWhereInput | Prisma.MachineActivityWhereInput[]
   OR?: Prisma.MachineActivityWhereInput[]
   NOT?: Prisma.MachineActivityWhereInput | Prisma.MachineActivityWhereInput[]
   machineId?: Prisma.StringFilter<"MachineActivity"> | string
   companyId?: Prisma.StringFilter<"MachineActivity"> | string
   type?: Prisma.EnumMachineActivityTypeFilter<"MachineActivity"> | $Enums.MachineActivityType
+  fuelMovement?: Prisma.EnumFuelMovementNullableFilter<"MachineActivity"> | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFilter<"MachineActivity"> | Date | string
   liters?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   receipt?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
+  receiptMimeType?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   cost?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   spareParts?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   usageHours?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
@@ -343,16 +373,19 @@ export type MachineActivityWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"MachineActivity"> | Date | string
   machine?: Prisma.XOR<Prisma.MachineScalarRelationFilter, Prisma.MachineWhereInput>
   company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
-}, "id">
+}, "id" | "receiptFileKey">
 
 export type MachineActivityOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   machineId?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  fuelMovement?: Prisma.SortOrderInput | Prisma.SortOrder
   date?: Prisma.SortOrder
   liters?: Prisma.SortOrderInput | Prisma.SortOrder
   receipt?: Prisma.SortOrderInput | Prisma.SortOrder
+  receiptFileKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  receiptMimeType?: Prisma.SortOrderInput | Prisma.SortOrder
   cost?: Prisma.SortOrderInput | Prisma.SortOrder
   spareParts?: Prisma.SortOrderInput | Prisma.SortOrder
   usageHours?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -375,9 +408,12 @@ export type MachineActivityScalarWhereWithAggregatesInput = {
   machineId?: Prisma.StringWithAggregatesFilter<"MachineActivity"> | string
   companyId?: Prisma.StringWithAggregatesFilter<"MachineActivity"> | string
   type?: Prisma.EnumMachineActivityTypeWithAggregatesFilter<"MachineActivity"> | $Enums.MachineActivityType
+  fuelMovement?: Prisma.EnumFuelMovementNullableWithAggregatesFilter<"MachineActivity"> | $Enums.FuelMovement | null
   date?: Prisma.DateTimeWithAggregatesFilter<"MachineActivity"> | Date | string
   liters?: Prisma.FloatNullableWithAggregatesFilter<"MachineActivity"> | number | null
   receipt?: Prisma.StringNullableWithAggregatesFilter<"MachineActivity"> | string | null
+  receiptFileKey?: Prisma.StringNullableWithAggregatesFilter<"MachineActivity"> | string | null
+  receiptMimeType?: Prisma.StringNullableWithAggregatesFilter<"MachineActivity"> | string | null
   cost?: Prisma.FloatNullableWithAggregatesFilter<"MachineActivity"> | number | null
   spareParts?: Prisma.StringNullableWithAggregatesFilter<"MachineActivity"> | string | null
   usageHours?: Prisma.FloatNullableWithAggregatesFilter<"MachineActivity"> | number | null
@@ -390,9 +426,12 @@ export type MachineActivityScalarWhereWithAggregatesInput = {
 export type MachineActivityCreateInput = {
   id?: string
   type: $Enums.MachineActivityType
+  fuelMovement?: $Enums.FuelMovement | null
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -409,9 +448,12 @@ export type MachineActivityUncheckedCreateInput = {
   machineId: string
   companyId: string
   type: $Enums.MachineActivityType
+  fuelMovement?: $Enums.FuelMovement | null
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -424,9 +466,12 @@ export type MachineActivityUncheckedCreateInput = {
 export type MachineActivityUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumMachineActivityTypeFieldUpdateOperationsInput | $Enums.MachineActivityType
+  fuelMovement?: Prisma.NullableEnumFuelMovementFieldUpdateOperationsInput | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -443,9 +488,12 @@ export type MachineActivityUncheckedUpdateInput = {
   machineId?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumMachineActivityTypeFieldUpdateOperationsInput | $Enums.MachineActivityType
+  fuelMovement?: Prisma.NullableEnumFuelMovementFieldUpdateOperationsInput | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -460,9 +508,12 @@ export type MachineActivityCreateManyInput = {
   machineId: string
   companyId: string
   type: $Enums.MachineActivityType
+  fuelMovement?: $Enums.FuelMovement | null
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -475,9 +526,12 @@ export type MachineActivityCreateManyInput = {
 export type MachineActivityUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumMachineActivityTypeFieldUpdateOperationsInput | $Enums.MachineActivityType
+  fuelMovement?: Prisma.NullableEnumFuelMovementFieldUpdateOperationsInput | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -492,9 +546,12 @@ export type MachineActivityUncheckedUpdateManyInput = {
   machineId?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumMachineActivityTypeFieldUpdateOperationsInput | $Enums.MachineActivityType
+  fuelMovement?: Prisma.NullableEnumFuelMovementFieldUpdateOperationsInput | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -519,9 +576,12 @@ export type MachineActivityCountOrderByAggregateInput = {
   machineId?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  fuelMovement?: Prisma.SortOrder
   date?: Prisma.SortOrder
   liters?: Prisma.SortOrder
   receipt?: Prisma.SortOrder
+  receiptFileKey?: Prisma.SortOrder
+  receiptMimeType?: Prisma.SortOrder
   cost?: Prisma.SortOrder
   spareParts?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
@@ -543,9 +603,12 @@ export type MachineActivityMaxOrderByAggregateInput = {
   machineId?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  fuelMovement?: Prisma.SortOrder
   date?: Prisma.SortOrder
   liters?: Prisma.SortOrder
   receipt?: Prisma.SortOrder
+  receiptFileKey?: Prisma.SortOrder
+  receiptMimeType?: Prisma.SortOrder
   cost?: Prisma.SortOrder
   spareParts?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
@@ -560,9 +623,12 @@ export type MachineActivityMinOrderByAggregateInput = {
   machineId?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  fuelMovement?: Prisma.SortOrder
   date?: Prisma.SortOrder
   liters?: Prisma.SortOrder
   receipt?: Prisma.SortOrder
+  receiptFileKey?: Prisma.SortOrder
+  receiptMimeType?: Prisma.SortOrder
   cost?: Prisma.SortOrder
   spareParts?: Prisma.SortOrder
   usageHours?: Prisma.SortOrder
@@ -667,12 +733,19 @@ export type EnumMachineActivityTypeFieldUpdateOperationsInput = {
   set?: $Enums.MachineActivityType
 }
 
+export type NullableEnumFuelMovementFieldUpdateOperationsInput = {
+  set?: $Enums.FuelMovement | null
+}
+
 export type MachineActivityCreateWithoutCompanyInput = {
   id?: string
   type: $Enums.MachineActivityType
+  fuelMovement?: $Enums.FuelMovement | null
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -687,9 +760,12 @@ export type MachineActivityUncheckedCreateWithoutCompanyInput = {
   id?: string
   machineId: string
   type: $Enums.MachineActivityType
+  fuelMovement?: $Enums.FuelMovement | null
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -733,9 +809,12 @@ export type MachineActivityScalarWhereInput = {
   machineId?: Prisma.StringFilter<"MachineActivity"> | string
   companyId?: Prisma.StringFilter<"MachineActivity"> | string
   type?: Prisma.EnumMachineActivityTypeFilter<"MachineActivity"> | $Enums.MachineActivityType
+  fuelMovement?: Prisma.EnumFuelMovementNullableFilter<"MachineActivity"> | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFilter<"MachineActivity"> | Date | string
   liters?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   receipt?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
+  receiptFileKey?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
+  receiptMimeType?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   cost?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
   spareParts?: Prisma.StringNullableFilter<"MachineActivity"> | string | null
   usageHours?: Prisma.FloatNullableFilter<"MachineActivity"> | number | null
@@ -748,9 +827,12 @@ export type MachineActivityScalarWhereInput = {
 export type MachineActivityCreateWithoutMachineInput = {
   id?: string
   type: $Enums.MachineActivityType
+  fuelMovement?: $Enums.FuelMovement | null
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -765,9 +847,12 @@ export type MachineActivityUncheckedCreateWithoutMachineInput = {
   id?: string
   companyId: string
   type: $Enums.MachineActivityType
+  fuelMovement?: $Enums.FuelMovement | null
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -807,9 +892,12 @@ export type MachineActivityCreateManyCompanyInput = {
   id?: string
   machineId: string
   type: $Enums.MachineActivityType
+  fuelMovement?: $Enums.FuelMovement | null
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -822,9 +910,12 @@ export type MachineActivityCreateManyCompanyInput = {
 export type MachineActivityUpdateWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumMachineActivityTypeFieldUpdateOperationsInput | $Enums.MachineActivityType
+  fuelMovement?: Prisma.NullableEnumFuelMovementFieldUpdateOperationsInput | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -839,9 +930,12 @@ export type MachineActivityUncheckedUpdateWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   machineId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumMachineActivityTypeFieldUpdateOperationsInput | $Enums.MachineActivityType
+  fuelMovement?: Prisma.NullableEnumFuelMovementFieldUpdateOperationsInput | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -855,9 +949,12 @@ export type MachineActivityUncheckedUpdateManyWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   machineId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumMachineActivityTypeFieldUpdateOperationsInput | $Enums.MachineActivityType
+  fuelMovement?: Prisma.NullableEnumFuelMovementFieldUpdateOperationsInput | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -871,9 +968,12 @@ export type MachineActivityCreateManyMachineInput = {
   id?: string
   companyId: string
   type: $Enums.MachineActivityType
+  fuelMovement?: $Enums.FuelMovement | null
   date: Date | string
   liters?: number | null
   receipt?: string | null
+  receiptFileKey?: string | null
+  receiptMimeType?: string | null
   cost?: number | null
   spareParts?: string | null
   usageHours?: number | null
@@ -886,9 +986,12 @@ export type MachineActivityCreateManyMachineInput = {
 export type MachineActivityUpdateWithoutMachineInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumMachineActivityTypeFieldUpdateOperationsInput | $Enums.MachineActivityType
+  fuelMovement?: Prisma.NullableEnumFuelMovementFieldUpdateOperationsInput | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -903,9 +1006,12 @@ export type MachineActivityUncheckedUpdateWithoutMachineInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumMachineActivityTypeFieldUpdateOperationsInput | $Enums.MachineActivityType
+  fuelMovement?: Prisma.NullableEnumFuelMovementFieldUpdateOperationsInput | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -919,9 +1025,12 @@ export type MachineActivityUncheckedUpdateManyWithoutMachineInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumMachineActivityTypeFieldUpdateOperationsInput | $Enums.MachineActivityType
+  fuelMovement?: Prisma.NullableEnumFuelMovementFieldUpdateOperationsInput | $Enums.FuelMovement | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   liters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   receipt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptFileKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiptMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   spareParts?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   usageHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -938,9 +1047,12 @@ export type MachineActivitySelect<ExtArgs extends runtime.Types.Extensions.Inter
   machineId?: boolean
   companyId?: boolean
   type?: boolean
+  fuelMovement?: boolean
   date?: boolean
   liters?: boolean
   receipt?: boolean
+  receiptFileKey?: boolean
+  receiptMimeType?: boolean
   cost?: boolean
   spareParts?: boolean
   usageHours?: boolean
@@ -957,9 +1069,12 @@ export type MachineActivitySelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   machineId?: boolean
   companyId?: boolean
   type?: boolean
+  fuelMovement?: boolean
   date?: boolean
   liters?: boolean
   receipt?: boolean
+  receiptFileKey?: boolean
+  receiptMimeType?: boolean
   cost?: boolean
   spareParts?: boolean
   usageHours?: boolean
@@ -976,9 +1091,12 @@ export type MachineActivitySelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   machineId?: boolean
   companyId?: boolean
   type?: boolean
+  fuelMovement?: boolean
   date?: boolean
   liters?: boolean
   receipt?: boolean
+  receiptFileKey?: boolean
+  receiptMimeType?: boolean
   cost?: boolean
   spareParts?: boolean
   usageHours?: boolean
@@ -995,9 +1113,12 @@ export type MachineActivitySelectScalar = {
   machineId?: boolean
   companyId?: boolean
   type?: boolean
+  fuelMovement?: boolean
   date?: boolean
   liters?: boolean
   receipt?: boolean
+  receiptFileKey?: boolean
+  receiptMimeType?: boolean
   cost?: boolean
   spareParts?: boolean
   usageHours?: boolean
@@ -1007,7 +1128,7 @@ export type MachineActivitySelectScalar = {
   updatedAt?: boolean
 }
 
-export type MachineActivityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "machineId" | "companyId" | "type" | "date" | "liters" | "receipt" | "cost" | "spareParts" | "usageHours" | "hectares" | "observations" | "createdAt" | "updatedAt", ExtArgs["result"]["machineActivity"]>
+export type MachineActivityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "machineId" | "companyId" | "type" | "fuelMovement" | "date" | "liters" | "receipt" | "receiptFileKey" | "receiptMimeType" | "cost" | "spareParts" | "usageHours" | "hectares" | "observations" | "createdAt" | "updatedAt", ExtArgs["result"]["machineActivity"]>
 export type MachineActivityInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   machine?: boolean | Prisma.MachineDefaultArgs<ExtArgs>
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
@@ -1032,9 +1153,12 @@ export type $MachineActivityPayload<ExtArgs extends runtime.Types.Extensions.Int
     machineId: string
     companyId: string
     type: $Enums.MachineActivityType
+    fuelMovement: $Enums.FuelMovement | null
     date: Date
     liters: number | null
     receipt: string | null
+    receiptFileKey: string | null
+    receiptMimeType: string | null
     cost: number | null
     spareParts: string | null
     usageHours: number | null
@@ -1471,9 +1595,12 @@ export interface MachineActivityFieldRefs {
   readonly machineId: Prisma.FieldRef<"MachineActivity", 'String'>
   readonly companyId: Prisma.FieldRef<"MachineActivity", 'String'>
   readonly type: Prisma.FieldRef<"MachineActivity", 'MachineActivityType'>
+  readonly fuelMovement: Prisma.FieldRef<"MachineActivity", 'FuelMovement'>
   readonly date: Prisma.FieldRef<"MachineActivity", 'DateTime'>
   readonly liters: Prisma.FieldRef<"MachineActivity", 'Float'>
   readonly receipt: Prisma.FieldRef<"MachineActivity", 'String'>
+  readonly receiptFileKey: Prisma.FieldRef<"MachineActivity", 'String'>
+  readonly receiptMimeType: Prisma.FieldRef<"MachineActivity", 'String'>
   readonly cost: Prisma.FieldRef<"MachineActivity", 'Float'>
   readonly spareParts: Prisma.FieldRef<"MachineActivity", 'String'>
   readonly usageHours: Prisma.FieldRef<"MachineActivity", 'Float'>

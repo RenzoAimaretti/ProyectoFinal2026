@@ -17,7 +17,7 @@ datasource db {
 //
 // Regla de scope:
 //   - Tenant-owned roots llevan `tenantId` explicito: Company, User, Client,
-//     Input, TaskType.
+//     Input, LaborType.
 //   - El resto deriva su tenant por la cadena de padres (Farm -> Client,
 //     Lot -> Farm -> Client, Task -> Lot -> ..., Machine -> Company, etc.).
 //   - La firma operativa vive en Company y se referencia donde el negocio la
@@ -33,11 +33,12 @@ model Tenant {
   version   Int      @default(1)
   deleted   Boolean  @default(false)
 
-  companies Company[]
-  users     User[]
-  clients   Client[]
-  inputs    Input[]
-  taskTypes TaskType[]
+  companies  Company[]
+  users      User[]
+  clients    Client[]
+  inputs     Input[]
+  inputCategories InputCategory[]
+  laborTypes LaborType[]
 }
 
 model Company {
@@ -54,6 +55,7 @@ model Company {
   tenant            Tenant            @relation(fields: [tenantId], references: [id])
   userCompanies     UserCompany[]
   machines          Machine[]
+  maintenanceThresholds MaintenanceThreshold[]
   machineActivities MachineActivity[]
   dailyReports      DailyReport[]
   livestock         Livestock[]
@@ -80,31 +82,31 @@ model UserCompany {
 }
 
 model User {
-  id                  String           @id @default(uuid())
+  id                  String    @id @default(uuid())
   tenantId            String
-  username            String?          @unique
-  email               String           @unique
+  username            String?   @unique
+  email               String    @unique
   passwordHash        String
   role                UserRole
-  mustChangePassword  Boolean          @default(false)
-  failedLoginAttempts Int              @default(0)
+  mustChangePassword  Boolean   @default(false)
+  failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
-  active              Boolean          @default(true)
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
-  version             Int              @default(1)
-  deleted             Boolean          @default(false)
+  active              Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  version             Int       @default(1)
+  deleted             Boolean   @default(false)
 
-  tenant            Tenant           @relation(fields: [tenantId], references: [id])
-  companyMemberships UserCompany[]
-  refreshTokens     RefreshToken[]
-  livestockEvents   LivestockEvent[]
-  tasks             Task[]           @relation("TaskOperators")
-  weightRecords     WeightRecord[]
-  dailyReports      DailyReport[]    @relation("DailyReportOperator")
-  approvedReports   DailyReport[]    @relation("DailyReportApprover")
-  validatedReceptions Reception[]    @relation("ReceptionValidator")
-  client            Client?
+  tenant              Tenant           @relation(fields: [tenantId], references: [id])
+  companyMemberships  UserCompany[]
+  refreshTokens       RefreshToken[]
+  livestockEvents     LivestockEvent[]
+  tasks               Task[]           @relation("TaskOperators")
+  weightRecords       WeightRecord[]
+  dailyReports        DailyReport[]    @relation("DailyReportOperator")
+  approvedReports     DailyReport[]    @relation("DailyReportApprover")
+  validatedReceptions Reception[]      @relation("ReceptionValidator")
+  client              Client?
 
   @@index([tenantId])
 }
@@ -122,11 +124,11 @@ model RefreshToken {
 }
 
 model Module {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
   price     Float
   version   String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   companies Company[] @relation()
 }
 
@@ -159,11 +161,30 @@ model Client {
   @@index([tenantId])
 }
 
-model Input {
+model InputCategory {
   id        String   @id @default(uuid())
   tenantId  String
   name      String
-  unit      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  version   Int      @default(1)
+  deleted   Boolean  @default(false)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  inputs Input[]
+  laborTypeCategories LaborTypeCategory[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model Input {
+  id        String   @id @default(uuid())
+  tenantId  String
+  categoryId String
+  name      String
+  unit      InputUnit
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -171,20 +192,27 @@ model Input {
   deleted   Boolean  @default(false)
 
   tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  category         InputCategory      @relation(fields: [categoryId], references: [id])
   recipeItems      RecipeItem[]
   dailyReportItems DailyReportItem[]
   receptionItems   ReceptionItem[]
   stocks           Stock[]
 
   @@index([tenantId])
+  @@index([tenantId, categoryId])
 }
 
-model TaskType {
+model LaborType {
   id          String   @id @default(uuid())
   tenantId    String
   name        String
   description String?
+  // Un tipo de labor puede exigir receta fitosanitaria (modulo de recetas).
   requiresPrescription Boolean @default(false)
+  // Clase semantica de la labor, deliberadamente separada del nombre: el
+  // inquilino puede renombrar "Siembra" y el significado tiene que sobrevivir.
+  // OTRO = sin clasificar.
+  kind        LaborKind @default(OTRO)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   version     Int      @default(1)
@@ -193,9 +221,21 @@ model TaskType {
   tenant       Tenant        @relation(fields: [tenantId], references: [id])
   tasks        Task[]
   dailyReports DailyReport[]
+  categories   LaborTypeCategory[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
+}
+
+model LaborTypeCategory {
+  laborTypeId String
+  categoryId  String
+
+  laborType LaborType     @relation(fields: [laborTypeId], references: [id], onDelete: Cascade)
+  category  InputCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([laborTypeId, categoryId])
+  @@index([categoryId])
 }
 
 // ============================================================================
@@ -220,16 +260,22 @@ model Farm {
 }
 
 model Lot {
-  id        String              @id @default(uuid())
+  id        String   @id @default(uuid())
   farmId    String
   name      String
+  // Legado: texto de display en DMS (ej. "33° 23' S · 62° 18' O"), no es dato
+  // geoespacial ni se puede convertir a geometria. Se deprecia, nunca se borra:
+  // el cliente movil lo persiste como columna drift.
   coords    String?
+  // Poligono GeoJSON (RFC 7946) validado en dominio. Nullable a proposito: CUU02
+  // dice que crear el lote y delimitar su poligono son momentos distintos.
+  polygon   Json?
   area      Float
-  active    Boolean             @default(true)
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-  version   Int                 @default(1)
-  deleted   Boolean             @default(false)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  version   Int      @default(1)
+  deleted   Boolean  @default(false)
 
   farm         Farm                @relation(fields: [farmId], references: [id])
   movements    LivestockMovement[]
@@ -246,28 +292,28 @@ model Lot {
 // ============================================================================
 
 model Task {
-  id            String         @id @default(uuid())
+  id            String     @id @default(uuid())
   lotId         String
-  taskTypeId    String
-  status        TaskStatus     @default(PENDIENTE)
+  laborTypeId   String
+  status        TaskStatus @default(PENDIENTE)
   prescriptionStatus PrescriptionStatus @default(NO_REQUIERE)
   startedAt     DateTime?
   finishedAt    DateTime?
   updatedTaskAt DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  version       Int            @default(1)
-  deleted       Boolean        @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  version       Int        @default(1)
+  deleted       Boolean    @default(false)
 
   lot          Lot            @relation(fields: [lotId], references: [id])
-  taskType     TaskType       @relation(fields: [taskTypeId], references: [id])
+  laborType    LaborType      @relation(fields: [laborTypeId], references: [id])
   operators    User[]         @relation("TaskOperators")
   machineLogs  MachineUsage[]
   dailyReports DailyReport[]
   recipe       Recipe?
 
   @@index([lotId])
-  @@index([taskTypeId])
+  @@index([laborTypeId])
   @@index([status])
   @@index([prescriptionStatus])
 }
@@ -322,7 +368,7 @@ model DailyReport {
   companyId       String
   taskId          String
   lotId           String
-  taskTypeId      String
+  laborTypeId     String
   date            DateTime
   hectares        Float
   hours           Float
@@ -333,13 +379,13 @@ model DailyReport {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  operator User     @relation("DailyReportOperator", fields: [operatorId], references: [id])
-  approver User?    @relation("DailyReportApprover", fields: [approvedBy], references: [id])
-  company  Company  @relation(fields: [companyId], references: [id])
-  task     Task     @relation(fields: [taskId], references: [id])
-  lot      Lot      @relation(fields: [lotId], references: [id])
-  taskType TaskType @relation(fields: [taskTypeId], references: [id])
-  items    DailyReportItem[]
+  operator  User              @relation("DailyReportOperator", fields: [operatorId], references: [id])
+  approver  User?             @relation("DailyReportApprover", fields: [approvedBy], references: [id])
+  company   Company           @relation(fields: [companyId], references: [id])
+  task      Task              @relation(fields: [taskId], references: [id])
+  lot       Lot               @relation(fields: [lotId], references: [id])
+  laborType LaborType         @relation(fields: [laborTypeId], references: [id])
+  items     DailyReportItem[]
 
   @@index([companyId, date])
   @@index([status, date])
@@ -414,6 +460,7 @@ model Stock {
   clientId  String
   inputId   String
   quantity  Float
+  unit      InputUnit
   updatedAt DateTime @updatedAt
 
   client Client @relation(fields: [clientId], references: [id])
@@ -428,23 +475,38 @@ model Stock {
 // ============================================================================
 
 model Machine {
-  id              String         @id @default(uuid())
+  id              String        @id @default(uuid())
   companyId       String
   name            String
+  type            String?
   brand           String?
-  status          MachineStatus  @default(ACTIVA)
+  status          MachineStatus @default(ACTIVA)
   entryDate       DateTime?
   maintenanceDate DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  version         Int            @default(1)
-  deleted         Boolean        @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  version         Int           @default(1)
+  deleted         Boolean       @default(false)
 
   company           Company           @relation(fields: [companyId], references: [id])
   usages            MachineUsage[]
   machineActivities MachineActivity[]
 
   @@index([companyId])
+}
+
+model MaintenanceThreshold {
+  id            String   @id @default(uuid())
+  companyId     String
+  machineType   String
+  hoursLimit    Float?
+  hectaresLimit Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, machineType])
 }
 
 model MachineUsage {
@@ -454,7 +516,10 @@ model MachineUsage {
   initialFuel  Float?
   finalFuel    Float?
   usageHours   Float?
+  hectares     Float?
   observations String?
+  operatorId   String?
+  workDate     DateTime?
   createdAt    DateTime @default(now())
 
   machine Machine @relation(fields: [machineId], references: [id])
@@ -472,9 +537,12 @@ model MachineActivity {
   machineId    String
   companyId    String
   type         MachineActivityType
+  fuelMovement FuelMovement?
   date         DateTime
   liters       Float?
   receipt      String?
+  receiptFileKey String? @unique
+  receiptMimeType String?
   cost         Float?
   spareParts   String?
   usageHours   Float?
@@ -512,20 +580,20 @@ model Photo {
 // ============================================================================
 
 model Livestock {
-  id        String              @id @default(uuid())
+  id        String          @id @default(uuid())
   companyId String
   lotId     String?
-  tagNumber String              @unique
+  tagNumber String          @unique
   species   String
   breed     String?
   sex       String
   birthDate DateTime?
-  status    LivestockStatus     @default(ACTIVO)
+  status    LivestockStatus @default(ACTIVO)
   entryDate DateTime?
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-  version   Int                 @default(1)
-  deleted   Boolean             @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  version   Int             @default(1)
+  deleted   Boolean         @default(false)
 
   company   Company             @relation(fields: [companyId], references: [id])
   events    LivestockEvent[]
@@ -555,12 +623,12 @@ model LivestockEvent {
 }
 
 model WeightRecord {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   livestockId String
   operatorId  String?
   weight      Float
   measuredAt  DateTime
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
   livestock Livestock @relation(fields: [livestockId], references: [id])
   operator  User?     @relation(fields: [operatorId], references: [id])
@@ -569,12 +637,12 @@ model WeightRecord {
 }
 
 model LivestockMovement {
-  id           String    @id @default(uuid())
+  id           String   @id @default(uuid())
   livestockId  String
   lotId        String
   movementDate DateTime
   observations String?
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime @default(now())
 
   livestock Livestock @relation(fields: [livestockId], references: [id])
   lot       Lot       @relation(fields: [lotId], references: [id])
@@ -645,6 +713,11 @@ enum MachineActivityType {
   USO_CAMPO
 }
 
+enum FuelMovement {
+  INCOME
+  CONSUMPTION
+}
+
 enum PhotoEntityType {
   PARTE_DIARIO
   RECEPCION
@@ -665,4 +738,20 @@ enum PrescriptionStatus {
 enum DosageBasis {
   POR_HECTAREA
   CONCENTRACION
+}
+
+enum InputUnit {
+  L
+  KG
+  UNIT
+}
+
+// Clase semantica de una labor, para derivar el estado agronomico del lote sin
+// depender del texto de LaborType.name, que el inquilino puede renombrar.
+enum LaborKind {
+  SIEMBRA
+  PULVERIZACION
+  FERTILIZACION
+  COSECHA
+  OTRO
 }

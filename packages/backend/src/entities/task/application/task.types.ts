@@ -31,7 +31,7 @@ export type PrescriptionStatusValue =
 export type TaskRecord = {
   id: string;
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   status: TaskStatusValue;
   startedAt: Date | null;
   finishedAt: Date | null;
@@ -64,7 +64,7 @@ export type TaskWithOperatorsRecord = TaskRecord & {
 export type TaskReadOutput = TaskRecord & {
   lotName?: string;
   farmName?: string;
-  taskTypeName?: string;
+  laborTypeName?: string;
   operators?: TaskOperatorSummary[];
   /**
    * Additive read field: whether the task still needs a phytosanitary
@@ -76,7 +76,7 @@ export type TaskReadOutput = TaskRecord & {
 
 export type CreateTaskInput = {
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   startedAt: string;
 };
 
@@ -88,10 +88,10 @@ export type UpdateTaskInput = {
 
 export type CreateTaskData = {
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   startedAt: Date;
   /**
-   * Additive: preset by the creation rule from `TaskType.requiresPrescription`.
+   * Additive: preset by the creation rule from `LaborType.requiresPrescription`.
    * When omitted the model default (`NO_REQUIERE`) applies.
    */
   prescriptionStatus?: PrescriptionStatusValue;

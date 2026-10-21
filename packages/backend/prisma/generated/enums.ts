@@ -91,6 +91,14 @@ export const MachineActivityType = {
 export type MachineActivityType = (typeof MachineActivityType)[keyof typeof MachineActivityType]
 
 
+export const FuelMovement = {
+  INCOME: 'INCOME',
+  CONSUMPTION: 'CONSUMPTION'
+} as const
+
+export type FuelMovement = (typeof FuelMovement)[keyof typeof FuelMovement]
+
+
 export const PhotoEntityType = {
   PARTE_DIARIO: 'PARTE_DIARIO',
   RECEPCION: 'RECEPCION',
@@ -123,3 +131,23 @@ export const DosageBasis = {
 } as const
 
 export type DosageBasis = (typeof DosageBasis)[keyof typeof DosageBasis]
+
+
+export const InputUnit = {
+  L: 'L',
+  KG: 'KG',
+  UNIT: 'UNIT'
+} as const
+
+export type InputUnit = (typeof InputUnit)[keyof typeof InputUnit]
+
+
+export const LaborKind = {
+  SIEMBRA: 'SIEMBRA',
+  PULVERIZACION: 'PULVERIZACION',
+  FERTILIZACION: 'FERTILIZACION',
+  COSECHA: 'COSECHA',
+  OTRO: 'OTRO'
+} as const
+
+export type LaborKind = (typeof LaborKind)[keyof typeof LaborKind]

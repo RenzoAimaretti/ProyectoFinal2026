@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { EntityNotFoundError, InvalidInputError, InvalidRelationError } from '../../domain/errors';
+import { DuplicateUsageIdError, EntityNotFoundError, InvalidInputError, InvalidRelationError } from '../../domain/errors';
 import { CreateMachineUsageInput, MachineStatusValue, UpdateMachineUsageInput } from '../machine-usage.types';
 import { CreateMachineUsageUseCase } from './create-machine-usage.use-case';
 import { FindAllMachineUsagesUseCase } from './find-all-machine-usages.use-case';
@@ -14,7 +14,10 @@ const baseMachineUsage = {
   initialFuel: 12,
   finalFuel: 10,
   usageHours: 2,
+  hectares: null,
   observations: 'ok',
+  operatorId: null,
+  workDate: null,
   createdAt: new Date('2026-01-11T00:00:00.000Z'),
 };
 
@@ -191,6 +194,63 @@ describe('Machine usage use cases', () => {
       expect(repository.create).not.toHaveBeenCalled();
     });
 
+    it('records hours and hectares on the task-linked usage and rejects invalid area without creating', async () => {
+      machineReader.findByIdForCompany.mockResolvedValue({ id: 'machine-1', status: 'ACTIVA' });
+      taskReader.findByIdWithOperatorsForCompany.mockResolvedValue({ id: 'task-1', operators: [{ id: 'user-1' }] });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1' });
+      repository.create.mockResolvedValue({ ...baseMachineUsage, hectares: 7 });
+      await useCase.execute('company-1', {
+        machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', usageHours: 2, hectares: 7,
+      });
+      expect(repository.create).toHaveBeenCalledWith({ machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', initialFuel: undefined, usageHours: 2, hectares: 7 });
+      repository.create.mockClear();
+      await expect(useCase.execute('company-1', {
+        machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', hectares: -1,
+      })).rejects.toBeInstanceOf(InvalidInputError);
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('records the captured work date and notes on creation', async () => {
+      const { repository, machineReader, taskReader, userReader } = createPorts();
+      machineReader.findByIdForCompany.mockResolvedValue({ id: 'machine-1', status: 'ACTIVA' });
+      taskReader.findByIdWithOperatorsForCompany.mockResolvedValue({ id: 'task-1', operators: [{ id: 'user-1' }] });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1' });
+      repository.create.mockResolvedValue(baseMachineUsage);
+      const useCase = new CreateMachineUsageUseCase(repository, machineReader, taskReader, userReader);
+
+      await useCase.execute('company-1', {
+        machineId: 'machine-1',
+        taskId: 'task-1',
+        operatorId: 'user-1',
+        usageHours: 2,
+        workDate: '2026-03-08',
+        observations: '  Turno noche  ',
+      });
+
+      expect(repository.create).toHaveBeenCalledWith({
+        machineId: 'machine-1',
+        taskId: 'task-1',
+        operatorId: 'user-1',
+        initialFuel: undefined,
+        usageHours: 2,
+        workDate: new Date('2026-03-08T00:00:00.000Z'),
+        observations: 'Turno noche',
+      });
+    });
+
+    it('rejects an invalid work date or overlong notes without writing', async () => {
+      const { repository, machineReader, taskReader, userReader } = createPorts();
+      machineReader.findByIdForCompany.mockResolvedValue({ id: 'machine-1', status: 'ACTIVA' });
+      taskReader.findByIdWithOperatorsForCompany.mockResolvedValue({ id: 'task-1', operators: [{ id: 'user-1' }] });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1' });
+      const useCase = new CreateMachineUsageUseCase(repository, machineReader, taskReader, userReader);
+      const base = { machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', usageHours: 2 };
+
+      await expect(useCase.execute('company-1', { ...base, workDate: 'ayer' })).rejects.toBeInstanceOf(InvalidInputError);
+      await expect(useCase.execute('company-1', { ...base, observations: 'x'.repeat(1001) })).rejects.toBeInstanceOf(InvalidInputError);
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
     it('creates a machine usage inside the current company scope', async () => {
       machineReader.findByIdForCompany.mockResolvedValue({ id: 'machine-1', status: 'ACTIVA' });
       taskReader.findByIdWithOperatorsForCompany.mockResolvedValue({
@@ -218,8 +278,55 @@ describe('Machine usage use cases', () => {
       expect(repository.create).toHaveBeenCalledWith({
         machineId: 'machine-1',
         taskId: 'task-1',
+        operatorId: 'user-1',
         initialFuel: 12,
       });
+    });
+  });
+
+  describe('Idempotent task usage', () => {
+    const id = '41340853-9aa7-464c-98e7-6ea5d03faec1';
+    const input = { id, machineId: 'machine-1', taskId: 'task-1', operatorId: 'user-1', usageHours: 2 };
+    const existing = { ...baseMachineUsage, id, operatorId: 'user-1', initialFuel: null, usageHours: 2, observations: null, workDate: null };
+    const setup = () => {
+      const { repository, machineReader, taskReader, userReader } = createPorts();
+      machineReader.findByIdForCompany.mockResolvedValue({ id: 'machine-1', status: 'ACTIVA' });
+      taskReader.findByIdWithOperatorsForCompany.mockResolvedValue({ id: 'task-1', operators: [{ id: 'user-1' }] });
+      userReader.findByIdForCompany.mockResolvedValue({ id: 'user-1' });
+      return { repository, useCase: new CreateMachineUsageUseCase(repository, machineReader, taskReader, userReader) };
+    };
+
+    it('rejects another operator identity before reading or writing anything', async () => {
+      const { repository, useCase } = setup();
+      await expect(useCase.execute('company-1', input, { id: 'other-user', role: 'OPERARIO' })).rejects.toBeInstanceOf(InvalidRelationError);
+      expect(repository.findByIdForCompany).not.toHaveBeenCalled();
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('returns a verified retry without another write and rejects a changed payload', async () => {
+      const { repository, useCase } = setup();
+      repository.findByIdForCompany.mockResolvedValue(existing);
+      await expect(useCase.execute('company-1', input, { id: 'user-1', role: 'OPERARIO' })).resolves.toEqual(existing);
+      await expect(useCase.execute('company-1', { ...input, usageHours: 3 })).rejects.toThrow('Usage ID already exists with different data');
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('treats a changed captured date or notes as a different payload', async () => {
+      const captured = { ...existing, workDate: new Date('2026-03-08T00:00:00.000Z'), observations: 'Turno noche' };
+      const { repository, useCase } = setup();
+      repository.findByIdForCompany.mockResolvedValue(captured);
+      await expect(useCase.execute('company-1', { ...input, workDate: '2026-03-08', observations: 'Turno noche' })).resolves.toEqual(captured);
+      await expect(useCase.execute('company-1', { ...input, workDate: '2026-03-09', observations: 'Turno noche' })).rejects.toThrow('Usage ID already exists with different data');
+      await expect(useCase.execute('company-1', { ...input, workDate: '2026-03-08', observations: 'Otro turno' })).rejects.toThrow('Usage ID already exists with different data');
+      expect(repository.create).not.toHaveBeenCalled();
+    });
+
+    it('reconciles a simultaneous duplicate after the unique ID constraint without duplicating', async () => {
+      const { repository, useCase } = setup();
+      repository.findByIdForCompany.mockResolvedValueOnce(null).mockResolvedValueOnce(existing);
+      repository.create.mockRejectedValue(new DuplicateUsageIdError());
+      await expect(useCase.execute('company-1', input)).resolves.toEqual(existing);
+      expect(repository.create).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -239,6 +346,17 @@ describe('Machine usage use cases', () => {
         EntityNotFoundError,
       );
       expect(repository.findByIdForCompany).toHaveBeenCalledWith('usage-1', 'company-2');
+    });
+
+    it('records task-linked hectares and rejects invalid area without writing', async () => {
+      repository.findByIdForCompany.mockResolvedValue(baseMachineUsage);
+      repository.updateForCompany.mockResolvedValue({ ...baseMachineUsage, hectares: 12.5 });
+      await useCase.execute('usage-1', 'company-1', { hectares: 12.5 } as unknown as UpdateMachineUsageInput);
+      expect(repository.updateForCompany).toHaveBeenCalledWith('usage-1', 'company-1', { hectares: 12.5 });
+
+      repository.updateForCompany.mockClear();
+      await expect(useCase.execute('usage-1', 'company-1', { hectares: -1 } as unknown as UpdateMachineUsageInput)).rejects.toBeInstanceOf(InvalidInputError);
+      expect(repository.updateForCompany).not.toHaveBeenCalled();
     });
 
     it('updates a machine usage inside the current company scope', async () => {

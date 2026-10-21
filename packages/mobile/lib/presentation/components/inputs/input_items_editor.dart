@@ -6,13 +6,15 @@ import 'custom_text_field.dart';
 
 /// Opción de insumo (catálogo) para el editor de ítems.
 class InputOption {
-  const InputOption({required this.id, required this.label, required this.unit});
+  const InputOption({required this.id, required this.label, required this.unit,
+    this.compatible = true});
 
   final String id;
   final String label;
 
   /// Unidad por defecto del insumo (L | KG | UNIT).
   final String unit;
+  final bool compatible;
 }
 
 /// Valor estructurado de una línea de consumo, listo para mapear a
@@ -95,7 +97,14 @@ class _InputItemsEditorState extends State<InputItemsEditor> {
   List<DropdownMenuItem<String>> _inputItems() {
     return widget.inputs
         .map(
-          (o) => DropdownMenuItem<String>(value: o.id, child: Text(o.label)),
+          (o) => DropdownMenuItem<String>(
+            value: o.id,
+            child: Text(
+              o.compatible ? o.label : '${o.label} · Fuera de labor',
+              style: TextStyle(color: o.compatible ? null : AppColors.pending),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         )
         .toList();
   }
@@ -176,6 +185,22 @@ class _InputItemsEditorState extends State<InputItemsEditor> {
               ),
             ],
           ),
+          if (line.inputId != null &&
+              _findInput(line.inputId)?.compatible == false) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.pendingBg,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Este insumo está fuera de las categorías de la labor. Podés continuar.',
+                style: TextStyle(color: AppColors.pending, fontSize: 12),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,

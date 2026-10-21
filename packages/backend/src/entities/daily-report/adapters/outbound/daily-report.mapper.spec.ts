@@ -11,7 +11,7 @@ const baseRow: DailyReportRow = {
   companyId: 'company-1',
   taskId: 'task-1',
   lotId: 'lot-1',
-  taskTypeId: 'task-type-1',
+  laborTypeId: 'labor-type-1',
   date: new Date('2026-05-03T00:00:00.000Z'),
   hectares: 12.5,
   hours: 6,
@@ -46,7 +46,7 @@ describe('toDailyReportRecord', () => {
       ...baseRow,
       company: { name: 'Firma SA' },
       operator: { username: 'operador', email: 'operador@agro.com' },
-      taskType: { name: 'Pulverizacion' },
+      laborType: { name: 'Pulverizacion' },
       task: {
         lot: {
           name: 'Lote 1',
@@ -59,7 +59,7 @@ describe('toDailyReportRecord', () => {
     expect(record).toMatchObject({
       companyName: 'Firma SA',
       operatorName: 'operador',
-      taskTypeName: 'Pulverizacion',
+      laborTypeName: 'Pulverizacion',
       lotName: 'Lote 1',
       farmName: 'Campo Norte',
       clientName: 'Cliente X',
@@ -89,7 +89,7 @@ describe('toDailyReportRecord', () => {
       companyId: 'company-1',
       taskId: 'task-1',
       lotId: 'lot-1',
-      taskTypeId: 'task-type-1',
+      laborTypeId: 'labor-type-1',
       date: new Date('2026-05-03T00:00:00.000Z'),
       hectares: 12.5,
       hours: 6,
@@ -131,7 +131,7 @@ describe('buildDailyReportInclude', () => {
       },
       company: { select: { name: true } },
       operator: { select: { username: true, email: true } },
-      taskType: { select: { name: true } },
+      laborType: { select: { name: true } },
       task: {
         select: {
           lot: {

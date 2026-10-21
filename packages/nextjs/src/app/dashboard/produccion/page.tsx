@@ -33,7 +33,7 @@ import {
   listFarms,
   listLots,
   listRecipesByLot,
-  listTaskTypes,
+  listLaborTypes,
   listTasks,
   listUsers,
   type FarmDTO,
@@ -41,7 +41,7 @@ import {
   type PrescriptionStatus,
   type RecipeDetailDTO,
   type TaskDTO,
-  type TaskTypeDTO,
+  type LaborTypeDTO,
   type UserDTO,
 } from "@/api/client";
 
@@ -222,7 +222,7 @@ const STATUS_ORDER: TaskStatus[] = [
 
 type TimelineRow = {
   task: TaskDTO;
-  taskTypeName: string;
+  laborTypeName: string;
   farmName: string;
   lotName: string;
   operatorsLabel: string;
@@ -233,7 +233,7 @@ type TimelineRow = {
 /** A prescription loaded for the read-only detail modal. */
 type PrescriptionView = {
   recipe: RecipeDetailDTO;
-  taskTypeName: string;
+  laborTypeName: string;
   farmName: string;
   lotName: string;
 };
@@ -247,14 +247,14 @@ type PrescriptionView = {
 type Degraded = {
   lots: boolean;
   farms: boolean;
-  taskTypes: boolean;
+  laborTypes: boolean;
   users: boolean;
 };
 
 const NO_DEGRADED: Degraded = {
   lots: false,
   farms: false,
-  taskTypes: false,
+  laborTypes: false,
   users: false,
 };
 
@@ -272,7 +272,7 @@ export default function ProduccionPage() {
   const [tasks, setTasks] = useState<TaskDTO[]>([]);
   const [lots, setLots] = useState<LotDTO[]>([]);
   const [farms, setFarms] = useState<FarmDTO[]>([]);
-  const [taskTypes, setTaskTypes] = useState<TaskTypeDTO[]>([]);
+  const [laborTypes, setLaborTypes] = useState<LaborTypeDTO[]>([]);
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [degraded, setDegraded] = useState<Degraded>(NO_DEGRADED);
 
@@ -318,7 +318,7 @@ export default function ProduccionPage() {
           setEditorRecipeId(match.id);
           setEditorContext({
             taskId: row.task.id,
-            taskTypeName: row.taskTypeName,
+            laborTypeName: row.laborTypeName,
             farmName: row.farmName,
             lotName: row.lotName,
             lotArea: null,
@@ -329,7 +329,7 @@ export default function ProduccionPage() {
           const detail = await getRecipe(match.id);
           setPrescriptionView({
             recipe: detail,
-            taskTypeName: row.taskTypeName,
+            laborTypeName: row.laborTypeName,
             farmName: row.farmName,
             lotName: row.lotName,
           });
@@ -355,7 +355,7 @@ export default function ProduccionPage() {
       listTasks(),
       listLots(),
       listFarms(),
-      listTaskTypes(),
+      listLaborTypes(),
       listUsers(),
     ])
       .then((results) => {
@@ -378,7 +378,7 @@ export default function ProduccionPage() {
             ? farmsResult.value
             : [],
         );
-        setTaskTypes(
+        setLaborTypes(
           typesResult.status === "fulfilled" && Array.isArray(typesResult.value)
             ? typesResult.value
             : [],
@@ -391,7 +391,7 @@ export default function ProduccionPage() {
         setDegraded({
           lots: lotsResult.status === "rejected",
           farms: farmsResult.status === "rejected",
-          taskTypes: typesResult.status === "rejected",
+          laborTypes: typesResult.status === "rejected",
           users: usersResult.status === "rejected",
         });
       })
@@ -407,8 +407,8 @@ export default function ProduccionPage() {
   const lotById = useMemo(() => new Map(lots.map((lot) => [lot.id, lot])), [lots]);
   const farmById = useMemo(() => new Map(farms.map((farm) => [farm.id, farm])), [farms]);
   const typeById = useMemo(
-    () => new Map(taskTypes.map((type) => [type.id, type])),
-    [taskTypes],
+    () => new Map(laborTypes.map((type) => [type.id, type])),
+    [laborTypes],
   );
 
   /**
@@ -420,7 +420,7 @@ export default function ProduccionPage() {
     const labels: string[] = [];
     if (degraded.lots) labels.push("los lotes");
     if (degraded.farms) labels.push("los campos");
-    if (degraded.taskTypes) labels.push("las labores");
+    if (degraded.laborTypes) labels.push("las labores");
     return labels;
   }, [degraded]);
 
@@ -458,15 +458,15 @@ export default function ProduccionPage() {
           task.farmName ??
           (lot ? farmById.get(lot.farmId)?.name : undefined) ??
           (degraded.farms ? "Campo no disponible" : "Sin campo");
-        const taskTypeName =
-          task.taskTypeName ??
-          typeById.get(task.taskTypeId)?.name ??
-          (degraded.taskTypes ? "Labor no disponible" : "Sin labor");
+        const laborTypeName =
+          task.laborTypeName ??
+          typeById.get(task.laborTypeId)?.name ??
+          (degraded.laborTypes ? "Labor no disponible" : "Sin labor");
         const lotName =
           task.lotName ?? lot?.name ?? (degraded.lots ? "Lote no disponible" : "Sin lote");
         return {
           task,
-          taskTypeName,
+          laborTypeName,
           farmName,
           lotName,
           operatorsLabel: describeOperators(task),
@@ -481,7 +481,7 @@ export default function ProduccionPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [createFarmId, setCreateFarmId] = useState("");
   const [createLotId, setCreateLotId] = useState("");
-  const [createTaskTypeId, setCreateTaskTypeId] = useState("");
+  const [createLaborTypeId, setCreateLaborTypeId] = useState("");
   const [createDate, setCreateDate] = useState(todayKey);
   const [createTime, setCreateTime] = useState(nowTimeKey);
   const [createOperatorId, setCreateOperatorId] = useState("");
@@ -499,9 +499,9 @@ export default function ProduccionPage() {
         .map((lot) => ({ value: lot.id, label: lot.name })),
     [lots, createFarmId],
   );
-  const taskTypeOptions = useMemo(
-    () => taskTypes.map((type) => ({ value: type.id, label: type.name })),
-    [taskTypes],
+  const laborTypeOptions = useMemo(
+    () => laborTypes.map((type) => ({ value: type.id, label: type.name })),
+    [laborTypes],
   );
   const operatorOptions = useMemo(
     () => [
@@ -516,7 +516,7 @@ export default function ProduccionPage() {
   const openCreate = useCallback(() => {
     setCreateFarmId("");
     setCreateLotId("");
-    setCreateTaskTypeId("");
+    setCreateLaborTypeId("");
     // `selectedDate` defaults to today, so the default is "today" in the common case.
     setCreateDate(selectedDate || todayKey());
     setCreateTime(nowTimeKey());
@@ -525,14 +525,14 @@ export default function ProduccionPage() {
     setCreateOpen(true);
   }, [selectedDate]);
 
-  const canCreate = farms.length > 0 && taskTypes.length > 0;
+  const canCreate = farms.length > 0 && laborTypes.length > 0;
   const createBlockedReason = degraded.farms
     ? "No se pudieron cargar los campos. Reintentá."
-    : degraded.taskTypes
+    : degraded.laborTypes
       ? "No se pudieron cargar las labores. Reintentá."
       : farms.length === 0
         ? "Cargá al menos un campo para crear una tarea."
-        : taskTypes.length === 0
+        : laborTypes.length === 0
           ? "Cargá al menos una labor para crear una tarea."
           : undefined;
 
@@ -546,7 +546,7 @@ export default function ProduccionPage() {
       setCreateError("Seleccioná un lote.");
       return;
     }
-    if (!createTaskTypeId) {
+    if (!createLaborTypeId) {
       setCreateError("Seleccioná una labor.");
       return;
     }
@@ -565,7 +565,7 @@ export default function ProduccionPage() {
     try {
       const created = await createTask({
         lotId: createLotId,
-        taskTypeId: createTaskTypeId,
+        laborTypeId: createLaborTypeId,
         startedAt,
       });
 
@@ -602,7 +602,7 @@ export default function ProduccionPage() {
     creating,
     createFarmId,
     createLotId,
-    createTaskTypeId,
+    createLaborTypeId,
     createDate,
     createTime,
     createOperatorId,
@@ -750,7 +750,7 @@ export default function ProduccionPage() {
       ) : (
         <ol className="space-y-0">
           {rows.map((row, index) => {
-            const { task, taskTypeName, farmName, lotName, operatorsLabel, time, duration } =
+            const { task, laborTypeName, farmName, lotName, operatorsLabel, time, duration } =
               row;
             const meta = STATUS_META[task.status];
             const isFirst = index === 0;
@@ -803,7 +803,7 @@ export default function ProduccionPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="op-swatch" data-status={meta.dataStatus} aria-hidden="true" />
                           <h3 className="text-base font-semibold text-ink">
-                            {taskTypeName}
+                            {laborTypeName}
                           </h3>
                           <span className="op-label">{meta.label}</span>
                         </div>
@@ -938,11 +938,11 @@ export default function ProduccionPage() {
 
             <SelectField
               label="Labor"
-              value={createTaskTypeId}
-              onChange={(e) => setCreateTaskTypeId(e.target.value)}
-              options={taskTypeOptions}
+              value={createLaborTypeId}
+              onChange={(e) => setCreateLaborTypeId(e.target.value)}
+              options={laborTypeOptions}
               placeholder="Seleccioná una labor"
-              disabled={creating || taskTypes.length === 0}
+              disabled={creating || laborTypes.length === 0}
               required
             />
 
@@ -987,7 +987,7 @@ export default function ProduccionPage() {
         title="Receta fitosanitaria"
         subtitle={
           prescriptionView
-            ? `${prescriptionView.taskTypeName} · ${prescriptionView.farmName} · ${prescriptionView.lotName}`
+            ? `${prescriptionView.laborTypeName} · ${prescriptionView.farmName} · ${prescriptionView.lotName}`
             : undefined
         }
         widthClass="max-w-2xl"
@@ -995,7 +995,7 @@ export default function ProduccionPage() {
         {prescriptionView && (
           <PrescriptionDetail
             recipe={prescriptionView.recipe}
-            taskTypeName={prescriptionView.taskTypeName}
+            laborTypeName={prescriptionView.laborTypeName}
             farmName={prescriptionView.farmName}
             lotName={prescriptionView.lotName}
           />

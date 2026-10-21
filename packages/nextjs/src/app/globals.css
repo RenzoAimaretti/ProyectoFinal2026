@@ -1038,3 +1038,10 @@ body {
     transition: none !important;
   }
 }
+
+/* Leaflet trae su propia tipografía y fondo gris. Los heredamos de la app para que
+   el visor se lea como parte de la interfaz y no como un widget pegado adentro. */
+.leaflet-container {
+  font-family: inherit;
+  background: var(--bg-subtle);
+}

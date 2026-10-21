@@ -121,11 +121,32 @@ class LaborType {
   final bool deleted;
 }
 
+class InputCategory {
+  const InputCategory({
+    required this.id,
+    required this.name,
+    required this.active,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.version,
+    required this.deleted,
+  });
+
+  final String id;
+  final String name;
+  final bool active;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final int version;
+  final bool deleted;
+}
+
 class Input {
   const Input({
     required this.id,
     required this.name,
     required this.unit,
+    this.categoryId,
     required this.active,
     required this.createdAt,
     required this.updatedAt,
@@ -138,6 +159,7 @@ class Input {
 
   /// `L` | `KG` | `UNIT`.
   final String unit;
+  final String? categoryId;
   final bool active;
   final DateTime createdAt;
   final DateTime updatedAt;

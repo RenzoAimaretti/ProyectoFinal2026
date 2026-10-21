@@ -16,6 +16,7 @@ import 'dotenv/config';
 import * as argon2 from 'argon2';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/client';
+import { INPUT_CATEGORY_DEFAULTS } from './input-category-defaults';
 
 const TENANT_ID = '00000000-0000-4000-8000-000000000001';
 const COMPANY_ID = '00000000-0000-4000-8000-000000000002';
@@ -88,7 +89,7 @@ async function main(): Promise<void> {
       prisma.livestock.deleteMany(),
       prisma.machine.deleteMany(),
       prisma.task.deleteMany(),
-      prisma.taskType.deleteMany(),
+      prisma.laborType.deleteMany(),
       prisma.lot.deleteMany(),
       prisma.farm.deleteMany(),
       prisma.client.deleteMany(),
@@ -187,23 +188,37 @@ async function main(): Promise<void> {
       },
     });
 
+    for (const name of INPUT_CATEGORY_DEFAULTS) {
+      await prisma.inputCategory.upsert({
+        where: { tenantId_name: { tenantId: TENANT_ID, name } },
+        update: {},
+        create: { tenantId: TENANT_ID, name },
+      });
+    }
+    const categories = await prisma.inputCategory.findMany({ where: { tenantId: TENANT_ID } });
+    const categoryId = (name: (typeof INPUT_CATEGORY_DEFAULTS)[number]): string => {
+      const category = categories.find((candidate) => candidate.name === name);
+      if (!category) throw new Error(`Missing input category ${name}`);
+      return category.id;
+    };
+
     const inputGlifosato = await prisma.input.create({
-      data: { id: did(110), tenantId: TENANT_ID, name: 'Glifosato 48%', unit: 'L' },
+      data: { id: did(110), tenantId: TENANT_ID, name: 'Glifosato 48%', unit: 'L', categoryId: categoryId('Herbicida') },
     });
     const input24D = await prisma.input.create({
-      data: { id: did(111), tenantId: TENANT_ID, name: '2,4-D', unit: 'L' },
+      data: { id: did(111), tenantId: TENANT_ID, name: '2,4-D', unit: 'L', categoryId: categoryId('Herbicida') },
     });
     const inputUrea = await prisma.input.create({
-      data: { id: did(112), tenantId: TENANT_ID, name: 'Urea', unit: 'kg' },
+      data: { id: did(112), tenantId: TENANT_ID, name: 'Urea', unit: 'KG', categoryId: categoryId('Fertilizante') },
     });
     const inputAtrazina = await prisma.input.create({
-      data: { id: did(113), tenantId: TENANT_ID, name: 'Atrazina', unit: 'L' },
+      data: { id: did(113), tenantId: TENANT_ID, name: 'Atrazina', unit: 'L', categoryId: categoryId('Herbicida') },
     });
     const inputNpk = await prisma.input.create({
-      data: { id: did(114), tenantId: TENANT_ID, name: 'Fertilizante NPK', unit: 'kg' },
+      data: { id: did(114), tenantId: TENANT_ID, name: 'Fertilizante NPK', unit: 'KG', categoryId: categoryId('Fertilizante') },
     });
 
-    const taskTypePulverizacion = await prisma.taskType.create({
+    const laborTypePulverizacion = await prisma.laborType.create({
       data: {
         id: did(120),
         tenantId: TENANT_ID,
@@ -212,46 +227,53 @@ async function main(): Promise<void> {
         // Only phytosanitary applications need a prescription; every other task
         // type keeps the default (false).
         requiresPrescription: true,
+        kind: 'PULVERIZACION',
       },
     });
-    const taskTypeFertilizacion = await prisma.taskType.create({
+    const laborTypeFertilizacion = await prisma.laborType.create({
       data: {
         id: did(121),
         tenantId: TENANT_ID,
         name: 'Fertilización',
         description: 'Aporte de nutrientes',
+        kind: 'FERTILIZACION',
       },
     });
-    const taskTypeSiembra = await prisma.taskType.create({
+    const laborTypeSiembra = await prisma.laborType.create({
       data: {
         id: did(122),
         tenantId: TENANT_ID,
         name: 'Siembra',
         description: 'Implantación de cultivo',
+        kind: 'SIEMBRA',
       },
     });
-    const taskTypeArranque = await prisma.taskType.create({
+    const laborTypeArranque = await prisma.laborType.create({
       data: {
         id: did(123),
         tenantId: TENANT_ID,
         name: 'Arranque de equipo',
         description: 'Puesta en marcha y checklist',
+        // Equipo, no cultivo: no se clasifica en lugar de adivinar por el nombre.
+        kind: 'OTRO',
       },
     });
-    const taskTypeTraslado = await prisma.taskType.create({
+    const laborTypeTraslado = await prisma.laborType.create({
       data: {
         id: did(124),
         tenantId: TENANT_ID,
         name: 'Traslado',
         description: 'Movimiento de hacienda',
+        kind: 'OTRO',
       },
     });
-    const taskTypePesaje = await prisma.taskType.create({
+    const laborTypePesaje = await prisma.laborType.create({
       data: {
         id: did(125),
         tenantId: TENANT_ID,
         name: 'Pesaje',
         description: 'Registro de peso',
+        kind: 'OTRO',
       },
     });
 
@@ -302,7 +324,7 @@ async function main(): Promise<void> {
       data: {
         id: did(150),
         lotId: lotAgro1.id,
-        taskTypeId: taskTypePulverizacion.id,
+        laborTypeId: laborTypePulverizacion.id,
         status: 'FINALIZADA',
         // Requires-prescription type: set the status explicitly, never rely on
         // the model default. Historical completed spray.
@@ -316,7 +338,7 @@ async function main(): Promise<void> {
       data: {
         id: did(151),
         lotId: lotAgro2.id,
-        taskTypeId: taskTypeFertilizacion.id,
+        laborTypeId: laborTypeFertilizacion.id,
         status: 'FINALIZADA',
         startedAt: new Date('2026-09-03T07:00:00'),
         finishedAt: new Date('2026-09-03T11:00:00'),
@@ -327,7 +349,7 @@ async function main(): Promise<void> {
       data: {
         id: did(152),
         lotId: lotAgro3.id,
-        taskTypeId: taskTypeSiembra.id,
+        laborTypeId: laborTypeSiembra.id,
         status: 'FINALIZADA',
         startedAt: new Date('2026-09-04T06:30:00'),
         finishedAt: new Date('2026-09-04T15:00:00'),
@@ -338,7 +360,7 @@ async function main(): Promise<void> {
       data: {
         id: did(153),
         lotId: lotAgro4.id,
-        taskTypeId: taskTypePulverizacion.id,
+        laborTypeId: laborTypePulverizacion.id,
         status: 'EN_PROGRESO',
         // The prescribed case: this task carries the demo recipe below.
         prescriptionStatus: 'CON_RECETA',
@@ -350,7 +372,7 @@ async function main(): Promise<void> {
       data: {
         id: did(154),
         lotId: lotVerdeA.id,
-        taskTypeId: taskTypeArranque.id,
+        laborTypeId: laborTypeArranque.id,
         status: 'FINALIZADA',
         startedAt: new Date('2026-09-06T07:30:00'),
         finishedAt: new Date('2026-09-06T09:30:00'),
@@ -361,7 +383,7 @@ async function main(): Promise<void> {
       data: {
         id: did(155),
         lotId: lotVerdeB.id,
-        taskTypeId: taskTypeFertilizacion.id,
+        laborTypeId: laborTypeFertilizacion.id,
         status: 'PENDIENTE',
         startedAt: new Date('2026-09-07T07:00:00'),
         operators: { connect: [{ id: USER_ID }] },
@@ -371,7 +393,7 @@ async function main(): Promise<void> {
       data: {
         id: did(156),
         lotId: lotVerdeC.id,
-        taskTypeId: taskTypeTraslado.id,
+        laborTypeId: laborTypeTraslado.id,
         status: 'FINALIZADA',
         startedAt: new Date('2026-09-08T09:00:00'),
         finishedAt: new Date('2026-09-08T10:30:00'),
@@ -393,7 +415,7 @@ async function main(): Promise<void> {
       data: {
         id: did(270),
         lotId: lotAgro1.id,
-        taskTypeId: taskTypePulverizacion.id,
+        laborTypeId: laborTypePulverizacion.id,
         status: 'PENDIENTE',
         // The pending-prescription case: a today, still-pending spray with no
         // recipe yet, so it shows up in the agronomist's inbox.
@@ -406,7 +428,7 @@ async function main(): Promise<void> {
       data: {
         id: did(271),
         lotId: lotAgro2.id,
-        taskTypeId: taskTypeFertilizacion.id,
+        laborTypeId: laborTypeFertilizacion.id,
         status: 'EN_PROGRESO',
         startedAt: todayAt(8, 30),
         operators: { connect: [{ id: USER_ID }] },
@@ -416,7 +438,7 @@ async function main(): Promise<void> {
       data: {
         id: did(272),
         lotId: lotVerdeA.id,
-        taskTypeId: taskTypeSiembra.id,
+        laborTypeId: laborTypeSiembra.id,
         status: 'FINALIZADA',
         startedAt: todayAt(6, 0),
         finishedAt: todayAt(11, 30),
@@ -427,7 +449,7 @@ async function main(): Promise<void> {
       data: {
         id: did(273),
         lotId: lotVerdeB.id,
-        taskTypeId: taskTypeArranque.id,
+        laborTypeId: laborTypeArranque.id,
         status: 'EN_PROGRESO',
         startedAt: todayAt(9, 15),
         operators: { connect: [{ id: USER_ID }] },
@@ -437,7 +459,7 @@ async function main(): Promise<void> {
       data: {
         id: did(274),
         lotId: lotVerdeC.id,
-        taskTypeId: taskTypePesaje.id,
+        laborTypeId: laborTypePesaje.id,
         status: 'PENDIENTE',
         startedAt: todayAt(13, 0),
         operators: { connect: [{ id: USER_ID }] },
@@ -504,7 +526,7 @@ async function main(): Promise<void> {
         companyId: COMPANY_ID,
         taskId: taskPulvAgro1.id,
         lotId: lotAgro1.id,
-        taskTypeId: taskTypePulverizacion.id,
+        laborTypeId: laborTypePulverizacion.id,
         date: new Date('2026-09-02T00:00:00'),
         hectares: 96,
         hours: 6.5,
@@ -525,7 +547,7 @@ async function main(): Promise<void> {
         companyId: COMPANY_ID,
         taskId: taskFertAgro2.id,
         lotId: lotAgro2.id,
-        taskTypeId: taskTypeFertilizacion.id,
+        laborTypeId: laborTypeFertilizacion.id,
         date: new Date('2026-09-03T00:00:00'),
         hectares: 124,
         hours: 4,
@@ -546,7 +568,7 @@ async function main(): Promise<void> {
         companyId: COMPANY_ID,
         taskId: taskSiembraAgro3.id,
         lotId: lotAgro3.id,
-        taskTypeId: taskTypeSiembra.id,
+        laborTypeId: laborTypeSiembra.id,
         date: new Date('2026-09-04T00:00:00'),
         hectares: 88,
         hours: 8.5,
@@ -566,7 +588,7 @@ async function main(): Promise<void> {
         companyId: COMPANY_ID,
         taskId: taskPulvAgro4.id,
         lotId: lotAgro4.id,
-        taskTypeId: taskTypePulverizacion.id,
+        laborTypeId: laborTypePulverizacion.id,
         date: new Date('2026-09-05T00:00:00'),
         hectares: 70,
         hours: 5,
@@ -590,7 +612,7 @@ async function main(): Promise<void> {
         companyId: COMPANY_ID,
         taskId: taskArranqueVerdeA.id,
         lotId: lotVerdeA.id,
-        taskTypeId: taskTypeArranque.id,
+        laborTypeId: laborTypeArranque.id,
         date: new Date('2026-09-06T00:00:00'),
         hectares: 150,
         hours: 2,
@@ -636,16 +658,16 @@ async function main(): Promise<void> {
     // --- Stock por cliente -------------------------------------------------
     await prisma.stock.createMany({
       data: [
-        { id: did(190), clientId: clientEliggi.id, inputId: inputGlifosato.id, quantity: 5000 },
-        { id: did(191), clientId: clientEliggi.id, inputId: input24D.id, quantity: 5000 },
-        { id: did(192), clientId: clientEliggi.id, inputId: inputUrea.id, quantity: 5000 },
-        { id: did(193), clientId: clientEliggi.id, inputId: inputAtrazina.id, quantity: 5000 },
-        { id: did(194), clientId: clientEliggi.id, inputId: inputNpk.id, quantity: 5000 },
-        { id: did(195), clientId: clientSur.id, inputId: inputGlifosato.id, quantity: 5000 },
-        { id: did(196), clientId: clientSur.id, inputId: input24D.id, quantity: 5000 },
-        { id: did(197), clientId: clientSur.id, inputId: inputUrea.id, quantity: 5000 },
-        { id: did(198), clientId: clientSur.id, inputId: inputAtrazina.id, quantity: 5000 },
-        { id: did(199), clientId: clientSur.id, inputId: inputNpk.id, quantity: 5000 },
+        { id: did(190), clientId: clientEliggi.id, inputId: inputGlifosato.id, quantity: 5000, unit: 'L' },
+        { id: did(191), clientId: clientEliggi.id, inputId: input24D.id, quantity: 5000, unit: 'L' },
+        { id: did(192), clientId: clientEliggi.id, inputId: inputUrea.id, quantity: 5000, unit: 'KG' },
+        { id: did(193), clientId: clientEliggi.id, inputId: inputAtrazina.id, quantity: 5000, unit: 'L' },
+        { id: did(194), clientId: clientEliggi.id, inputId: inputNpk.id, quantity: 5000, unit: 'KG' },
+        { id: did(195), clientId: clientSur.id, inputId: inputGlifosato.id, quantity: 5000, unit: 'L' },
+        { id: did(196), clientId: clientSur.id, inputId: input24D.id, quantity: 5000, unit: 'L' },
+        { id: did(197), clientId: clientSur.id, inputId: inputUrea.id, quantity: 5000, unit: 'KG' },
+        { id: did(198), clientId: clientSur.id, inputId: inputAtrazina.id, quantity: 5000, unit: 'L' },
+        { id: did(199), clientId: clientSur.id, inputId: inputNpk.id, quantity: 5000, unit: 'KG' },
       ],
     });
 
@@ -823,7 +845,7 @@ async function main(): Promise<void> {
     const [
       clientCount,
       inputCount,
-      taskTypeCount,
+      laborTypeCount,
       farmCount,
       lotCount,
       taskCount,
@@ -832,7 +854,7 @@ async function main(): Promise<void> {
     ] = await prisma.$transaction([
       prisma.client.count(),
       prisma.input.count(),
-      prisma.taskType.count(),
+      prisma.laborType.count(),
       prisma.farm.count(),
       prisma.lot.count(),
       prisma.task.count(),
@@ -845,7 +867,7 @@ async function main(): Promise<void> {
     console.log(`[seed] firma  : ${COMPANY_NAME} (${COMPANY_ID})`);
     console.log(`[seed] login  : ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
     console.log(
-      `[seed] demo   : clients=${clientCount} inputs=${inputCount} taskTypes=${taskTypeCount} ` +
+      `[seed] demo   : clients=${clientCount} inputs=${inputCount} laborTypes=${laborTypeCount} ` +
         `farms=${farmCount} lots=${lotCount} tasks=${taskCount} dailyReports=${reportCount} stocks=${stockCount}`,
     );
   } finally {

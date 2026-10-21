@@ -20,7 +20,7 @@ export type DailyReportRecord = {
   companyId: string;
   taskId: string;
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   date: Date;
   hectares: number;
   hours: number;
@@ -38,7 +38,7 @@ export type DailyReportRecord = {
    */
   companyName?: string;
   operatorName?: string;
-  taskTypeName?: string;
+  laborTypeName?: string;
   lotName?: string;
   farmName?: string;
   clientName?: string;
@@ -53,7 +53,7 @@ export type CreateDailyReportItemInput = {
 
 /**
  * The company is not part of the input: it is the scope the use case receives
- * from the caller. `lotId` and `taskTypeId` are inherited from the referenced
+ * from the caller. `lotId` and `laborTypeId` are inherited from the referenced
  * task instead of being trusted from the client.
  */
 export type CreateDailyReportInput = {
@@ -78,7 +78,7 @@ export type CreateDailyReportData = {
   companyId: string;
   taskId: string;
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   date: Date;
   hectares: number;
   hours: number;

@@ -6,8 +6,10 @@ import '../../data/services/photo_picker_service.dart';
 import '../../domain/models/catalogs.dart';
 import '../../domain/models/daily_report.dart';
 import '../../domain/models/enums.dart';
+import '../../domain/models/input_compatibility.dart';
 import '../../domain/repositories/input_reader.dart';
 import '../../domain/repositories/labor_type_reader.dart';
+import '../../domain/repositories/labor_type_category_reader.dart';
 import '../../domain/repositories/lot_reader.dart';
 import '../../domain/usecases/add_photo_usecase.dart';
 import '../../domain/usecases/create_daily_report_usecase.dart';
@@ -27,12 +29,14 @@ class DailyReportFormViewModel extends ChangeNotifier {
     required InputReader inputReader,
     required LotReader lotReader,
     required LaborTypeReader laborTypeReader,
+    required LaborTypeCategoryReader laborTypeCategoryReader,
     required AddPhotoUseCase addPhotoUseCase,
     required PhotoPickerService photoPickerService,
   })  : _createUseCase = createUseCase,
         _inputReader = inputReader,
         _lotReader = lotReader,
         _laborTypeReader = laborTypeReader,
+        _laborTypeCategoryReader = laborTypeCategoryReader,
         _addPhotoUseCase = addPhotoUseCase,
         _photoPickerService = photoPickerService;
 
@@ -40,12 +44,53 @@ class DailyReportFormViewModel extends ChangeNotifier {
   final InputReader _inputReader;
   final LotReader _lotReader;
   final LaborTypeReader _laborTypeReader;
+  final LaborTypeCategoryReader _laborTypeCategoryReader;
   final AddPhotoUseCase _addPhotoUseCase;
   final PhotoPickerService _photoPickerService;
 
   // ── Catálogos (streams de drift) ────────────────────────────────────────
 
   Stream<List<Input>> get inputs => _inputReader.watchAll();
+
+  /// Keeps every choice; the flag is advisory, never a save constraint.
+  Stream<List<({Input input, bool compatible})>> watchInputChoices(
+    String laborTypeId,
+  ) {
+    late StreamController<List<({Input input, bool compatible})>> controller;
+    StreamSubscription<List<Input>>? inputsSubscription;
+    StreamSubscription<Set<String>>? categoriesSubscription;
+    List<Input>? currentInputs;
+    Set<String>? currentCategories;
+
+    void emit() {
+      if (currentInputs == null || currentCategories == null) return;
+      controller.add([
+        for (final input in currentInputs!)
+          (input: input,
+           compatible: isInputCompatible(input.categoryId, currentCategories!)),
+      ]);
+    }
+
+    controller = StreamController<List<({Input input, bool compatible})>>(
+      onListen: () {
+        inputsSubscription = _inputReader.watchAll().listen((value) {
+          currentInputs = value;
+          emit();
+        }, onError: controller.addError);
+        categoriesSubscription = _laborTypeCategoryReader
+            .watchCategoryIds(laborTypeId)
+            .listen((value) {
+          currentCategories = value;
+          emit();
+        }, onError: controller.addError);
+      },
+      onCancel: () async {
+        await inputsSubscription?.cancel();
+        await categoriesSubscription?.cancel();
+      },
+    );
+    return controller.stream;
+  }
 
   /// Nombre del lote para el encabezado de resumen (cae al id si no resuelve).
   Future<String> lotName(String lotId) async =>

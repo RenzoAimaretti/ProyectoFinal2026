@@ -1,7 +1,7 @@
 -- Phytosanitary prescriptions (recetas fitosanitarias) — R1..R8.
 --
 -- Why this change: an agronomist (INGENIERO) writes one phytosanitary
--- prescription per task; a task whose TaskType requires a prescription is born
+-- prescription per task; a task whose LaborType requires a prescription is born
 -- SIN_RECETA and becomes CON_RECETA once the prescription is attached. The
 -- dosage basis (per hectare or as a concentration) is stored per RecipeItem.
 --
@@ -9,7 +9,7 @@
 --   * "UserRole" only gains a new value; existing rows are untouched.
 --   * "PrescriptionStatus" and "DosageBasis" are brand-new enum types.
 --   * Every new column is nullable or carries a default
---     (TaskType.requiresPrescription defaults to false,
+--     (LaborType.requiresPrescription defaults to false,
 --      Task.prescriptionStatus defaults to 'NO_REQUIERE',
 --      RecipeItem.dosageBasis defaults to 'POR_HECTAREA',
 --      and the new Recipe columns are all nullable), so no backfill is required
@@ -33,7 +33,7 @@ CREATE TYPE "PrescriptionStatus" AS ENUM ('NO_REQUIERE', 'SIN_RECETA', 'CON_RECE
 CREATE TYPE "DosageBasis" AS ENUM ('POR_HECTAREA', 'CONCENTRACION');
 
 -- AlterTable
-ALTER TABLE "TaskType" ADD COLUMN "requiresPrescription" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "LaborType" ADD COLUMN "requiresPrescription" BOOLEAN NOT NULL DEFAULT false;
 
 -- AlterTable
 ALTER TABLE "Task" ADD COLUMN "prescriptionStatus" "PrescriptionStatus" NOT NULL DEFAULT 'NO_REQUIERE';

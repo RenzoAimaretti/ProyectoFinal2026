@@ -18,7 +18,7 @@ import { UpdateTaskUseCase } from './update-task.use-case';
 const baseTask = {
   id: 'task-1',
   lotId: 'lot-1',
-  taskTypeId: 'task-type-1',
+  laborTypeId: 'labor-type-1',
   status: 'PENDIENTE' as TaskStatusValue,
   startedAt: new Date('2026-01-10T00:00:00.000Z'),
   finishedAt: null,
@@ -49,7 +49,7 @@ function createPorts() {
     lotReader: {
       findByIdForTenant: jest.fn(),
     },
-    taskTypeReader: {
+    laborTypeReader: {
       findByIdForTenant: jest.fn(),
     },
     userReader: {
@@ -133,22 +133,22 @@ describe('Task use cases', () => {
   describe('CreateTaskUseCase', () => {
     let repository: any;
     let lotReader: any;
-    let taskTypeReader: any;
+    let laborTypeReader: any;
     let useCase: any;
 
     beforeEach(() => {
-      ({ repository, lotReader, taskTypeReader } = createPorts());
-      useCase = new CreateTaskUseCase(repository as never, lotReader as never, taskTypeReader as never);
+      ({ repository, lotReader, laborTypeReader } = createPorts());
+      useCase = new CreateTaskUseCase(repository as never, lotReader as never, laborTypeReader as never);
     });
 
     it.each([
       ['lotId', undefined],
-      ['taskTypeId', undefined],
+      ['laborTypeId', undefined],
       ['startedAt', undefined],
     ])('rejects missing required %s', async (field, value) => {
       const input: CreateTaskInput = {
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         startedAt: '2026-01-10',
       };
 
@@ -161,7 +161,7 @@ describe('Task use cases', () => {
       await expect(
         useCase.execute('company-1', {
           lotId: 'lot-1',
-          taskTypeId: 'task-type-1',
+          laborTypeId: 'labor-type-1',
           startedAt: 'not-a-date',
         }),
       ).rejects.toBeInstanceOf(InvalidInputError);
@@ -173,7 +173,7 @@ describe('Task use cases', () => {
       await expect(
         useCase.execute('company-1', {
           lotId: 'lot-1',
-          taskTypeId: 'task-type-1',
+          laborTypeId: 'labor-type-1',
           startedAt: '2026-01-10',
         }),
       ).rejects.toBeInstanceOf(InvalidRelationError);
@@ -181,53 +181,53 @@ describe('Task use cases', () => {
       expect(lotReader.findByIdForTenant).toHaveBeenCalledWith('lot-1', 'company-1');
     });
 
-    it('rejects a task type that belongs to another company', async () => {
+    it('rejects a labor type that belongs to another company', async () => {
       lotReader.findByIdForTenant.mockResolvedValue({ id: 'lot-1' });
-      taskTypeReader.findByIdForTenant.mockResolvedValue(null);
+      laborTypeReader.findByIdForTenant.mockResolvedValue(null);
 
       await expect(
         useCase.execute('company-1', {
           lotId: 'lot-1',
-          taskTypeId: 'task-type-1',
+          laborTypeId: 'labor-type-1',
           startedAt: '2026-01-10',
         }),
       ).rejects.toBeInstanceOf(InvalidRelationError);
 
-      expect(taskTypeReader.findByIdForTenant).toHaveBeenCalledWith(
-        'task-type-1',
+      expect(laborTypeReader.findByIdForTenant).toHaveBeenCalledWith(
+        'labor-type-1',
         'company-1',
       );
     });
 
     it('creates a task with company-scoped relations', async () => {
       lotReader.findByIdForTenant.mockResolvedValue({ id: 'lot-1' });
-      taskTypeReader.findByIdForTenant.mockResolvedValue({ id: 'task-type-1' });
+      laborTypeReader.findByIdForTenant.mockResolvedValue({ id: 'labor-type-1' });
       repository.create.mockResolvedValue(baseTask);
 
       await expect(
         useCase.execute('company-1', {
           lotId: 'lot-1',
-          taskTypeId: 'task-type-1',
+          laborTypeId: 'labor-type-1',
           startedAt: '2026-01-10',
         }),
       ).resolves.toEqual(baseTask);
 
       expect(lotReader.findByIdForTenant).toHaveBeenCalledWith('lot-1', 'company-1');
-      expect(taskTypeReader.findByIdForTenant).toHaveBeenCalledWith(
-        'task-type-1',
+      expect(laborTypeReader.findByIdForTenant).toHaveBeenCalledWith(
+        'labor-type-1',
         'company-1',
       );
       expect(repository.create).toHaveBeenCalledWith({
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         startedAt: new Date('2026-01-10'),
       });
     });
 
-    it('marks a task as SIN_RECETA when its task type requires a prescription', async () => {
+    it('marks a task as SIN_RECETA when its labor type requires a prescription', async () => {
       lotReader.findByIdForTenant.mockResolvedValue({ id: 'lot-1' });
-      taskTypeReader.findByIdForTenant.mockResolvedValue({
-        id: 'task-type-1',
+      laborTypeReader.findByIdForTenant.mockResolvedValue({
+        id: 'labor-type-1',
         requiresPrescription: true,
       });
       repository.create.mockResolvedValue({
@@ -238,14 +238,14 @@ describe('Task use cases', () => {
       await expect(
         useCase.execute('company-1', {
           lotId: 'lot-1',
-          taskTypeId: 'task-type-1',
+          laborTypeId: 'labor-type-1',
           startedAt: '2026-01-10',
         }),
       ).resolves.toEqual({ ...baseTask, prescriptionStatus: 'SIN_RECETA' });
 
       expect(repository.create).toHaveBeenCalledWith({
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         startedAt: new Date('2026-01-10'),
         prescriptionStatus: 'SIN_RECETA',
       });
@@ -253,8 +253,8 @@ describe('Task use cases', () => {
 
     it('leaves the model default NO_REQUIERE when the type does not require a prescription', async () => {
       lotReader.findByIdForTenant.mockResolvedValue({ id: 'lot-1' });
-      taskTypeReader.findByIdForTenant.mockResolvedValue({
-        id: 'task-type-1',
+      laborTypeReader.findByIdForTenant.mockResolvedValue({
+        id: 'labor-type-1',
         requiresPrescription: false,
       });
       repository.create.mockResolvedValue({
@@ -265,14 +265,14 @@ describe('Task use cases', () => {
       await expect(
         useCase.execute('company-1', {
           lotId: 'lot-1',
-          taskTypeId: 'task-type-1',
+          laborTypeId: 'labor-type-1',
           startedAt: '2026-01-10',
         }),
       ).resolves.toEqual({ ...baseTask, prescriptionStatus: 'NO_REQUIERE' });
 
       expect(repository.create).toHaveBeenCalledWith({
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         startedAt: new Date('2026-01-10'),
       });
     });

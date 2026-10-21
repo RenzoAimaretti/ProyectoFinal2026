@@ -44,6 +44,7 @@ export class PrismaMachineRepository implements MachineRepositoryPort {
       where: { id: machine.id },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.type !== undefined ? { type: data.type } : {}),
         ...(data.brand !== undefined ? { brand: data.brand } : {}),
         ...(data.entryDate !== undefined ? { entryDate: data.entryDate } : {}),
         ...(data.status !== undefined ? { status: data.status } : {}),

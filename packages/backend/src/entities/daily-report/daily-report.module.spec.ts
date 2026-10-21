@@ -43,7 +43,7 @@ describe('DailyReportModule', () => {
       findByIdWithScope: jest.fn().mockResolvedValue({
         id: 'task-1',
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         tenantId: 'tenant-1',
       }),
     };

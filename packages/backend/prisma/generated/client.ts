@@ -75,15 +75,25 @@ export type Module = Prisma.ModuleModel
  */
 export type Client = Prisma.ClientModel
 /**
+ * Model InputCategory
+ * 
+ */
+export type InputCategory = Prisma.InputCategoryModel
+/**
  * Model Input
  * 
  */
 export type Input = Prisma.InputModel
 /**
- * Model TaskType
+ * Model LaborType
  * 
  */
-export type TaskType = Prisma.TaskTypeModel
+export type LaborType = Prisma.LaborTypeModel
+/**
+ * Model LaborTypeCategory
+ * 
+ */
+export type LaborTypeCategory = Prisma.LaborTypeCategoryModel
 /**
  * Model Farm
  * 
@@ -139,6 +149,11 @@ export type Stock = Prisma.StockModel
  * 
  */
 export type Machine = Prisma.MachineModel
+/**
+ * Model MaintenanceThreshold
+ * 
+ */
+export type MaintenanceThreshold = Prisma.MaintenanceThresholdModel
 /**
  * Model MachineUsage
  * 

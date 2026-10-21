@@ -6,6 +6,7 @@ const persistedStock = {
   clientId: 'client-1',
   inputId: 'input-1',
   quantity: 16.5,
+  unit: 'L',
   updatedAt: new Date('2026-04-02T09:30:00.000Z'),
 };
 
@@ -14,11 +15,12 @@ const expectedRecord: StockRecord = {
   clientId: 'client-1',
   inputId: 'input-1',
   quantity: 16.5,
+  unit: 'L',
   updatedAt: new Date('2026-04-02T09:30:00.000Z'),
 };
 
 const expectedInclude = {
-  input: { select: { name: true, unit: true } },
+  input: { select: { name: true } },
 };
 
 describe('PrismaStockRepository', () => {
@@ -46,7 +48,7 @@ describe('PrismaStockRepository', () => {
     });
   });
 
-  it('exposes the input catalogue name and unit additively', async () => {
+  it('exposes the input catalogue name and the balance snapshot unit', async () => {
     prisma.stock.findMany.mockResolvedValue([
       { ...persistedStock, input: { name: 'Glifosato', unit: 'L' } },
     ]);
@@ -56,6 +58,16 @@ describe('PrismaStockRepository', () => {
     expect(record.inputName).toBe('Glifosato');
     expect(record.unit).toBe('L');
     expect(record.quantity).toBe(16.5);
+  });
+
+  it('returns the stock snapshot unit, not the joined catalogue unit', async () => {
+    prisma.stock.findMany.mockResolvedValue([
+      { ...persistedStock, unit: 'KG', input: { name: 'Glifosato', unit: 'L' } },
+    ]);
+
+    const [record] = await repository.findAllByClient('client-1');
+
+    expect(record.unit).toBe('KG');
   });
 
   it('reads a single balance keyed by client and input', async () => {

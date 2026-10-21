@@ -74,11 +74,24 @@ extension LaborTypeRowMapper on LaborType {
       );
 }
 
+extension InputCategoryRowMapper on InputCategory {
+  domain.InputCategory toDomain() => domain.InputCategory(
+        id: id,
+        name: name,
+        active: active,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+        version: version,
+        deleted: deleted,
+      );
+}
+
 extension InputRowMapper on Input {
   domain.Input toDomain() => domain.Input(
         id: id,
         name: name,
         unit: unit,
+        categoryId: categoryId,
         active: active,
         createdAt: createdAt,
         updatedAt: updatedAt,

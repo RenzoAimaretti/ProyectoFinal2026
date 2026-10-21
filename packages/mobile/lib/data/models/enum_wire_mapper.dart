@@ -56,17 +56,35 @@ MachineActivityType? machineActivityTypeFromWire(String value) =>
       _ => null,
     };
 
+// ─── TaskStatus ───────────────────────────────────────────────────────────────
+
+String taskStatusToWire(TaskStatus e) => switch (e) {
+      TaskStatus.PENDING => 'PENDIENTE',
+      TaskStatus.IN_PROGRESS => 'EN_PROGRESO',
+      TaskStatus.COMPLETED => 'FINALIZADA',
+      TaskStatus.CANCELLED => 'CANCELADA',
+    };
+
+TaskStatus? taskStatusFromWire(String value) => switch (value) {
+      'PENDIENTE' => TaskStatus.PENDING,
+      'EN_PROGRESO' => TaskStatus.IN_PROGRESS,
+      'FINALIZADA' => TaskStatus.COMPLETED,
+      'CANCELADA' => TaskStatus.CANCELLED,
+      _ => null,
+    };
+
 // ─── MachineStatus ────────────────────────────────────────────────────────────
 
 String machineStatusToWire(MachineStatus e) => switch (e) {
       MachineStatus.ACTIVE => 'ACTIVA',
+      MachineStatus.MAINTENANCE => 'MANTENIMIENTO',
       MachineStatus.OUT_OF_SERVICE => 'FUERA_SERVICIO',
     };
 
 MachineStatus? machineStatusFromWire(String value) => switch (value) {
       'ACTIVA' => MachineStatus.ACTIVE,
+      'MANTENIMIENTO' => MachineStatus.MAINTENANCE,
       'FUERA_SERVICIO' => MachineStatus.OUT_OF_SERVICE,
-      // `MANTENIMIENTO` existe en el backend pero el móvil no lo modela.
       _ => null,
     };
 

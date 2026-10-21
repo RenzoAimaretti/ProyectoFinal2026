@@ -3,9 +3,13 @@ import {
   InvalidInputError,
   InvalidRelationError,
 } from '../../domain/errors';
+import { LotPolygon } from '../../domain/lot-polygon';
 import { FarmReaderPort, LotRepositoryPort } from '../lot.ports';
 import { LotRecord, UpdateLotInput } from '../lot.types';
-import { assertPositiveNumber, assertRequiredString } from '../lot.validation';
+import {
+  assertPositiveNumber,
+  assertRequiredString,
+} from '../lot.validation';
 
 export class UpdateLotUseCase {
   constructor(
@@ -26,6 +30,7 @@ export class UpdateLotUseCase {
       ...(data.name !== undefined ? { name: data.name } : {}),
       ...(data.farmId !== undefined ? { farmId: data.farmId } : {}),
       ...(data.coords !== undefined ? { coords: data.coords } : {}),
+      ...(data.polygon !== undefined ? { polygon: data.polygon } : {}),
       ...(data.area !== undefined ? { area: data.area } : {}),
       ...(data.active !== undefined ? { active: data.active } : {}),
     };
@@ -49,6 +54,12 @@ export class UpdateLotUseCase {
       updateData.coords = sanitizedData.coords;
     }
 
+    if (sanitizedData.polygon !== undefined && sanitizedData.polygon !== null) {
+      const polygon = LotPolygon.fromGeoJson(sanitizedData.polygon);
+      updateData.polygon = polygon.toGeoJson();
+      updateData.area = polygon.areaHectares();
+    }
+
     if (sanitizedData.farmId !== undefined) {
       const farmId = assertRequiredString(sanitizedData.farmId, 'farmId');
       const farm = await this.farmReader.findByIdForTenant(farmId, tenantId);
@@ -61,7 +72,7 @@ export class UpdateLotUseCase {
       updateData.farmId = farmId;
     }
 
-    if (sanitizedData.area !== undefined) {
+    if (sanitizedData.area !== undefined && updateData.area === undefined) {
       updateData.area = assertPositiveNumber(sanitizedData.area, 'area');
     }
 

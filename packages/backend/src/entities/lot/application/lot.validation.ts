@@ -1,3 +1,4 @@
+import { GeoJsonPolygon, LotPolygon } from '../domain/lot-polygon';
 import { InvalidInputError } from '../domain/errors';
 
 export function assertRequiredString(value: unknown, fieldName: string) {
@@ -14,4 +15,20 @@ export function assertPositiveNumber(value: unknown, fieldName: string) {
   }
 
   return value;
+}
+
+/**
+ * Absent or null means "no polygon supplied in this write", which CUU02 allows:
+ * creating a lot and delimiting it are separate moments. Any other value must
+ * satisfy every rule of the frozen polygon contract, or it is rejected with the
+ * exact message the domain produced.
+ */
+export function assertOptionalPolygon(
+  value: unknown,
+): GeoJsonPolygon | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  return LotPolygon.fromGeoJson(value).toGeoJson();
 }
