@@ -89,9 +89,10 @@ opening a PR, mobile runtime verification (Flutter SDK not installed here).
 - [x] **T08 — Frontend verification.** `tsc --noEmit` clean, `next build` clean
   (21 routes incl. `/dashboard/mi-campo`, `/dashboard/categorias`,
   `/dashboard/labores`), `node --test` 8/8 passing.
-- [ ] **T09 — Apply migrations to the local database.** Pending: the local
-  `proyectofinal` DB still has only the 5 pre-merge migrations; 12 are pending.
-  Deliberately not executed because it mutates the developer's data.
+- [x] **T09 — Apply migrations to the local database.** Backup taken first
+  (`proyectofinal_premerge.dump`, custom format, outside the repo), then
+  `prisma migrate deploy` applied the 12 pending `dev` migrations. Status is up
+  to date and `migrate diff` reports no drift against the merged schema.
 
 ## Verification evidence
 
@@ -100,6 +101,9 @@ opening a PR, mobile runtime verification (Flutter SDK not installed here).
 | Prisma schema | `npx prisma validate` | valid |
 | Migration chain | `prisma migrate deploy` on `merge_check` DB | 17/17 applied |
 | Migration drift | `prisma migrate diff --from-config-datasource --to-schema` | no difference |
+| Local DB migrate | `prisma migrate deploy` on `proyectofinal` | 12 pending applied, 17/17 total |
+| Local DB drift | `prisma migrate diff --from-config-datasource --to-schema` | no difference |
+| Data preserved | SQL counts after deploy | 1 tenant, 5 inputs (5 categorized), 10 stocks, 3 recipes, `Task.prescriptionStatus` unchanged, `LaborType.requiresPrescription` survived the rename |
 | Backend types | `npx tsc -p tsconfig.json --noEmit` | clean |
 | Backend build | `npm run build` | clean |
 | Backend tests | `npm test` | 122 suites, 1268 tests passed |
@@ -111,7 +115,11 @@ opening a PR, mobile runtime verification (Flutter SDK not installed here).
 
 - Flutter SDK is not installed in this environment, so `packages/mobile`
   (changed only by `dev`) was not analysed or tested here.
+- The local database is migrated. Existing demo data predates `dev`'s seed, so
+  every `LaborType.kind` is `OTRO`; running `npm run db:seed` would refresh the
+  demo catalog with the semantic kinds (`PULVERIZACION`, `FERTILIZACION`,
+  `SIEMBRA`) and the new machinery demo rows, but it deletes and recreates the
+  demo data first.
 - `npm run lint` on `packages/nextjs` reports one pre-existing
   `react-hooks/set-state-in-effect` error in `src/components/ui/reveal.tsx`, a
   file untouched by this merge.
-- The local database must be migrated before running the merged app.
