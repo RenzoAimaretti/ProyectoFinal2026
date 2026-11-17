@@ -68,6 +68,7 @@ export class InputController {
       return await this.createInput.execute(req.user.tenantId, {
         name: body.name,
         unit: body.unit,
+        categoryId: body.categoryId,
       });
     } catch (error) {
       this.translate(error);
@@ -85,6 +86,7 @@ export class InputController {
     try {
       return await this.updateInput.execute(id, req.user.tenantId, {
         ...(body.name !== undefined ? { name: body.name } : {}),
+        ...(body.categoryId !== undefined ? { categoryId: body.categoryId } : {}),
         ...(body.unit !== undefined ? { unit: body.unit } : {}),
         ...(body.active !== undefined ? { active: body.active } : {}),
       });

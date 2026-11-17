@@ -38,6 +38,7 @@ export type MachineMinAggregateOutputType = {
   id: string | null
   companyId: string | null
   name: string | null
+  type: string | null
   brand: string | null
   status: $Enums.MachineStatus | null
   entryDate: Date | null
@@ -52,6 +53,7 @@ export type MachineMaxAggregateOutputType = {
   id: string | null
   companyId: string | null
   name: string | null
+  type: string | null
   brand: string | null
   status: $Enums.MachineStatus | null
   entryDate: Date | null
@@ -66,6 +68,7 @@ export type MachineCountAggregateOutputType = {
   id: number
   companyId: number
   name: number
+  type: number
   brand: number
   status: number
   entryDate: number
@@ -90,6 +93,7 @@ export type MachineMinAggregateInputType = {
   id?: true
   companyId?: true
   name?: true
+  type?: true
   brand?: true
   status?: true
   entryDate?: true
@@ -104,6 +108,7 @@ export type MachineMaxAggregateInputType = {
   id?: true
   companyId?: true
   name?: true
+  type?: true
   brand?: true
   status?: true
   entryDate?: true
@@ -118,6 +123,7 @@ export type MachineCountAggregateInputType = {
   id?: true
   companyId?: true
   name?: true
+  type?: true
   brand?: true
   status?: true
   entryDate?: true
@@ -219,6 +225,7 @@ export type MachineGroupByOutputType = {
   id: string
   companyId: string
   name: string
+  type: string | null
   brand: string | null
   status: $Enums.MachineStatus
   entryDate: Date | null
@@ -256,6 +263,7 @@ export type MachineWhereInput = {
   id?: Prisma.StringFilter<"Machine"> | string
   companyId?: Prisma.StringFilter<"Machine"> | string
   name?: Prisma.StringFilter<"Machine"> | string
+  type?: Prisma.StringNullableFilter<"Machine"> | string | null
   brand?: Prisma.StringNullableFilter<"Machine"> | string | null
   status?: Prisma.EnumMachineStatusFilter<"Machine"> | $Enums.MachineStatus
   entryDate?: Prisma.DateTimeNullableFilter<"Machine"> | Date | string | null
@@ -273,6 +281,7 @@ export type MachineOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  type?: Prisma.SortOrderInput | Prisma.SortOrder
   brand?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   entryDate?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -293,6 +302,7 @@ export type MachineWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.MachineWhereInput | Prisma.MachineWhereInput[]
   companyId?: Prisma.StringFilter<"Machine"> | string
   name?: Prisma.StringFilter<"Machine"> | string
+  type?: Prisma.StringNullableFilter<"Machine"> | string | null
   brand?: Prisma.StringNullableFilter<"Machine"> | string | null
   status?: Prisma.EnumMachineStatusFilter<"Machine"> | $Enums.MachineStatus
   entryDate?: Prisma.DateTimeNullableFilter<"Machine"> | Date | string | null
@@ -310,6 +320,7 @@ export type MachineOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  type?: Prisma.SortOrderInput | Prisma.SortOrder
   brand?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   entryDate?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -332,6 +343,7 @@ export type MachineScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Machine"> | string
   companyId?: Prisma.StringWithAggregatesFilter<"Machine"> | string
   name?: Prisma.StringWithAggregatesFilter<"Machine"> | string
+  type?: Prisma.StringNullableWithAggregatesFilter<"Machine"> | string | null
   brand?: Prisma.StringNullableWithAggregatesFilter<"Machine"> | string | null
   status?: Prisma.EnumMachineStatusWithAggregatesFilter<"Machine"> | $Enums.MachineStatus
   entryDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Machine"> | Date | string | null
@@ -345,6 +357,7 @@ export type MachineScalarWhereWithAggregatesInput = {
 export type MachineCreateInput = {
   id?: string
   name: string
+  type?: string | null
   brand?: string | null
   status?: $Enums.MachineStatus
   entryDate?: Date | string | null
@@ -362,6 +375,7 @@ export type MachineUncheckedCreateInput = {
   id?: string
   companyId: string
   name: string
+  type?: string | null
   brand?: string | null
   status?: $Enums.MachineStatus
   entryDate?: Date | string | null
@@ -377,6 +391,7 @@ export type MachineUncheckedCreateInput = {
 export type MachineUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -394,6 +409,7 @@ export type MachineUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -410,6 +426,7 @@ export type MachineCreateManyInput = {
   id?: string
   companyId: string
   name: string
+  type?: string | null
   brand?: string | null
   status?: $Enums.MachineStatus
   entryDate?: Date | string | null
@@ -423,6 +440,7 @@ export type MachineCreateManyInput = {
 export type MachineUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -437,6 +455,7 @@ export type MachineUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -461,6 +480,7 @@ export type MachineCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   status?: Prisma.SortOrder
   entryDate?: Prisma.SortOrder
@@ -479,6 +499,7 @@ export type MachineMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   status?: Prisma.SortOrder
   entryDate?: Prisma.SortOrder
@@ -493,6 +514,7 @@ export type MachineMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   brand?: Prisma.SortOrder
   status?: Prisma.SortOrder
   entryDate?: Prisma.SortOrder
@@ -589,6 +611,7 @@ export type MachineUpdateOneRequiredWithoutMachineActivitiesNestedInput = {
 export type MachineCreateWithoutCompanyInput = {
   id?: string
   name: string
+  type?: string | null
   brand?: string | null
   status?: $Enums.MachineStatus
   entryDate?: Date | string | null
@@ -604,6 +627,7 @@ export type MachineCreateWithoutCompanyInput = {
 export type MachineUncheckedCreateWithoutCompanyInput = {
   id?: string
   name: string
+  type?: string | null
   brand?: string | null
   status?: $Enums.MachineStatus
   entryDate?: Date | string | null
@@ -649,6 +673,7 @@ export type MachineScalarWhereInput = {
   id?: Prisma.StringFilter<"Machine"> | string
   companyId?: Prisma.StringFilter<"Machine"> | string
   name?: Prisma.StringFilter<"Machine"> | string
+  type?: Prisma.StringNullableFilter<"Machine"> | string | null
   brand?: Prisma.StringNullableFilter<"Machine"> | string | null
   status?: Prisma.EnumMachineStatusFilter<"Machine"> | $Enums.MachineStatus
   entryDate?: Prisma.DateTimeNullableFilter<"Machine"> | Date | string | null
@@ -662,6 +687,7 @@ export type MachineScalarWhereInput = {
 export type MachineCreateWithoutUsagesInput = {
   id?: string
   name: string
+  type?: string | null
   brand?: string | null
   status?: $Enums.MachineStatus
   entryDate?: Date | string | null
@@ -678,6 +704,7 @@ export type MachineUncheckedCreateWithoutUsagesInput = {
   id?: string
   companyId: string
   name: string
+  type?: string | null
   brand?: string | null
   status?: $Enums.MachineStatus
   entryDate?: Date | string | null
@@ -708,6 +735,7 @@ export type MachineUpdateToOneWithWhereWithoutUsagesInput = {
 export type MachineUpdateWithoutUsagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -724,6 +752,7 @@ export type MachineUncheckedUpdateWithoutUsagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -738,6 +767,7 @@ export type MachineUncheckedUpdateWithoutUsagesInput = {
 export type MachineCreateWithoutMachineActivitiesInput = {
   id?: string
   name: string
+  type?: string | null
   brand?: string | null
   status?: $Enums.MachineStatus
   entryDate?: Date | string | null
@@ -754,6 +784,7 @@ export type MachineUncheckedCreateWithoutMachineActivitiesInput = {
   id?: string
   companyId: string
   name: string
+  type?: string | null
   brand?: string | null
   status?: $Enums.MachineStatus
   entryDate?: Date | string | null
@@ -784,6 +815,7 @@ export type MachineUpdateToOneWithWhereWithoutMachineActivitiesInput = {
 export type MachineUpdateWithoutMachineActivitiesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -800,6 +832,7 @@ export type MachineUncheckedUpdateWithoutMachineActivitiesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -814,6 +847,7 @@ export type MachineUncheckedUpdateWithoutMachineActivitiesInput = {
 export type MachineCreateManyCompanyInput = {
   id?: string
   name: string
+  type?: string | null
   brand?: string | null
   status?: $Enums.MachineStatus
   entryDate?: Date | string | null
@@ -827,6 +861,7 @@ export type MachineCreateManyCompanyInput = {
 export type MachineUpdateWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -842,6 +877,7 @@ export type MachineUpdateWithoutCompanyInput = {
 export type MachineUncheckedUpdateWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -857,6 +893,7 @@ export type MachineUncheckedUpdateWithoutCompanyInput = {
 export type MachineUncheckedUpdateManyWithoutCompanyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   brand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumMachineStatusFieldUpdateOperationsInput | $Enums.MachineStatus
   entryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -911,6 +948,7 @@ export type MachineSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   id?: boolean
   companyId?: boolean
   name?: boolean
+  type?: boolean
   brand?: boolean
   status?: boolean
   entryDate?: boolean
@@ -929,6 +967,7 @@ export type MachineSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   companyId?: boolean
   name?: boolean
+  type?: boolean
   brand?: boolean
   status?: boolean
   entryDate?: boolean
@@ -944,6 +983,7 @@ export type MachineSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   companyId?: boolean
   name?: boolean
+  type?: boolean
   brand?: boolean
   status?: boolean
   entryDate?: boolean
@@ -959,6 +999,7 @@ export type MachineSelectScalar = {
   id?: boolean
   companyId?: boolean
   name?: boolean
+  type?: boolean
   brand?: boolean
   status?: boolean
   entryDate?: boolean
@@ -969,7 +1010,7 @@ export type MachineSelectScalar = {
   deleted?: boolean
 }
 
-export type MachineOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "companyId" | "name" | "brand" | "status" | "entryDate" | "maintenanceDate" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["machine"]>
+export type MachineOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "companyId" | "name" | "type" | "brand" | "status" | "entryDate" | "maintenanceDate" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["machine"]>
 export type MachineInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   usages?: boolean | Prisma.Machine$usagesArgs<ExtArgs>
@@ -994,6 +1035,7 @@ export type $MachinePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     id: string
     companyId: string
     name: string
+    type: string | null
     brand: string | null
     status: $Enums.MachineStatus
     entryDate: Date | null
@@ -1431,6 +1473,7 @@ export interface MachineFieldRefs {
   readonly id: Prisma.FieldRef<"Machine", 'String'>
   readonly companyId: Prisma.FieldRef<"Machine", 'String'>
   readonly name: Prisma.FieldRef<"Machine", 'String'>
+  readonly type: Prisma.FieldRef<"Machine", 'String'>
   readonly brand: Prisma.FieldRef<"Machine", 'String'>
   readonly status: Prisma.FieldRef<"Machine", 'MachineStatus'>
   readonly entryDate: Prisma.FieldRef<"Machine", 'DateTime'>

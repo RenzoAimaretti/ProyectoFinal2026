@@ -1,4 +1,4 @@
-import { EntityNotFoundError, InvalidInputError, InvalidRelationError } from '../../domain/errors';
+import { DuplicateUsageIdError, EntityNotFoundError, InvalidInputError, InvalidRelationError } from '../../domain/errors';
 import {
   MachineReaderPort,
   MachineUsageRepositoryPort,
@@ -6,7 +6,7 @@ import {
   UserReaderPort,
 } from '../machine-usage.ports';
 import { CreateMachineUsageInput, MachineUsageRecord } from '../machine-usage.types';
-import { assertRequiredString } from '../machine-usage.validation';
+import { assertOptionalClientId, assertOptionalNotes, assertOptionalPositiveNumber, assertOptionalWorkDate, assertRequiredString } from '../machine-usage.validation';
 
 export class CreateMachineUsageUseCase {
   constructor(
@@ -16,10 +16,18 @@ export class CreateMachineUsageUseCase {
     private readonly userReader: UserReaderPort,
   ) {}
 
-  async execute(companyId: string, input: CreateMachineUsageInput): Promise<MachineUsageRecord> {
+  async execute(companyId: string, input: CreateMachineUsageInput, actor?: { id: string; role: string }): Promise<MachineUsageRecord> {
+    const id = assertOptionalClientId(input?.id);
     const machineId = assertRequiredString(input?.machineId, 'machineId');
     const taskId = assertRequiredString(input?.taskId, 'taskId');
     const operatorId = assertRequiredString(input?.operatorId, 'operatorId');
+    if (actor?.role === 'OPERARIO' && actor.id !== operatorId) {
+      throw new InvalidRelationError('Operator may only register their own usage');
+    }
+    const usageHours = assertOptionalPositiveNumber(input?.usageHours, 'usageHours');
+    const hectares = assertOptionalPositiveNumber(input?.hectares, 'hectares');
+    const workDate = assertOptionalWorkDate(input?.workDate);
+    const observations = assertOptionalNotes(input?.observations);
 
     const machine = await this.machineReader.findByIdForCompany(machineId, companyId);
     if (!machine) {
@@ -52,14 +60,43 @@ export class CreateMachineUsageUseCase {
       throw new InvalidRelationError('Operator is not assigned to the task');
     }
 
+    const matchesRetry = (existing: MachineUsageRecord | null): existing is MachineUsageRecord =>
+      existing !== null && existing.machineId === machineId && existing.taskId === taskId &&
+      existing.operatorId === operatorId && existing.initialFuel === (input?.intialFuel ?? null) &&
+      existing.usageHours === (usageHours ?? null) && existing.hectares === (hectares ?? null) &&
+      (existing.workDate?.getTime() ?? null) === (workDate?.getTime() ?? null) &&
+      existing.observations === (observations ?? null);
+
+    if (id) {
+      const existing = await this.repository.findByIdForCompany(id, companyId);
+      if (existing) {
+        if (matchesRetry(existing)) return existing;
+        throw new DuplicateUsageIdError();
+      }
+    }
+
     if (machine.status !== 'ACTIVA') {
       throw new InvalidInputError('Machine esta en mantenimiento o inactiva');
     }
 
-    return this.repository.create({
-      machineId,
-      taskId,
-      initialFuel: input?.intialFuel,
-    });
+    try {
+      return await this.repository.create({
+        ...(id ? { id } : {}),
+        operatorId,
+        machineId,
+        taskId,
+        initialFuel: input?.intialFuel,
+        ...(usageHours !== undefined ? { usageHours } : {}),
+        ...(hectares !== undefined ? { hectares } : {}),
+        ...(workDate !== undefined ? { workDate } : {}),
+        ...(observations !== undefined ? { observations } : {}),
+      });
+    } catch (error) {
+      if (id && error instanceof DuplicateUsageIdError) {
+        const existing = await this.repository.findByIdForCompany(id, companyId);
+        if (matchesRetry(existing)) return existing;
+      }
+      throw error;
+    }
   }
 }

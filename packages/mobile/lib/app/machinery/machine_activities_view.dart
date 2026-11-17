@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../domain/models/enums.dart';
-import '../../domain/models/machine_activity_summary.dart';
+import '../../domain/models/machine_history_entry.dart';
 import '../../presentation/components/empty_state.dart';
 import 'machine_activities_view_model.dart';
 
 /// Historial de actividades de maquinaria (CUU08).
 ///
-/// Lista las [MachineActivitySummary] vía `StreamBuilder` sobre el ViewModel.
+/// Lista las [MachineHistoryEntry] vía `StreamBuilder` sobre el ViewModel.
 /// Cada fila muestra el NOMBRE de la máquina (join D2), tipo y fecha.
 class MachineActivitiesView extends StatelessWidget {
   const MachineActivitiesView({super.key, required this.viewModel});
@@ -18,19 +18,19 @@ class MachineActivitiesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // ListenableBuilder resuscribe el StreamBuilder cuando cambia la firma
-    // activa (el ViewModel notifica y `summaries` devuelve un stream nuevo).
+    // activa (el ViewModel notifica y `history` devuelve un stream nuevo).
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, _) {
-        return StreamBuilder<List<MachineActivitySummary>>(
-          stream: viewModel.summaries,
+        return StreamBuilder<List<MachineHistoryEntry>>(
+          stream: viewModel.history,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting &&
                 !snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final activities = snapshot.data ?? const <MachineActivitySummary>[];
+            final activities = snapshot.data ?? const <MachineHistoryEntry>[];
             if (activities.isEmpty) {
               return const EmptyState(
                 icon: Icons.agriculture_outlined,
@@ -58,7 +58,7 @@ class MachineActivitiesView extends StatelessWidget {
 class _ActivityTile extends StatelessWidget {
   const _ActivityTile({required this.activity});
 
-  final MachineActivitySummary activity;
+  final MachineHistoryEntry activity;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +90,7 @@ class _ActivityTile extends StatelessWidget {
         ),
       ),
       subtitle: Text(
-        '${_typeLabel(activity.type)} · ${_formatDate(activity.date)}',
+        '${activity.isTaskUsage ? 'Uso por tarea' : _typeLabel(activity.type!)} · ${_formatDate(activity.date)}',
         style: const TextStyle(
           fontSize: 12,
           color: AppColors.onSurfaceVariant,

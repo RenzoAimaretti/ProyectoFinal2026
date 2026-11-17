@@ -5,16 +5,18 @@ import {
   EntityNotFoundError,
   InvalidInputError,
 } from '../../domain/errors';
-import { InputRepositoryPort } from '../input.ports';
-import { CreateInputInput, UpdateInputInput } from '../input.types';
+import { InputUnit } from '../../domain/input-unit';
+import { InputRepositoryPort, InputStockReaderPort } from '../input.ports';
+import { CreateInputInput, InputRecord, UpdateInputInput } from '../input.types';
 import { CreateInputUseCase } from './create-input.use-case';
 import { FindAllInputsUseCase } from './find-all-inputs.use-case';
 import { FindInputUseCase } from './find-input.use-case';
 import { UpdateInputUseCase } from './update-input.use-case';
 
-const baseInput = {
+const baseInput: InputRecord = {
   id: 'input-1',
   tenantId: 'tenant-1',
+  categoryId: 'category-1',
   name: 'Glifosato',
   unit: 'L',
   active: true,
@@ -118,12 +120,21 @@ describe('Input use cases', () => {
   });
 
   describe('CreateInputUseCase', () => {
+    it('rejects a category belonging to another tenant before creating an input', async () => {
+      const repository = createRepository();
+      const categoryLookup = jest.fn().mockResolvedValue(null);
+      const useCase = new (CreateInputUseCase as any)(repository, { findByIdForTenant: categoryLookup });
+      await expect(useCase.execute('tenant-1', { name: 'Glifosato', unit: 'L', categoryId: 'foreign-category' } as any))
+        .rejects.toBeInstanceOf(EntityNotFoundError);
+      expect(categoryLookup).toHaveBeenCalledWith('foreign-category', 'tenant-1');
+      expect(repository.create).not.toHaveBeenCalled();
+    });
     let repository: jest.Mocked<InputRepositoryPort>;
     let useCase: CreateInputUseCase;
 
     beforeEach(() => {
       repository = createRepository();
-      useCase = new CreateInputUseCase(repository);
+      useCase = new CreateInputUseCase(repository, { findByIdForTenant: jest.fn().mockResolvedValue({ id: 'category-1' }) });
     });
 
     it.each([
@@ -131,7 +142,7 @@ describe('Input use cases', () => {
       ['name', ''],
       ['unit', ''],
     ])('rejects invalid required %s', async (field, value) => {
-      const input: CreateInputInput = { name: 'Glifosato', unit: 'L' };
+      const input: CreateInputInput = { name: 'Glifosato', unit: 'L', categoryId: 'category-1' };
       (input as Record<string, unknown>)[field] = value;
 
       await expect(useCase.execute('tenant-1', input)).rejects.toBeInstanceOf(
@@ -143,7 +154,7 @@ describe('Input use cases', () => {
       repository.findByNameAndTenantId.mockResolvedValue(baseInput);
 
       await expect(
-        useCase.execute('tenant-1', { name: 'Glifosato', unit: 'L' }),
+        useCase.execute('tenant-1', { name: 'Glifosato', unit: 'L', categoryId: 'category-1' }),
       ).rejects.toBeInstanceOf(DuplicateEntityError);
       expect(repository.findByNameAndTenantId).toHaveBeenCalledWith(
         'Glifosato',
@@ -156,13 +167,14 @@ describe('Input use cases', () => {
       repository.create.mockResolvedValue(baseInput);
 
       await expect(
-        useCase.execute('tenant-1', { name: 'Glifosato', unit: 'L' }),
+        useCase.execute('tenant-1', { name: 'Glifosato', unit: 'L', categoryId: 'category-1' }),
       ).resolves.toEqual(baseInput);
 
       expect(repository.create).toHaveBeenCalledWith({
         name: 'Glifosato',
         unit: 'L',
         tenantId: 'tenant-1',
+        categoryId: 'category-1',
       });
       expect(repository.findByNameAndTenantId).toHaveBeenCalledWith(
         'Glifosato',
@@ -175,7 +187,7 @@ describe('Input use cases', () => {
       repository.create.mockResolvedValue(otherTenantInput);
 
       await expect(
-        useCase.execute('tenant-2', { name: 'Glifosato', unit: 'L' }),
+        useCase.execute('tenant-2', { name: 'Glifosato', unit: 'L', categoryId: 'category-1' }),
       ).resolves.toEqual(otherTenantInput);
 
       expect(repository.findByNameAndTenantId).toHaveBeenCalledWith(
@@ -186,12 +198,24 @@ describe('Input use cases', () => {
   });
 
   describe('UpdateInputUseCase', () => {
+    it('rejects a category belonging to another tenant before updating an input', async () => {
+      const repository = createRepository();
+      repository.findByIdForTenant.mockResolvedValue(baseInput);
+      const categoryLookup = jest.fn().mockResolvedValue(null);
+      const useCase = new (UpdateInputUseCase as any)(repository, { hasNonZeroBalance: jest.fn() }, { findByIdForTenant: categoryLookup });
+      await expect(useCase.execute('input-1', 'tenant-1', { categoryId: 'foreign-category' } as any))
+        .rejects.toBeInstanceOf(EntityNotFoundError);
+      expect(categoryLookup).toHaveBeenCalledWith('foreign-category', 'tenant-1');
+      expect(repository.updateForTenant).not.toHaveBeenCalled();
+    });
     let repository: jest.Mocked<InputRepositoryPort>;
+    let stockReader: jest.Mocked<InputStockReaderPort>;
     let useCase: UpdateInputUseCase;
 
     beforeEach(() => {
       repository = createRepository();
-      useCase = new UpdateInputUseCase(repository);
+      stockReader = { hasNonZeroBalance: jest.fn() };
+      useCase = new UpdateInputUseCase(repository, stockReader, { findByIdForTenant: jest.fn().mockResolvedValue({ id: 'category-1' }) });
     });
 
     it.each([undefined, {}])(
@@ -216,9 +240,21 @@ describe('Input use cases', () => {
       repository.findByIdForTenant.mockResolvedValue(baseInput);
 
       await expect(
-        useCase.execute('input-1', 'tenant-1', { unit: '' }),
+        useCase.execute('input-1', 'tenant-1', { unit: '' as unknown as InputUnit }),
       ).rejects.toBeInstanceOf(InvalidInputError);
       expect(repository.updateForTenant).not.toHaveBeenCalled();
+    });
+
+    it('rejects a unit outside the locked vocabulary', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseInput);
+
+      await expect(
+        useCase.execute('input-1', 'tenant-1', {
+          unit: 'POUND' as unknown as InputUnit,
+        }),
+      ).rejects.toBeInstanceOf(InvalidInputError);
+      expect(repository.updateForTenant).not.toHaveBeenCalled();
+      expect(stockReader.hasNonZeroBalance).not.toHaveBeenCalled();
     });
 
     it('updates an input within the tenant', async () => {
@@ -245,6 +281,45 @@ describe('Input use cases', () => {
         'tenant-1',
         { name: 'Atrazina', active: false },
       );
+    });
+
+    it('refuses a unit change when the input has a non-zero stock balance', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseInput);
+      stockReader.hasNonZeroBalance.mockResolvedValue(true);
+
+      await expect(
+        useCase.execute('input-1', 'tenant-1', { unit: 'KG' }),
+      ).rejects.toBeInstanceOf(InvalidInputError);
+      expect(repository.updateForTenant).not.toHaveBeenCalled();
+    });
+
+    it('allows a unit change when every balance is zero', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseInput);
+      stockReader.hasNonZeroBalance.mockResolvedValue(false);
+      repository.updateForTenant.mockResolvedValue({ ...baseInput, unit: 'KG' });
+
+      await expect(
+        useCase.execute('input-1', 'tenant-1', { unit: 'KG' }),
+      ).resolves.toEqual({ ...baseInput, unit: 'KG' });
+
+      expect(stockReader.hasNonZeroBalance).toHaveBeenCalledWith('input-1');
+      expect(repository.updateForTenant).toHaveBeenCalledWith(
+        'input-1',
+        'tenant-1',
+        { unit: 'KG' },
+      );
+    });
+
+    it('does not check stock when the incoming unit is unchanged', async () => {
+      repository.findByIdForTenant.mockResolvedValue(baseInput);
+      repository.updateForTenant.mockResolvedValue(baseInput);
+
+      await useCase.execute('input-1', 'tenant-1', {
+        name: 'Atrazina',
+        unit: 'L',
+      });
+
+      expect(stockReader.hasNonZeroBalance).not.toHaveBeenCalled();
     });
   });
 });

@@ -7,12 +7,13 @@ import { itemQuantityVariance } from '../../domain/reception.rules';
 import { ReceptionStatus } from '../../domain/reception-status';
 
 /**
- * Items are always read together with the catalogue name of their input so the
- * inbound adapter can expose `inputName` without an extra round trip.
+ * Items are always read together with the catalogue name and unit of their
+ * input so the inbound adapter can expose `inputName` without an extra round
+ * trip, and the validation adapter can snapshot the catalogue unit into stock.
  */
 export const RECEPTION_ITEM_INCLUDE = {
   orderBy: [{ id: 'asc' as const }],
-  include: { input: { select: { name: true as const } } },
+  include: { input: { select: { name: true as const, unit: true as const } } },
 };
 
 /**

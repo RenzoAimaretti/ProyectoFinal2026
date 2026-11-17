@@ -67,6 +67,7 @@ export type LotCountAggregateOutputType = {
   farmId: number
   name: number
   coords: number
+  polygon: number
   area: number
   active: number
   createdAt: number
@@ -118,6 +119,7 @@ export type LotCountAggregateInputType = {
   farmId?: true
   name?: true
   coords?: true
+  polygon?: true
   area?: true
   active?: true
   createdAt?: true
@@ -218,6 +220,7 @@ export type LotGroupByOutputType = {
   farmId: string
   name: string
   coords: string | null
+  polygon: runtime.JsonValue | null
   area: number
   active: boolean
   createdAt: Date
@@ -254,6 +257,7 @@ export type LotWhereInput = {
   farmId?: Prisma.StringFilter<"Lot"> | string
   name?: Prisma.StringFilter<"Lot"> | string
   coords?: Prisma.StringNullableFilter<"Lot"> | string | null
+  polygon?: Prisma.JsonNullableFilter<"Lot">
   area?: Prisma.FloatFilter<"Lot"> | number
   active?: Prisma.BoolFilter<"Lot"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Lot"> | Date | string
@@ -273,6 +277,7 @@ export type LotOrderByWithRelationInput = {
   farmId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   coords?: Prisma.SortOrderInput | Prisma.SortOrder
+  polygon?: Prisma.SortOrderInput | Prisma.SortOrder
   area?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -295,6 +300,7 @@ export type LotWhereUniqueInput = Prisma.AtLeast<{
   farmId?: Prisma.StringFilter<"Lot"> | string
   name?: Prisma.StringFilter<"Lot"> | string
   coords?: Prisma.StringNullableFilter<"Lot"> | string | null
+  polygon?: Prisma.JsonNullableFilter<"Lot">
   area?: Prisma.FloatFilter<"Lot"> | number
   active?: Prisma.BoolFilter<"Lot"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Lot"> | Date | string
@@ -314,6 +320,7 @@ export type LotOrderByWithAggregationInput = {
   farmId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   coords?: Prisma.SortOrderInput | Prisma.SortOrder
+  polygon?: Prisma.SortOrderInput | Prisma.SortOrder
   area?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -335,6 +342,7 @@ export type LotScalarWhereWithAggregatesInput = {
   farmId?: Prisma.StringWithAggregatesFilter<"Lot"> | string
   name?: Prisma.StringWithAggregatesFilter<"Lot"> | string
   coords?: Prisma.StringNullableWithAggregatesFilter<"Lot"> | string | null
+  polygon?: Prisma.JsonNullableWithAggregatesFilter<"Lot">
   area?: Prisma.FloatWithAggregatesFilter<"Lot"> | number
   active?: Prisma.BoolWithAggregatesFilter<"Lot"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Lot"> | Date | string
@@ -347,6 +355,7 @@ export type LotCreateInput = {
   id?: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -366,6 +375,7 @@ export type LotUncheckedCreateInput = {
   farmId: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -383,6 +393,7 @@ export type LotUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -402,6 +413,7 @@ export type LotUncheckedUpdateInput = {
   farmId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -420,6 +432,7 @@ export type LotCreateManyInput = {
   farmId: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -432,6 +445,7 @@ export type LotUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -445,6 +459,7 @@ export type LotUncheckedUpdateManyInput = {
   farmId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -468,6 +483,7 @@ export type LotCountOrderByAggregateInput = {
   farmId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   coords?: Prisma.SortOrder
+  polygon?: Prisma.SortOrder
   area?: Prisma.SortOrder
   active?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -640,6 +656,7 @@ export type LotCreateWithoutFarmInput = {
   id?: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -657,6 +674,7 @@ export type LotUncheckedCreateWithoutFarmInput = {
   id?: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -704,6 +722,7 @@ export type LotScalarWhereInput = {
   farmId?: Prisma.StringFilter<"Lot"> | string
   name?: Prisma.StringFilter<"Lot"> | string
   coords?: Prisma.StringNullableFilter<"Lot"> | string | null
+  polygon?: Prisma.JsonNullableFilter<"Lot">
   area?: Prisma.FloatFilter<"Lot"> | number
   active?: Prisma.BoolFilter<"Lot"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Lot"> | Date | string
@@ -716,6 +735,7 @@ export type LotCreateWithoutTasksInput = {
   id?: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -734,6 +754,7 @@ export type LotUncheckedCreateWithoutTasksInput = {
   farmId: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -766,6 +787,7 @@ export type LotUpdateWithoutTasksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -784,6 +806,7 @@ export type LotUncheckedUpdateWithoutTasksInput = {
   farmId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -800,6 +823,7 @@ export type LotCreateWithoutRecipesInput = {
   id?: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -818,6 +842,7 @@ export type LotUncheckedCreateWithoutRecipesInput = {
   farmId: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -850,6 +875,7 @@ export type LotUpdateWithoutRecipesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -868,6 +894,7 @@ export type LotUncheckedUpdateWithoutRecipesInput = {
   farmId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -884,6 +911,7 @@ export type LotCreateWithoutDailyReportsInput = {
   id?: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -902,6 +930,7 @@ export type LotUncheckedCreateWithoutDailyReportsInput = {
   farmId: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -934,6 +963,7 @@ export type LotUpdateWithoutDailyReportsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -952,6 +982,7 @@ export type LotUncheckedUpdateWithoutDailyReportsInput = {
   farmId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -968,6 +999,7 @@ export type LotCreateWithoutLivestockInput = {
   id?: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -986,6 +1018,7 @@ export type LotUncheckedCreateWithoutLivestockInput = {
   farmId: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -1018,6 +1051,7 @@ export type LotUpdateWithoutLivestockInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1036,6 +1070,7 @@ export type LotUncheckedUpdateWithoutLivestockInput = {
   farmId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1052,6 +1087,7 @@ export type LotCreateWithoutMovementsInput = {
   id?: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -1070,6 +1106,7 @@ export type LotUncheckedCreateWithoutMovementsInput = {
   farmId: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -1102,6 +1139,7 @@ export type LotUpdateWithoutMovementsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1120,6 +1158,7 @@ export type LotUncheckedUpdateWithoutMovementsInput = {
   farmId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1136,6 +1175,7 @@ export type LotCreateManyFarmInput = {
   id?: string
   name: string
   coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area: number
   active?: boolean
   createdAt?: Date | string
@@ -1148,6 +1188,7 @@ export type LotUpdateWithoutFarmInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1165,6 +1206,7 @@ export type LotUncheckedUpdateWithoutFarmInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1182,6 +1224,7 @@ export type LotUncheckedUpdateManyWithoutFarmInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   area?: Prisma.FloatFieldUpdateOperationsInput | number
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1262,6 +1305,7 @@ export type LotSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
   farmId?: boolean
   name?: boolean
   coords?: boolean
+  polygon?: boolean
   area?: boolean
   active?: boolean
   createdAt?: boolean
@@ -1282,6 +1326,7 @@ export type LotSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extension
   farmId?: boolean
   name?: boolean
   coords?: boolean
+  polygon?: boolean
   area?: boolean
   active?: boolean
   createdAt?: boolean
@@ -1296,6 +1341,7 @@ export type LotSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extension
   farmId?: boolean
   name?: boolean
   coords?: boolean
+  polygon?: boolean
   area?: boolean
   active?: boolean
   createdAt?: boolean
@@ -1310,6 +1356,7 @@ export type LotSelectScalar = {
   farmId?: boolean
   name?: boolean
   coords?: boolean
+  polygon?: boolean
   area?: boolean
   active?: boolean
   createdAt?: boolean
@@ -1318,7 +1365,7 @@ export type LotSelectScalar = {
   deleted?: boolean
 }
 
-export type LotOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "farmId" | "name" | "coords" | "area" | "active" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["lot"]>
+export type LotOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "farmId" | "name" | "coords" | "polygon" | "area" | "active" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["lot"]>
 export type LotInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   farm?: boolean | Prisma.FarmDefaultArgs<ExtArgs>
   movements?: boolean | Prisma.Lot$movementsArgs<ExtArgs>
@@ -1350,6 +1397,7 @@ export type $LotPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     farmId: string
     name: string
     coords: string | null
+    polygon: runtime.JsonValue | null
     area: number
     active: boolean
     createdAt: Date
@@ -1789,6 +1837,7 @@ export interface LotFieldRefs {
   readonly farmId: Prisma.FieldRef<"Lot", 'String'>
   readonly name: Prisma.FieldRef<"Lot", 'String'>
   readonly coords: Prisma.FieldRef<"Lot", 'String'>
+  readonly polygon: Prisma.FieldRef<"Lot", 'Json'>
   readonly area: Prisma.FieldRef<"Lot", 'Float'>
   readonly active: Prisma.FieldRef<"Lot", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Lot", 'DateTime'>

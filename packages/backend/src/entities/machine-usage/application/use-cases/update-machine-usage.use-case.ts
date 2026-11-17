@@ -1,6 +1,7 @@
 import { EntityNotFoundError } from '../../domain/errors';
 import { MachineUsageRepositoryPort } from '../machine-usage.ports';
 import { MachineUsageRecord, UpdateMachineUsageData, UpdateMachineUsageInput } from '../machine-usage.types';
+import { assertOptionalPositiveNumber } from '../machine-usage.validation';
 
 export class UpdateMachineUsageUseCase {
   constructor(private readonly repository: MachineUsageRepositoryPort) {}
@@ -28,7 +29,11 @@ export class UpdateMachineUsageUseCase {
     }
 
     if ('usageHours' in payload) {
-      data.usageHours = payload.usageHours;
+      data.usageHours = assertOptionalPositiveNumber(payload.usageHours, 'usageHours');
+    }
+
+    if ('hectares' in payload) {
+      data.hectares = assertOptionalPositiveNumber(payload.hectares, 'hectares');
     }
 
     if ('observations' in payload) {

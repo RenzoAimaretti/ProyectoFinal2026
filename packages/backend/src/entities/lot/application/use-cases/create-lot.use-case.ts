@@ -4,7 +4,11 @@ import {
 } from '../../domain/errors';
 import { FarmReaderPort, LotRepositoryPort } from '../lot.ports';
 import { CreateLotInput, LotRecord } from '../lot.types';
-import { assertPositiveNumber, assertRequiredString } from '../lot.validation';
+import {
+  assertOptionalPolygon,
+  assertPositiveNumber,
+  assertRequiredString,
+} from '../lot.validation';
 
 export class CreateLotUseCase {
   constructor(
@@ -15,8 +19,12 @@ export class CreateLotUseCase {
   async execute(tenantId: string, data: CreateLotInput): Promise<LotRecord> {
     const name = assertRequiredString(data.name, 'name');
     const farmId = assertRequiredString(data.farmId, 'farmId');
-    const coords = assertRequiredString(data.coords, 'coords');
+    const coords =
+      data.coords === undefined
+        ? undefined
+        : assertRequiredString(data.coords, 'coords');
     const area = assertPositiveNumber(data.area, 'area');
+    const polygon = assertOptionalPolygon(data.polygon);
 
     const farm = await this.farmReader.findByIdForTenant(farmId, tenantId);
     if (!farm) {
@@ -33,7 +41,8 @@ export class CreateLotUseCase {
     return this.repository.create({
       name,
       farmId,
-      coords,
+      ...(coords !== undefined ? { coords } : {}),
+      ...(polygon !== undefined ? { polygon } : {}),
       area,
     });
   }

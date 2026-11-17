@@ -45,18 +45,18 @@ describe('PrismaDailyReport readers', () => {
   describe('PrismaDailyReportTaskReader', () => {
     const reader = new PrismaDailyReportTaskReader(prisma as never);
 
-    it('resolves the lot, the task type and the owning tenant from the referenced task', async () => {
+    it('resolves the lot, the labor type and the owning tenant from the referenced task', async () => {
       prisma.task.findUnique.mockResolvedValue({
         id: 'task-1',
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         lot: { farm: { client: { tenantId: 'tenant-1' } } },
       });
 
       await expect(reader.findByIdWithScope('task-1')).resolves.toEqual({
         id: 'task-1',
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         tenantId: 'tenant-1',
       });
 
@@ -65,7 +65,7 @@ describe('PrismaDailyReport readers', () => {
         select: {
           id: true,
           lotId: true,
-          taskTypeId: true,
+          laborTypeId: true,
           lot: {
             select: {
               farm: { select: { client: { select: { tenantId: true } } } },

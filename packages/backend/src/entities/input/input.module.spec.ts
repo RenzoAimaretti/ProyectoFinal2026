@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
-import { INPUT_REPOSITORY } from './application/input.ports';
+import { INPUT_REPOSITORY, INPUT_STOCK_READER } from './application/input.ports';
 import { CreateInputUseCase } from './application/use-cases/create-input.use-case';
 import { FindAllInputsUseCase } from './application/use-cases/find-all-inputs.use-case';
 import { FindInputUseCase } from './application/use-cases/find-input.use-case';
@@ -17,6 +17,8 @@ describe('InputModule', () => {
       updateForTenant: jest.fn(),
     };
 
+    const stockReader = { hasNonZeroBalance: jest.fn().mockResolvedValue(false) };
+
     const moduleRef = await Test.createTestingModule({
       imports: [InputModule],
     })
@@ -24,6 +26,8 @@ describe('InputModule', () => {
       .useValue({})
       .overrideProvider(INPUT_REPOSITORY)
       .useValue(repository)
+      .overrideProvider(INPUT_STOCK_READER)
+      .useValue(stockReader)
       .compile();
 
     expect(moduleRef.get(FindAllInputsUseCase)).toBeInstanceOf(

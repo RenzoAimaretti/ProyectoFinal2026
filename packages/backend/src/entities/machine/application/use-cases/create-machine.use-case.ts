@@ -1,7 +1,7 @@
 import { EntityNotFoundError } from '../../domain/errors';
 import { CompanyReaderPort, MachineRepositoryPort } from '../machine.ports';
 import { CreateMachineInput, MachineRecord } from '../machine.types';
-import { assertRequiredString, normalizeRequiredDate } from '../machine.validation';
+import { assertRequiredString, normalizeMachineType, normalizeRequiredDate } from '../machine.validation';
 
 export class CreateMachineUseCase {
   constructor(
@@ -23,6 +23,7 @@ export class CreateMachineUseCase {
     return this.repository.create({
       companyId: tenantCompanyId,
       name,
+      ...(input.type !== undefined ? { type: normalizeMachineType(input.type) } : {}),
       brand,
       entryDate,
     });

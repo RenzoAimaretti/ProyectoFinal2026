@@ -21,6 +21,14 @@ export function normalizeOptionalString(value: unknown, fieldName: string) {
   return value;
 }
 
+export function normalizeMachineType(value: unknown) {
+  if (value === null) return null;
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new InvalidInputError('type must be a non-empty string or null');
+  }
+  return value.trim();
+}
+
 export function normalizeOptionalDate(value: unknown, fieldName: string) {
   if (value === undefined) {
     return undefined;

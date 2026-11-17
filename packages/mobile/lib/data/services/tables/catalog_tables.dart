@@ -82,11 +82,36 @@ class LaborTypes extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('InputCategory')
+class InputCategories extends Table {
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get name => text()();
+  BoolColumn get active => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get version => integer().withDefault(const Constant(1))();
+  BoolColumn get deleted => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@TableIndex(name: 'idx_labor_type_categories_category_id', columns: {#categoryId})
+@DataClassName('LaborTypeCategory')
+class LaborTypeCategories extends Table {
+  TextColumn get laborTypeId => text().references(LaborTypes, #id)();
+  TextColumn get categoryId => text().references(InputCategories, #id)();
+
+  @override
+  Set<Column> get primaryKey => {laborTypeId, categoryId};
+}
+
 @DataClassName('Input')
 class Inputs extends Table {
   TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   TextColumn get name => text()();
   TextColumn get unit => text()();
+  TextColumn get categoryId => text().nullable().references(InputCategories, #id)();
   BoolColumn get active => boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();

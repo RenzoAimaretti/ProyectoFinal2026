@@ -95,6 +95,31 @@ export function CardHeader({
   );
 }
 
+/**
+ * PageHeader: encabezado superior de una pagina de modulo. Usa la placa
+ * operativa del rediseño para que cualquier modulo nuevo herede el mismo
+ * lenguaje visual que el resto del back-office.
+ */
+export function PageHeader({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
+      <div className="min-w-0">
+        <h2 className="text-xl font-semibold tracking-tight text-ink">{title}</h2>
+        {subtitle && <p className="mt-1 max-w-2xl text-sm text-ink-soft">{subtitle}</p>}
+      </div>
+      {action ? <div className="shrink-0">{action}</div> : null}
+    </section>
+  );
+}
+
 export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 
 const buttonVariant: Record<ButtonVariant, string> = {

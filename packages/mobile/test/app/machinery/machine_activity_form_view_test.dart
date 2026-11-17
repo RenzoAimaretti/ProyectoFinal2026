@@ -91,17 +91,16 @@ void main() {
       expect(find.text('Firma'), findsOneWidget);
     });
 
-    testWidgets('tipo uso en lote muestra campos de horas y hectáreas (R021)',
+    testWidgets('ya no ofrece uso en campo: ese uso se carga sobre una tarea',
         (tester) async {
       await tester.pumpWidget(_buildTestable(viewModel));
       await tester.pumpAndSettle();
 
-      // Tocar el botón de tipo "Uso en campo".
-      await tester.tap(find.text('Uso en campo'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Horas de uso'), findsOneWidget);
-      expect(find.text('Hectáreas'), findsOneWidget);
+      // El uso en campo vive en MachineUsageFormView (ligado a tarea).
+      expect(find.text('Uso en campo'), findsNothing);
+      expect(find.text('Combustible'), findsOneWidget);
+      expect(find.text('Mantenimiento'), findsOneWidget);
+      expect(find.text('Reparación'), findsOneWidget);
     });
   });
 }

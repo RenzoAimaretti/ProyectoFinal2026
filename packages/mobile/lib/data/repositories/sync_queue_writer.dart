@@ -10,6 +10,7 @@ abstract final class SyncEntity {
   static const String dailyReport = 'DAILY_REPORT';
   static const String reception = 'RECEPTION';
   static const String machineActivity = 'MACHINE_ACTIVITY';
+  static const String machineUsage = 'MACHINE_USAGE';
   static const String photo = 'PHOTO';
   static const String stock = 'STOCK';
 }

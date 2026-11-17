@@ -30,6 +30,7 @@ const pendingReception = {
       quantity: 10,
       validatedQuantity: null,
       unit: 'L',
+      input: { name: 'Glifosato', unit: 'L' },
     },
     {
       id: 'item-2',
@@ -38,6 +39,7 @@ const pendingReception = {
       quantity: 4,
       validatedQuantity: null,
       unit: 'kg',
+      input: { name: 'Urea', unit: 'KG' },
     },
   ],
 };
@@ -63,16 +65,26 @@ const expectedValidatedRecord: ReceptionRecord = {
   photos: [],
   items: [
     {
-      ...storedValidatedReception.items[0],
+      id: 'item-1',
+      receptionId: 'reception-1',
+      inputId: 'input-1',
+      quantity: 10,
       validatedQuantity: 12,
       quantityVariance: 2,
       variance: 2,
+      inputName: 'Glifosato',
+      unit: 'L',
     },
     {
-      ...storedValidatedReception.items[1],
+      id: 'item-2',
+      receptionId: 'reception-1',
+      inputId: 'input-2',
+      quantity: 4,
       validatedQuantity: 3,
       quantityVariance: -1,
       variance: -1,
+      inputName: 'Urea',
+      unit: 'kg',
     },
   ],
 };
@@ -81,7 +93,7 @@ const expectedInclude = {
   client: { select: { name: true } },
   items: {
     orderBy: [{ id: 'asc' }],
-    include: { input: { select: { name: true } } },
+    include: { input: { select: { name: true, unit: true } } },
   },
 };
 
@@ -167,13 +179,13 @@ describe('PrismaReceptionValidationAdapter', () => {
 
     expect(tx.stock.upsert).toHaveBeenNthCalledWith(1, {
       where: { clientId_inputId: { clientId: 'client-1', inputId: 'input-1' } },
-      create: { clientId: 'client-1', inputId: 'input-1', quantity: 12 },
-      update: { quantity: { increment: 12 } },
+      create: { clientId: 'client-1', inputId: 'input-1', quantity: 12, unit: 'L' },
+      update: { quantity: { increment: 12 }, unit: 'L' },
     });
     expect(tx.stock.upsert).toHaveBeenNthCalledWith(2, {
       where: { clientId_inputId: { clientId: 'client-1', inputId: 'input-2' } },
-      create: { clientId: 'client-1', inputId: 'input-2', quantity: 3 },
-      update: { quantity: { increment: 3 } },
+      create: { clientId: 'client-1', inputId: 'input-2', quantity: 3, unit: 'KG' },
+      update: { quantity: { increment: 3 }, unit: 'KG' },
     });
   });
 
@@ -344,8 +356,14 @@ describe('PrismaReceptionValidationAdapter', () => {
         rejectionReason: 'cantidad distinta',
         photos: [],
         items: pendingReception.items.map((item) => ({
-          ...item,
+          id: item.id,
+          receptionId: item.receptionId,
+          inputId: item.inputId,
+          quantity: item.quantity,
+          validatedQuantity: item.validatedQuantity,
           quantityVariance: null,
+          inputName: item.input?.name,
+          unit: item.unit,
         })),
       });
     });

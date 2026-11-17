@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../auth/guards/roles.guard';
 import { ROLES_KEY } from '../../../../auth/decorators/roles.decorator';
@@ -11,8 +11,11 @@ import { RegisterMachineActivityUseCase } from '../../application/use-cases/regi
 import {
   EntityNotFoundError,
   InvalidRelationError,
+  ReceiptAlreadyAttachedError,
 } from '../../domain/errors';
 import { MachineActivityController } from './machine-activity.controller';
+import { AttachFuelReceiptUseCase } from '../../application/use-cases/attach-fuel-receipt.use-case';
+import { ReadFuelReceiptUseCase } from '../../application/use-cases/read-fuel-receipt.use-case';
 
 const mockActivity: MachineActivityRecord = {
   id: 'activity-1',
@@ -31,13 +34,15 @@ const mockActivity: MachineActivityRecord = {
   updatedAt: new Date('2026-03-09T10:00:00.000Z'),
 };
 
-const req = { user: { firmaId: 'company-1' } };
+const req = { user: { firmaId: 'company-1', role: 'ADMIN' } };
 
 describe('MachineActivityController', () => {
   let controller: MachineActivityController;
   let findAllMachineActivities: jest.Mocked<FindAllMachineActivitiesUseCase>;
   let findMachineActivity: jest.Mocked<FindMachineActivityUseCase>;
   let registerMachineActivity: jest.Mocked<RegisterMachineActivityUseCase>;
+  let attachFuelReceipt: jest.Mocked<AttachFuelReceiptUseCase>;
+  let readFuelReceipt: jest.Mocked<ReadFuelReceiptUseCase>;
 
   beforeEach(() => {
     findAllMachineActivities = {
@@ -50,15 +55,19 @@ describe('MachineActivityController', () => {
       execute: jest.fn(),
     } as unknown as jest.Mocked<RegisterMachineActivityUseCase>;
 
+    attachFuelReceipt = { execute: jest.fn() } as unknown as jest.Mocked<AttachFuelReceiptUseCase>;
+    readFuelReceipt = { execute: jest.fn() } as unknown as jest.Mocked<ReadFuelReceiptUseCase>;
     controller = new MachineActivityController(
       findAllMachineActivities,
       findMachineActivity,
       registerMachineActivity,
+      attachFuelReceipt,
+      readFuelReceipt,
     );
   });
 
   it('protects every route with JwtAuthGuard', () => {
-    for (const method of ['findAll', 'findOne', 'create'] as const) {
+    for (const method of ['findAll', 'findOne', 'create', 'attachReceipt', 'downloadReceipt'] as const) {
       const guards = Reflect.getMetadata(
         GUARDS_METADATA,
         MachineActivityController.prototype[method],
@@ -118,6 +127,42 @@ describe('MachineActivityController', () => {
     );
   });
 
+  it('lets OPERARIO register fuel only and rejects maintenance without writing', async () => {
+    const roles = Reflect.getMetadata(
+      ROLES_KEY,
+      MachineActivityController.prototype.create,
+    ) as string[];
+    expect(roles).toContain('OPERARIO');
+
+    const operator = { user: { firmaId: 'company-1', role: 'OPERARIO' } };
+    registerMachineActivity.execute.mockResolvedValue(mockActivity);
+    await expect(controller.create(operator as never, {
+      machineId: 'machine-1', type: 'COMBUSTIBLE',
+      date: '2026-03-09T00:00:00.000Z', liters: 5,
+    })).resolves.toEqual(mockActivity);
+    expect(registerMachineActivity.execute).toHaveBeenCalledTimes(1);
+
+    await expect(controller.create(operator as never, {
+      machineId: 'machine-1', type: 'MANTENIMIENTO',
+      date: '2026-03-09T00:00:00.000Z', cost: 50,
+    })).rejects.toThrow(ForbiddenException);
+    expect(registerMachineActivity.execute).toHaveBeenCalledTimes(1);
+  });
+
+  it('scopes receipt upload and download to the authenticated firm', async () => {
+    const req = { user: { firmaId: 'company-1', role: 'OPERARIO' } };
+    attachFuelReceipt.execute.mockResolvedValue(undefined);
+    readFuelReceipt.execute.mockResolvedValue({ mimeType: 'application/pdf', bytes: Buffer.from('%PDF-1.4') });
+    const response = { setHeader: jest.fn() };
+
+    await expect(controller.attachReceipt('activity-1', req as never, { dataUrl: 'data:application/pdf;base64,AA==' })).resolves.toEqual({ attached: true });
+    await controller.downloadReceipt('activity-1', req as never, response as never);
+    expect(attachFuelReceipt.execute).toHaveBeenCalledWith('activity-1', 'company-1', 'data:application/pdf;base64,AA==');
+    expect(readFuelReceipt.execute).toHaveBeenCalledWith('activity-1', 'company-1');
+    expect(response.setHeader).toHaveBeenCalledWith('Cache-Control', 'private, no-store');
+    expect(response.setHeader).toHaveBeenCalledWith('X-Content-Type-Options', 'nosniff');
+  });
+
   it('maps domain errors to HTTP exceptions', async () => {
     findMachineActivity.execute.mockRejectedValue(
       new EntityNotFoundError('Machine activity with id activity-9 not found'),
@@ -125,6 +170,9 @@ describe('MachineActivityController', () => {
     await expect(controller.findOne('activity-9', req as never)).rejects.toThrow(
       NotFoundException,
     );
+
+    attachFuelReceipt.execute.mockRejectedValue(new ReceiptAlreadyAttachedError());
+    await expect(controller.attachReceipt('activity-1', req as never, { dataUrl: 'x' })).rejects.toThrow(ConflictException);
 
     registerMachineActivity.execute.mockRejectedValue(
       new InvalidRelationError('Machine with id machine-9 not found'),

@@ -3,6 +3,7 @@ import { MachineRepositoryPort } from '../machine.ports';
 import { MachineRecord, UpdateMachineData, UpdateMachineInput } from '../machine.types';
 import {
   normalizeMachineStatus,
+  normalizeMachineType,
   normalizeOptionalString,
   normalizeRequiredDate,
 } from '../machine.validation';
@@ -26,6 +27,10 @@ export class UpdateMachineUseCase {
 
     if ('name' in payload) {
       data.name = normalizeOptionalString(payload.name, 'name');
+    }
+
+    if ('type' in payload) {
+      data.type = normalizeMachineType(payload.type);
     }
 
     if ('brand' in payload) {

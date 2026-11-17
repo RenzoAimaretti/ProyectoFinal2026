@@ -35,7 +35,7 @@ const mockReport: DailyReportRecord = {
   companyId: 'company-1',
   taskId: 'task-1',
   lotId: 'lot-1',
-  taskTypeId: 'task-type-1',
+  laborTypeId: 'labor-type-1',
   date: new Date('2026-03-01T00:00:00.000Z'),
   hectares: 12.5,
   hours: 6,
@@ -100,7 +100,7 @@ describe('DailyReportController', () => {
       const bodyWithExtras = {
         ...validBody,
         lotId: 'malicious-lot',
-        taskTypeId: 'bad-type',
+        laborTypeId: 'bad-type',
         companyId: 'hijacked',
         operatorId: 'stolen',
       };
@@ -123,7 +123,7 @@ describe('DailyReportController', () => {
       const callInput = createDailyReport.execute.mock
         .calls[0][1] as CreateDailyReportInput;
       expect(callInput).not.toHaveProperty('lotId');
-      expect(callInput).not.toHaveProperty('taskTypeId');
+      expect(callInput).not.toHaveProperty('laborTypeId');
       expect(callInput).not.toHaveProperty('companyId');
     });
 
