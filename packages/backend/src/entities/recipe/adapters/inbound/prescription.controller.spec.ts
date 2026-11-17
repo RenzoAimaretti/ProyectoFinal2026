@@ -10,6 +10,7 @@ import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../auth/guards/roles.guard';
 import { PendingPrescriptionTask } from '../../application/recipe.types';
 import { FindPendingPrescriptionsUseCase } from '../../application/use-cases/find-pending-prescriptions.use-case';
+import { ListReapplicationAlertsUseCase } from '../../application/use-cases/list-reapplication-alerts.use-case';
 import { EntityNotFoundError, InvalidInputError } from '../../domain/errors';
 import { PrescriptionController } from './prescription.controller';
 
@@ -37,13 +38,29 @@ function metadata(key: string, method: keyof PrescriptionController): unknown {
 
 describe('PrescriptionController', () => {
   let useCase: jest.Mocked<FindPendingPrescriptionsUseCase>;
+  let alertsUseCase: jest.Mocked<ListReapplicationAlertsUseCase>;
   let controller: PrescriptionController;
 
   beforeEach(() => {
     useCase = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<FindPendingPrescriptionsUseCase>;
-    controller = new PrescriptionController(useCase);
+    alertsUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<ListReapplicationAlertsUseCase>;
+    controller = new PrescriptionController(useCase, alertsUseCase);
+  });
+
+  it('serves GET /prescriptions/alerts', () => {
+    expect(metadata(PATH_METADATA, 'findAlerts')).toBe('alerts');
+    expect(metadata(METHOD_METADATA, 'findAlerts')).toBe(RequestMethod.GET);
+  });
+
+  it('delegates alerts to the use case', async () => {
+    alertsUseCase.execute.mockResolvedValue([]);
+
+    await expect(controller.findAlerts(req as never)).resolves.toEqual([]);
+    expect(alertsUseCase.execute).toHaveBeenCalledWith('tenant-1');
   });
 
   it('serves GET /prescriptions/pending', () => {

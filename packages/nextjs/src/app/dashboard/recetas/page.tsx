@@ -5,7 +5,7 @@ import { DashboardLayout } from "@/components/ui/layout";
 import { Badge, Card, EmptyState } from "@/components/ui/primitives";
 import { Alert } from "@/components/ui/feedback";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ClipboardIcon, RefreshIcon } from "@/components/ui/icons";
+import { AlertIcon, ClipboardIcon, RefreshIcon } from "@/components/ui/icons";
 import { navItems, notifyPrescriptionInboxChanged } from "@/components/ui/nav";
 import {
   PrescriptionEditor,
@@ -14,7 +14,9 @@ import {
 import {
   ApiError,
   listPendingPrescriptions,
+  listReapplicationAlerts,
   type PendingPrescriptionTaskDTO,
+  type ReapplicationAlertDTO,
   type TaskDTO,
 } from "@/api/client";
 
@@ -48,6 +50,25 @@ const dateTimeFmt = new Intl.DateTimeFormat("es-AR", {
   minute: "2-digit",
 });
 
+const dateFmt = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+function fmtDate(isoOrDate: string | null): string {
+  if (!isoOrDate) return "-";
+  const d = new Date(isoOrDate);
+  if (Number.isNaN(d.getTime())) return "-";
+  return dateFmt.format(d);
+}
+
+const URGENCY_META = {
+  OVERDUE: { label: "Vencida", tone: "earth" as const },
+  DUE_TODAY: { label: "Vence hoy", tone: "wheat" as const },
+  UPCOMING: { label: "Próxima", tone: "green" as const },
+};
+
 /** Local date + time of a task start, or an honest "no start recorded". */
 function fmtStartedAt(iso: string | null): string {
   if (!iso) return "Sin inicio registrado";
@@ -79,6 +100,7 @@ function describeError(err: unknown): string {
 
 export default function RecetasPage() {
   const [tasks, setTasks] = useState<PendingPrescriptionTaskDTO[]>([]);
+  const [alerts, setAlerts] = useState<ReapplicationAlertDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
@@ -112,9 +134,12 @@ export default function RecetasPage() {
 
   useEffect(() => {
     let alive = true;
-    listPendingPrescriptions()
-      .then((list) => {
-        if (alive) setTasks(Array.isArray(list) ? list : []);
+    Promise.all([listPendingPrescriptions(), listReapplicationAlerts()])
+      .then(([taskList, alertList]) => {
+        if (alive) {
+          setTasks(Array.isArray(taskList) ? taskList : []);
+          setAlerts(Array.isArray(alertList) ? alertList : []);
+        }
       })
       .catch((err) => {
         if (alive) setError(describeError(err));
@@ -156,14 +181,28 @@ export default function RecetasPage() {
             inicio, de la más antigua a la más reciente.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-6">
           <div className="text-right">
             {loading ? (
               <div className="skeleton ml-auto h-8 w-14" aria-hidden="true" />
             ) : (
               <p className="op-num text-3xl font-bold leading-none text-ink">{rows.length}</p>
             )}
-            <p className="op-label mt-1">Pendientes</p>
+            <p className="op-label mt-1">Sin receta</p>
+          </div>
+          <div className="text-right">
+            {loading ? (
+              <div className="skeleton ml-auto h-8 w-14" aria-hidden="true" />
+            ) : (
+              <p
+                className={`op-num text-3xl font-bold leading-none ${
+                  alerts.some((a) => a.isDue) ? "text-agro-earth-text" : "text-ink"
+                }`}
+              >
+                {alerts.length}
+              </p>
+            )}
+            <p className="op-label mt-1">Doble golpe</p>
           </div>
           <button
             type="button"
@@ -188,6 +227,93 @@ export default function RecetasPage() {
           </div>
         </Alert>
       )}
+
+      {/* Alertas de Doble Golpe y Re-aplicación (R010) */}
+      <section className="mb-6">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertIcon className="h-5 w-5 text-agro-accent" />
+            <h3 className="text-base font-semibold text-ink">
+              Alertas de Doble Golpe y Re-aplicación
+            </h3>
+          </div>
+          {alerts.length > 0 && (
+            <Badge tone={alerts.some((a) => a.isDue) ? "earth" : "wheat"}>
+              {alerts.length} {alerts.length === 1 ? "alerta activa" : "alertas activas"}
+            </Badge>
+          )}
+        </div>
+
+        {loading ? (
+          <Card className="p-4">
+            <Skeleton className="h-16 w-full" />
+          </Card>
+        ) : alerts.length === 0 ? (
+          <Card className="p-4">
+            <p className="text-sm text-ink-soft">
+              No hay alertas de doble golpe ni re-aplicaciones pendientes en los lotes.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {alerts.map((alert) => {
+              const meta = URGENCY_META[alert.urgency];
+              return (
+                <Card key={alert.recipeId} className="flex flex-col justify-between p-4">
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
+                        {alert.farmName} · {alert.lotName}
+                      </span>
+                      <Badge tone={meta.tone}>{meta.label}</Badge>
+                    </div>
+
+                    <h4 className="mt-2 text-sm font-bold text-ink">
+                      {alert.crop ?? "Cultivo s/d"} · {alert.pest ?? "Control fitosanitario"}
+                    </h4>
+
+                    <div className="mt-2 space-y-1 text-xs text-ink-soft">
+                      <p>
+                        <strong className="text-ink">Fecha de re-aplicación:</strong>{" "}
+                        {fmtDate(alert.targetDate)}
+                        {alert.daysRemaining < 0 && (
+                          <span className="ml-1 font-medium text-agro-earth-text">
+                            ({Math.abs(alert.daysRemaining)} d vencida)
+                          </span>
+                        )}
+                        {alert.daysRemaining === 0 && (
+                          <span className="ml-1 font-medium text-agro-wheat-text">
+                            (¡Momento del golpe!)
+                          </span>
+                        )}
+                        {alert.daysRemaining > 0 && (
+                          <span className="ml-1 font-medium">
+                            (en {alert.daysRemaining} d)
+                          </span>
+                        )}
+                      </p>
+                      {alert.reapplicationIntervalDays && (
+                        <p>
+                          Intervalo programado: cada {alert.reapplicationIntervalDays} días
+                        </p>
+                      )}
+                      {alert.observations && (
+                        <p className="line-clamp-2 italic text-ink-soft">
+                          “{alert.observations}”
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between border-t border-agro-border pt-2 text-xs text-ink-soft">
+                    <span>Cliente: {alert.clientName}</span>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {loading ? (
         <QueueSkeleton />

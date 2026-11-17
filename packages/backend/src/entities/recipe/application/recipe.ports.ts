@@ -3,6 +3,7 @@ import {
   CreateTaskPrescriptionData,
   PendingPrescriptionTask,
   RecipeRecord,
+  RecipeForReapplicationAlert,
   TaskPrescriptionContext,
   UpdateRecipeData,
 } from './recipe.types';
@@ -13,6 +14,9 @@ export const RECIPE_INPUT_READER = Symbol('RECIPE_INPUT_READER');
 export const TASK_PRESCRIPTION = Symbol('TASK_PRESCRIPTION');
 export const PENDING_PRESCRIPTION_READER = Symbol(
   'PENDING_PRESCRIPTION_READER',
+);
+export const REAPPLICATION_ALERT_READER = Symbol(
+  'REAPPLICATION_ALERT_READER',
 );
 
 export interface RecipeRepositoryPort {
@@ -81,4 +85,14 @@ export interface TaskPrescriptionPort {
  */
 export interface PendingPrescriptionReaderPort {
   findPendingByTenant(tenantId: string): Promise<PendingPrescriptionTask[]>;
+}
+
+export interface ClockPort {
+  now(): Date;
+}
+
+export interface ReapplicationAlertReaderPort {
+  findCandidateRecipesForAlerts(
+    tenantId: string,
+  ): Promise<RecipeForReapplicationAlert[]>;
 }

@@ -11,6 +11,7 @@ import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../auth/guards/roles.guard';
 import { Roles } from '../../../../auth/decorators/roles.decorator';
 import { FindPendingPrescriptionsUseCase } from '../../application/use-cases/find-pending-prescriptions.use-case';
+import { ListReapplicationAlertsUseCase } from '../../application/use-cases/list-reapplication-alerts.use-case';
 import {
   DuplicateEntityError,
   EntityNotFoundError,
@@ -37,6 +38,7 @@ type RequestWithUser = {
 export class PrescriptionController {
   constructor(
     private readonly findPendingUseCase: FindPendingPrescriptionsUseCase,
+    private readonly listAlertsUseCase: ListReapplicationAlertsUseCase,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -45,6 +47,17 @@ export class PrescriptionController {
   async findPending(@Req() req: RequestWithUser) {
     try {
       return await this.findPendingUseCase.execute(req.user.tenantId);
+    } catch (error) {
+      this.translate(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('INGENIERO', 'ADMIN', 'SUPERVISOR', 'OPERARIO', 'CONTRATISTA')
+  @Get('alerts')
+  async findAlerts(@Req() req: RequestWithUser) {
+    try {
+      return await this.listAlertsUseCase.execute(req.user.tenantId);
     } catch (error) {
       this.translate(error);
     }

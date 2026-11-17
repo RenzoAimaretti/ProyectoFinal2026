@@ -11,6 +11,7 @@ import { RecipeRecord } from '../../application/recipe.types';
 import { CreatePrescriptionUseCase } from '../../application/use-cases/create-prescription.use-case';
 import { FindRecipeUseCase } from '../../application/use-cases/find-recipe.use-case';
 import { FindRecipesByLotUseCase } from '../../application/use-cases/find-recipes-by-lot.use-case';
+import { ListReapplicationAlertsUseCase } from '../../application/use-cases/list-reapplication-alerts.use-case';
 import { UpdateRecipeUseCase } from '../../application/use-cases/update-recipe.use-case';
 import {
   DuplicateEntityError,
@@ -71,6 +72,7 @@ describe('RecipeController', () => {
   let findRecipe: jest.Mocked<FindRecipeUseCase>;
   let createPrescription: jest.Mocked<CreatePrescriptionUseCase>;
   let updateRecipe: jest.Mocked<UpdateRecipeUseCase>;
+  let listAlertsUseCase: jest.Mocked<ListReapplicationAlertsUseCase>;
 
   beforeEach(() => {
     findRecipesByLot = { execute: jest.fn() } as unknown as jest.Mocked<FindRecipesByLotUseCase>;
@@ -81,12 +83,16 @@ describe('RecipeController', () => {
     updateRecipe = {
       execute: jest.fn(),
     } as unknown as jest.Mocked<UpdateRecipeUseCase>;
+    listAlertsUseCase = {
+      execute: jest.fn(),
+    } as unknown as jest.Mocked<ListReapplicationAlertsUseCase>;
 
     controller = new RecipeController(
       findRecipesByLot,
       findRecipe,
       createPrescription,
       updateRecipe,
+      listAlertsUseCase,
     );
   });
 
@@ -96,6 +102,7 @@ describe('RecipeController', () => {
       'findOne',
       'create',
       'update',
+      'listAlerts',
     ] as const) {
       const guards = Reflect.getMetadata(
         GUARDS_METADATA,
@@ -122,6 +129,14 @@ describe('RecipeController', () => {
 
     expect(rolesOf('findByLot')).toEqual(expected);
     expect(rolesOf('findOne')).toEqual(expected);
+    expect(rolesOf('listAlerts')).toEqual(expected);
+  });
+
+  it('delegates alerts listing to the use case scoped to tenant', async () => {
+    listAlertsUseCase.execute.mockResolvedValue([]);
+
+    await expect(controller.listAlerts(req as never)).resolves.toEqual([]);
+    expect(listAlertsUseCase.execute).toHaveBeenCalledWith('tenant-1');
   });
 
   it('lists the recipes of a lot scoped to the tenant and exposes input names', async () => {

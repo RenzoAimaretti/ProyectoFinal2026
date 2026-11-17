@@ -3,11 +3,13 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import {
   LOT_READER,
   PENDING_PRESCRIPTION_READER,
+  REAPPLICATION_ALERT_READER,
   RECIPE_INPUT_READER,
   RECIPE_REPOSITORY,
   TASK_PRESCRIPTION,
   LotReaderPort,
   PendingPrescriptionReaderPort,
+  ReapplicationAlertReaderPort,
   RecipeInputReaderPort,
   RecipeRepositoryPort,
   TaskPrescriptionPort,
@@ -17,10 +19,12 @@ import { CreateRecipeUseCase } from './application/use-cases/create-recipe.use-c
 import { FindPendingPrescriptionsUseCase } from './application/use-cases/find-pending-prescriptions.use-case';
 import { FindRecipeUseCase } from './application/use-cases/find-recipe.use-case';
 import { FindRecipesByLotUseCase } from './application/use-cases/find-recipes-by-lot.use-case';
+import { ListReapplicationAlertsUseCase } from './application/use-cases/list-reapplication-alerts.use-case';
 import { UpdateRecipeUseCase } from './application/use-cases/update-recipe.use-case';
 import { PrescriptionController } from './adapters/inbound/prescription.controller';
 import { RecipeController } from './adapters/inbound/recipe.controller';
 import { PrismaLotReader } from './adapters/outbound/prisma-lot.reader';
+import { PrismaReapplicationAlertReader } from './adapters/outbound/prisma-reapplication-alert.reader';
 import { PrismaRecipeInputReader } from './adapters/outbound/prisma-recipe-input.reader';
 import { PrismaRecipeRepository } from './adapters/outbound/prisma-recipe.repository';
 import { PrismaTaskPrescriptionAdapter } from './adapters/outbound/prisma-task-prescription.adapter';
@@ -33,6 +37,7 @@ import { PrismaTaskPrescriptionAdapter } from './adapters/outbound/prisma-task-p
     PrismaLotReader,
     PrismaRecipeInputReader,
     PrismaTaskPrescriptionAdapter,
+    PrismaReapplicationAlertReader,
     { provide: RECIPE_REPOSITORY, useExisting: PrismaRecipeRepository },
     { provide: LOT_READER, useExisting: PrismaLotReader },
     { provide: RECIPE_INPUT_READER, useExisting: PrismaRecipeInputReader },
@@ -43,6 +48,10 @@ import { PrismaTaskPrescriptionAdapter } from './adapters/outbound/prisma-task-p
     {
       provide: PENDING_PRESCRIPTION_READER,
       useExisting: PrismaTaskPrescriptionAdapter,
+    },
+    {
+      provide: REAPPLICATION_ALERT_READER,
+      useExisting: PrismaReapplicationAlertReader,
     },
     {
       provide: FindRecipesByLotUseCase,
@@ -61,6 +70,12 @@ import { PrismaTaskPrescriptionAdapter } from './adapters/outbound/prisma-task-p
       useFactory: (reader: PendingPrescriptionReaderPort) =>
         new FindPendingPrescriptionsUseCase(reader),
       inject: [PENDING_PRESCRIPTION_READER],
+    },
+    {
+      provide: ListReapplicationAlertsUseCase,
+      useFactory: (reader: ReapplicationAlertReaderPort) =>
+        new ListReapplicationAlertsUseCase(reader),
+      inject: [REAPPLICATION_ALERT_READER],
     },
     {
       provide: CreateRecipeUseCase,
@@ -101,6 +116,7 @@ import { PrismaTaskPrescriptionAdapter } from './adapters/outbound/prisma-task-p
     CreateRecipeUseCase,
     CreatePrescriptionUseCase,
     UpdateRecipeUseCase,
+    ListReapplicationAlertsUseCase,
   ],
 })
 export class RecipeModule {}

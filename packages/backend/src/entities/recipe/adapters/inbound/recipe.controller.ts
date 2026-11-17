@@ -22,6 +22,7 @@ import {
 import { CreatePrescriptionUseCase } from '../../application/use-cases/create-prescription.use-case';
 import { FindRecipeUseCase } from '../../application/use-cases/find-recipe.use-case';
 import { FindRecipesByLotUseCase } from '../../application/use-cases/find-recipes-by-lot.use-case';
+import { ListReapplicationAlertsUseCase } from '../../application/use-cases/list-reapplication-alerts.use-case';
 import { UpdateRecipeUseCase } from '../../application/use-cases/update-recipe.use-case';
 import {
   DuplicateEntityError,
@@ -53,6 +54,7 @@ export class RecipeController {
     private readonly findRecipe: FindRecipeUseCase,
     private readonly createPrescription: CreatePrescriptionUseCase,
     private readonly updateRecipe: UpdateRecipeUseCase,
+    private readonly listAlertsUseCase: ListReapplicationAlertsUseCase,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -61,6 +63,17 @@ export class RecipeController {
   async findByLot(@Query('lotId') lotId: string, @Req() req: RequestWithUser) {
     try {
       return await this.findRecipesByLot.execute(lotId, req.user.tenantId);
+    } catch (error) {
+      this.translate(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPERVISOR', 'INGENIERO', 'OPERARIO', 'CONTRATISTA')
+  @Get('alerts')
+  async listAlerts(@Req() req: RequestWithUser) {
+    try {
+      return await this.listAlertsUseCase.execute(req.user.tenantId);
     } catch (error) {
       this.translate(error);
     }

@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   LOT_READER,
+  REAPPLICATION_ALERT_READER,
   RECIPE_INPUT_READER,
   RECIPE_REPOSITORY,
   TASK_PRESCRIPTION,
@@ -10,6 +11,7 @@ import { CreatePrescriptionUseCase } from './application/use-cases/create-prescr
 import { CreateRecipeUseCase } from './application/use-cases/create-recipe.use-case';
 import { FindRecipeUseCase } from './application/use-cases/find-recipe.use-case';
 import { FindRecipesByLotUseCase } from './application/use-cases/find-recipes-by-lot.use-case';
+import { ListReapplicationAlertsUseCase } from './application/use-cases/list-reapplication-alerts.use-case';
 import { UpdateRecipeUseCase } from './application/use-cases/update-recipe.use-case';
 import { RecipeModule } from './recipe.module';
 
@@ -32,6 +34,9 @@ describe('RecipeModule', () => {
       findContextByIdForTenant: jest.fn().mockResolvedValue(null),
       attachPrescription: jest.fn(),
     };
+    const alertReader = {
+      findCandidateRecipesForAlerts: jest.fn().mockResolvedValue([]),
+    };
 
     const moduleRef = await Test.createTestingModule({
       imports: [RecipeModule],
@@ -46,6 +51,8 @@ describe('RecipeModule', () => {
       .useValue(inputReader)
       .overrideProvider(TASK_PRESCRIPTION)
       .useValue(taskPrescription)
+      .overrideProvider(REAPPLICATION_ALERT_READER)
+      .useValue(alertReader)
       .compile();
 
     expect(moduleRef.get(FindRecipesByLotUseCase)).toBeInstanceOf(
@@ -60,6 +67,9 @@ describe('RecipeModule', () => {
     );
     expect(moduleRef.get(UpdateRecipeUseCase)).toBeInstanceOf(
       UpdateRecipeUseCase,
+    );
+    expect(moduleRef.get(ListReapplicationAlertsUseCase)).toBeInstanceOf(
+      ListReapplicationAlertsUseCase,
     );
 
     await expect(

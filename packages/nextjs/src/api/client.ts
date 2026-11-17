@@ -920,6 +920,31 @@ export function listPendingPrescriptions(): Promise<PendingPrescriptionTaskDTO[]
   return apiGet<PendingPrescriptionTaskDTO[]>("/prescriptions/pending");
 }
 
+export type ReapplicationAlertUrgency = "OVERDUE" | "DUE_TODAY" | "UPCOMING";
+
+export type ReapplicationAlertDTO = {
+  recipeId: string;
+  taskId: string | null;
+  lotId: string;
+  lotName: string;
+  farmName: string;
+  clientName: string;
+  crop: string | null;
+  pest: string | null;
+  observations: string | null;
+  recipeDate: string;
+  targetDate: string;
+  reapplicationIntervalDays: number | null;
+  daysRemaining: number;
+  urgency: ReapplicationAlertUrgency;
+  isDue: boolean;
+};
+
+/** Reads active re-application / doble golpe alerts (`GET /prescriptions/alerts`). */
+export function listReapplicationAlerts(): Promise<ReapplicationAlertDTO[]> {
+  return apiGet<ReapplicationAlertDTO[]>("/prescriptions/alerts");
+}
+
 /* ------------------------------------------------------------------ */
 /* Machine activities (actividades de maquinaria)                      */
 /* ------------------------------------------------------------------ */

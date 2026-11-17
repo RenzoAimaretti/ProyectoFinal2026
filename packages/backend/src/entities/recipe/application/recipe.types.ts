@@ -7,6 +7,43 @@ import {
 
 export type { DosageBasisValue } from '../domain/dosage-basis';
 export type { PrescriptionTotals } from '../domain/spray-calculation';
+export type { ReapplicationAlertUrgency } from '../domain/reapplication-alert.rules';
+
+export type RecipeForReapplicationAlert = {
+  id: string;
+  lotId: string;
+  lotName: string;
+  farmName: string;
+  clientName: string;
+  taskId: string | null;
+  taskStatus: string | null;
+  date: Date;
+  pest: string | null;
+  crop: string | null;
+  observations: string | null;
+  sprayVolume: number;
+  sprayVolumeUnit: string;
+  reapplicationIntervalDays: number | null;
+  reapplicationDate: Date | null;
+};
+
+export type ReapplicationAlert = {
+  recipeId: string;
+  taskId: string | null;
+  lotId: string;
+  lotName: string;
+  farmName: string;
+  clientName: string;
+  crop: string | null;
+  pest: string | null;
+  observations: string | null;
+  recipeDate: Date;
+  targetDate: Date;
+  reapplicationIntervalDays: number | null;
+  daysRemaining: number;
+  urgency: import('../domain/reapplication-alert.rules').ReapplicationAlertUrgency;
+  isDue: boolean;
+};
 
 export type RecipeItemRecord = {
   id: string;
