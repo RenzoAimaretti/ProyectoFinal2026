@@ -3,48 +3,14 @@ import { PrismaService } from '../../../../prisma/prisma.service';
 import { RecipeRepositoryPort } from '../../application/recipe.ports';
 import {
   CreateRecipeData,
-  RecipeItemRecord,
   RecipeRecord,
+  UpdateRecipeData,
 } from '../../application/recipe.types';
-import { RecipeStatus } from '../../domain/recipe-status';
-import { orderRecipeItemsByLoadOrder } from '../../domain/recipe.rules';
-
-const RECIPE_ITEM_ORDER_BY = [
-  { loadOrder: 'asc' as const },
-  { id: 'asc' as const },
-];
-
-/**
- * Items are always read together with the catalogue name of their input so the
- * inbound adapter can expose `inputName` without an extra round trip.
- */
-const RECIPE_ITEM_INCLUDE = {
-  orderBy: RECIPE_ITEM_ORDER_BY,
-  include: { input: { select: { name: true as const } } },
-};
-
-type RecipeRow = {
-  id: string;
-  lotId: string;
-  date: Date;
-  status: RecipeStatus;
-  observations: string | null;
-  sprayVolume: number;
-  sprayVolumeUnit: string;
-  createdAt: Date;
-  updatedAt: Date;
-  items: RecipeItemRow[];
-};
-
-type RecipeItemRow = {
-  id: string;
-  recipeId: string;
-  inputId: string;
-  dose: number;
-  unit: string | null;
-  loadOrder: number;
-  input?: { name: string } | null;
-};
+import { EntityNotFoundError } from '../../domain/errors';
+import {
+  RECIPE_ITEM_INCLUDE,
+  toRecipeRecord,
+} from './recipe.mapper';
 
 @Injectable()
 export class PrismaRecipeRepository implements RecipeRepositoryPort {
@@ -54,15 +20,27 @@ export class PrismaRecipeRepository implements RecipeRepositoryPort {
     const recipe = await this.prisma.recipe.create({
       data: {
         lotId: data.lotId,
+        ...(data.taskId !== undefined ? { taskId: data.taskId } : {}),
         date: data.date,
         status: data.status,
+        ...(data.pest !== undefined ? { pest: data.pest } : {}),
+        ...(data.crop !== undefined ? { crop: data.crop } : {}),
         observations: data.observations,
         sprayVolume: data.sprayVolume,
         sprayVolumeUnit: data.sprayVolumeUnit,
+        ...(data.reapplicationIntervalDays !== undefined
+          ? { reapplicationIntervalDays: data.reapplicationIntervalDays }
+          : {}),
+        ...(data.reapplicationDate !== undefined
+          ? { reapplicationDate: data.reapplicationDate }
+          : {}),
         items: {
           create: data.items.map((item) => ({
             inputId: item.inputId,
             dose: item.dose,
+            ...(item.dosageBasis !== undefined
+              ? { dosageBasis: item.dosageBasis }
+              : {}),
             unit: item.unit,
             loadOrder: item.loadOrder,
           })),
@@ -71,7 +49,65 @@ export class PrismaRecipeRepository implements RecipeRepositoryPort {
       include: { items: RECIPE_ITEM_INCLUDE },
     });
 
-    return this.toRecipeRecord(recipe);
+    return toRecipeRecord(recipe);
+  }
+
+  async update(
+    id: string,
+    tenantId: string,
+    data: UpdateRecipeData,
+  ): Promise<RecipeRecord> {
+    const existing = await this.prisma.recipe.findFirst({
+      where: { id, lot: { farm: { client: { tenantId } } } },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      throw new EntityNotFoundError(`Recipe with id ${id} not found`);
+    }
+
+    const recipe = await this.prisma.recipe.update({
+      where: { id: existing.id },
+      data: {
+        ...(data.date !== undefined ? { date: data.date } : {}),
+        ...(data.pest !== undefined ? { pest: data.pest } : {}),
+        ...(data.crop !== undefined ? { crop: data.crop } : {}),
+        ...(data.observations !== undefined
+          ? { observations: data.observations }
+          : {}),
+        ...(data.sprayVolume !== undefined
+          ? { sprayVolume: data.sprayVolume }
+          : {}),
+        ...(data.sprayVolumeUnit !== undefined
+          ? { sprayVolumeUnit: data.sprayVolumeUnit }
+          : {}),
+        ...(data.reapplicationIntervalDays !== undefined
+          ? { reapplicationIntervalDays: data.reapplicationIntervalDays }
+          : {}),
+        ...(data.reapplicationDate !== undefined
+          ? { reapplicationDate: data.reapplicationDate }
+          : {}),
+        ...(data.items !== undefined
+          ? {
+              items: {
+                deleteMany: {},
+                create: data.items.map((item) => ({
+                  inputId: item.inputId,
+                  dose: item.dose,
+                  ...(item.dosageBasis !== undefined
+                    ? { dosageBasis: item.dosageBasis }
+                    : {}),
+                  unit: item.unit,
+                  loadOrder: item.loadOrder,
+                })),
+              },
+            }
+          : {}),
+      },
+      include: { items: RECIPE_ITEM_INCLUDE },
+    });
+
+    return toRecipeRecord(recipe);
   }
 
   async findByIdForTenant(
@@ -80,10 +116,25 @@ export class PrismaRecipeRepository implements RecipeRepositoryPort {
   ): Promise<RecipeRecord | null> {
     const recipe = await this.prisma.recipe.findFirst({
       where: { id, lot: { farm: { client: { tenantId } } } },
+      include: {
+        items: RECIPE_ITEM_INCLUDE,
+        lot: { select: { area: true } },
+      },
+    });
+
+    return recipe ? toRecipeRecord(recipe) : null;
+  }
+
+  async findByTaskId(
+    taskId: string,
+    tenantId: string,
+  ): Promise<RecipeRecord | null> {
+    const recipe = await this.prisma.recipe.findFirst({
+      where: { taskId, lot: { farm: { client: { tenantId } } } },
       include: { items: RECIPE_ITEM_INCLUDE },
     });
 
-    return recipe ? this.toRecipeRecord(recipe) : null;
+    return recipe ? toRecipeRecord(recipe) : null;
   }
 
   async findAllByLotForTenant(
@@ -96,31 +147,6 @@ export class PrismaRecipeRepository implements RecipeRepositoryPort {
       orderBy: [{ date: 'desc' }, { id: 'asc' }],
     });
 
-    return recipes.map((recipe) => this.toRecipeRecord(recipe));
-  }
-
-  private toRecipeRecord(recipe: RecipeRow): RecipeRecord {
-    return {
-      id: recipe.id,
-      lotId: recipe.lotId,
-      date: recipe.date,
-      status: recipe.status,
-      observations: recipe.observations,
-      sprayVolume: recipe.sprayVolume,
-      sprayVolumeUnit: recipe.sprayVolumeUnit,
-      createdAt: recipe.createdAt,
-      updatedAt: recipe.updatedAt,
-      items: orderRecipeItemsByLoadOrder(recipe.items).map(
-        (item): RecipeItemRecord => ({
-          id: item.id,
-          recipeId: item.recipeId,
-          inputId: item.inputId,
-          dose: item.dose,
-          unit: item.unit,
-          loadOrder: item.loadOrder,
-          inputName: item.input?.name,
-        }),
-      ),
-    };
+    return recipes.map((recipe) => toRecipeRecord(recipe));
   }
 }

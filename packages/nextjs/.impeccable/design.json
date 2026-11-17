@@ -1,0 +1,345 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-09T20:04:57Z",
+  "title": "Design System: Agro Trazabilidad",
+  "extensions": {
+    "colorMeta": {
+      "agro-green": {
+        "role": "primary",
+        "displayName": "Mature Forest Green",
+        "canonical": "#3a7d44",
+        "tonalRamp": ["#001300", "#003300", "#08541d", "#34773e", "#589b60", "#7dc184", "#a2e4a9", "#c5ffca"]
+      },
+      "agro-green-dark": {
+        "role": "primary",
+        "displayName": "Green Dark",
+        "canonical": "#2f6b38",
+        "tonalRamp": ["#001300", "#003203", "#145321", "#3a7642", "#5d9a64", "#82c088", "#a7e3ac", "#c9ffcd"]
+      },
+      "agro-green-deep": {
+        "role": "primary",
+        "displayName": "Deep Seam Green",
+        "canonical": "#1a3323",
+        "tonalRamp": ["#000f05", "#152c1d", "#324c3b", "#536e5b", "#75917e", "#99b6a2", "#bdd9c5", "#dcf6e4"]
+      },
+      "agro-olive": {
+        "role": "primary",
+        "displayName": "Cultivated Olive",
+        "canonical": "#6b8f4e",
+        "tonalRamp": ["#001100", "#122f00", "#2f500b", "#4f7232", "#729655", "#96bc79", "#b9df9e", "#d9fbc0"]
+      },
+      "agro-forest": {
+        "role": "primary",
+        "displayName": "Forest Shade",
+        "canonical": "#24402c",
+        "tonalRamp": ["#001004", "#132d1b", "#304d38", "#516e58", "#73927b", "#98b79f", "#bbdac2", "#dbf7e1"]
+      },
+      "agro-green-soft": {
+        "role": "primary",
+        "displayName": "Pale Sprout",
+        "canonical": "#e8efe6",
+        "tonalRamp": ["#090c08", "#232822", "#414740", "#626860", "#858b83", "#aab0a8", "#cdd3cb", "#ebf0e9"]
+      },
+      "agro-earth": {
+        "role": "secondary",
+        "displayName": "Terracotta",
+        "canonical": "#c8754f",
+        "tonalRamp": ["#270000", "#4e0600", "#752a00", "#9b4d26", "#c3704a", "#eb956e", "#ffba94", "#ffdab7"]
+      },
+      "agro-earth-dark": {
+        "role": "secondary",
+        "displayName": "Deep Terracotta",
+        "canonical": "#9c4f2f",
+        "tonalRamp": ["#270000", "#4d0800", "#742b05", "#9a4d2d", "#c17150", "#ea9674", "#ffba99", "#ffdabc"]
+      },
+      "agro-ochre": {
+        "role": "secondary",
+        "displayName": "Harvest Ochre",
+        "canonical": "#c9a227",
+        "tonalRamp": ["#1d0200", "#3f1d00", "#623d00", "#856000", "#aa8400", "#d0a931", "#f3cd63", "#ffeb8f"]
+      },
+      "agro-mustard": {
+        "role": "secondary",
+        "displayName": "Mustard",
+        "canonical": "#b9821a",
+        "tonalRamp": ["#220000", "#451700", "#6a3700", "#8e5900", "#b47d10", "#dba244", "#fec670", "#ffe59a"]
+      },
+      "agro-wheat": {
+        "role": "secondary",
+        "displayName": "Golden Wheat",
+        "canonical": "#cfa43c",
+        "tonalRamp": ["#1e0200", "#401c00", "#633c00", "#875e00", "#ac8201", "#d2a740", "#f5cb6d", "#ffea97"]
+      },
+      "agro-wheat-dark": {
+        "role": "secondary",
+        "displayName": "Wheat Dark",
+        "canonical": "#8a6a12",
+        "tonalRamp": ["#1b0400", "#3b2000", "#5d3f00", "#806100", "#a58435", "#cba95b", "#eecd83", "#ffeba9"]
+      },
+      "agro-sand": {
+        "role": "secondary",
+        "displayName": "Pale Sand",
+        "canonical": "#d9c9a8",
+        "tonalRamp": ["#130900", "#302509", "#514326", "#736446", "#968768", "#bcac8c", "#dfcfb0", "#fbedd0"]
+      },
+      "base": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "var(--bg-base)",
+        "tonalRamp": ["#0b0b09", "#262724", "#454542", "#666663", "#898a86", "#adaeab", "#d0d1ce", "#eeefeb"]
+      },
+      "base-subtle": {
+        "role": "neutral",
+        "displayName": "Soft Paper",
+        "canonical": "var(--bg-subtle)",
+        "tonalRamp": ["#0b0c08", "#262723", "#444641", "#656762", "#888a84", "#adafa9", "#d0d2cc", "#edefea"]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card",
+        "canonical": "var(--bg-card)",
+        "tonalRamp": ["#0b0b0b", "#262626", "#454545", "#666666", "#898989", "#aeaeae", "#d1d1d1", "#eeeeee"]
+      },
+      "card-hover": {
+        "role": "neutral",
+        "displayName": "Card Hover",
+        "canonical": "var(--bg-card-hover)",
+        "tonalRamp": ["#0b0b0a", "#262725", "#454543", "#666664", "#898987", "#adaeab", "#d0d1cf", "#eeefec"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "var(--text)",
+        "tonalRamp": ["#080b10", "#22272d", "#40464d", "#61676e", "#838a92", "#a8afb7", "#cbd2da", "#e9eff7"]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "var(--text-secondary)",
+        "tonalRamp": ["#050c13", "#1e2731", "#3c4652", "#5c6774", "#7f8b97", "#a3afbd", "#c6d2e0", "#e5f0fc"]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Ink Faint",
+        "canonical": "var(--text-muted)",
+        "tonalRamp": ["#060c12", "#202730", "#3d4650", "#5e6771", "#808a95", "#a5afbb", "#c8d2dd", "#e6f0fa"]
+      },
+      "agro-border": {
+        "role": "neutral",
+        "displayName": "Hairline Border",
+        "canonical": "var(--border)",
+        "tonalRamp": ["#0a0c08", "#252723", "#434641", "#646761", "#878a84", "#acafa9", "#cfd2cc", "#ecf0ea"]
+      },
+      "agro-border-strong": {
+        "role": "neutral",
+        "displayName": "Strong Border",
+        "canonical": "var(--border-strong)",
+        "tonalRamp": ["#080d07", "#232821", "#41473e", "#62695f", "#848c82", "#a9b1a6", "#ccd4c9", "#eaf1e7"]
+      },
+      "agro-sidebar": {
+        "role": "neutral",
+        "displayName": "Slate Chassis",
+        "canonical": "#161d28",
+        "tonalRamp": ["#060b14", "#202732", "#3d4652", "#5e6774", "#818a98", "#a5afbd", "#c8d2e0", "#e7effd"]
+      },
+      "agro-sidebar-deep": {
+        "role": "neutral",
+        "displayName": "Deep Chassis",
+        "canonical": "#10161f",
+        "tonalRamp": ["#070b12", "#212730", "#3e4650", "#5f6772", "#828a96", "#a6afbb", "#c9d2de", "#e8effa"]
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Success",
+        "canonical": "var(--semantic-success)",
+        "tonalRamp": ["#001400", "#003400", "#00551d", "#29783e", "#509d61", "#76c384", "#9ce6a9", "#bfffca"]
+      },
+      "success-soft": {
+        "role": "semantic",
+        "displayName": "Success Soft",
+        "canonical": "var(--semantic-success-soft)",
+        "tonalRamp": ["#001400", "#003400", "#00551d", "#29783e", "#509d61", "#76c384", "#9ce6a9", "#bfffca"]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Warning",
+        "canonical": "var(--semantic-warning)",
+        "tonalRamp": ["#200000", "#441900", "#683900", "#8c5b00", "#b27e15", "#d9a447", "#fbc872", "#ffe79b"]
+      },
+      "warning-soft": {
+        "role": "semantic",
+        "displayName": "Warning Soft",
+        "canonical": "var(--semantic-warning-soft)",
+        "tonalRamp": ["#1e0200", "#401c00", "#633c00", "#875e00", "#ac8201", "#d2a740", "#f5cb6d", "#ffea97"]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Danger",
+        "canonical": "var(--semantic-danger)",
+        "tonalRamp": ["#2e0000", "#580000", "#821400", "#aa3e20", "#d36345", "#fd886a", "#ffae90", "#ffd0b4"]
+      },
+      "danger-soft": {
+        "role": "semantic",
+        "displayName": "Danger Soft",
+        "canonical": "var(--semantic-danger-soft)",
+        "tonalRamp": ["#2e0000", "#580000", "#821400", "#aa3e20", "#d36345", "#fd886a", "#ffae90", "#ffd0b4"]
+      },
+      "info": {
+        "role": "semantic",
+        "displayName": "Info",
+        "canonical": "var(--semantic-info)",
+        "tonalRamp": ["#000c25", "#002a48", "#044a6d", "#316d91", "#5591b6", "#7ab6dd", "#9fd9ff", "#c2f6ff"]
+      },
+      "info-soft": {
+        "role": "semantic",
+        "displayName": "Info Soft",
+        "canonical": "var(--semantic-info-soft)",
+        "tonalRamp": ["#000c25", "#002a48", "#044a6d", "#316d91", "#5591b6", "#7ab6dd", "#9fd9ff", "#c2f6ff"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headlines and any single number meant to dominate its block." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles and hero-band headings." },
+      "title": { "displayName": "Title", "purpose": "Card and module titles, and page headers." },
+      "body": { "displayName": "Body", "purpose": "Running copy in Ink Soft, roughly 65-75 characters per line." },
+      "label": { "displayName": "Label", "purpose": "Uppercase kickers and micro-labels in Ink Faint or Wheat Dark." },
+      "numeric": { "displayName": "Numeric", "purpose": "Every data figure, KPI delta and axis value; tabular lining figures." }
+    },
+    "shadows": [
+      { "name": "edge-highlight", "value": "inset 0 1px 0 0 rgb(255 255 255 / 0.75)", "purpose": "Hairline top light that opens every card and floating surface; 6% white in dark mode." },
+      { "name": "card", "value": "inset 0 1px 0 0 rgb(255 255 255 / 0.75), 0 1px 2px 0 rgb(20 26 21 / 0.05), 0 2px 10px -3px rgb(20 26 21 / 0.07)", "purpose": "Resting elevation of cards, dropdown panels and KPI tiles." },
+      { "name": "card-hover", "value": "inset 0 1px 0 0 rgb(255 255 255 / 0.75), 0 16px 36px -14px rgb(20 26 21 / 0.18), 0 5px 14px -6px rgb(20 26 21 / 0.08)", "purpose": "Lifted state on card hover." },
+      { "name": "nav", "value": "0 1px 2px rgb(20 26 21 / 0.05)", "purpose": "Subtle underside of the scrolled sticky header." },
+      { "name": "float", "value": "0 28px 64px -24px rgb(20 26 21 / 0.28), 0 10px 24px -10px rgb(20 26 21 / 0.14)", "purpose": "Hero bands, modals, drawers and the phone mockup." },
+      { "name": "pop", "value": "inset 0 1px 0 0 rgb(255 255 255 / 0.75), 0 2px 4px rgb(20 26 21 / 0.06), 0 18px 40px -16px rgb(20 26 21 / 0.22)", "purpose": "Floating chips and chart tooltips that must clear busy content." }
+    ],
+    "motion": [
+      { "name": "ease-spring", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Entrances and reveals; a monotonic ease-out, not a bounce." },
+      { "name": "ease-out-soft", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "State changes and overlay fades." },
+      { "name": "dur-fast", "value": "160ms", "purpose": "Hover and micro state changes." },
+      { "name": "dur", "value": "240ms", "purpose": "Default transition duration." },
+      { "name": "dur-slow", "value": "460ms", "purpose": "Entrances, drawers and staggered reveals." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single primary action on a screen: top-lit forest green, white text.",
+      "html": "<button class=\"ds-btn-primary\">Explorar el panel</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 10px 24px; border: none; border-radius: 0.5rem; background-image: linear-gradient(180deg, color-mix(in srgb, var(--color-agro-green) 86%, white 14%), var(--color-agro-green)); color: #fff; font: 600 0.875rem/1 var(--font-inter), system-ui, sans-serif; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 1px 2px rgb(20 26 21 / 0.2); cursor: pointer; transition: background-image 200ms var(--ease-out-soft), transform 160ms, box-shadow 200ms; } .ds-btn-primary:hover { background-image: linear-gradient(180deg, var(--color-agro-green), var(--color-agro-green-dark)); box-shadow: var(--shadow-card-hover); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid color-mix(in srgb, var(--color-agro-green) 70%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Low-emphasis action: card background with a hairline border.",
+      "html": "<button class=\"ds-btn-secondary\">Iniciar sesión</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 10px 24px; border: 1px solid var(--color-agro-border); border-radius: 0.5rem; background: var(--color-card); color: var(--color-ink); font: 600 0.875rem/1 var(--font-inter), system-ui, sans-serif; box-shadow: 0 1px 2px rgb(20 26 21 / 0.05); cursor: pointer; transition: background-color 200ms, border-color 200ms; } .ds-btn-secondary:hover { background: var(--color-base-subtle); border-color: var(--color-agro-border-strong); } .ds-btn-secondary:focus-visible { outline: 2px solid color-mix(in srgb, var(--color-agro-green) 70%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action in Deep Terracotta; reserved for real consequences.",
+      "html": "<button class=\"ds-btn-danger\">Eliminar</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border: none; border-radius: 0.5rem; background: var(--color-agro-earth-dark); color: #fff; font: 600 0.875rem/1 var(--font-inter), system-ui, sans-serif; box-shadow: 0 1px 2px rgb(20 26 21 / 0.2); cursor: pointer; transition: background-color 200ms; } .ds-btn-danger:hover { background: var(--color-agro-earth); } .ds-btn-danger:focus-visible { outline: 2px solid color-mix(in srgb, var(--color-agro-earth) 70%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Card-backed field; the focus ring turns brand green.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Cliente</span><input class=\"ds-input\" type=\"text\" placeholder=\"Eliggi\" /></label>",
+      "css": ".ds-field { display: block; } .ds-field-label { display: block; margin-bottom: 6px; font: 600 0.75rem/1 var(--font-inter), system-ui, sans-serif; color: var(--color-ink-faint); } .ds-input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--color-agro-border); border-radius: 0.5rem; background: var(--color-card); color: var(--color-ink); font: 400 0.875rem/1.4 var(--font-inter), system-ui, sans-serif; transition: border-color 160ms, box-shadow 160ms; } .ds-input::placeholder { color: var(--color-ink-faint); } .ds-input:focus { outline: none; border-color: var(--color-agro-green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-agro-green) 35%, transparent); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Full-round tone pill with a leading dot; status never relies on colour alone.",
+      "html": "<span class=\"ds-badge\"><span class=\"ds-badge-dot\"></span>Aprobado</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; background: color-mix(in srgb, var(--color-agro-green) 10%, transparent); color: var(--color-agro-green-dark); font: 600 0.75rem/1 var(--font-inter), system-ui, sans-serif; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-agro-green) 15%, transparent); } .ds-badge-dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--color-agro-green); }"
+    },
+    {
+      "name": "Feature Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Green-tinted surface with the edge-glow gradient hairline; lifts on hover.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Mi Campo &amp; Mapeo</h3><p class=\"ds-card-text\">Lotes y polígonos por estado, con color sobre el visor de la campaña.</p></div>",
+      "css": ".ds-card { position: relative; padding: 20px; border: 1px solid var(--color-agro-border); border-radius: var(--radius-card-lg); background-color: var(--color-card); background-image: linear-gradient(180deg, color-mix(in srgb, var(--color-card) 94%, var(--color-agro-green) 6%), var(--color-card) 40%); box-shadow: var(--shadow-card); transition: transform 200ms var(--ease-out-soft), box-shadow 200ms; } .ds-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover); } .ds-card::after { content: \"\"; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(140deg, color-mix(in srgb, var(--color-agro-green) 55%, transparent), transparent 48%, color-mix(in srgb, var(--color-agro-wheat) 45%, transparent)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.6; pointer-events: none; } .ds-card-title { margin: 0; font-family: var(--font-display), Georgia, serif; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.015em; color: var(--color-ink); } .ds-card-text { margin: 8px 0 0; font: 400 0.875rem/1.5 var(--font-inter), system-ui, sans-serif; color: var(--color-ink-soft); }"
+    },
+    {
+      "name": "Navigation Pill",
+      "kind": "nav",
+      "refersTo": "badge",
+      "description": "Soft Paper pill rail; active and hover links fill to card white.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-link\" href=\"#\" aria-current=\"page\">Producto</a><a class=\"ds-nav-link\" href=\"#\">Módulos</a><a class=\"ds-nav-link\" href=\"#\">Móvil</a></nav>",
+      "css": ".ds-nav { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border-radius: 9999px; background: var(--color-base-subtle); } .ds-nav-link { padding: 6px 16px; border-radius: 9999px; color: var(--color-ink-soft); text-decoration: none; font: 500 0.875rem/1 var(--font-inter), system-ui, sans-serif; transition: background-color 160ms, color 160ms; } .ds-nav-link:hover { background: var(--color-card); color: var(--color-ink); } .ds-nav-link[aria-current=\"page\"] { background: var(--color-card); color: var(--color-ink); } .ds-nav-link:focus-visible { outline: 2px solid color-mix(in srgb, var(--color-agro-green) 70%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Hero Band",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Full-width forest-to-olive gradient panel with a gradient border; the brand's weightiest moment.",
+      "html": "<div class=\"ds-hero-band\"><p class=\"ds-hero-kicker\">Empezá hoy</p><h2 class=\"ds-hero-title\">Ordená la operación desde el primer parte</h2><p class=\"ds-hero-text\">Explorá el panel con la vista de producto.</p></div>",
+      "css": ".ds-hero-band { position: relative; overflow: hidden; padding: 48px 40px; border: 1px solid transparent; border-radius: var(--radius-card-lg); color: #fff; background: linear-gradient(120deg, var(--color-agro-forest), var(--color-agro-green) 52%, var(--color-agro-olive)) padding-box, linear-gradient(140deg, color-mix(in srgb, var(--color-agro-olive) 85%, transparent), color-mix(in srgb, var(--color-agro-wheat) 70%, transparent)) border-box; box-shadow: var(--shadow-float), inset 0 1px 0 rgb(255 255 255 / 0.14); } .ds-hero-band::after { content: \"\"; position: absolute; inset: 0; background-image: radial-gradient(22rem 14rem at 90% -20%, rgb(255 255 255 / 0.22), transparent 60%); pointer-events: none; } .ds-hero-band > * { position: relative; z-index: 1; margin: 0; } .ds-hero-kicker { font: 600 0.75rem/1 var(--font-inter), system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.22em; color: rgb(255 255 255 / 0.7); } .ds-hero-title { margin-top: 12px; font-family: var(--font-display), Georgia, serif; font-size: clamp(1.875rem, 3.5vw, 2.5rem); font-weight: 600; line-height: 1.06; letter-spacing: -0.03em; } .ds-hero-text { margin-top: 12px; font: 400 1rem/1.5 var(--font-inter), system-ui, sans-serif; color: rgb(255 255 255 / 0.8); }"
+    },
+    {
+      "name": "KPI Tile",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Protagonist metric: Fraunces tabular value over an uppercase label, on a tinted card.",
+      "html": "<div class=\"ds-kpi\"><p class=\"ds-kpi-label\">Partes por aprobar</p><p class=\"ds-kpi-value\">7</p><p class=\"ds-kpi-hint\">+2 esta semana</p></div>",
+      "css": ".ds-kpi { position: relative; padding: 20px; border: 1px solid var(--color-agro-border); border-radius: var(--radius-card-lg); background-color: var(--color-card); background-image: linear-gradient(180deg, color-mix(in srgb, var(--color-card) 94%, var(--color-agro-green) 6%), var(--color-card) 40%); box-shadow: var(--shadow-card); } .ds-kpi-label { margin: 0; font: 600 0.6875rem/1.2 var(--font-inter), system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-ink-faint); } .ds-kpi-value { margin: 8px 0 0; font-family: var(--font-display), Georgia, serif; font-size: clamp(1.875rem, 3vw, 2.25rem); font-weight: 600; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums lining-nums; color: var(--color-ink); } .ds-kpi-hint { margin: 4px 0 0; font: 500 0.75rem/1.3 var(--font-inter), system-ui, sans-serif; color: var(--color-ink-soft); }"
+    },
+    {
+      "name": "Icon Tile",
+      "kind": "custom",
+      "refersTo": "icon-tile",
+      "description": "44px rounded tile holding a tone-matched icon; anchors module and value cards.",
+      "html": "<div class=\"ds-icon-tile\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6L9 17l-5-5\" /></svg></div>",
+      "css": ".ds-icon-tile { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 0.75rem; background: color-mix(in srgb, var(--color-agro-green) 10%, transparent); color: var(--color-agro-green-dark); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-agro-green) 15%, transparent); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "De la tranquera al tablero",
+    "overview": "Agro Trazabilidad's visual system is the bridge the product itself is: the distance between the lot gate and the dashboard. The field is warm and physical — terracotta, wheat and ochre, the colours of turned soil and ripe grain — and the office is cool and exact: a near-black ink on off-white paper, mature forest green for action, slate for the machinery rail. Every screen is asked to read as the same instrument seen from both ends of the corridor, so the operator's phone in the sun and the owner's desktop in the office feel like one system, not two.\n\nThe character is grounded and editorial, not startup-generic. Fraunces, a high-contrast serif, is reserved for names and protagonist figures so a module title or a headline number carries the weight of a printed label; Inter carries the working UI and every figure that must line up in a column. Depth is real but restrained: surfaces are tinted with a whisper of the brand green and lifted by a 1px inset highlight over a two-layer ambient shadow, never a flat grey drop. A fine grain and soft radial glows sit under the whole canvas so the page reads as a surface with atmosphere rather than a flat rectangle.\n\nConfirmed directional intent (not yet current state). The team has chosen a course toward more expressiveness: bolder display typography, richer surface gradients and more pronounced motion are the intended direction of travel. The system documented here is the incumbent state; treat the expressiveness push as a direction to grow toward, not a description of what ships today.",
+    "keyCharacteristics": [
+      "Three colours do the work: mature forest green (identity and primary action), warm terracotta (data and secondary emphasis), and near-black ink on off-white paper (structure).",
+      "Two typefaces, two jobs: Fraunces for names and protagonist numerals, Inter (tabular) for everything functional.",
+      "Depth from light, not from grey: a 1px inset highlight, a two-layer ambient shadow and a green-tinted surface gradient.",
+      "Generous, soft geometry: nothing sharper than 0.5rem, most surfaces at 1-1.25rem, pills at full round.",
+      "Field texture at the edges: fine film grain, a SIG-style plot grid, notebook rules and terrain-gradient hero bands."
+    ],
+    "rules": [
+      { "name": "The One Green, One Earth Rule", "body": "Brand green carries identity and every primary action; terracotta is the only secondary accent and stays reserved for data and emphasis. No third brand hue is introduced — additional colour is a defect, not a feature.", "section": "colors" },
+      { "name": "The Serif Protagonist Rule", "body": "A name or number the user must read at a glance wears Fraunces; everything else is Inter, and every numeric value uses tabular figures. Mixing a non-tabular figure into a column is a layout bug.", "section": "typography" },
+      { "name": "The Hairline Depth Rule", "body": "Depth is never a flat grey shadow. Every elevated surface pairs a 1px inset top highlight with a two-layer ambient shadow over a subtly green-tinted gradient — remove any one of the three and the surface goes slack.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do set headings, hero copy and protagonist numbers in Fraunces (font-display).",
+      "Do apply .text-numeric (tabular lining figures) to every data value, KPI and axis label.",
+      "Do use var(--color-agro-green) for the one primary action on a screen, and keep it rare.",
+      "Do build elevation as hairline inset + two-layer ambient shadow + green-tinted gradient (shadow-card at rest, shadow-card-hover on lift).",
+      "Do keep every corner soft — 0.5rem minimum, 1rem-1.25rem for surfaces, full-round for pills and progress.",
+      "Do drive colour from tokens so light and dark mode both resolve; verify text on the lighter end of any gradient."
+    ],
+    "donts": [
+      "Don't introduce a third brand hue or a second primary accent — green leads, terracotta supports, and that's the whole palette.",
+      "Don't put terracotta (earth) on a primary call to action; primary actions are green.",
+      "Don't use flat grey drop shadows or a pure-black ink; depth comes from the hairline-plus-ambient pair and ink stays near-black (#151a20).",
+      "Don't hardcode hex values in components where a --color-* token exists — it breaks dark mode.",
+      "Don't set data figures in a non-tabular face or let columns of numbers go ragged.",
+      "Don't rename, reorder or strip the canonical design sections or the token layer; downstream tooling parses them literally."
+    ]
+  }
+}

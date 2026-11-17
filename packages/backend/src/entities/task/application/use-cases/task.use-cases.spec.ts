@@ -223,6 +223,59 @@ describe('Task use cases', () => {
         startedAt: new Date('2026-01-10'),
       });
     });
+
+    it('marks a task as SIN_RECETA when its labor type requires a prescription', async () => {
+      lotReader.findByIdForTenant.mockResolvedValue({ id: 'lot-1' });
+      laborTypeReader.findByIdForTenant.mockResolvedValue({
+        id: 'labor-type-1',
+        requiresPrescription: true,
+      });
+      repository.create.mockResolvedValue({
+        ...baseTask,
+        prescriptionStatus: 'SIN_RECETA',
+      });
+
+      await expect(
+        useCase.execute('company-1', {
+          lotId: 'lot-1',
+          laborTypeId: 'labor-type-1',
+          startedAt: '2026-01-10',
+        }),
+      ).resolves.toEqual({ ...baseTask, prescriptionStatus: 'SIN_RECETA' });
+
+      expect(repository.create).toHaveBeenCalledWith({
+        lotId: 'lot-1',
+        laborTypeId: 'labor-type-1',
+        startedAt: new Date('2026-01-10'),
+        prescriptionStatus: 'SIN_RECETA',
+      });
+    });
+
+    it('leaves the model default NO_REQUIERE when the type does not require a prescription', async () => {
+      lotReader.findByIdForTenant.mockResolvedValue({ id: 'lot-1' });
+      laborTypeReader.findByIdForTenant.mockResolvedValue({
+        id: 'labor-type-1',
+        requiresPrescription: false,
+      });
+      repository.create.mockResolvedValue({
+        ...baseTask,
+        prescriptionStatus: 'NO_REQUIERE',
+      });
+
+      await expect(
+        useCase.execute('company-1', {
+          lotId: 'lot-1',
+          laborTypeId: 'labor-type-1',
+          startedAt: '2026-01-10',
+        }),
+      ).resolves.toEqual({ ...baseTask, prescriptionStatus: 'NO_REQUIERE' });
+
+      expect(repository.create).toHaveBeenCalledWith({
+        lotId: 'lot-1',
+        laborTypeId: 'labor-type-1',
+        startedAt: new Date('2026-01-10'),
+      });
+    });
   });
 
   describe('UpdateTaskUseCase', () => {

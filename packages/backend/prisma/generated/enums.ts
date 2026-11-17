@@ -15,7 +15,8 @@ export const UserRole = {
   SUPERVISOR: 'SUPERVISOR',
   PRODUCTOR: 'PRODUCTOR',
   CONTRATISTA: 'CONTRATISTA',
-  VETERINARIO: 'VETERINARIO'
+  VETERINARIO: 'VETERINARIO',
+  INGENIERO: 'INGENIERO'
 } as const
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
@@ -113,6 +114,23 @@ export const RecipeStatus = {
 } as const
 
 export type RecipeStatus = (typeof RecipeStatus)[keyof typeof RecipeStatus]
+
+
+export const PrescriptionStatus = {
+  NO_REQUIERE: 'NO_REQUIERE',
+  SIN_RECETA: 'SIN_RECETA',
+  CON_RECETA: 'CON_RECETA'
+} as const
+
+export type PrescriptionStatus = (typeof PrescriptionStatus)[keyof typeof PrescriptionStatus]
+
+
+export const DosageBasis = {
+  POR_HECTAREA: 'POR_HECTAREA',
+  CONCENTRACION: 'CONCENTRACION'
+} as const
+
+export type DosageBasis = (typeof DosageBasis)[keyof typeof DosageBasis]
 
 
 export const InputUnit = {

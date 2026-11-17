@@ -16,14 +16,14 @@ export class TaskController {
   constructor(private readonly service: TaskService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO', 'INGENIERO')
   @Get()
   findAll(@Req() req: RequestWithUser) {
     return this.service.findAll(req.user.tenantId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO', 'INGENIERO')
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.service.findOne(id, req.user.tenantId);

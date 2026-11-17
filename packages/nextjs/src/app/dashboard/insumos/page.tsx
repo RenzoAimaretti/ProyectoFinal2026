@@ -9,8 +9,6 @@ import {
   CardHeader,
   Drawer,
   EmptyState,
-  HeroBand,
-  KpiCard,
   Modal,
   StatusBadge,
   type StatusMap,
@@ -26,7 +24,6 @@ import {
   CheckIcon,
   InboxIcon,
   InputsIcon,
-  PeopleIcon,
   PlusIcon,
   RefreshIcon,
   XIcon,
@@ -595,7 +592,7 @@ export default function InsumosPage() {
       header: "Disponible",
       align: "right",
       render: (row) => (
-        <span className="text-numeric font-semibold text-ink">
+        <span className="op-num font-semibold text-ink">
           {numberFmt.format(row.quantity)}
           <span className="ml-1 text-xs font-medium text-ink-faint">{row.unit}</span>
         </span>
@@ -649,28 +646,45 @@ export default function InsumosPage() {
           : "Ingreso de stock y control de partes"
       }
     >
-      <HeroBand
-        kicker={isAdmin ? "Recepción y control de stock" : "Trazabilidad de tus insumos"}
-        title="Insumos"
-        description={
-          isAdmin
-            ? "Stock por cliente, bandeja de ingresos por validar y carga de recepciones."
-            : "Registrá los insumos que dejás en el campo y seguí su estado de validación y stock."
-        }
-        icon={<InputsIcon className="h-6 w-6" />}
-        metric={heroMetric}
-        metricLabel={heroMetricLabel}
-        metricHint={heroMetricHint}
-        actions={
+      {/* Command header */}
+      <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
+        <div className="min-w-0">
+          <p className="op-label">
+            {isAdmin ? "Recepción y control de stock" : "Trazabilidad de tus insumos"}
+          </p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Insumos</h2>
+          <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+            {isAdmin
+              ? "Stock por cliente, bandeja de ingresos por validar y carga de recepciones."
+              : "Registrá los insumos que dejás en el campo y seguí su estado de validación y stock."}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="text-right">
+            {loading ? (
+              <div className="skeleton ml-auto h-8 w-14" aria-hidden="true" />
+            ) : (
+              <p
+                className={`op-num text-3xl font-bold leading-none ${
+                  isAdmin && pendingReceptions.length > 0 ? "op-signal-text" : "text-ink"
+                }`}
+              >
+                {heroMetric}
+              </p>
+            )}
+            <p className="op-label mt-1">{heroMetricLabel}</p>
+            {!loading && <p className="op-caption mt-0.5">{heroMetricHint}</p>}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={refresh}
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60"
+              className="op-btn"
+              aria-busy={loading}
             >
               <RefreshIcon className="h-4 w-4" />
-              Actualizar
+              {loading ? "Actualizando…" : "Actualizar"}
             </button>
             <button
               type="button"
@@ -683,14 +697,14 @@ export default function InsumosPage() {
                     : "Necesitás clientes e insumos cargados para registrar una recepción."
                   : undefined
               }
-              className="inline-flex items-center gap-2 rounded-lg bg-white/95 px-4 py-2.5 text-sm font-semibold text-agro-green-deep transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="op-btn op-btn--primary"
             >
               <PlusIcon className="h-4 w-4" />
               Registrar ingreso
             </button>
           </div>
-        }
-      />
+        </div>
+      </section>
 
       {loadError && (
         <Alert tone="error" title="No se pudieron cargar los datos" className="mb-5">
@@ -710,45 +724,11 @@ export default function InsumosPage() {
         </Alert>
       )}
 
-      {/* KPI band (ADMIN only): the client view goes straight to its sections. */}
-      {isAdmin && (
-        <section className="mb-5 grid grid-cols-2 gap-4 md:grid-cols-4">
-          <KpiCard
-            label="Ingresos por validar"
-            value={pendingReceptions.length}
-            delta="Esperando decisión"
-            tone="wheat"
-            icon={<InboxIcon className="h-5 w-5" />}
-          />
-          <KpiCard
-            label="Recepciones registradas"
-            value={visibleReceptions.length}
-            delta="De todos los clientes"
-            tone="slate"
-            icon={<InputsIcon className="h-5 w-5" />}
-          />
-          <KpiCard
-            label="Insumos con stock"
-            value={stock.length}
-            delta={scopeClientName ?? "Seleccioná un cliente"}
-            tone="green"
-            icon={<InputsIcon className="h-5 w-5" />}
-          />
-          <KpiCard
-            label="Clientes"
-            value={clients.length}
-            delta="En la cartera"
-            tone="earth"
-            icon={<PeopleIcon className="h-5 w-5" />}
-          />
-        </section>
-      )}
-
       {/* Stock */}
       <Card className="mb-5 overflow-hidden">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-agro-border px-5 py-4">
           <div>
-            <h3 className="font-display font-semibold text-ink">
+            <h3 className="font-semibold text-ink">
               {isAdmin ? "Stock por cliente" : "Mi stock"}
             </h3>
             <p className="text-sm text-ink-soft">
@@ -942,7 +922,7 @@ export default function InsumosPage() {
             {validateError && <Alert tone="error">{validateError}</Alert>}
 
             <div>
-              <h4 className="mb-2 text-sm font-display font-semibold text-ink">
+              <h4 className="mb-2 text-sm font-semibold text-ink">
                 Insumos declarados
               </h4>
               {!hasItems ? (
@@ -965,7 +945,7 @@ export default function InsumosPage() {
                             </p>
                             <p className="mt-0.5 text-xs text-ink-faint">
                               Declarado:{" "}
-                              <span className="text-numeric font-semibold text-ink-soft">
+                              <span className="op-num font-semibold text-ink-soft">
                                 {numberFmt.format(item.quantity)} {item.unit}
                               </span>
                             </p>
@@ -1005,9 +985,9 @@ export default function InsumosPage() {
                               {item.validatedQuantity === null ? (
                                 <p className="text-sm text-ink-soft">Sin validar</p>
                               ) : (
-                                <p className="text-numeric font-display text-title font-semibold text-ink">
+                                <p className="op-num text-title font-semibold text-ink">
                                   {numberFmt.format(item.validatedQuantity)}
-                                  <span className="ml-1 text-xs font-sans font-medium text-ink-faint">
+                                  <span className="ml-1 text-xs font-medium text-ink-faint">
                                     {item.unit}
                                   </span>
                                 </p>
@@ -1029,7 +1009,7 @@ export default function InsumosPage() {
             </div>
 
             <div>
-              <h4 className="mb-2 text-sm font-display font-semibold text-ink">
+              <h4 className="mb-2 text-sm font-semibold text-ink">
                 Fotos
               </h4>
               <ReceptionPhotoGallery photos={selectedReception.photos ?? []} />
@@ -1037,7 +1017,7 @@ export default function InsumosPage() {
 
             {canResolve && (
               <div className="rounded-lg border border-agro-border bg-base-subtle/40 p-4">
-                <h4 className="text-sm font-display font-semibold text-ink">
+                <h4 className="text-sm font-semibold text-ink">
                   Rechazar recepción
                 </h4>
                 <p className="mt-0.5 text-xs text-ink-soft">
@@ -1131,7 +1111,7 @@ export default function InsumosPage() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-sm font-display font-semibold text-ink">Insumos</h4>
+              <h4 className="text-sm font-semibold text-ink">Insumos</h4>
               <span
                 className="inline-flex"
                 title={

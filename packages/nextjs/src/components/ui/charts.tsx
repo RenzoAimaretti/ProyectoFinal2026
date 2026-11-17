@@ -119,6 +119,71 @@ function ChartEmpty({ message }: { message: string }) {
   );
 }
 
+/** Shimmering placeholder shown while chart data is in flight. */
+function ChartLoading({ height, label = "Cargando gráfico…" }: { height: number; label?: string }) {
+  return (
+    <div
+      role="status"
+      aria-label={label}
+      className="flex w-full items-end gap-2 rounded-card border border-agro-border bg-base-subtle/30 px-6 pb-4 pt-6"
+      style={{ height: Math.max(height, 120) }}
+    >
+      {Array.from({ length: 9 }).map((_, i) => (
+        <div
+          key={i}
+          className="skeleton flex-1"
+          style={{ height: `${35 + ((i * 37) % 55)}%` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Visually-hidden data table so chart values reach the accessibility tree /
+ * screen readers (and keyboard users) as text, not only as an SVG.
+ */
+function SrChartTable({
+  labels,
+  series,
+  format,
+  unit,
+  caption,
+}: {
+  labels: string[];
+  series: ChartSeries[];
+  format: (value: number) => string;
+  unit?: string;
+  caption: string;
+}) {
+  return (
+    <table className="sr-only">
+      <caption>{caption}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Período</th>
+          {series.map((s) => (
+            <th key={s.key} scope="col">
+              {s.label}
+              {unit ? ` (${unit})` : ""}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {labels.map((label, i) => (
+          <tr key={`${label}-${i}`}>
+            <th scope="row">{label}</th>
+            {series.map((s) => (
+              <td key={s.key}>{format(s.values[i] ?? 0)}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Micro charts                                                        */
 /* ------------------------------------------------------------------ */
@@ -184,13 +249,30 @@ export function Donut({
   thickness = 16,
   center,
   className = "",
+  loading = false,
+  ariaLabel = "Gráfico de proporción",
 }: {
   segments: Segment[];
   size?: number;
   thickness?: number;
   center?: React.ReactNode;
   className?: string;
+  /** Show a placeholder while data is in flight (never an empty ring). */
+  loading?: boolean;
+  /** Accessible name for the graphic. */
+  ariaLabel?: string;
 }) {
+  if (loading) {
+    return (
+      <div
+        role="status"
+        aria-label="Cargando gráfico…"
+        className={`skeleton rounded-full ${className}`}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+
   const total = segments.reduce((acc, s) => acc + Math.max(0, s.value), 0);
   const r = (size - thickness) / 2;
   const c = 2 * Math.PI * r;
@@ -200,8 +282,13 @@ export function Donut({
   let offset = 0;
 
   return (
-    <div className={`relative inline-flex ${className}`} style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+    <div
+      className={`relative inline-flex ${className}`}
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden="true">
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -240,6 +327,13 @@ export function Donut({
           {center}
         </div>
       )}
+      <ul className="sr-only">
+        {segments.map((s) => (
+          <li key={s.label}>
+            {s.label}: {numberFmt.format(s.value)}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -312,6 +406,8 @@ export type TrendChartProps = {
   emptyMessage?: string;
   ariaLabel?: string;
   className?: string;
+  /** Show a skeleton while data is in flight instead of the empty state. */
+  loading?: boolean;
 };
 
 /**
@@ -327,6 +423,7 @@ export function TrendChart({
   emptyMessage = "Sin datos para el período.",
   ariaLabel = "Gráfico de tendencia",
   className = "",
+  loading = false,
 }: TrendChartProps) {
   const [ref, width] = useElementWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
@@ -381,7 +478,9 @@ export function TrendChart({
 
   return (
     <div ref={ref} className={`relative w-full ${className}`}>
-      {!ready ? (
+      {loading ? (
+        <ChartLoading height={height} />
+      ) : !ready ? (
         <ChartEmpty message={width === 0 ? "Cargando…" : emptyMessage} />
       ) : (
         <>
@@ -530,6 +629,14 @@ export function TrendChart({
               <ChartLegend items={legend} />
             </div>
           )}
+
+          <SrChartTable
+            labels={labels}
+            series={series}
+            format={format}
+            unit={unit}
+            caption={ariaLabel}
+          />
         </>
       )}
     </div>
@@ -545,6 +652,8 @@ export type BarChartProps = {
   emptyMessage?: string;
   ariaLabel?: string;
   className?: string;
+  /** Show a skeleton while data is in flight instead of the empty state. */
+  loading?: boolean;
 };
 
 /** BarChart: responsive grouped bar chart with axis, gridlines and tooltip. */
@@ -557,6 +666,7 @@ export function BarChart({
   emptyMessage = "Sin datos para el período.",
   ariaLabel = "Gráfico de barras",
   className = "",
+  loading = false,
 }: BarChartProps) {
   const [ref, width] = useElementWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
@@ -594,7 +704,9 @@ export function BarChart({
 
   return (
     <div ref={ref} className={`relative w-full ${className}`}>
-      {!ready ? (
+      {loading ? (
+        <ChartLoading height={height} />
+      ) : !ready ? (
         <ChartEmpty message={width === 0 ? "Cargando…" : emptyMessage} />
       ) : (
         <>
@@ -722,6 +834,14 @@ export function BarChart({
               <ChartLegend items={legend} />
             </div>
           )}
+
+          <SrChartTable
+            labels={labels}
+            series={series}
+            format={format}
+            unit={unit}
+            caption={ariaLabel}
+          />
         </>
       )}
     </div>

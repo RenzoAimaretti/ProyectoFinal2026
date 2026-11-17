@@ -153,7 +153,7 @@ function ToastItem({
         type="button"
         onClick={() => onDismiss(record.id)}
         aria-label="Cerrar notificación"
-        className="shrink-0 rounded-md p-1 text-ink-faint transition-colors hover:bg-base-subtle hover:text-ink"
+        className="-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-ink-faint transition-colors hover:bg-base-subtle hover:text-ink"
       >
         <XIcon className="h-4 w-4" />
       </button>
@@ -233,7 +233,7 @@ export function Alert({
           type="button"
           onClick={onDismiss}
           aria-label="Cerrar aviso"
-          className="shrink-0 rounded-md p-1 transition-colors hover:bg-black/5"
+          className="-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-black/5"
         >
           <XIcon className="h-4 w-4" />
         </button>

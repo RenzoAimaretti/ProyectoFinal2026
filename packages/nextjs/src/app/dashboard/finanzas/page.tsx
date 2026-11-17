@@ -1,5 +1,5 @@
 import { DashboardLayout } from "@/components/ui/layout";
-import { Card, EmptyState, PageHeader } from "@/components/ui/primitives";
+import { Card, EmptyState } from "@/components/ui/primitives";
 import { FinanceIcon } from "@/components/ui/icons";
 import { navItems } from "@/components/ui/nav";
 
@@ -10,10 +10,15 @@ export default function FinanzasPage() {
       sidebarItems={navItems}
       breadcrumb="Administración y facturación"
     >
-      <PageHeader
-        title="Finanzas"
-        subtitle="Libro contable de campaña, facturación a clientes y control de cheques."
-      />
+      <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
+        <div className="min-w-0">
+          <p className="op-label">Administración y facturación</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Finanzas</h2>
+          <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+            Libro contable de campaña, facturación a clientes y control de cheques.
+          </p>
+        </div>
+      </section>
 
       <Card>
         <EmptyState

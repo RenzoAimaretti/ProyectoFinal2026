@@ -7,7 +7,6 @@ import {
   Button,
   Card,
   EmptyState,
-  HeroBand,
   IconTile,
   Modal,
   StatRow,
@@ -113,15 +112,20 @@ export default function GanaderoPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const fetchHerd = useCallback(async () => {
+    const [livestockData, eventData, weightData] = await Promise.all([
+      apiGet<LivestockDTO[]>("/livestocks"),
+      apiGet<LivestockEventDTO[]>("/livestock-events"),
+      apiGet<WeightRecordDTO[]>("/weight-records"),
+    ]);
+    return { livestockData, eventData, weightData };
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      const [livestockData, eventData, weightData] = await Promise.all([
-        apiGet<LivestockDTO[]>("/livestocks"),
-        apiGet<LivestockEventDTO[]>("/livestock-events"),
-        apiGet<WeightRecordDTO[]>("/weight-records"),
-      ]);
+      const { livestockData, eventData, weightData } = await fetchHerd();
       setLivestocks(livestockData);
       setEvents(eventData);
       setWeights(weightData);
@@ -130,11 +134,29 @@ export default function GanaderoPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchHerd]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    // Initial load. State is only written after the await, so the effect does
+    // not trigger synchronous cascading renders.
+    let alive = true;
+    fetchHerd()
+      .then(({ livestockData, eventData, weightData }) => {
+        if (!alive) return;
+        setLivestocks(livestockData);
+        setEvents(eventData);
+        setWeights(weightData);
+      })
+      .catch((err) => {
+        if (alive) setLoadError(describeError(err));
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [fetchHerd]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -238,22 +260,37 @@ export default function GanaderoPage() {
       sidebarItems={navItems}
       breadcrumb="Ganadería de precisión · RFID"
     >
-      <HeroBand
-        kicker="Ganadería de precisión · RFID"
-        title="Ganadería"
-        description="Ficha clínica y productiva de cada animal por caravana: biometría, peso y trazabilidad sanitaria."
-        icon={<LivestockIcon className="h-6 w-6" />}
-        actions={
-          <Button
-            className="!bg-white/95 !text-agro-green-deep !hover:bg-white"
+      <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
+        <div className="min-w-0">
+          <p className="op-label">Ganadería de precisión · RFID</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Ganadería</h2>
+          <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+            Ficha clínica y productiva de cada animal por caravana: biometría, peso y trazabilidad
+            sanitaria.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="text-right">
+            {loading ? (
+              <div className="skeleton ml-auto h-8 w-14" aria-hidden="true" />
+            ) : (
+              <p className="op-num text-3xl font-bold leading-none text-ink">
+                {livestocks.length}
+              </p>
+            )}
+            <p className="op-label mt-1">Animales</p>
+          </div>
+          <button
+            type="button"
             onClick={openModal}
             disabled={livestocks.length === 0}
+            className="op-btn op-btn--primary"
           >
             <PlusIcon className="h-4 w-4" />
             Evento sanitario
-          </Button>
-        }
-      />
+          </button>
+        </div>
+      </section>
 
       {loadError && (
         <Alert tone="error" title="No se pudo cargar la ganadería" className="mb-5">
@@ -267,7 +304,7 @@ export default function GanaderoPage() {
           <Card className="overflow-hidden">
             <div className="p-4">
               <div className="flex items-center gap-2 rounded-lg bg-base-subtle px-3 py-2.5">
-                <SearchIcon className="h-4 w-4 shrink-0 text-agro-green" />
+                <SearchIcon className="h-4 w-4 shrink-0 text-ink-faint" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -318,11 +355,11 @@ export default function GanaderoPage() {
                         onClick={() => setSelectedId(l.id)}
                         aria-current={isActive ? "true" : undefined}
                         className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${
-                          isActive ? "bg-agro-green/5" : "hover:bg-base-subtle"
+                          isActive ? "bg-base-subtle" : "hover:bg-base-subtle/70"
                         }`}
                       >
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-agro-green/15">
-                          <span className="text-[11px] font-semibold text-agro-green-deep">TC</span>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-agro-border bg-base-subtle">
+                          <span className="text-xs font-semibold text-ink-soft">TC</span>
                         </div>
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-ink">{l.tagNumber}</p>
@@ -373,8 +410,8 @@ export default function GanaderoPage() {
                     { k: "Nacimiento", v: fmtDate(selected.birthDate) },
                   ].map((d) => (
                     <div key={d.k} className="bg-card px-5 py-3.5">
-                      <p className="text-xs text-ink-faint">{d.k}</p>
-                      <p className="text-base font-bold text-ink">{d.v}</p>
+                      <p className="op-label">{d.k}</p>
+                      <p className="op-num text-base font-bold text-ink">{d.v}</p>
                     </div>
                   ))}
                 </div>

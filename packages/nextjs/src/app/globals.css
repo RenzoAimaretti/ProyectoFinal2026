@@ -43,6 +43,12 @@
   --color-ink-soft: var(--text-secondary);
   --color-ink-faint: var(--text-muted);
 
+  /* Acento usable como texto: resuelve light/dark.
+     Las variantes -dark quedan reservadas a fondos y gradientes. */
+  --color-agro-green-text: var(--accent-green-text);
+  --color-agro-wheat-text: var(--accent-wheat-text);
+  --color-agro-earth-text: var(--accent-earth-text);
+
   /* Bordes */
   --color-agro-border: var(--border);
   --color-agro-border-strong: var(--border-strong);
@@ -78,14 +84,22 @@
 
   --text: #151a20;            /* tinta casi negra */
   --text-secondary: #545f6b;
-  --text-muted: #8b95a0;
+  --text-muted: #616c78;      /* ≥4.5:1 sobre base, card y subtle */
+
+  /* Acento como texto (light) */
+  --accent-green-text: #2f6b38;
+  --accent-wheat-text: #7d5f10;
+  --accent-earth-text: #9c4f2f;
+
+  /* Anillo de foco: verde de marca legible sobre claro */
+  --focus-ring: var(--color-agro-green);
 
   --border: #e3e7e0;
   --border-strong: #ced6cb;
 
   /* Semánticos light */
-  --semantic-success: #2f7d43;
-  --semantic-success-soft: color-mix(in srgb, #2f7d43 12%, transparent);
+  --semantic-success: #2b7239;
+  --semantic-success-soft: color-mix(in srgb, #2b7239 12%, transparent);
   --semantic-warning: #b07d12;
   --semantic-warning-soft: color-mix(in srgb, #cfa43c 18%, transparent);
   --semantic-danger: #b4472a;
@@ -125,7 +139,15 @@
 
     --text: #e8ebee;
     --text-secondary: #9aa4b0;
-    --text-muted: #6a7480;
+    --text-muted: #8b95a0;    /* ≥4.5:1 sobre card y base oscuras */
+
+    /* Acento como texto (dark) */
+    --accent-green-text: #7cc48d;
+    --accent-wheat-text: #e0b24d;
+    --accent-earth-text: #e08a63;
+
+    /* Anillo de foco: acento claro, ≥3:1 sobre el canvas oscuro */
+    --focus-ring: color-mix(in srgb, var(--accent-green-text) 90%, transparent);
 
     --border: #28313d;
     --border-strong: #38424f;
@@ -393,7 +415,7 @@ body {
 
 /* Focus accesible refinado (var corregida: --color-agro-green) */
 :focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--color-agro-green) 70%, transparent);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: 0.35rem;
 }
@@ -515,36 +537,505 @@ body {
   animation: aurora-drift 20s ease-in-out infinite;
 }
 
-/* Marquesina de conceptos reales (nombres de módulos), sin logos falsos */
-@keyframes marquee-drift {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-50%, 0, 0); }
-}
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee-drift 38s linear infinite;
-}
-.marquee-track:hover {
-  animation-play-state: paused;
-}
-
-/* Accesibilidad: neutraliza motion cuando el usuario lo pide */
+/* Accesibilidad: neutraliza el motion decorativo cuando el usuario lo pide.
+   Solo se detienen las animaciones de entrada/fondo (keyframes decorativos).
+   Las transiciones cortas de estado (hover, focus, disclosure) se conservan
+   porque comunican interacción, y los componentes que ya optan por salir
+   (reveal.tsx, scroll.tsx) siguen manejando su propio motion. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
+  .animate-fade-in-up,
+  .animate-fade-in,
+  .animate-drawer-in,
+  .animate-sidebar-in,
+  .animate-aurora,
+  .animate-pulse-soft,
+  .stagger-item,
+  .skeleton::after {
+    animation: none !important;
   }
-  .marquee-track,
-  .animate-aurora {
-    animation: none;
+}
+
+/* =========================================================
+   "La Carta de Suelos" — scoped Operate world (dashboard only)
+   ---------------------------------------------------------
+   A surveyor's plate: deep ink line-work on a bone ground with a
+   single measurement signal (survey red). Scoped under
+   `.operate-world` so the incumbent tokens/classes, the landing's
+   `.almanac-world`, and /demo + /login + /onboarding are never
+   touched. The world lends type, palette, density and one
+   signature move only — the shell, navigation and controls stay
+   standard web components.
+   ========================================================= */
+
+.operate-world {
+  /* Palette — light: bone ground, deep ink, one measurement signal */
+  --op-ground: #efeae0;        /* bone ground */
+  --op-paper: #f8f5ed;         /* plate / card paper */
+  --op-paper-2: #e7e0d0;       /* ruled band */
+  --op-ink: #211f1a;           /* deep ink line-work */
+  --op-ink-soft: #514c42;
+  --op-ink-faint: #6b6459;
+  --op-line: #d9d2c1;
+  --op-line-strong: #b7ae97;
+  --op-signal: #a8381d;        /* survey red — the ONE measurement signal */
+  --op-signal-strong: #7f2913;
+  --op-signal-soft: #f0dcd3;
+  --op-field: #33513f;         /* field green — carries "aprobado" meaning */
+  --op-field-soft: #dde6dd;
+  --op-clay: #9c5a3c;          /* rejected clay */
+  --op-clay-soft: #efe0d6;
+  --op-rail: #1c1b16;          /* the legend bar */
+  --op-rail-2: #26241f;
+
+  --op-sans: var(--font-operate-sans), "Public Sans", system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+
+  /* Re-map the runtime aliases consumed by the shared dashboard components.
+     Custom properties are substituted where they are declared, so the
+     --color-* aliases emitted by @theme must be re-declared here (not only
+     the raw --bg-* / --text / --border they point at). */
+  --bg-base: var(--op-ground);
+  --bg-subtle: var(--op-paper-2);
+  --bg-card: var(--op-paper);
+  --bg-card-hover: #fcfaf4;
+  --text: var(--op-ink);
+  --text-secondary: var(--op-ink-soft);
+  --text-muted: var(--op-ink-faint);
+  --border: var(--op-line);
+  --border-strong: var(--op-line-strong);
+  --focus-ring: var(--op-signal);
+
+  /* Semantic states re-pointed to the world, so Alert and semantic tones read
+     as the plate instead of the incumbent palette (the @theme --color-* aliases
+     are declared on :root, so they must be re-declared here too). */
+  --semantic-success: var(--op-field);
+  --semantic-success-soft: var(--op-field-soft);
+  --semantic-warning: var(--op-signal-strong);
+  --semantic-warning-soft: var(--op-signal-soft);
+  --semantic-danger: var(--op-clay);
+  --semantic-danger-soft: var(--op-clay-soft);
+  --semantic-info: var(--op-rail);
+  --semantic-info-soft: color-mix(in srgb, var(--op-rail) 12%, transparent);
+  --color-success: var(--op-field);
+  --color-success-soft: var(--op-field-soft);
+  --color-warning: var(--op-signal-strong);
+  --color-warning-soft: var(--op-signal-soft);
+  --color-danger: var(--op-clay);
+  --color-danger-soft: var(--op-clay-soft);
+  --color-info: var(--op-rail);
+  --color-info-soft: color-mix(in srgb, var(--op-rail) 12%, transparent);
+
+  --color-base: var(--op-ground);
+  --color-base-subtle: var(--op-paper-2);
+  --color-card: var(--op-paper);
+  --color-card-hover: #fcfaf4;
+  --color-ink: var(--op-ink);
+  --color-ink-soft: var(--op-ink-soft);
+  --color-ink-faint: var(--op-ink-faint);
+  --color-agro-border: var(--op-line);
+  --color-agro-border-strong: var(--op-line-strong);
+
+  /* Brand tones re-pointed to the survey palette inside the plate. Meaning is
+     preserved so the shared Badge / StatusBadge / IconTile / KpiCard /
+     ProgressBar / TabButton tones read as the world instead of the incumbent
+     forest/terracotta palette:
+       green*           → field green     (aprobado / validado)
+       earth*           → clay            (rechazado / negativo)
+       wheat/ochre/mustard → signal red   (pendiente)
+       sand/sidebar*    → survey neutrals / rail ink
+     The raw tokens flip with prefers-color-scheme; the -dark/-deep variants
+     blend toward ink or the rail so they stay usable as backgrounds and text. */
+  --color-agro-green: var(--op-field);
+  --color-agro-green-dark: color-mix(in srgb, var(--op-field) 75%, var(--op-ink));
+  --color-agro-green-deep: color-mix(in srgb, var(--op-field) 55%, var(--op-ink));
+  --color-agro-olive: color-mix(in srgb, var(--op-field) 62%, var(--op-ground));
+  --color-agro-forest: color-mix(in srgb, var(--op-field) 48%, var(--op-ink));
+  --color-agro-green-soft: var(--op-field-soft);
+  --color-agro-green-text: var(--op-field);
+
+  --color-agro-earth: var(--op-clay);
+  --color-agro-earth-dark: color-mix(in srgb, var(--op-clay) 60%, var(--op-rail));
+  --color-agro-earth-text: var(--op-clay);
+
+  --color-agro-wheat: var(--op-signal);
+  --color-agro-wheat-dark: var(--op-signal-strong);
+  --color-agro-wheat-text: var(--op-signal-strong);
+  --color-agro-ochre: var(--op-signal);
+  --color-agro-mustard: var(--op-signal-strong);
+
+  --color-agro-sand: var(--op-paper-2);
+  --color-agro-sidebar: var(--op-rail);
+  --color-agro-sidebar-deep: var(--op-rail-2);
+
+  position: relative;
+  min-height: 100vh;
+  font-family: var(--op-sans);
+  color: var(--op-ink);
+  background-color: var(--op-ground);
+  color-scheme: light;
+  caret-color: var(--op-signal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  .operate-world {
+    --op-ground: #15140f;
+    --op-paper: #1d1b15;
+    --op-paper-2: #262320;
+    --op-ink: #ece6d8;
+    --op-ink-soft: #b3ac9c;
+    --op-ink-faint: #948c7c;
+    --op-line: #322f28;
+    --op-line-strong: #474336;
+    --op-signal: #e5765c;
+    --op-signal-strong: #f0856b;
+    --op-signal-soft: #35221a;
+    --op-field: #8cc09f;
+    --op-field-soft: #17281d;
+    --op-clay: #d99a76;
+    --op-clay-soft: #2f211a;
+    --op-rail: #100f0c;
+    --op-rail-2: #191712;
+    --bg-card-hover: #24211a;
+    --color-card-hover: #24211a;
+    color-scheme: dark;
+  }
+}
+
+/* Type: the world's grotesk replaces Fraunces inside the plate. */
+.operate-world h1,
+.operate-world h2,
+.operate-world h3,
+.operate-world .font-display {
+  font-family: var(--op-sans);
+  font-optical-sizing: auto;
+}
+
+/* Browser surfaces themed from the operate palette (craft floor). */
+.operate-world ::selection {
+  background: color-mix(in srgb, var(--op-signal) 24%, transparent);
+  color: var(--op-ink);
+}
+.operate-world :focus-visible {
+  outline: 2px solid var(--op-signal);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+.operate-world {
+  scrollbar-color: color-mix(in srgb, var(--op-ink) 30%, transparent) transparent;
+}
+.operate-world ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.operate-world ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.operate-world ::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--op-ink) 26%, transparent);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+.operate-world ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--op-ink) 44%, transparent);
+  background-clip: content-box;
+}
+
+/* --- Density / plate utilities --- */
+.op-canvas {
+  background-color: var(--op-ground);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--op-ink) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--op-ink) 4%, transparent) 1px, transparent 1px);
+  background-size: 46px 46px;
+}
+.op-label {
+  font-family: var(--op-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--op-ink-faint);
+}
+.op-caption {
+  font-family: var(--op-sans);
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  color: var(--op-ink-faint);
+}
+.op-signal-text {
+  color: var(--op-signal-strong);
+}
+.op-field-text {
+  color: var(--op-field);
+}
+.op-num {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+.op-plate {
+  background-color: var(--op-paper);
+  border: 1px solid var(--op-line);
+}
+.op-rule {
+  height: 1px;
+  background: var(--op-line);
+}
+.op-skip {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+}
+.op-skip:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  padding: 0.5rem 0.9rem;
+  background: var(--op-paper);
+  border: 1px solid var(--op-signal);
+  color: var(--op-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* --- Legend rail --- */
+.op-rail {
+  background: var(--op-rail);
+  color: color-mix(in srgb, #ece6d8 92%, transparent);
+}
+.op-rail .op-label {
+  color: color-mix(in srgb, #ece6d8 44%, transparent);
+}
+.op-rail-sub {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, #ece6d8 55%, transparent);
+}
+.op-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.45rem 0.7rem;
+  border-left: 2px solid transparent;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: color-mix(in srgb, #ece6d8 60%, transparent);
+  transition:
+    background-color 160ms var(--ease-out-soft),
+    color 160ms var(--ease-out-soft);
+}
+.op-nav-link:hover,
+.op-nav-link:focus-visible {
+  background: rgb(255 255 255 / 0.05);
+  color: #fff;
+}
+.op-nav-link[aria-current="page"] {
+  color: #fff;
+  background: rgb(168 56 29 / 0.17);
+  border-left-color: var(--op-signal);
+}
+.op-nav-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--op-signal);
+}
+.op-nav-badge {
+  min-width: 1.35rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--op-signal);
+  color: var(--op-ground);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* --- Standard controls, restyled from the palette (still web components) --- */
+.op-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  font-family: var(--op-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid var(--op-line-strong);
+  background: var(--op-paper);
+  color: var(--op-ink);
+  transition:
+    background-color 160ms var(--ease-out-soft),
+    border-color 160ms var(--ease-out-soft);
+}
+.op-btn:hover:not(:disabled) {
+  background: var(--op-paper-2);
+}
+.op-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.op-btn--primary {
+  background: var(--op-ink);
+  color: var(--op-ground);
+  border-color: var(--op-ink);
+}
+.op-btn--primary:hover:not(:disabled) {
+  background: #000;
+}
+.op-btn--reject {
+  background: transparent;
+  color: var(--op-signal-strong);
+  border-color: color-mix(in srgb, var(--op-signal) 42%, transparent);
+}
+.op-btn--reject:hover:not(:disabled) {
+  background: var(--op-signal-soft);
+}
+.op-btn--quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--op-ink-soft);
+}
+.op-btn--quiet:hover:not(:disabled) {
+  background: var(--op-paper-2);
+  color: var(--op-ink);
+}
+.op-input {
+  min-height: 44px;
+  padding: 0.45rem 0.65rem;
+  font-family: var(--op-sans);
+  font-size: 0.8125rem;
+  color: var(--op-ink);
+  background: var(--op-paper);
+  border: 1px solid var(--op-line-strong);
+}
+.op-input::placeholder {
+  color: var(--op-ink-faint);
+}
+.op-input:focus-visible {
+  outline: 2px solid var(--op-signal);
+  outline-offset: 1px;
+}
+
+/* --- Signature move: the cadastral parcel plan + status legend --- */
+.op-plan {
+  background-color: var(--op-paper);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--op-ink) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--op-ink) 7%, transparent) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.op-parcel {
+  --p-fill: var(--op-paper-2);
+  --p-stroke: var(--op-line-strong);
+  background: var(--p-fill);
+  border: 1px solid var(--p-stroke);
+  color: var(--op-ink);
+  transition:
+    background-color 200ms var(--ease-out-soft),
+    border-color 200ms var(--ease-out-soft),
+    box-shadow 200ms var(--ease-out-soft);
+}
+.op-parcel[data-status="pendiente"] {
+  --p-fill: color-mix(in srgb, var(--op-signal) 20%, var(--op-paper));
+  --p-stroke: var(--op-signal);
+}
+.op-parcel[data-status="aprobado"] {
+  --p-fill: var(--op-field-soft);
+  --p-stroke: color-mix(in srgb, var(--op-field) 55%, var(--op-line));
+}
+.op-parcel[data-status="rechazado"] {
+  --p-fill: var(--op-clay-soft);
+  --p-stroke: color-mix(in srgb, var(--op-clay) 60%, var(--op-line));
+}
+.op-parcel[data-status="vacio"] {
+  --p-fill: var(--op-paper-2);
+  --p-stroke: var(--op-line);
+}
+.op-parcel[data-active="true"] {
+  box-shadow:
+    0 0 0 2px var(--op-signal),
+    0 6px 14px -8px color-mix(in srgb, var(--op-ink) 55%, transparent);
+}
+.op-swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 1px solid var(--op-line-strong);
+  flex: none;
+}
+.op-swatch[data-status="pendiente"] {
+  background: color-mix(in srgb, var(--op-signal) 20%, var(--op-paper));
+  border-color: var(--op-signal);
+}
+.op-swatch[data-status="aprobado"] {
+  background: var(--op-field-soft);
+  border-color: color-mix(in srgb, var(--op-field) 55%, var(--op-line));
+}
+.op-swatch[data-status="rechazado"] {
+  background: var(--op-clay-soft);
+  border-color: color-mix(in srgb, var(--op-clay) 60%, var(--op-line));
+}
+.op-swatch[data-status="vacio"] {
+  background: var(--op-paper-2);
+}
+
+/* --- Queue rows --- */
+.op-queue-row {
+  border-bottom: 1px solid var(--op-line);
+  transition: background-color 160ms var(--ease-out-soft);
+}
+.op-queue-row:hover,
+.op-queue-row:focus-within {
+  background: color-mix(in srgb, var(--op-ink) 3.5%, transparent);
+}
+.op-queue-row[data-active="true"] {
+  background: color-mix(in srgb, var(--op-signal) 7%, transparent);
+}
+
+/* --- Shared dashboard components, re-skinned inside the world --- */
+.operate-world .card-surface {
+  background-image: none;
+}
+.operate-world .edge-glow::after {
+  display: none;
+}
+.operate-world .btn-primary {
+  background-image: none;
+  background-color: var(--op-ink);
+  color: var(--op-ground);
+  box-shadow: none;
+}
+.operate-world .btn-primary:hover:not(:disabled) {
+  background-image: none;
+  background-color: color-mix(in srgb, var(--op-ink) 84%, var(--op-rail));
+}
+.operate-world .hero-band {
+  background: var(--op-rail);
+  border-color: var(--op-line-strong);
+  color: var(--op-ground);
+  box-shadow: none;
+}
+.operate-world .hero-band::before,
+.operate-world .hero-band::after {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operate-world .op-parcel,
+  .operate-world .op-queue-row,
+  .operate-world .op-nav-link,
+  .operate-world .op-btn {
+    transition: none !important;
   }
 }
 
