@@ -22,6 +22,28 @@ export const LOT_STATE_COLOR_VARS: Record<LotState, string> = {
 /** The strong ink-green used for the selected lot and the draft vertices. */
 export const LOT_EMPHASIS_COLOR_VAR = "--color-agro-green-deep";
 
+/**
+ * Last resort when a token cannot be read: visible on the imagery and never `undefined`,
+ * because Leaflet stores whatever string it is handed and an absent colour disappears
+ * silently. Kept as one value for every state so a degraded map is obviously degraded.
+ */
+export const LOT_COLOR_FALLBACK = "currentColor";
+
+/**
+ * Maps token names to paintable colours through `read`, so the fallback stays testable
+ * without a DOM. Always returns one entry per name: a caller resolving colours for a
+ * renderer must never receive `undefined`. Takes the reader instead of reading the theme
+ * itself, which is what lets this module stay DOM-free for its Node test.
+ */
+export function resolveColorTokens(
+  names: readonly string[],
+  read: (name: string) => string,
+): Record<string, string> {
+  return Object.fromEntries(
+    names.map((name) => [name, read(name).trim() || LOT_COLOR_FALLBACK]),
+  );
+}
+
 export const LOT_STATE_LABELS: Record<LotState, string> = {
   libre: "Libre",
   sembrado: "Sembrado",

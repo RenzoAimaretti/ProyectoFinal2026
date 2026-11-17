@@ -7,8 +7,11 @@ import {
   ringToLatLngs,
   removeDraftVertex,
   distinctDraftVertexCount,
+  LOT_COLOR_FALLBACK,
+  LOT_EMPHASIS_COLOR_VAR,
   LOT_STATE_COLOR_VARS,
   LOT_STATES,
+  resolveColorTokens,
 } from '../src/lib/lot-map.ts';
 import { readFileSync } from 'node:fs';
 
@@ -31,6 +34,34 @@ test('each lot state paints from a design token that globals.css actually define
     new Set(Object.values(LOT_STATE_COLOR_VARS)).size,
     LOT_STATES.length,
     'each state keeps a distinct colour so the legend stays readable',
+  );
+  assert.ok(
+    globals.includes(`${LOT_EMPHASIS_COLOR_VAR}:`),
+    `the selection colour ${LOT_EMPHASIS_COLOR_VAR} must be defined in globals.css`,
+  );
+});
+
+// Leaflet paints whatever string it is handed, so an unresolved token must degrade to a
+// paintable value rather than to undefined, which silently removes the colour.
+test('every map colour resolves, including the selection colour, and never to nothing', () => {
+  const names = [
+    ...LOT_STATES.map((state) => LOT_STATE_COLOR_VARS[state]),
+    LOT_EMPHASIS_COLOR_VAR,
+  ];
+
+  const resolved = resolveColorTokens(names, (name) =>
+    name === LOT_STATE_COLOR_VARS.sembrado ? '  #3a7d44  ' : '',
+  );
+
+  assert.equal(resolved[LOT_STATE_COLOR_VARS.sembrado], '#3a7d44', 'a real token value is trimmed and kept');
+  for (const name of names) {
+    assert.ok(resolved[name], `${name} must resolve to a paintable colour, never to undefined`);
+  }
+  assert.equal(resolved[LOT_EMPHASIS_COLOR_VAR], LOT_COLOR_FALLBACK);
+  assert.notEqual(
+    resolved[LOT_STATE_COLOR_VARS.sembrado],
+    resolved[LOT_EMPHASIS_COLOR_VAR],
+    'a missing selection token must not become the colour it is meant to stand out from',
   );
 });
 

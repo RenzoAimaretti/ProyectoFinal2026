@@ -11,6 +11,7 @@ import {
   boundsForPolygons,
   boundsSignature,
   polygonToLatLngs,
+  resolveColorTokens,
   type LatLngTuple,
   type LatLngBoundsTuple,
 } from "@/lib/lot-map";
@@ -53,19 +54,16 @@ const THEME_COLOR_VARS = [
  * Leaflet writes colours as SVG attributes, where `var(--x)` would be stored as an
  * invalid colour string, so the design tokens have to be read from the live theme
  * instead. Resolved once per mount: this view is client-only and the palette does not
- * change mid-session. The fallback only matters if a token is renamed without updating
- * the contract test in `test/lot-map.test.mjs`.
+ * change mid-session. `resolveColorTokens` guarantees a paintable value for every name,
+ * so a missing or not-yet-loaded token degrades to the visible fallback instead of
+ * leaving the renderer without a colour.
  */
 function useThemeColors(): Record<string, string> {
   return useMemo(() => {
     const styles =
       typeof document === "undefined" ? null : getComputedStyle(document.documentElement);
-    if (!styles) return {};
-    return Object.fromEntries(
-      THEME_COLOR_VARS.map((name) => [
-        name,
-        styles.getPropertyValue(name).trim() || "currentColor",
-      ]),
+    return resolveColorTokens(THEME_COLOR_VARS, (name) =>
+      styles ? styles.getPropertyValue(name) : "",
     );
   }, []);
 }
