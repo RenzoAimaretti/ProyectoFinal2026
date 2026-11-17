@@ -7,18 +7,22 @@ import {
   Badge,
   Button,
   Card,
+  CardHeader,
   EmptyState,
   KpiCard,
   Modal,
+  PageHeader,
   StatRow,
 } from "@/components/ui/primitives";
 import { Alert } from "@/components/ui/feedback";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { TextField } from "@/components/ui/form";
 import { Spinner } from "@/components/ui/spinner";
 import { FieldIcon, MapZoomIcon } from "@/components/ui/icons";
 import { isClientRole, navItems } from "@/components/ui/nav";
 import { useAuth } from "@/components/ui/auth";
 import {
-  LOT_STATE_COLORS,
+  LOT_STATE_COLOR_VARS,
   LOT_STATE_LABELS,
   LOT_STATES,
   countUndelimited,
@@ -133,6 +137,14 @@ export default function MiCampoPage() {
     setEditing(false);
     setDraft([]);
     setSaveError(null);
+  };
+
+  /** Opens the create form empty: a stale name from a previous attempt is not a default. */
+  const openCreateLot = () => {
+    setLotErrorMessage(null);
+    setNewName("");
+    setNewArea("");
+    setAdding(true);
   };
 
   const selectLot = (id: string) => {
@@ -298,22 +310,36 @@ export default function MiCampoPage() {
       sidebarItems={navItems}
       breadcrumb="Mapeo SIG y gestión territorial"
     >
-      {canDraw && (
-        <div className="mb-4 flex items-center gap-3">
-          <Button onClick={() => { setLotErrorMessage(null); setAdding(true); }} disabled={lotBusy}>Agregar lote</Button>
-          <span className="text-sm text-ink-soft">En {currentFarm.name}</span>
-        </div>
-      )}
-      {lotNotice && <Alert tone="warning" title="Operación completada con aviso">{lotNotice}</Alert>}
-      {lotErrorMessage && !adding && !lotToDelete && <Alert tone="error" title="No se pudo completar la operación">{lotErrorMessage}</Alert>}
+      <PageHeader
+        title="Mi Campo"
+        subtitle={`Gestioná los lotes y su delimitación en ${currentFarm.name}.`}
+        action={
+          canDraw ? (
+            <Button onClick={openCreateLot} disabled={lotBusy}>Agregar lote</Button>
+          ) : undefined
+        }
+      />
+      {lotNotice && <Alert tone="warning" className="mb-4" title="Operación completada con aviso">{lotNotice}</Alert>}
+      {lotErrorMessage && !adding && !lotToDelete && <Alert tone="error" className="mb-4" title="No se pudo completar la operación">{lotErrorMessage}</Alert>}
       <Modal open={adding} onClose={() => { if (!lotBusy) { setAdding(false); setLotErrorMessage(null); } }} title="Agregar lote" subtitle={`Establecimiento: ${currentFarm.name}`}>
         <form onSubmit={(event) => void createLot(event)} className="space-y-4">
-          <label className="block text-sm font-medium text-ink">Nombre del lote
-            <input required value={newName} onChange={(event) => setNewName(event.target.value)} disabled={lotBusy} className="mt-1 w-full rounded-lg border border-agro-border bg-card px-3 py-2" />
-          </label>
-          <label className="block text-sm font-medium text-ink">Superficie declarada (ha)
-            <input required type="number" min="0.000001" step="any" value={newArea} onChange={(event) => setNewArea(event.target.value)} disabled={lotBusy} className="mt-1 w-full rounded-lg border border-agro-border bg-card px-3 py-2" />
-          </label>
+          <TextField
+            label="Nombre del lote"
+            required
+            value={newName}
+            onChange={(event) => setNewName(event.target.value)}
+            disabled={lotBusy}
+          />
+          <TextField
+            label="Superficie declarada (ha)"
+            required
+            type="number"
+            min="0.000001"
+            step="any"
+            value={newArea}
+            onChange={(event) => setNewArea(event.target.value)}
+            disabled={lotBusy}
+          />
           {lotErrorMessage && <Alert tone="error" title="No se pudo agregar el lote">{lotErrorMessage}</Alert>}
           <div className="flex gap-2">
             <Button type="submit" disabled={lotBusy}>{lotBusy ? "Guardando…" : "Agregar lote"}</Button>
@@ -321,52 +347,53 @@ export default function MiCampoPage() {
           </div>
         </form>
       </Modal>
-      <Modal open={lotToDelete !== null} onClose={() => { if (!lotBusy) { setLotToDelete(null); setLotErrorMessage(null); } }} title="Eliminar lote físicamente">
-        <p className="text-sm text-ink">¿Eliminar definitivamente el lote {lotToDelete?.name}? Esta acción no se puede deshacer. Si tiene trabajos u otras relaciones, el servidor rechazará la eliminación.</p>
-        {lotErrorMessage && <Alert tone="error" title="No se pudo eliminar el lote">{lotErrorMessage}</Alert>}
-        <div className="mt-4 flex gap-2">
-          <Button variant="danger" disabled={lotBusy} onClick={() => void deleteLot()}>{lotBusy ? "Eliminando…" : "Confirmar eliminación"}</Button>
-          <Button variant="secondary" disabled={lotBusy} onClick={() => { setLotToDelete(null); setLotErrorMessage(null); }}>Cancelar</Button>
-        </div>
-      </Modal>
+      <ConfirmDialog
+        open={lotToDelete !== null}
+        onClose={() => { if (!lotBusy) { setLotToDelete(null); setLotErrorMessage(null); } }}
+        onConfirm={() => void deleteLot()}
+        title="Eliminar lote físicamente"
+        confirmLabel="Confirmar eliminación"
+        loading={lotBusy}
+        message={
+          <div className="space-y-3">
+            <p className="text-ink">
+              ¿Eliminar definitivamente el lote {lotToDelete?.name}? Esta acción no se puede deshacer. Si tiene trabajos u otras relaciones, el servidor rechazará la eliminación.
+            </p>
+            {lotErrorMessage && <Alert tone="error" title="No se pudo eliminar el lote">{lotErrorMessage}</Alert>}
+          </div>
+        }
+      />
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
         <Card className="overflow-hidden lg:col-span-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-agro-border px-5 py-4">
-            <div>
-              <p className="font-medium text-ink">Establecimiento &quot;{currentFarm.name}&quot;</p>
-              <p className="text-xs text-ink-soft">
-                {lotesActuales.length} lotes
-                {currentFarm.location ? ` · ${currentFarm.location}` : ""}
-              </p>
-            </div>
-            {esAdmin ? (
-              <div className="flex flex-wrap overflow-hidden rounded-lg bg-base-subtle p-0.5 ring-1 ring-agro-border">
-                {farms.map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    disabled={saving || lotBusy || editing}
-                    onClick={() => {
-                      cancelDrawing();
-                      setSaveNotice(null);
-                      setCliente(f.id);
-                      const firstId = lotesByFarm[f.id]?.[0]?.id;
-                      setSelected(firstId ?? "");
-                    }}
-                    className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
-                      currentFarm.id === f.id
-                        ? "bg-agro-green text-white shadow-sm"
-                        : "text-ink-soft hover:text-ink"
-                    }`}
-                  >
-                    {f.name}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <Badge tone="green">{currentFarm.name}</Badge>
-            )}
-          </div>
+          <CardHeader
+            title={`Establecimiento "${currentFarm.name}"`}
+            subtitle={`${lotesActuales.length} lotes${currentFarm.location ? ` · ${currentFarm.location}` : ""}`}
+            action={
+              esAdmin ? (
+                <div className="flex flex-wrap items-center gap-1 rounded-lg bg-base-subtle p-1 ring-1 ring-agro-border">
+                  {farms.map((f) => (
+                    <Button
+                      key={f.id}
+                      variant={currentFarm.id === f.id ? "primary" : "ghost"}
+                      className="px-3 py-1.5 text-xs"
+                      disabled={saving || lotBusy || editing}
+                      onClick={() => {
+                        cancelDrawing();
+                        setSaveNotice(null);
+                        setCliente(f.id);
+                        const firstId = lotesByFarm[f.id]?.[0]?.id;
+                        setSelected(firstId ?? "");
+                      }}
+                    >
+                      {f.name}
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <Badge tone="green">{currentFarm.name}</Badge>
+              )
+            }
+          />
 
           {/* Selector de lotes del establecimiento */}
           {lotesActuales.length > 0 && (
@@ -377,16 +404,12 @@ export default function MiCampoPage() {
               {lotesActuales.map((l) => {
                 const isActive = sel?.id === l.id;
                 return (
-                  <button
+                  <Button
                     key={l.id}
-                    type="button"
+                    variant={isActive ? "primary" : "secondary"}
+                    className="px-2.5 py-1.5 text-xs"
                     disabled={saving || lotBusy}
                     onClick={() => selectLot(l.id)}
-                    className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
-                      isActive
-                        ? "border-agro-green bg-agro-green text-white"
-                        : "border-agro-border bg-card text-ink-soft hover:border-agro-green/50 hover:text-ink"
-                    }`}
                   >
                     <span className={`h-2 w-2 rounded-full ${isActive ? "bg-white" : "bg-ink-faint"}`} />
                     {l.name}
@@ -397,7 +420,7 @@ export default function MiCampoPage() {
                     >
                       {l.area} ha
                     </span>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -407,14 +430,14 @@ export default function MiCampoPage() {
             <div className="border-b border-agro-border px-5 py-3">
               {!editing ? (
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" disabled={lotBusy} className="rounded-lg bg-agro-green px-3 py-2 text-sm font-semibold text-white disabled:opacity-50" onClick={() => {
+                  <Button disabled={lotBusy} onClick={() => {
                     setDraft(sel.polygon ? ringToLatLngs(sel.polygon.coordinates[0].slice(0, -1)) : []);
                     setSaveError(null);
                     setSaveNotice(null);
                     setEditing(true);
                   }}>
                     {sel.polygon ? "Editar delimitación" : "Dibujar delimitación"}
-                  </button>
+                  </Button>
                   <Button variant="danger" disabled={lotBusy} onClick={() => { setLotErrorMessage(null); setLotToDelete(sel); }}>Eliminar lote</Button>
                 </div>
               ) : (
@@ -429,10 +452,10 @@ export default function MiCampoPage() {
                   </div>}
                   {distinctDraftVertexCount(draft) < 3 && <p className="text-xs text-ink-soft">Marcá al menos tres puntos distintos para guardar.</p>}
                   <div className="flex gap-2">
-                    <button type="button" disabled={saving || distinctDraftVertexCount(draft) < 3} onClick={() => void savePolygon()} className="rounded-lg bg-agro-green px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                    <Button disabled={saving || distinctDraftVertexCount(draft) < 3} onClick={() => void savePolygon()}>
                       {saving ? "Guardando…" : "Guardar polígono"}
-                    </button>
-                    <button type="button" disabled={saving} onClick={cancelDrawing} className="rounded-lg border border-agro-border px-3 py-2 text-sm text-ink disabled:opacity-50">Cancelar</button>
+                    </Button>
+                    <Button variant="secondary" disabled={saving} onClick={cancelDrawing}>Cancelar</Button>
                   </div>
                   {saveError && <Alert tone="error" title="No se pudo guardar">{saveError}</Alert>}
                 </div>
@@ -460,7 +483,7 @@ export default function MiCampoPage() {
               <span key={state} className="inline-flex items-center gap-1.5">
                 <span
                   className="h-2.5 w-2.5 rounded-sm ring-1 ring-black/10"
-                  style={{ backgroundColor: LOT_STATE_COLORS[state] }}
+                  style={{ backgroundColor: `var(${LOT_STATE_COLOR_VARS[state]})` }}
                 />
                 {LOT_STATE_LABELS[state]}
               </span>
@@ -508,12 +531,10 @@ export default function MiCampoPage() {
       {/* Detalle real del lote seleccionado */}
       <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="overflow-hidden lg:col-span-2">
-          <div className="border-b border-agro-border px-5 py-4">
-            <h3 className="font-semibold text-ink">
-              {sel ? `Lote ${sel.name}` : "Sin lote seleccionado"}
-            </h3>
-            <p className="text-sm text-ink-soft">Datos reales del lote desde /lots</p>
-          </div>
+          <CardHeader
+            title={sel ? `Lote ${sel.name}` : "Sin lote seleccionado"}
+            subtitle="Datos reales del lote desde /lots"
+          />
           {sel ? (
             <div className="space-y-1.5 px-5 py-4">
               <StatRow label="Establecimiento" value={currentFarm.name} />
@@ -538,9 +559,7 @@ export default function MiCampoPage() {
         </Card>
 
         <Card>
-          <div className="border-b border-agro-border px-5 py-4">
-            <h3 className="font-semibold text-ink">Cultivos y rotaciones</h3>
-          </div>
+          <CardHeader title="Cultivos y rotaciones" />
           <EmptyState
             icon={<FieldIcon />}
             title="Proximamente"
