@@ -7,7 +7,32 @@ import {
   ringToLatLngs,
   removeDraftVertex,
   distinctDraftVertexCount,
+  LOT_STATE_COLOR_VARS,
+  LOT_STATES,
 } from '../src/lib/lot-map.ts';
+import { readFileSync } from 'node:fs';
+
+// The map must paint from the design system, not from a second copy of the palette:
+// a renamed token has to break this test instead of silently greying out a field.
+test('each lot state paints from a design token that globals.css actually defines', () => {
+  const globals = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8');
+
+  for (const state of LOT_STATES) {
+    const token = LOT_STATE_COLOR_VARS[state];
+    assert.ok(token, `${state} must name a colour token`);
+    assert.match(token, /^--color-agro-[a-z-]+$/, `${state} must name a token, not a literal colour`);
+    assert.ok(
+      globals.includes(`${token}:`),
+      `token ${token} used by ${state} must be defined in globals.css`,
+    );
+  }
+
+  assert.equal(
+    new Set(Object.values(LOT_STATE_COLOR_VARS)).size,
+    LOT_STATES.length,
+    'each state keeps a distinct colour so the legend stays readable',
+  );
+});
 
 test('drawing converts Leaflet vertices to a closed GeoJSON ring without zero-length edges', () => {
   const polygon = latLngsToPolygon([

@@ -5,7 +5,9 @@ import { divIcon } from "leaflet";
 import { MapContainer, Marker, Polygon, Polyline, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import type { GeoJsonPolygon, LotState } from "@/lib/geo-types";
 import {
-  LOT_STATE_COLORS,
+  LOT_EMPHASIS_COLOR_VAR,
+  LOT_STATE_COLOR_VARS,
+  LOT_STATES,
   boundsForPolygons,
   boundsSignature,
   polygonToLatLngs,
@@ -42,9 +44,36 @@ export type LotMapProps = {
   onDraftChange: (vertices: LatLngTuple[]) => void;
 };
 
+const THEME_COLOR_VARS = [
+  ...LOT_STATES.map((state) => LOT_STATE_COLOR_VARS[state]),
+  LOT_EMPHASIS_COLOR_VAR,
+];
+
+/**
+ * Leaflet writes colours as SVG attributes, where `var(--x)` would be stored as an
+ * invalid colour string, so the design tokens have to be read from the live theme
+ * instead. Resolved once per mount: this view is client-only and the palette does not
+ * change mid-session. The fallback only matters if a token is renamed without updating
+ * the contract test in `test/lot-map.test.mjs`.
+ */
+function useThemeColors(): Record<string, string> {
+  return useMemo(() => {
+    const styles =
+      typeof document === "undefined" ? null : getComputedStyle(document.documentElement);
+    if (!styles) return {};
+    return Object.fromEntries(
+      THEME_COLOR_VARS.map((name) => [
+        name,
+        styles.getPropertyValue(name).trim() || "currentColor",
+      ]),
+    );
+  }, []);
+}
+
 const vertexIcon = divIcon({
   className: "",
-  html: '<span style="display:block;width:16px;height:16px;border:3px solid white;border-radius:50%;background:#1a3323;box-shadow:0 1px 5px #0008"></span>',
+  // Inline CSS on a real element, so the tokens resolve here where SVG attributes would not.
+  html: `<span style="display:block;width:16px;height:16px;border:3px solid var(--bg-card);border-radius:50%;background:var(${LOT_EMPHASIS_COLOR_VAR});box-shadow:0 1px 5px rgb(0 0 0 / 0.45)"></span>`,
   iconSize: [16, 16],
   iconAnchor: [8, 8],
 });
@@ -76,6 +105,9 @@ export function LotMap({
 
   const boundsKey = boundsSignature(bounds);
 
+  const colors = useThemeColors();
+  const emphasis = colors[LOT_EMPHASIS_COLOR_VAR];
+
   return (
     <div className="relative">
     <MapContainer
@@ -90,9 +122,9 @@ export function LotMap({
       <FitBounds bounds={bounds} boundsKey={`${farmId}:${boundsKey}`} fallbackCenter={fallbackCenter} />
       <DrawVertices enabled={editing} vertices={draft} onChange={onDraftChange} />
       {editing && draft.length >= 3 && (
-        <Polygon positions={[...draft]} pathOptions={{ color: "#1a3323", weight: 3, fillOpacity: 0.25 }} />
+        <Polygon positions={[...draft]} pathOptions={{ color: emphasis, weight: 3, fillOpacity: 0.25 }} />
       )}
-      {editing && draft.length === 2 && <Polyline positions={[...draft]} pathOptions={{ color: "#1a3323" }} />}
+      {editing && draft.length === 2 && <Polyline positions={[...draft]} pathOptions={{ color: emphasis }} />}
       {editing && draft.map((point, index) => (
         <Marker
           key={index}
@@ -110,15 +142,16 @@ export function LotMap({
       ))}
       {drawable.map(({ lot, polygon }) => {
         const selected = lot.id === selectedLotId;
+        const stateColor = colors[LOT_STATE_COLOR_VARS[lot.state]];
 
         return (
           <Polygon
             key={lot.id}
             positions={polygonToLatLngs(polygon)}
             pathOptions={{
-              color: selected ? "#1a3323" : LOT_STATE_COLORS[lot.state],
+              color: selected ? emphasis : stateColor,
               weight: selected ? 3 : 1.5,
-              fillColor: LOT_STATE_COLORS[lot.state],
+              fillColor: stateColor,
               fillOpacity: selected ? 0.55 : 0.35,
             }}
             eventHandlers={{ click: () => { if (!editing) onSelectLot(lot.id); } }}
@@ -127,7 +160,7 @@ export function LotMap({
       })}
     </MapContainer>
     {drawable.length === 0 && !editing && (
-      <div className="pointer-events-none absolute left-3 top-3 z-[400] max-w-xs rounded-lg bg-white/90 px-3 py-2 text-xs text-ink-soft shadow-sm">
+      <div className="pointer-events-none absolute left-3 top-3 z-[400] max-w-xs rounded-card border border-agro-border bg-card/95 px-3 py-2 text-xs text-ink-soft shadow-card">
         {emptyLabel}
       </div>
     )}

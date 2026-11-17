@@ -5,16 +5,22 @@ export type LatLngTuple = [number, number];
 export type LatLngBoundsTuple = [LatLngTuple, LatLngTuple];
 
 /**
- * Polygon colours, mirroring the design tokens in `globals.css` so the map reads as
- * part of the app rather than as an embedded widget: sand for bare ground, green for
- * a growing crop, ochre for a treated field, terracotta for a harvested one.
+ * Polygon colours expressed as design-token names, not as literal colours. The
+ * consumers resolve the token against the live theme, so the map reads as part of
+ * the app, follows the palette when it changes, and never keeps a second copy of
+ * the hex values that `globals.css` already owns.
+ *
+ * Kept as names only: this module stays DOM-free because its test runs in Node.
  */
-export const LOT_STATE_COLORS: Record<LotState, string> = {
-  libre: "#d9c9a8", // --color-agro-sand
-  sembrado: "#3a7d44", // --color-agro-green
-  aplicado: "#c9a227", // --color-agro-ochre
-  cosechado: "#c8754f", // --color-agro-earth
+export const LOT_STATE_COLOR_VARS: Record<LotState, string> = {
+  libre: "--color-agro-sand",
+  sembrado: "--color-agro-green",
+  aplicado: "--color-agro-ochre",
+  cosechado: "--color-agro-earth",
 };
+
+/** The strong ink-green used for the selected lot and the draft vertices. */
+export const LOT_EMPHASIS_COLOR_VAR = "--color-agro-green-deep";
 
 export const LOT_STATE_LABELS: Record<LotState, string> = {
   libre: "Libre",
