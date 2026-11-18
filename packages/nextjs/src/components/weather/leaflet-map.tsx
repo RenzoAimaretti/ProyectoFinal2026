@@ -14,6 +14,8 @@ import type { Map as LeafletMapInstance } from "leaflet";
 import type { WeatherResponse } from "@/api/client";
 import "leaflet/dist/leaflet.css";
 
+const RAINVIEWER_MAX_NATIVE_ZOOM = 7;
+
 /**
  * A single wind arrow, rotated toward the direction the wind is blowing *to*
  * (`windDirectionDeg` is meteorological: the direction it blows *from*).
@@ -61,6 +63,10 @@ export default function LeafletMap({ weather, className = "" }: LeafletMapProps)
       if (tileTemplate) {
         L.tileLayer(tileTemplate, {
           opacity: 0.6,
+          // The public RainViewer API only serves radar tiles up to z7; above
+          // that it returns a "Zoom Level Not Supported" image. Leaflet
+          // upscales the z7 tiles for the closer, lot-level zooms instead.
+          maxNativeZoom: RAINVIEWER_MAX_NATIVE_ZOOM,
           attribution: "RainViewer",
         }).addTo(map);
       }
