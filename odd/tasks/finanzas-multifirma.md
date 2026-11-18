@@ -70,8 +70,9 @@ Decisión del cliente: `Company` es la firma; cada Company lleva su propia conta
 | T4 | Cheques físicos: alta con número/vencimiento/emisor y máquina de estados (en cartera → depositado → cobrado / rechazado / endosado) | S3, S6 | inline | cf2b565 |
 | T5 | eCheqs: registro emitido/recibido, fecha de acreditación/débito, conciliación y bandeja de pendientes | S4, S6 | inline | 1abf645 |
 | T6 | UI Next.js `/dashboard/finanzas`: vistas de facturas, cheques y bandeja de eCheqs con conciliar/rechazar (slice de lectura + acciones) | S1, S3, S4 | inline | 8befb93 |
-| T6b | UI Next.js: formularios de alta de factura y de cheque | S1, S3 | pending | — |
+| T6b | UI Next.js: formularios de alta de factura y de cheque | S1, S3 | inline | 89478db |
 | T6c | Sección de cobros en la UI | S2 | blocked: depende de T3 | — |
+| T7 | Picker de tarea para los conceptos de factura (hoy se ingresa por id) | S1 | pending | — |
 
 ## Fuera de alcance
 
@@ -121,3 +122,5 @@ Consecuencia: T3 queda bloqueada hasta que el merge aterrice en `dev`; T1, T2, T
 **L11 — Verificación de T5.** S6 PASS: todas las rutas toman la firma de `req.user.firmaId`, `findFirst`/`findMany`/`updateMany` filtran por `companyId`, la escritura de conciliación es condicional al estado y `paymentId` se rechaza. S4: el verificador marcó FAIL por `new Date()` en `echeq/adapters/outbound/system-clock.ts:6-7`. **Hallazgo rechazado con evidencia**: los cinco adaptadores de reloj del repo (`daily-report`, `invoice`, `machine-activity`, `reception`) hacen exactamente `return new Date()`. El adapter es la frontera con el tiempo real; el defecto sería `new Date()` en dominio o aplicación, y la bandeja recibe el reloj por puerto. El criterio mal escrito era del padre, no un defecto del código.
 
 **L12 — T6 dividido.** La UI de `/dashboard/finanzas` entró como slice de lectura más acciones (commit `8befb93`): facturas, cheques con sus transiciones, y la bandeja de eCheqs con conciliar/rechazar. Los formularios de alta van a T6b y la sección de cobros a T6c, que depende de T3. Verificado: build de Next.js verde con `/dashboard/finanzas` prerenderizada y `eslint` limpio en el archivo nuevo; el error de lint en `components/ui/reveal.tsx` es preexistente (último cambio `97c84a9`, diff cero).
+
+**L13 — T6b cerrado (`89478db`).** Formularios de alta de factura y de cheque integrados en la pantalla existente; el total lo calcula el backend y el 409 de cheque duplicado se muestra tal cual. Verificado: build de Next.js verde, `eslint` limpio en ambos archivos, 8/8 del suite de `node --test`. Dos límites conocidos, registrados a propósito: (1) el concepto de factura toma la tarea **por id**, porque este slice no agrega picker — T7; (2) ninguno de los endpoints financieros se ejercitó a nivel HTTP con el backend levantado, así que guards y DTOs están probados solo por unitarios con fakes.
