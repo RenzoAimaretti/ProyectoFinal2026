@@ -5,6 +5,7 @@ import { InputModule } from './entities/input/input.module';
 import { InputCategoryModule } from './entities/input-category/input-category.module';
 import { RecipeModule } from './entities/recipe/recipe.module';
 import { DailyReportModule } from './entities/daily-report/daily-report.module';
+import { InvoiceModule } from './entities/invoice/invoice.module';
 import { ReceptionModule } from './entities/reception/reception.module';
 import { StockModule } from './entities/stock/stock.module';
 import { PhotoModule } from './entities/photo/photo.module';
@@ -36,6 +37,7 @@ import { RbacModule } from './auth/rbac.module';
     InputCategoryModule,
     RecipeModule,
     DailyReportModule,
+    InvoiceModule,
     ReceptionModule,
     StockModule,
     PhotoModule,
@@ -61,4 +63,3 @@ import { RbacModule } from './auth/rbac.module';
   providers: [],
 })
 export class AppModule {}
-
