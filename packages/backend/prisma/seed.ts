@@ -44,6 +44,30 @@ function requireSeedAdminPassword(): string {
 const did = (n: number): string =>
   `00000000-0000-4000-8000-${n.toString().padStart(12, '0')}`;
 
+// Lot polygon in the repo's short coords format `[[lat, lon], …]`, the shape
+// the weather integration resolves (`centroidOfCoords`). Built as a ~1 km
+// square around a point given in degrees/minutes South and West.
+const LOT_HALF_SIDE_DEG = 0.005;
+const lotSquare = (
+  latDeg: number,
+  latMin: number,
+  lonDeg: number,
+  lonMin: number,
+): string => {
+  const lat = -(latDeg + latMin / 60);
+  const lon = -(lonDeg + lonMin / 60);
+  const d = LOT_HALF_SIDE_DEG;
+  const round = (v: number): number => Math.round(v * 1e6) / 1e6;
+  return JSON.stringify(
+    [
+      [lat + d, lon - d],
+      [lat + d, lon + d],
+      [lat - d, lon + d],
+      [lat - d, lon - d],
+    ].map(([a, b]) => [round(a), round(b)]),
+  );
+};
+
 async function main(): Promise<void> {
   const prisma = new PrismaClient({
     adapter: new PrismaPg(process.env.DATABASE_URL!),
@@ -225,25 +249,25 @@ async function main(): Promise<void> {
     });
 
     const lotAgro1 = await prisma.lot.create({
-      data: { id: did(140), farmId: farmAgro.id, name: 'Lote N°1', area: 96, coords: "33° 23' S · 62° 18' O" },
+      data: { id: did(140), farmId: farmAgro.id, name: 'Lote N°1', area: 96, coords: lotSquare(33, 23, 62, 18) },
     });
     const lotAgro2 = await prisma.lot.create({
-      data: { id: did(141), farmId: farmAgro.id, name: 'Lote N°2', area: 124, coords: "33° 24' S · 62° 17' O" },
+      data: { id: did(141), farmId: farmAgro.id, name: 'Lote N°2', area: 124, coords: lotSquare(33, 24, 62, 17) },
     });
     const lotAgro3 = await prisma.lot.create({
-      data: { id: did(142), farmId: farmAgro.id, name: 'Lote N°3', area: 88, coords: "33° 22' S · 62° 19' O" },
+      data: { id: did(142), farmId: farmAgro.id, name: 'Lote N°3', area: 88, coords: lotSquare(33, 22, 62, 19) },
     });
     const lotAgro4 = await prisma.lot.create({
-      data: { id: did(143), farmId: farmAgro.id, name: 'Lote N°4', area: 70, coords: "33° 25' S · 62° 16' O" },
+      data: { id: did(143), farmId: farmAgro.id, name: 'Lote N°4', area: 70, coords: lotSquare(33, 25, 62, 16) },
     });
     const lotVerdeA = await prisma.lot.create({
-      data: { id: did(144), farmId: farmVerde.id, name: 'Lote A', area: 150, coords: "33° 41' S · 61° 55' O" },
+      data: { id: did(144), farmId: farmVerde.id, name: 'Lote A', area: 150, coords: lotSquare(33, 41, 61, 55) },
     });
     const lotVerdeB = await prisma.lot.create({
-      data: { id: did(145), farmId: farmVerde.id, name: 'Lote B', area: 112, coords: "33° 40' S · 61° 54' O" },
+      data: { id: did(145), farmId: farmVerde.id, name: 'Lote B', area: 112, coords: lotSquare(33, 40, 61, 54) },
     });
     const lotVerdeC = await prisma.lot.create({
-      data: { id: did(146), farmId: farmVerde.id, name: 'Lote C', area: 60, coords: "33° 42' S · 61° 56' O" },
+      data: { id: did(146), farmId: farmVerde.id, name: 'Lote C', area: 60, coords: lotSquare(33, 42, 61, 56) },
     });
 
     // --- Tareas (pre-Sprint 2) --------------------------------------------
