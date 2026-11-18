@@ -151,3 +151,58 @@ export const LaborKind = {
 } as const
 
 export type LaborKind = (typeof LaborKind)[keyof typeof LaborKind]
+
+
+export const InvoiceStatus = {
+  EMITIDA: 'EMITIDA',
+  COBRADA: 'COBRADA',
+  ANULADA: 'ANULADA'
+} as const
+
+export type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus]
+
+
+export const PaymentKind = {
+  FACTURADO: 'FACTURADO',
+  INFORMAL: 'INFORMAL'
+} as const
+
+export type PaymentKind = (typeof PaymentKind)[keyof typeof PaymentKind]
+
+
+export const PaymentMethod = {
+  EFECTIVO: 'EFECTIVO',
+  TRANSFERENCIA: 'TRANSFERENCIA',
+  CHEQUE: 'CHEQUE',
+  ECHEQ: 'ECHEQ'
+} as const
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
+
+
+export const ChequeStatus = {
+  EN_CARTERA: 'EN_CARTERA',
+  DEPOSITADO: 'DEPOSITADO',
+  COBRADO: 'COBRADO',
+  RECHAZADO: 'RECHAZADO',
+  ENDOSADO: 'ENDOSADO'
+} as const
+
+export type ChequeStatus = (typeof ChequeStatus)[keyof typeof ChequeStatus]
+
+
+export const EcheqDirection = {
+  EMITIDO: 'EMITIDO',
+  RECIBIDO: 'RECIBIDO'
+} as const
+
+export type EcheqDirection = (typeof EcheqDirection)[keyof typeof EcheqDirection]
+
+
+export const EcheqStatus = {
+  PENDIENTE: 'PENDIENTE',
+  ACREDITADO: 'ACREDITADO',
+  RECHAZADO: 'RECHAZADO'
+} as const
+
+export type EcheqStatus = (typeof EcheqStatus)[keyof typeof EcheqStatus]
