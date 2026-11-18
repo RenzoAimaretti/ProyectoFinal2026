@@ -936,5 +936,6 @@ enum EcheqDirection {
 enum EcheqStatus {
   PENDIENTE
   ACREDITADO
+  DEBITADO
   RECHAZADO
 }

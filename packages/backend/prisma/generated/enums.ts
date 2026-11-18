@@ -202,6 +202,7 @@ export type EcheqDirection = (typeof EcheqDirection)[keyof typeof EcheqDirection
 export const EcheqStatus = {
   PENDIENTE: 'PENDIENTE',
   ACREDITADO: 'ACREDITADO',
+  DEBITADO: 'DEBITADO',
   RECHAZADO: 'RECHAZADO'
 } as const
 

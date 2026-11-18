@@ -7,6 +7,7 @@ import { RecipeModule } from './entities/recipe/recipe.module';
 import { DailyReportModule } from './entities/daily-report/daily-report.module';
 import { InvoiceModule } from './entities/invoice/invoice.module';
 import { ChequeModule } from './entities/cheque/cheque.module';
+import { EcheqModule } from './entities/echeq/echeq.module';
 import { ReceptionModule } from './entities/reception/reception.module';
 import { StockModule } from './entities/stock/stock.module';
 import { PhotoModule } from './entities/photo/photo.module';
@@ -40,6 +41,7 @@ import { RbacModule } from './auth/rbac.module';
     DailyReportModule,
     InvoiceModule,
     ChequeModule,
+    EcheqModule,
     ReceptionModule,
     StockModule,
     PhotoModule,
