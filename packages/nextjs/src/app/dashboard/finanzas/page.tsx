@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiGet, API_BASE, ApiError, getToken, handleUnauthorized, listClients, type ClientDTO } from "@/api/client";
+import { CreateChequeForm, CreateInvoiceForm } from "@/components/finanzas/create-forms";
 import { useAuth } from "@/components/ui/auth";
 import { Alert } from "@/components/ui/feedback";
 import { FinanceIcon } from "@/components/ui/icons";
@@ -103,6 +104,8 @@ export default function FinanzasPage() {
   const [invoiceVersion, setInvoiceVersion] = useState(0);
   const [chequeVersion, setChequeVersion] = useState(0);
   const [echeqVersion, setEcheqVersion] = useState(0);
+  const [invoiceFormOpen, setInvoiceFormOpen] = useState(false);
+  const [chequeFormOpen, setChequeFormOpen] = useState(false);
   const [acting, setActing] = useState<string | null>(null);
   const [chequeActionError, setChequeActionError] = useState<string | null>(null);
   const [echeqActionError, setEcheqActionError] = useState<string | null>(null);
@@ -192,9 +195,11 @@ export default function FinanzasPage() {
       <PageHeader title="Finanzas" subtitle="Facturación a clientes y control de cheques de tu firma." />
       {!ready ? <p className="text-sm text-ink-soft">Cargando sesión…</p> : !allowed ? <Alert tone="error">No tenés permisos para consultar las finanzas.</Alert> : (
         <div className="space-y-5">
-          <section aria-label="Facturas"><Card><CardHeader title="Facturas" subtitle="Facturas emitidas por esta firma" action={<Button variant="secondary" onClick={refreshInvoices}>Actualizar</Button>} /><SectionContent state={invoiceState} onRetry={refreshInvoices} columns={invoiceColumns} rows={invoiceState.data?.invoices ?? []} emptyTitle="Sin facturas" emptySubtitle="Todavía no hay facturas registradas para esta firma." /></Card></section>
-          <section aria-label="Cheques"><Card><CardHeader title="Cheques" subtitle="Seguimiento de cheques físicos" action={<Button variant="secondary" onClick={refreshCheques}>Actualizar</Button>} />{chequeActionError && <div className="px-5 pt-4"><Alert tone="error" onDismiss={() => setChequeActionError(null)}>{chequeActionError}</Alert></div>}<SectionContent state={chequeState} onRetry={refreshCheques} columns={chequeColumns} rows={chequeState.data ?? []} emptyTitle="Sin cheques" emptySubtitle="No hay cheques físicos registrados para esta firma." /></Card></section>
+          <section aria-label="Facturas"><Card><CardHeader title="Facturas" subtitle="Facturas emitidas por esta firma" action={<div className="flex flex-wrap gap-2"><Button onClick={() => setInvoiceFormOpen(true)} disabled={!invoiceState.data?.clients.length}>Nueva factura</Button><Button variant="secondary" onClick={refreshInvoices}>Actualizar</Button></div>} /><SectionContent state={invoiceState} onRetry={refreshInvoices} columns={invoiceColumns} rows={invoiceState.data?.invoices ?? []} emptyTitle="Sin facturas" emptySubtitle="Todavía no hay facturas registradas para esta firma." /></Card></section>
+          <section aria-label="Cheques"><Card><CardHeader title="Cheques" subtitle="Seguimiento de cheques físicos" action={<div className="flex flex-wrap gap-2"><Button onClick={() => setChequeFormOpen(true)}>Nuevo cheque</Button><Button variant="secondary" onClick={refreshCheques}>Actualizar</Button></div>} />{chequeActionError && <div className="px-5 pt-4"><Alert tone="error" onDismiss={() => setChequeActionError(null)}>{chequeActionError}</Alert></div>}<SectionContent state={chequeState} onRetry={refreshCheques} columns={chequeColumns} rows={chequeState.data ?? []} emptyTitle="Sin cheques" emptySubtitle="No hay cheques físicos registrados para esta firma." /></Card></section>
           <section aria-label="eCheqs"><Card><CardHeader title="eCheqs pendientes" subtitle="Ordenados por vencimiento para su conciliación" action={<Button variant="secondary" onClick={refreshEcheqs}>Actualizar</Button>} />{echeqActionError && <div className="px-5 pt-4"><Alert tone="error" onDismiss={() => setEcheqActionError(null)}>{echeqActionError}</Alert></div>}<SectionContent state={echeqState} onRetry={refreshEcheqs} columns={echeqColumns} rows={[...(echeqState.data ?? [])].sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.id.localeCompare(b.id))} emptyTitle="Sin eCheqs pendientes" emptySubtitle="No hay eCheqs pendientes de conciliación." /></Card></section>
+          {invoiceFormOpen && <CreateInvoiceForm clients={invoiceState.data?.clients ?? []} describeError={describeError} onClose={() => setInvoiceFormOpen(false)} onCreated={() => { setInvoiceFormOpen(false); refreshInvoices(); }} />}
+          {chequeFormOpen && <CreateChequeForm describeError={describeError} onClose={() => setChequeFormOpen(false)} onCreated={() => { setChequeFormOpen(false); refreshCheques(); }} />}
         </div>
       )}
     </DashboardLayout>
