@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/ui/layout";
@@ -36,9 +37,13 @@ import {
 import {
   ApiError,
   approveDailyReport,
+  getGrainPrices,
+  getLotWeather,
   getStoredUser,
+  getUsdOfficial,
   listClients,
   listDailyReports,
+  listLots,
   listReceptions,
   listStock,
   rejectDailyReport,
@@ -47,9 +52,26 @@ import {
   RECEPTION_STATUS_LABELS,
   type ClientDTO,
   type DailyReportDTO,
+  type GrainPricesResponse,
   type ReceptionDTO,
   type StockDTO,
+  type UsdRateResponse,
+  type WeatherResponse,
 } from "@/api/client";
+import {
+  GrainPricesWidget,
+  RadarWidget,
+  UsdWidget,
+  WeatherWidget,
+  WindWidget,
+  type WeatherLotOption,
+} from "@/components/weather/weather-widgets";
+
+// Leaflet needs `window`, so the map is client-only and never server-rendered.
+const LeafletMap = dynamic(() => import("@/components/weather/leaflet-map"), {
+  ssr: false,
+  loading: () => <div className="skeleton h-72 w-full" aria-hidden="true" />,
+});
 
 /* ------------------------------------------------------------------ */
 /* Formatting + date helpers (real data, no invented metrics)          */
@@ -310,6 +332,17 @@ export default function Dashboard() {
   const [clients, setClients] = useState<ClientDTO[]>([]);
   const [stockRows, setStockRows] = useState<StockRow[]>([]);
 
+  // External integrations block (weather, radar, USD, grain board).
+  const [weather, setWeather] = useState<WeatherResponse | null>(null);
+  const [weatherLots, setWeatherLots] = useState<WeatherLotOption[]>([]);
+  const [selectedLotId, setSelectedLotId] = useState<string | null>(null);
+  const [usdRate, setUsdRate] = useState<UsdRateResponse | null>(null);
+  const [grainPrices, setGrainPrices] = useState<GrainPricesResponse | null>(null);
+  const [marketLoading, setMarketLoading] = useState(true);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
+  const [weatherVersion, setWeatherVersion] = useState(0);
+
   const [focused, setFocused] = useState<string | null>(null);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [rejectingKey, setRejectingKey] = useState<string | null>(null);
@@ -319,6 +352,18 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     setVersion((v) => v + 1);
+    setMarketLoading(true);
+    setWeatherLoading(true);
+    setWeatherError(null);
+    setWeatherVersion((v) => v + 1);
+  }, []);
+
+  // Loading is flagged here, in the event handler, so the weather effect below
+  // only writes state after its await.
+  const handleWeatherLotChange = useCallback((lotId: string) => {
+    setWeatherLoading(true);
+    setWeatherError(null);
+    setSelectedLotId(lotId);
   }, []);
 
   useEffect(() => {
@@ -393,6 +438,89 @@ export default function Dashboard() {
       alive = false;
     };
   }, [version, router]);
+
+  // Integrations block. USD and grain prices are global market data; the
+  // weather is resolved server-side from a lot with a polygon, because the
+  // backend refuses to invent a location (spec A4) and so do we. Only lots with
+  // coordinates are offered; the first one is the default and the user's pick
+  // survives a refresh while that lot still exists. State is only written after
+  // the awaits, mirroring the effect above.
+  useEffect(() => {
+    if (isClientRole(user?.role)) return;
+    let alive = true;
+
+    (async () => {
+      const [lotsRes, usdRes, grainsRes] = await Promise.allSettled([
+        listLots(),
+        getUsdOfficial(),
+        getGrainPrices(),
+      ]);
+      if (!alive) return;
+
+      if (usdRes.status === "fulfilled") setUsdRate(usdRes.value);
+      if (grainsRes.status === "fulfilled") setGrainPrices(grainsRes.value);
+      setMarketLoading(false);
+
+      if (lotsRes.status === "rejected") {
+        setWeatherLots([]);
+        setSelectedLotId(null);
+        setWeather(null);
+        setWeatherError("No se pudo cargar el clima. Reintentá en unos minutos.");
+        setWeatherLoading(false);
+        return;
+      }
+
+      const options: WeatherLotOption[] = lotsRes.value
+        .filter((l) => Boolean(l.coords && l.coords.trim()))
+        .map((l) => ({ id: l.id, name: l.name }));
+      setWeatherLots(options);
+
+      if (options.length === 0) {
+        setSelectedLotId(null);
+        setWeather(null);
+        setWeatherError("Cargá coordenadas en algún lote para ver el clima de tu zona.");
+        setWeatherLoading(false);
+        return;
+      }
+
+      setSelectedLotId((prev) =>
+        prev && options.some((o) => o.id === prev) ? prev : options[0].id,
+      );
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [weatherVersion, user?.role]);
+
+  // Weather for the selected lot. Re-runs on a lot change and on refresh.
+  useEffect(() => {
+    if (!selectedLotId) return;
+    let alive = true;
+
+    (async () => {
+      try {
+        const resolved = await getLotWeather(selectedLotId);
+        if (!alive) return;
+        setWeather(resolved);
+        setWeatherError(null);
+      } catch {
+        if (!alive) return;
+        // Never leave the previous lot's weather under the new lot's name.
+        setWeather(null);
+        setWeatherError("No se pudo cargar el clima. Reintentá en unos minutos.");
+      } finally {
+        if (alive) setWeatherLoading(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [selectedLotId, weatherVersion]);
+
+  const weatherLocationName =
+    weatherLots.find((lot) => lot.id === selectedLotId)?.name ?? null;
 
   /* ----- Queues (the actionable work leads) ----- */
   const pendingReports = useMemo(
@@ -789,6 +917,10 @@ export default function Dashboard() {
     },
   ];
 
+  const marketError = marketLoading
+    ? null
+    : "No se pudo cargar la información de mercado. Reintentá en unos minutos.";
+
   // A PRODUCTOR only sees Mi Campo e Insumos; the admin index is not theirs.
   if (isClientRole(user?.role)) {
     return (
@@ -802,6 +934,36 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout title="Vista general" sidebarItems={navItems} breadcrumb="Panel principal">
+      {/* Top widget block (Visión §5.1): local weather, wind, rain radar, USD
+          and the grain board. Fed only by the backend API. */}
+      <section className="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <WeatherWidget
+          data={weather}
+          loading={weatherLoading}
+          error={weatherError}
+          locationName={weatherLocationName ?? undefined}
+          lots={weatherLots}
+          selectedLotId={selectedLotId}
+          onLotChange={handleWeatherLotChange}
+        />
+        <WindWidget data={weather} loading={weatherLoading} error={weatherError} />
+        <UsdWidget data={usdRate} loading={marketLoading} error={usdRate ? null : marketError} />
+      </section>
+
+      <section className="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+        <RadarWidget
+          data={weather}
+          loading={weatherLoading}
+          error={weatherError}
+          map={weather ? <LeafletMap weather={weather} className="h-72 w-full" /> : null}
+        />
+        <GrainPricesWidget
+          data={grainPrices}
+          loading={marketLoading}
+          error={grainPrices ? null : marketError}
+        />
+      </section>
+
       {/* Command header */}
       <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
         <div className="min-w-0">
