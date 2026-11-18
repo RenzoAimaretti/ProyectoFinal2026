@@ -55,7 +55,7 @@ describe('TaskController', () => {
     }
   });
 
-  it('restricts reads to ADMIN, SUPERVISOR and OPERARIO so PRODUCTOR gets 403', () => {
+  it('allows ADMIN, SUPERVISOR, OPERARIO and INGENIERO to read tasks so PRODUCTOR gets 403', () => {
     for (const method of ['findAll', 'findOne'] as const) {
       const guards = Reflect.getMetadata(
         GUARDS_METADATA,
@@ -67,7 +67,7 @@ describe('TaskController', () => {
         ROLES_KEY,
         TaskController.prototype[method],
       ) as string[] | undefined;
-      expect(roles).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO']);
+      expect(roles).toEqual(['ADMIN', 'SUPERVISOR', 'OPERARIO', 'INGENIERO']);
       expect(roles).not.toContain('PRODUCTOR');
     }
   });
@@ -88,7 +88,7 @@ describe('TaskController', () => {
     await expect(
       (controller as any).create(req, {
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         startedAt: '2026-01-10',
         companyId: 'company-2',
       } as never),
@@ -111,7 +111,7 @@ describe('TaskController', () => {
     expect(service.findOne).toHaveBeenCalledWith('task-1', 'tenant-1');
     expect(service.create).toHaveBeenCalledWith('tenant-1', {
       lotId: 'lot-1',
-      taskTypeId: 'task-type-1',
+      laborTypeId: 'labor-type-1',
       startedAt: '2026-01-10',
     });
     expect(service.update).toHaveBeenCalledWith('task-1', 'tenant-1', {

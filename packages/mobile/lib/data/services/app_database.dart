@@ -7,9 +7,12 @@ import 'daos/companies_dao.dart';
 import 'daos/daily_reports_dao.dart';
 import 'daos/farms_dao.dart';
 import 'daos/inputs_dao.dart';
+import 'daos/input_categories_dao.dart';
+import 'daos/labor_type_categories_dao.dart';
 import 'daos/labor_types_dao.dart';
 import 'daos/lots_dao.dart';
 import 'daos/machine_activities_dao.dart';
+import 'daos/machine_usages_dao.dart';
 import 'daos/machines_dao.dart';
 import 'daos/photos_dao.dart';
 import 'daos/receptions_dao.dart';
@@ -36,6 +39,8 @@ part 'app_database.g.dart';
     Farms,
     Lots,
     LaborTypes,
+    InputCategories,
+    LaborTypeCategories,
     Inputs,
     Machines,
     Sessions,
@@ -47,6 +52,7 @@ part 'app_database.g.dart';
     ReceptionItems,
     Stocks,
     MachineActivities,
+    MachineUsages,
     Photos,
     SyncQueue,
     Tasks,
@@ -59,6 +65,8 @@ part 'app_database.g.dart';
     FarmsDao,
     LotsDao,
     LaborTypesDao,
+    InputCategoriesDao,
+    LaborTypeCategoriesDao,
     InputsDao,
     MachinesDao,
     RecipesDao,
@@ -66,6 +74,7 @@ part 'app_database.g.dart';
     ReceptionsDao,
     StocksDao,
     MachineActivitiesDao,
+    MachineUsagesDao,
     PhotosDao,
     SyncQueueDao,
     TasksDao,
@@ -79,7 +88,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -94,7 +103,18 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(sessions, sessions.refreshToken);
           }
           if (from < 4) {
-            // Aditiva: tabla nueva, ninguna fila existente se toca.
+            await m.createTable(inputCategories);
+            await m.createTable(laborTypeCategories);
+            await m.addColumn(inputs, inputs.categoryId);
+          }
+          if (from < 5) {
+            // Uso ligado a tarea (R021). Las actividades historicas, incluidos
+            // los USO_CAMPO antiguos, se conservan sin reescribirse.
+            await m.createTable(machineUsages);
+          }
+          if (from < 6) {
+            // Cache de clima (Sprint 3). Aditiva: tabla nueva, ninguna fila
+            // existente se toca.
             await m.createTable(weatherCache);
           }
         },

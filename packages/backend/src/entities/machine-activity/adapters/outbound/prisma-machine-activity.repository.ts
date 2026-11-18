@@ -6,15 +6,18 @@ import {
   RegisterMachineActivityData,
 } from '../../application/machine-activity.types';
 import { MachineActivityType } from '../../domain/machine-activity-type';
+import { FuelMovement } from '../../domain/fuel-movement';
 
 type MachineActivityRow = {
   id: string;
   machineId: string;
   companyId: string;
   type: MachineActivityType;
+  fuelMovement?: FuelMovement | null;
   date: Date;
   liters: number | null;
   receipt: string | null;
+  receiptFileKey?: string | null;
   cost: number | null;
   spareParts: string | null;
   usageHours: number | null;
@@ -38,6 +41,7 @@ export class PrismaMachineActivityRepository
         machineId: data.machineId,
         companyId: data.companyId,
         type: data.type,
+        fuelMovement: data.fuelMovement ?? (data.type === 'COMBUSTIBLE' ? 'INCOME' : null),
         date: data.date,
         liters: data.liters,
         receipt: data.receipt,
@@ -74,6 +78,23 @@ export class PrismaMachineActivityRepository
     );
   }
 
+  async attachReceiptIfAbsent(id: string, companyId: string, key: string, mimeType: string): Promise<boolean> {
+    const result = await this.prisma.machineActivity.updateMany({
+      where: { id, companyId, type: 'COMBUSTIBLE', receiptFileKey: null },
+      data: { receiptFileKey: key, receiptMimeType: mimeType },
+    });
+    return result.count === 1;
+  }
+
+  async findReceiptForCompany(id: string, companyId: string): Promise<{ key: string; mimeType: string } | null> {
+    const activity = await this.prisma.machineActivity.findFirst({
+      where: { id, companyId, type: 'COMBUSTIBLE' },
+      select: { receiptFileKey: true, receiptMimeType: true },
+    });
+    if (!activity?.receiptFileKey || !activity.receiptMimeType) return null;
+    return { key: activity.receiptFileKey, mimeType: activity.receiptMimeType };
+  }
+
   private toMachineActivityRecord(
     activity: MachineActivityRow,
   ): MachineActivityRecord {
@@ -82,9 +103,11 @@ export class PrismaMachineActivityRepository
       machineId: activity.machineId,
       companyId: activity.companyId,
       type: activity.type,
+      fuelMovement: activity.type === 'COMBUSTIBLE' ? activity.fuelMovement ?? 'INCOME' : null,
       date: activity.date,
       liters: activity.liters,
       receipt: activity.receipt,
+      hasReceipt: Boolean(activity.receiptFileKey),
       cost: activity.cost,
       spareParts: activity.spareParts,
       usageHours: activity.usageHours,

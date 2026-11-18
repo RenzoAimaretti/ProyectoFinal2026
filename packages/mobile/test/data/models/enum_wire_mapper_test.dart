@@ -42,13 +42,14 @@ void main() {
   });
 
   group('MachineStatus', () {
-    test('round-trip + MANTENIMIENTO (no modelado) → null', () {
+    test('round-trip incluye MANTENIMIENTO y descarta valores desconocidos', () {
       expect(machineStatusToWire(MachineStatus.ACTIVE), 'ACTIVA');
+      expect(machineStatusToWire(MachineStatus.MAINTENANCE), 'MANTENIMIENTO');
       expect(machineStatusToWire(MachineStatus.OUT_OF_SERVICE), 'FUERA_SERVICIO');
       expect(machineStatusFromWire('ACTIVA'), MachineStatus.ACTIVE);
+      expect(machineStatusFromWire('MANTENIMIENTO'), MachineStatus.MAINTENANCE);
       expect(machineStatusFromWire('FUERA_SERVICIO'), MachineStatus.OUT_OF_SERVICE);
-      // El backend tiene `MANTENIMIENTO` que el móvil no modela.
-      expect(machineStatusFromWire('MANTENIMIENTO'), isNull);
+      expect(machineStatusFromWire('DESCONOCIDO'), isNull);
     });
   });
 

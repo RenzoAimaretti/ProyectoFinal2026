@@ -55,7 +55,7 @@ describe('PrismaTaskRepository', () => {
     await expect(
       repository.create({
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         startedAt: new Date('2026-01-10'),
       }),
     ).resolves.toEqual({ id: 'task-2' });
@@ -73,7 +73,7 @@ describe('PrismaTaskRepository', () => {
     expect(prisma.task.create).toHaveBeenCalledWith({
       data: {
         lotId: 'lot-1',
-        taskTypeId: 'task-type-1',
+        laborTypeId: 'labor-type-1',
         startedAt: new Date('2026-01-10'),
       },
     });

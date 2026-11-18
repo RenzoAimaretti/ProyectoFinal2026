@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "LaborKind" AS ENUM ('SIEMBRA', 'PULVERIZACION', 'FERTILIZACION', 'COSECHA', 'OTRO');
+
+-- AlterTable
+ALTER TABLE "LaborType" ADD COLUMN     "kind" "LaborKind" NOT NULL DEFAULT 'OTRO';

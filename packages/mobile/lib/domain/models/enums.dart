@@ -33,6 +33,7 @@ enum MachineActivityType {
 
 enum MachineStatus {
   ACTIVE,
+  MAINTENANCE,
   OUT_OF_SERVICE,
 }
 

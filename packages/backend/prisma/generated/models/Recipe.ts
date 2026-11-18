@@ -27,19 +27,26 @@ export type AggregateRecipe = {
 }
 
 export type RecipeAvgAggregateOutputType = {
+  reapplicationIntervalDays: number | null
   sprayVolume: number | null
 }
 
 export type RecipeSumAggregateOutputType = {
+  reapplicationIntervalDays: number | null
   sprayVolume: number | null
 }
 
 export type RecipeMinAggregateOutputType = {
   id: string | null
   lotId: string | null
+  taskId: string | null
   date: Date | null
   status: $Enums.RecipeStatus | null
   observations: string | null
+  pest: string | null
+  crop: string | null
+  reapplicationIntervalDays: number | null
+  reapplicationDate: Date | null
   sprayVolume: number | null
   sprayVolumeUnit: string | null
   createdAt: Date | null
@@ -49,9 +56,14 @@ export type RecipeMinAggregateOutputType = {
 export type RecipeMaxAggregateOutputType = {
   id: string | null
   lotId: string | null
+  taskId: string | null
   date: Date | null
   status: $Enums.RecipeStatus | null
   observations: string | null
+  pest: string | null
+  crop: string | null
+  reapplicationIntervalDays: number | null
+  reapplicationDate: Date | null
   sprayVolume: number | null
   sprayVolumeUnit: string | null
   createdAt: Date | null
@@ -61,9 +73,14 @@ export type RecipeMaxAggregateOutputType = {
 export type RecipeCountAggregateOutputType = {
   id: number
   lotId: number
+  taskId: number
   date: number
   status: number
   observations: number
+  pest: number
+  crop: number
+  reapplicationIntervalDays: number
+  reapplicationDate: number
   sprayVolume: number
   sprayVolumeUnit: number
   createdAt: number
@@ -73,19 +90,26 @@ export type RecipeCountAggregateOutputType = {
 
 
 export type RecipeAvgAggregateInputType = {
+  reapplicationIntervalDays?: true
   sprayVolume?: true
 }
 
 export type RecipeSumAggregateInputType = {
+  reapplicationIntervalDays?: true
   sprayVolume?: true
 }
 
 export type RecipeMinAggregateInputType = {
   id?: true
   lotId?: true
+  taskId?: true
   date?: true
   status?: true
   observations?: true
+  pest?: true
+  crop?: true
+  reapplicationIntervalDays?: true
+  reapplicationDate?: true
   sprayVolume?: true
   sprayVolumeUnit?: true
   createdAt?: true
@@ -95,9 +119,14 @@ export type RecipeMinAggregateInputType = {
 export type RecipeMaxAggregateInputType = {
   id?: true
   lotId?: true
+  taskId?: true
   date?: true
   status?: true
   observations?: true
+  pest?: true
+  crop?: true
+  reapplicationIntervalDays?: true
+  reapplicationDate?: true
   sprayVolume?: true
   sprayVolumeUnit?: true
   createdAt?: true
@@ -107,9 +136,14 @@ export type RecipeMaxAggregateInputType = {
 export type RecipeCountAggregateInputType = {
   id?: true
   lotId?: true
+  taskId?: true
   date?: true
   status?: true
   observations?: true
+  pest?: true
+  crop?: true
+  reapplicationIntervalDays?: true
+  reapplicationDate?: true
   sprayVolume?: true
   sprayVolumeUnit?: true
   createdAt?: true
@@ -206,9 +240,14 @@ export type RecipeGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 export type RecipeGroupByOutputType = {
   id: string
   lotId: string
+  taskId: string | null
   date: Date
   status: $Enums.RecipeStatus
   observations: string | null
+  pest: string | null
+  crop: string | null
+  reapplicationIntervalDays: number | null
+  reapplicationDate: Date | null
   sprayVolume: number
   sprayVolumeUnit: string
   createdAt: Date
@@ -241,33 +280,46 @@ export type RecipeWhereInput = {
   NOT?: Prisma.RecipeWhereInput | Prisma.RecipeWhereInput[]
   id?: Prisma.StringFilter<"Recipe"> | string
   lotId?: Prisma.StringFilter<"Recipe"> | string
+  taskId?: Prisma.StringNullableFilter<"Recipe"> | string | null
   date?: Prisma.DateTimeFilter<"Recipe"> | Date | string
   status?: Prisma.EnumRecipeStatusFilter<"Recipe"> | $Enums.RecipeStatus
   observations?: Prisma.StringNullableFilter<"Recipe"> | string | null
+  pest?: Prisma.StringNullableFilter<"Recipe"> | string | null
+  crop?: Prisma.StringNullableFilter<"Recipe"> | string | null
+  reapplicationIntervalDays?: Prisma.IntNullableFilter<"Recipe"> | number | null
+  reapplicationDate?: Prisma.DateTimeNullableFilter<"Recipe"> | Date | string | null
   sprayVolume?: Prisma.FloatFilter<"Recipe"> | number
   sprayVolumeUnit?: Prisma.StringFilter<"Recipe"> | string
   createdAt?: Prisma.DateTimeFilter<"Recipe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Recipe"> | Date | string
   lot?: Prisma.XOR<Prisma.LotScalarRelationFilter, Prisma.LotWhereInput>
+  task?: Prisma.XOR<Prisma.TaskNullableScalarRelationFilter, Prisma.TaskWhereInput> | null
   items?: Prisma.RecipeItemListRelationFilter
 }
 
 export type RecipeOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   lotId?: Prisma.SortOrder
+  taskId?: Prisma.SortOrderInput | Prisma.SortOrder
   date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   observations?: Prisma.SortOrderInput | Prisma.SortOrder
+  pest?: Prisma.SortOrderInput | Prisma.SortOrder
+  crop?: Prisma.SortOrderInput | Prisma.SortOrder
+  reapplicationIntervalDays?: Prisma.SortOrderInput | Prisma.SortOrder
+  reapplicationDate?: Prisma.SortOrderInput | Prisma.SortOrder
   sprayVolume?: Prisma.SortOrder
   sprayVolumeUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   lot?: Prisma.LotOrderByWithRelationInput
+  task?: Prisma.TaskOrderByWithRelationInput
   items?: Prisma.RecipeItemOrderByRelationAggregateInput
 }
 
 export type RecipeWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  taskId?: string
   AND?: Prisma.RecipeWhereInput | Prisma.RecipeWhereInput[]
   OR?: Prisma.RecipeWhereInput[]
   NOT?: Prisma.RecipeWhereInput | Prisma.RecipeWhereInput[]
@@ -275,20 +327,30 @@ export type RecipeWhereUniqueInput = Prisma.AtLeast<{
   date?: Prisma.DateTimeFilter<"Recipe"> | Date | string
   status?: Prisma.EnumRecipeStatusFilter<"Recipe"> | $Enums.RecipeStatus
   observations?: Prisma.StringNullableFilter<"Recipe"> | string | null
+  pest?: Prisma.StringNullableFilter<"Recipe"> | string | null
+  crop?: Prisma.StringNullableFilter<"Recipe"> | string | null
+  reapplicationIntervalDays?: Prisma.IntNullableFilter<"Recipe"> | number | null
+  reapplicationDate?: Prisma.DateTimeNullableFilter<"Recipe"> | Date | string | null
   sprayVolume?: Prisma.FloatFilter<"Recipe"> | number
   sprayVolumeUnit?: Prisma.StringFilter<"Recipe"> | string
   createdAt?: Prisma.DateTimeFilter<"Recipe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Recipe"> | Date | string
   lot?: Prisma.XOR<Prisma.LotScalarRelationFilter, Prisma.LotWhereInput>
+  task?: Prisma.XOR<Prisma.TaskNullableScalarRelationFilter, Prisma.TaskWhereInput> | null
   items?: Prisma.RecipeItemListRelationFilter
-}, "id">
+}, "id" | "taskId">
 
 export type RecipeOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   lotId?: Prisma.SortOrder
+  taskId?: Prisma.SortOrderInput | Prisma.SortOrder
   date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   observations?: Prisma.SortOrderInput | Prisma.SortOrder
+  pest?: Prisma.SortOrderInput | Prisma.SortOrder
+  crop?: Prisma.SortOrderInput | Prisma.SortOrder
+  reapplicationIntervalDays?: Prisma.SortOrderInput | Prisma.SortOrder
+  reapplicationDate?: Prisma.SortOrderInput | Prisma.SortOrder
   sprayVolume?: Prisma.SortOrder
   sprayVolumeUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -306,9 +368,14 @@ export type RecipeScalarWhereWithAggregatesInput = {
   NOT?: Prisma.RecipeScalarWhereWithAggregatesInput | Prisma.RecipeScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Recipe"> | string
   lotId?: Prisma.StringWithAggregatesFilter<"Recipe"> | string
+  taskId?: Prisma.StringNullableWithAggregatesFilter<"Recipe"> | string | null
   date?: Prisma.DateTimeWithAggregatesFilter<"Recipe"> | Date | string
   status?: Prisma.EnumRecipeStatusWithAggregatesFilter<"Recipe"> | $Enums.RecipeStatus
   observations?: Prisma.StringNullableWithAggregatesFilter<"Recipe"> | string | null
+  pest?: Prisma.StringNullableWithAggregatesFilter<"Recipe"> | string | null
+  crop?: Prisma.StringNullableWithAggregatesFilter<"Recipe"> | string | null
+  reapplicationIntervalDays?: Prisma.IntNullableWithAggregatesFilter<"Recipe"> | number | null
+  reapplicationDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Recipe"> | Date | string | null
   sprayVolume?: Prisma.FloatWithAggregatesFilter<"Recipe"> | number
   sprayVolumeUnit?: Prisma.StringWithAggregatesFilter<"Recipe"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Recipe"> | Date | string
@@ -320,20 +387,30 @@ export type RecipeCreateInput = {
   date: Date | string
   status?: $Enums.RecipeStatus
   observations?: string | null
+  pest?: string | null
+  crop?: string | null
+  reapplicationIntervalDays?: number | null
+  reapplicationDate?: Date | string | null
   sprayVolume: number
   sprayVolumeUnit: string
   createdAt?: Date | string
   updatedAt?: Date | string
   lot: Prisma.LotCreateNestedOneWithoutRecipesInput
+  task?: Prisma.TaskCreateNestedOneWithoutRecipeInput
   items?: Prisma.RecipeItemCreateNestedManyWithoutRecipeInput
 }
 
 export type RecipeUncheckedCreateInput = {
   id?: string
   lotId: string
+  taskId?: string | null
   date: Date | string
   status?: $Enums.RecipeStatus
   observations?: string | null
+  pest?: string | null
+  crop?: string | null
+  reapplicationIntervalDays?: number | null
+  reapplicationDate?: Date | string | null
   sprayVolume: number
   sprayVolumeUnit: string
   createdAt?: Date | string
@@ -346,20 +423,30 @@ export type RecipeUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
   sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lot?: Prisma.LotUpdateOneRequiredWithoutRecipesNestedInput
+  task?: Prisma.TaskUpdateOneWithoutRecipeNestedInput
   items?: Prisma.RecipeItemUpdateManyWithoutRecipeNestedInput
 }
 
 export type RecipeUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
+  taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
   sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -370,9 +457,14 @@ export type RecipeUncheckedUpdateInput = {
 export type RecipeCreateManyInput = {
   id?: string
   lotId: string
+  taskId?: string | null
   date: Date | string
   status?: $Enums.RecipeStatus
   observations?: string | null
+  pest?: string | null
+  crop?: string | null
+  reapplicationIntervalDays?: number | null
+  reapplicationDate?: Date | string | null
   sprayVolume: number
   sprayVolumeUnit: string
   createdAt?: Date | string
@@ -384,6 +476,10 @@ export type RecipeUpdateManyMutationInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
   sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -393,9 +489,14 @@ export type RecipeUpdateManyMutationInput = {
 export type RecipeUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
+  taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
   sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -412,12 +513,22 @@ export type RecipeOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type RecipeNullableScalarRelationFilter = {
+  is?: Prisma.RecipeWhereInput | null
+  isNot?: Prisma.RecipeWhereInput | null
+}
+
 export type RecipeCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   lotId?: Prisma.SortOrder
+  taskId?: Prisma.SortOrder
   date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   observations?: Prisma.SortOrder
+  pest?: Prisma.SortOrder
+  crop?: Prisma.SortOrder
+  reapplicationIntervalDays?: Prisma.SortOrder
+  reapplicationDate?: Prisma.SortOrder
   sprayVolume?: Prisma.SortOrder
   sprayVolumeUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -425,15 +536,21 @@ export type RecipeCountOrderByAggregateInput = {
 }
 
 export type RecipeAvgOrderByAggregateInput = {
+  reapplicationIntervalDays?: Prisma.SortOrder
   sprayVolume?: Prisma.SortOrder
 }
 
 export type RecipeMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   lotId?: Prisma.SortOrder
+  taskId?: Prisma.SortOrder
   date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   observations?: Prisma.SortOrder
+  pest?: Prisma.SortOrder
+  crop?: Prisma.SortOrder
+  reapplicationIntervalDays?: Prisma.SortOrder
+  reapplicationDate?: Prisma.SortOrder
   sprayVolume?: Prisma.SortOrder
   sprayVolumeUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -443,9 +560,14 @@ export type RecipeMaxOrderByAggregateInput = {
 export type RecipeMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   lotId?: Prisma.SortOrder
+  taskId?: Prisma.SortOrder
   date?: Prisma.SortOrder
   status?: Prisma.SortOrder
   observations?: Prisma.SortOrder
+  pest?: Prisma.SortOrder
+  crop?: Prisma.SortOrder
+  reapplicationIntervalDays?: Prisma.SortOrder
+  reapplicationDate?: Prisma.SortOrder
   sprayVolume?: Prisma.SortOrder
   sprayVolumeUnit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -453,6 +575,7 @@ export type RecipeMinOrderByAggregateInput = {
 }
 
 export type RecipeSumOrderByAggregateInput = {
+  reapplicationIntervalDays?: Prisma.SortOrder
   sprayVolume?: Prisma.SortOrder
 }
 
@@ -503,8 +626,48 @@ export type RecipeUncheckedUpdateManyWithoutLotNestedInput = {
   deleteMany?: Prisma.RecipeScalarWhereInput | Prisma.RecipeScalarWhereInput[]
 }
 
+export type RecipeCreateNestedOneWithoutTaskInput = {
+  create?: Prisma.XOR<Prisma.RecipeCreateWithoutTaskInput, Prisma.RecipeUncheckedCreateWithoutTaskInput>
+  connectOrCreate?: Prisma.RecipeCreateOrConnectWithoutTaskInput
+  connect?: Prisma.RecipeWhereUniqueInput
+}
+
+export type RecipeUncheckedCreateNestedOneWithoutTaskInput = {
+  create?: Prisma.XOR<Prisma.RecipeCreateWithoutTaskInput, Prisma.RecipeUncheckedCreateWithoutTaskInput>
+  connectOrCreate?: Prisma.RecipeCreateOrConnectWithoutTaskInput
+  connect?: Prisma.RecipeWhereUniqueInput
+}
+
+export type RecipeUpdateOneWithoutTaskNestedInput = {
+  create?: Prisma.XOR<Prisma.RecipeCreateWithoutTaskInput, Prisma.RecipeUncheckedCreateWithoutTaskInput>
+  connectOrCreate?: Prisma.RecipeCreateOrConnectWithoutTaskInput
+  upsert?: Prisma.RecipeUpsertWithoutTaskInput
+  disconnect?: Prisma.RecipeWhereInput | boolean
+  delete?: Prisma.RecipeWhereInput | boolean
+  connect?: Prisma.RecipeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RecipeUpdateToOneWithWhereWithoutTaskInput, Prisma.RecipeUpdateWithoutTaskInput>, Prisma.RecipeUncheckedUpdateWithoutTaskInput>
+}
+
+export type RecipeUncheckedUpdateOneWithoutTaskNestedInput = {
+  create?: Prisma.XOR<Prisma.RecipeCreateWithoutTaskInput, Prisma.RecipeUncheckedCreateWithoutTaskInput>
+  connectOrCreate?: Prisma.RecipeCreateOrConnectWithoutTaskInput
+  upsert?: Prisma.RecipeUpsertWithoutTaskInput
+  disconnect?: Prisma.RecipeWhereInput | boolean
+  delete?: Prisma.RecipeWhereInput | boolean
+  connect?: Prisma.RecipeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RecipeUpdateToOneWithWhereWithoutTaskInput, Prisma.RecipeUpdateWithoutTaskInput>, Prisma.RecipeUncheckedUpdateWithoutTaskInput>
+}
+
 export type EnumRecipeStatusFieldUpdateOperationsInput = {
   set?: $Enums.RecipeStatus
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type RecipeCreateNestedOneWithoutItemsInput = {
@@ -526,18 +689,28 @@ export type RecipeCreateWithoutLotInput = {
   date: Date | string
   status?: $Enums.RecipeStatus
   observations?: string | null
+  pest?: string | null
+  crop?: string | null
+  reapplicationIntervalDays?: number | null
+  reapplicationDate?: Date | string | null
   sprayVolume: number
   sprayVolumeUnit: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  task?: Prisma.TaskCreateNestedOneWithoutRecipeInput
   items?: Prisma.RecipeItemCreateNestedManyWithoutRecipeInput
 }
 
 export type RecipeUncheckedCreateWithoutLotInput = {
   id?: string
+  taskId?: string | null
   date: Date | string
   status?: $Enums.RecipeStatus
   observations?: string | null
+  pest?: string | null
+  crop?: string | null
+  reapplicationIntervalDays?: number | null
+  reapplicationDate?: Date | string | null
   sprayVolume: number
   sprayVolumeUnit: string
   createdAt?: Date | string
@@ -577,13 +750,102 @@ export type RecipeScalarWhereInput = {
   NOT?: Prisma.RecipeScalarWhereInput | Prisma.RecipeScalarWhereInput[]
   id?: Prisma.StringFilter<"Recipe"> | string
   lotId?: Prisma.StringFilter<"Recipe"> | string
+  taskId?: Prisma.StringNullableFilter<"Recipe"> | string | null
   date?: Prisma.DateTimeFilter<"Recipe"> | Date | string
   status?: Prisma.EnumRecipeStatusFilter<"Recipe"> | $Enums.RecipeStatus
   observations?: Prisma.StringNullableFilter<"Recipe"> | string | null
+  pest?: Prisma.StringNullableFilter<"Recipe"> | string | null
+  crop?: Prisma.StringNullableFilter<"Recipe"> | string | null
+  reapplicationIntervalDays?: Prisma.IntNullableFilter<"Recipe"> | number | null
+  reapplicationDate?: Prisma.DateTimeNullableFilter<"Recipe"> | Date | string | null
   sprayVolume?: Prisma.FloatFilter<"Recipe"> | number
   sprayVolumeUnit?: Prisma.StringFilter<"Recipe"> | string
   createdAt?: Prisma.DateTimeFilter<"Recipe"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Recipe"> | Date | string
+}
+
+export type RecipeCreateWithoutTaskInput = {
+  id?: string
+  date: Date | string
+  status?: $Enums.RecipeStatus
+  observations?: string | null
+  pest?: string | null
+  crop?: string | null
+  reapplicationIntervalDays?: number | null
+  reapplicationDate?: Date | string | null
+  sprayVolume: number
+  sprayVolumeUnit: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  lot: Prisma.LotCreateNestedOneWithoutRecipesInput
+  items?: Prisma.RecipeItemCreateNestedManyWithoutRecipeInput
+}
+
+export type RecipeUncheckedCreateWithoutTaskInput = {
+  id?: string
+  lotId: string
+  date: Date | string
+  status?: $Enums.RecipeStatus
+  observations?: string | null
+  pest?: string | null
+  crop?: string | null
+  reapplicationIntervalDays?: number | null
+  reapplicationDate?: Date | string | null
+  sprayVolume: number
+  sprayVolumeUnit: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.RecipeItemUncheckedCreateNestedManyWithoutRecipeInput
+}
+
+export type RecipeCreateOrConnectWithoutTaskInput = {
+  where: Prisma.RecipeWhereUniqueInput
+  create: Prisma.XOR<Prisma.RecipeCreateWithoutTaskInput, Prisma.RecipeUncheckedCreateWithoutTaskInput>
+}
+
+export type RecipeUpsertWithoutTaskInput = {
+  update: Prisma.XOR<Prisma.RecipeUpdateWithoutTaskInput, Prisma.RecipeUncheckedUpdateWithoutTaskInput>
+  create: Prisma.XOR<Prisma.RecipeCreateWithoutTaskInput, Prisma.RecipeUncheckedCreateWithoutTaskInput>
+  where?: Prisma.RecipeWhereInput
+}
+
+export type RecipeUpdateToOneWithWhereWithoutTaskInput = {
+  where?: Prisma.RecipeWhereInput
+  data: Prisma.XOR<Prisma.RecipeUpdateWithoutTaskInput, Prisma.RecipeUncheckedUpdateWithoutTaskInput>
+}
+
+export type RecipeUpdateWithoutTaskInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
+  observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
+  sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lot?: Prisma.LotUpdateOneRequiredWithoutRecipesNestedInput
+  items?: Prisma.RecipeItemUpdateManyWithoutRecipeNestedInput
+}
+
+export type RecipeUncheckedUpdateWithoutTaskInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  lotId?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
+  observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
+  sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.RecipeItemUncheckedUpdateManyWithoutRecipeNestedInput
 }
 
 export type RecipeCreateWithoutItemsInput = {
@@ -591,19 +853,29 @@ export type RecipeCreateWithoutItemsInput = {
   date: Date | string
   status?: $Enums.RecipeStatus
   observations?: string | null
+  pest?: string | null
+  crop?: string | null
+  reapplicationIntervalDays?: number | null
+  reapplicationDate?: Date | string | null
   sprayVolume: number
   sprayVolumeUnit: string
   createdAt?: Date | string
   updatedAt?: Date | string
   lot: Prisma.LotCreateNestedOneWithoutRecipesInput
+  task?: Prisma.TaskCreateNestedOneWithoutRecipeInput
 }
 
 export type RecipeUncheckedCreateWithoutItemsInput = {
   id?: string
   lotId: string
+  taskId?: string | null
   date: Date | string
   status?: $Enums.RecipeStatus
   observations?: string | null
+  pest?: string | null
+  crop?: string | null
+  reapplicationIntervalDays?: number | null
+  reapplicationDate?: Date | string | null
   sprayVolume: number
   sprayVolumeUnit: string
   createdAt?: Date | string
@@ -631,19 +903,29 @@ export type RecipeUpdateWithoutItemsInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
   sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lot?: Prisma.LotUpdateOneRequiredWithoutRecipesNestedInput
+  task?: Prisma.TaskUpdateOneWithoutRecipeNestedInput
 }
 
 export type RecipeUncheckedUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotId?: Prisma.StringFieldUpdateOperationsInput | string
+  taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
   sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -652,9 +934,14 @@ export type RecipeUncheckedUpdateWithoutItemsInput = {
 
 export type RecipeCreateManyLotInput = {
   id?: string
+  taskId?: string | null
   date: Date | string
   status?: $Enums.RecipeStatus
   observations?: string | null
+  pest?: string | null
+  crop?: string | null
+  reapplicationIntervalDays?: number | null
+  reapplicationDate?: Date | string | null
   sprayVolume: number
   sprayVolumeUnit: string
   createdAt?: Date | string
@@ -666,18 +953,28 @@ export type RecipeUpdateWithoutLotInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
   sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  task?: Prisma.TaskUpdateOneWithoutRecipeNestedInput
   items?: Prisma.RecipeItemUpdateManyWithoutRecipeNestedInput
 }
 
 export type RecipeUncheckedUpdateWithoutLotInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
   sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -687,9 +984,14 @@ export type RecipeUncheckedUpdateWithoutLotInput = {
 
 export type RecipeUncheckedUpdateManyWithoutLotInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  taskId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumRecipeStatusFieldUpdateOperationsInput | $Enums.RecipeStatus
   observations?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pest?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  crop?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reapplicationIntervalDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reapplicationDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   sprayVolume?: Prisma.FloatFieldUpdateOperationsInput | number
   sprayVolumeUnit?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -730,14 +1032,20 @@ export type RecipeCountOutputTypeCountItemsArgs<ExtArgs extends runtime.Types.Ex
 export type RecipeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   lotId?: boolean
+  taskId?: boolean
   date?: boolean
   status?: boolean
   observations?: boolean
+  pest?: boolean
+  crop?: boolean
+  reapplicationIntervalDays?: boolean
+  reapplicationDate?: boolean
   sprayVolume?: boolean
   sprayVolumeUnit?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.Recipe$taskArgs<ExtArgs>
   items?: boolean | Prisma.Recipe$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.RecipeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["recipe"]>
@@ -745,66 +1053,92 @@ export type RecipeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type RecipeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   lotId?: boolean
+  taskId?: boolean
   date?: boolean
   status?: boolean
   observations?: boolean
+  pest?: boolean
+  crop?: boolean
+  reapplicationIntervalDays?: boolean
+  reapplicationDate?: boolean
   sprayVolume?: boolean
   sprayVolumeUnit?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.Recipe$taskArgs<ExtArgs>
 }, ExtArgs["result"]["recipe"]>
 
 export type RecipeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   lotId?: boolean
+  taskId?: boolean
   date?: boolean
   status?: boolean
   observations?: boolean
+  pest?: boolean
+  crop?: boolean
+  reapplicationIntervalDays?: boolean
+  reapplicationDate?: boolean
   sprayVolume?: boolean
   sprayVolumeUnit?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.Recipe$taskArgs<ExtArgs>
 }, ExtArgs["result"]["recipe"]>
 
 export type RecipeSelectScalar = {
   id?: boolean
   lotId?: boolean
+  taskId?: boolean
   date?: boolean
   status?: boolean
   observations?: boolean
+  pest?: boolean
+  crop?: boolean
+  reapplicationIntervalDays?: boolean
+  reapplicationDate?: boolean
   sprayVolume?: boolean
   sprayVolumeUnit?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RecipeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "lotId" | "date" | "status" | "observations" | "sprayVolume" | "sprayVolumeUnit" | "createdAt" | "updatedAt", ExtArgs["result"]["recipe"]>
+export type RecipeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "lotId" | "taskId" | "date" | "status" | "observations" | "pest" | "crop" | "reapplicationIntervalDays" | "reapplicationDate" | "sprayVolume" | "sprayVolumeUnit" | "createdAt" | "updatedAt", ExtArgs["result"]["recipe"]>
 export type RecipeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.Recipe$taskArgs<ExtArgs>
   items?: boolean | Prisma.Recipe$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.RecipeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RecipeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.Recipe$taskArgs<ExtArgs>
 }
 export type RecipeIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
+  task?: boolean | Prisma.Recipe$taskArgs<ExtArgs>
 }
 
 export type $RecipePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Recipe"
   objects: {
     lot: Prisma.$LotPayload<ExtArgs>
+    task: Prisma.$TaskPayload<ExtArgs> | null
     items: Prisma.$RecipeItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     lotId: string
+    taskId: string | null
     date: Date
     status: $Enums.RecipeStatus
     observations: string | null
+    pest: string | null
+    crop: string | null
+    reapplicationIntervalDays: number | null
+    reapplicationDate: Date | null
     sprayVolume: number
     sprayVolumeUnit: string
     createdAt: Date
@@ -1204,6 +1538,7 @@ readonly fields: RecipeFieldRefs;
 export interface Prisma__RecipeClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   lot<T extends Prisma.LotDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LotDefaultArgs<ExtArgs>>): Prisma.Prisma__LotClient<runtime.Types.Result.GetResult<Prisma.$LotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  task<T extends Prisma.Recipe$taskArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Recipe$taskArgs<ExtArgs>>): Prisma.Prisma__TaskClient<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   items<T extends Prisma.Recipe$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Recipe$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RecipeItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1236,9 +1571,14 @@ export interface Prisma__RecipeClient<T, Null = never, ExtArgs extends runtime.T
 export interface RecipeFieldRefs {
   readonly id: Prisma.FieldRef<"Recipe", 'String'>
   readonly lotId: Prisma.FieldRef<"Recipe", 'String'>
+  readonly taskId: Prisma.FieldRef<"Recipe", 'String'>
   readonly date: Prisma.FieldRef<"Recipe", 'DateTime'>
   readonly status: Prisma.FieldRef<"Recipe", 'RecipeStatus'>
   readonly observations: Prisma.FieldRef<"Recipe", 'String'>
+  readonly pest: Prisma.FieldRef<"Recipe", 'String'>
+  readonly crop: Prisma.FieldRef<"Recipe", 'String'>
+  readonly reapplicationIntervalDays: Prisma.FieldRef<"Recipe", 'Int'>
+  readonly reapplicationDate: Prisma.FieldRef<"Recipe", 'DateTime'>
   readonly sprayVolume: Prisma.FieldRef<"Recipe", 'Float'>
   readonly sprayVolumeUnit: Prisma.FieldRef<"Recipe", 'String'>
   readonly createdAt: Prisma.FieldRef<"Recipe", 'DateTime'>
@@ -1641,6 +1981,25 @@ export type RecipeDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many Recipes to delete.
    */
   limit?: number
+}
+
+/**
+ * Recipe.task
+ */
+export type Recipe$taskArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Task
+   */
+  select?: Prisma.TaskSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Task
+   */
+  omit?: Prisma.TaskOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskInclude<ExtArgs> | null
+  where?: Prisma.TaskWhereInput
 }
 
 /**

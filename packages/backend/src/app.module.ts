@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CompanyModule } from './entities/company/company.module';
 import { ClientModule } from './entities/client/client.module';
 import { InputModule } from './entities/input/input.module';
+import { InputCategoryModule } from './entities/input-category/input-category.module';
 import { RecipeModule } from './entities/recipe/recipe.module';
 import { DailyReportModule } from './entities/daily-report/daily-report.module';
 import { ReceptionModule } from './entities/reception/reception.module';
@@ -15,10 +16,13 @@ import { LivestockModule } from './entities/livestock/livestock.module';
 import { UserModule } from './entities/user/user.module';
 import { LivestockEventModule } from './entities/livestock-event/livestock-event.module';
 import { WeightRecordModule } from './entities/weight-record/weight-record.module';
-import { TaskTypeModule } from './entities/task-type/task-type.module';
+import { LaborTypeModule } from './entities/labor-type/labor-type.module';
 import { TaskModule } from './entities/task/task.module';
 import { MachineModule } from './entities/machine/machine.module';
 import { MachineUsageModule } from './entities/machine-usage/machine-usage.module';
+import { MaintenanceThresholdModule } from './entities/maintenance-threshold/maintenance-threshold.module';
+import { MachineReportModule } from './entities/machine-report/machine-report.module';
+import { FieldCatalogModule } from './entities/field-catalog/field-catalog.module';
 import { AuthModule } from './auth/auth.module';
 import { RbacModule } from './auth/rbac.module';
 import { WeatherModule } from './integrations/weather/weather.module';
@@ -32,6 +36,7 @@ import { GrainPriceModule } from './integrations/grain-price/grain-price.module'
     CompanyModule,
     ClientModule,
     InputModule,
+    InputCategoryModule,
     RecipeModule,
     DailyReportModule,
     ReceptionModule,
@@ -45,13 +50,18 @@ import { GrainPriceModule } from './integrations/grain-price/grain-price.module'
     UserModule,
     LivestockEventModule,
     WeightRecordModule,
-    TaskTypeModule,
+    LaborTypeModule,
     TaskModule,
+    // Registered before MachineModule so `GET /machines/alerts` wins over
+    // `GET /machines/:id`.
+    MaintenanceThresholdModule,
     MachineModule,
     MachineUsageModule,
     WeatherModule,
     ExchangeRateModule,
-    GrainPriceModule
+    GrainPriceModule,
+    MachineReportModule,
+    FieldCatalogModule,
   ],
   controllers: [],
   providers: [],

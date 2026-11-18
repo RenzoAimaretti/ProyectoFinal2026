@@ -20,6 +20,8 @@ class CatalogSeeder {
     await _seedFarms(db);
     await _seedLots(db);
     await _seedLaborTypes(db);
+    await _seedInputCategories(db);
+    await _seedLaborTypeCategories(db);
     await _seedInputs(db);
     await _seedMachines(db);
     await _seedRecipes(db);
@@ -122,6 +124,43 @@ class CatalogSeeder {
     ]);
   }
 
+  static Future<void> _seedInputCategories(AppDatabase db) async {
+    if ((await db.select(db.inputCategories).get()).isNotEmpty) return;
+    await db.inputCategories.insertAll([
+      for (final (id, name) in [
+        ('semilla', 'Semilla'),
+        ('fertilizante', 'Fertilizante'),
+        ('herbicida', 'Herbicida'),
+        ('insecticida', 'Insecticida'),
+        ('fungicida', 'Fungicida'),
+        ('coadyuvante', 'Coadyuvante'),
+        ('inoculante', 'Inoculante'),
+        ('otro', 'Otro'),
+      ])
+        InputCategoriesCompanion.insert(id: Value('category-$id'), name: name),
+    ]);
+  }
+
+  static Future<void> _seedLaborTypeCategories(AppDatabase db) async {
+    if ((await db.select(db.laborTypeCategories).get()).isNotEmpty) return;
+    // Existing catalogues may have been replaced by sync: only seed known ids.
+    final labors = (await db.select(db.laborTypes).get()).map((r) => r.id).toSet();
+    final categories =
+        (await db.select(db.inputCategories).get()).map((r) => r.id).toSet();
+    await db.laborTypeCategories.insertAll([
+      for (final (labor, category) in [
+        ('labor-pulverizacion', 'category-herbicida'),
+        ('labor-pulverizacion', 'category-coadyuvante'),
+        ('labor-siembra', 'category-semilla'),
+      ])
+        if (labors.contains(labor) && categories.contains(category))
+          LaborTypeCategoriesCompanion.insert(
+            laborTypeId: labor,
+            categoryId: category,
+          ),
+    ]);
+  }
+
   static Future<void> _seedInputs(AppDatabase db) async {
     if ((await db.select(db.inputs).get()).isNotEmpty) return;
     await db.inputs.insertAll([
@@ -129,16 +168,19 @@ class CatalogSeeder {
         id: const Value('input-glifosato'),
         name: 'Glifosato 48%',
         unit: 'L',
+        categoryId: const Value('category-herbicida'),
       ),
       InputsCompanion.insert(
         id: const Value('input-urea'),
         name: 'Urea',
         unit: 'KG',
+        categoryId: const Value('category-fertilizante'),
       ),
       InputsCompanion.insert(
         id: const Value('input-semilla-soja'),
         name: 'Semilla Soja',
         unit: 'UNIT',
+        categoryId: const Value('category-semilla'),
       ),
     ]);
   }

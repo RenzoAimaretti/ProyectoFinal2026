@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -7,6 +7,8 @@ import { MachineUsageService } from './machine-usage.service';
 
 type RequestWithUser = {
   user: {
+    id: string;
+    role: string;
     firmaId: string;
   };
 };
@@ -30,10 +32,13 @@ export class MachineUsageController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'SUPERVISOR')
+  @Roles('ADMIN', 'SUPERVISOR', 'OPERARIO')
   @Post()
   create(@Req() req: RequestWithUser, @Body() data: CreateMachineUsageInput) {
-    return this.service.create(req.user.firmaId, data);
+    if (req.user.role === 'OPERARIO' && req.user.id !== data?.operatorId) {
+      throw new ForbiddenException('Operator may only register their own usage');
+    }
+    return this.service.create(req.user.firmaId, data, req.user);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart';
 
 import '../../domain/models/machine_activity.dart';
 import '../../domain/models/machine_activity_summary.dart';
+import '../../domain/models/machine_history_entry.dart';
 import '../../domain/usecases/list_machine_activities_usecase.dart';
+import '../../domain/usecases/list_machine_history_usecase.dart';
 
 /// ViewModel del historial de actividades de maquinaria (CUU08, lista).
 ///
@@ -13,9 +15,10 @@ import '../../domain/usecases/list_machine_activities_usecase.dart';
 /// porque la firma activa puede cambiar (selector global post-login) y, al
 /// hacerlo, emite un stream nuevo filtrado por esa firma.
 class MachineActivitiesViewModel extends ChangeNotifier {
-  MachineActivitiesViewModel(this._listUseCase);
+  MachineActivitiesViewModel(this._listUseCase, this._historyUseCase);
 
   final ListMachineActivitiesUseCase _listUseCase;
+  final ListMachineHistoryUseCase _historyUseCase;
 
   String? _companyId;
 
@@ -30,6 +33,10 @@ class MachineActivitiesViewModel extends ChangeNotifier {
   /// Actividades con `machineName` resuelto para el listado (D2).
   Stream<List<MachineActivitySummary>> get summaries =>
       _listUseCase.watchSummaries(_companyId);
+
+  /// Historial combinado: actividades históricas y usos ligados a tarea.
+  Stream<List<MachineHistoryEntry>> get history =>
+      _historyUseCase.watchByCompany(_companyId);
 
   /// Cambia la firma activa y notifica para que la vista resuscriba el stream.
   void setCompany(String? companyId) {

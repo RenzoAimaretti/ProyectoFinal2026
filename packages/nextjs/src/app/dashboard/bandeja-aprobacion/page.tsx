@@ -246,7 +246,7 @@ function DailyReportNotebook({
             <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">
               Parte de trabajo · cuaderno digital
             </p>
-            <h3 className="mt-1 text-xl font-semibold tracking-tight text-ink">{report.taskTypeName}</h3>
+            <h3 className="mt-1 text-xl font-semibold tracking-tight text-ink">{report.laborTypeName}</h3>
             <p className="text-sm text-ink-soft">
               {report.farmName} · {report.lotName} · {report.clientName}
             </p>
@@ -258,7 +258,7 @@ function DailyReportNotebook({
           <NotebookRow label="Fecha" value={fmtDate(report.date)} />
           <NotebookRow label="Firma / Cliente" value={report.clientName} />
           <NotebookRow label="Campo / Lote" value={`${report.farmName} · ${report.lotName}`} />
-          <NotebookRow label="Labor" value={report.taskTypeName} />
+          <NotebookRow label="Labor" value={report.laborTypeName} />
           <NotebookRow label="Operario" value={report.operatorName} />
           <NotebookRow label="Empresa" value={report.companyName} />
         </div>
@@ -578,7 +578,7 @@ export default function BandejaAprobacionPage() {
         r.operatorName,
         r.farmName,
         r.lotName,
-        r.taskTypeName,
+        r.laborTypeName,
         r.clientName,
         r.companyName,
         ...(r.items ?? []).map((i) => i.inputName),
@@ -736,7 +736,7 @@ export default function BandejaAprobacionPage() {
                       <ClipboardIcon />
                     </IconTile>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-ink">{r.taskTypeName}</p>
+                      <p className="truncate text-sm font-semibold text-ink">{r.laborTypeName}</p>
                       <p className="truncate text-xs text-ink-faint">{r.operatorName}</p>
                     </div>
                   </div>
@@ -770,7 +770,7 @@ export default function BandejaAprobacionPage() {
       <Drawer
         open={Boolean(selectedId)}
         onClose={closeDrawer}
-        title={detail ? detail.taskTypeName : "Parte de trabajo"}
+        title={detail ? detail.laborTypeName : "Parte de trabajo"}
         subtitle={detail ? `${detail.farmName} · ${detail.lotName}` : "Cargando parte…"}
         widthClass="max-w-3xl"
       >

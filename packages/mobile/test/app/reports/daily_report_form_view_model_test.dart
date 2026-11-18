@@ -16,6 +16,7 @@ void main() {
   late FakeInputReader inputReader;
   late FakeLotReader lotReader;
   late FakeLaborTypeReader laborTypeReader;
+  late FakeLaborTypeCategoryReader laborTypeCategoryReader;
   late FakePhotoRepository photoRepo;
   late FakePhotoStorageRepository photoStorage;
   late FakePhotoPickerService photoPicker;
@@ -28,6 +29,7 @@ void main() {
     inputReader = FakeInputReader();
     lotReader = FakeLotReader();
     laborTypeReader = FakeLaborTypeReader();
+    laborTypeCategoryReader = FakeLaborTypeCategoryReader();
     photoRepo = FakePhotoRepository();
     photoStorage = FakePhotoStorageRepository();
     photoPicker = FakePhotoPickerService();
@@ -41,9 +43,43 @@ void main() {
       inputReader: inputReader,
       lotReader: lotReader,
       laborTypeReader: laborTypeReader,
+      laborTypeCategoryReader: laborTypeCategoryReader,
       addPhotoUseCase: addPhotoUseCase,
       photoPickerService: photoPicker,
     );
+  });
+
+  test('empty labour set keeps inputs compatible', () async {
+    inputReader.seed(Input(
+      id: 'i', name: 'Urea', unit: 'KG', categoryId: 'fertilizante',
+      active: true, createdAt: DateTime(2026), updatedAt: DateTime(2026),
+      version: 1, deleted: false,
+    ));
+    final choices = await sut.watchInputChoices('labor-cosecha').first;
+    expect(choices.single.compatible, isTrue);
+  });
+
+  test('null category stays compatible even for restricted labour', () async {
+    laborTypeCategoryReader.categories['labor-siembra'] = {'semilla'};
+    inputReader.seed(Input(
+      id: 'i', name: 'Desconocido', unit: 'KG',
+      active: true, createdAt: DateTime(2026), updatedAt: DateTime(2026),
+      version: 1, deleted: false,
+    ));
+    final choices = await sut.watchInputChoices('labor-siembra').first;
+    expect(choices.single.compatible, isTrue);
+  });
+
+  test('out-of-set input remains listed but marked incompatible', () async {
+    laborTypeCategoryReader.categories['labor-siembra'] = {'semilla'};
+    inputReader.seed(Input(
+      id: 'i', name: 'Urea', unit: 'KG', categoryId: 'fertilizante',
+      active: true, createdAt: DateTime(2026), updatedAt: DateTime(2026),
+      version: 1, deleted: false,
+    ));
+    final choices = await sut.watchInputChoices('labor-siembra').first;
+    expect(choices.single.input.id, 'i');
+    expect(choices.single.compatible, isFalse);
   });
 
   test('inputs expone el stream de insumos', () async {

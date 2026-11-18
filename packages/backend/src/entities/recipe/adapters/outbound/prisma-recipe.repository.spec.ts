@@ -1,4 +1,5 @@
 import { CreateRecipeData, RecipeRecord } from '../../application/recipe.types';
+import { EntityNotFoundError } from '../../domain/errors';
 import { PrismaRecipeRepository } from './prisma-recipe.repository';
 
 const persistedRecipe = {
@@ -53,6 +54,7 @@ describe('PrismaRecipeRepository', () => {
   const prisma = {
     recipe: {
       create: jest.fn(),
+      update: jest.fn(),
       findFirst: jest.fn(),
       findMany: jest.fn(),
     },
@@ -132,7 +134,7 @@ describe('PrismaRecipeRepository', () => {
         id: 'recipe-1',
         lot: { farm: { client: { tenantId: 'tenant-1' } } },
       },
-      include: { items: itemInclude },
+      include: { items: itemInclude, lot: { select: { area: true } } },
     });
   });
 
@@ -192,5 +194,124 @@ describe('PrismaRecipeRepository', () => {
     await expect(
       repository.findAllByLotForTenant('lot-1', 'tenant-2'),
     ).resolves.toEqual([]);
+  });
+
+  it('maps the prescription fields and the lot area additively', async () => {
+    prisma.recipe.findFirst.mockResolvedValue({
+      ...persistedRecipe,
+      taskId: 'task-1',
+      pest: 'Roya',
+      crop: 'Trigo',
+      reapplicationIntervalDays: 15,
+      reapplicationDate: new Date('2026-03-20T00:00:00.000Z'),
+      lot: { area: 12.5 },
+      items: [{ ...persistedRecipe.items[0], dosageBasis: 'CONCENTRACION' }],
+    });
+
+    const recipe = await repository.findByIdForTenant('recipe-1', 'tenant-1');
+
+    expect(recipe).toEqual(
+      expect.objectContaining({
+        taskId: 'task-1',
+        pest: 'Roya',
+        crop: 'Trigo',
+        reapplicationIntervalDays: 15,
+        reapplicationDate: new Date('2026-03-20T00:00:00.000Z'),
+        lotArea: 12.5,
+      }),
+    );
+    expect(recipe?.items[0].dosageBasis).toBe('CONCENTRACION');
+  });
+
+  it('reads the prescription attached to a task, scoped to the tenant', async () => {
+    prisma.recipe.findFirst.mockResolvedValue({
+      ...persistedRecipe,
+      taskId: 'task-1',
+    });
+
+    await expect(
+      repository.findByTaskId('task-1', 'tenant-1'),
+    ).resolves.toEqual(expect.objectContaining({ taskId: 'task-1' }));
+
+    expect(prisma.recipe.findFirst).toHaveBeenCalledWith({
+      where: {
+        taskId: 'task-1',
+        lot: { farm: { client: { tenantId: 'tenant-1' } } },
+      },
+      include: { items: itemInclude },
+    });
+  });
+
+  it('returns null when the task has no prescription for the tenant', async () => {
+    prisma.recipe.findFirst.mockResolvedValue(null);
+
+    await expect(
+      repository.findByTaskId('task-1', 'tenant-1'),
+    ).resolves.toBeNull();
+  });
+
+  it('updates the recipe and replaces its items, scoped to the tenant', async () => {
+    prisma.recipe.findFirst.mockResolvedValue({ id: 'recipe-1' });
+    prisma.recipe.update.mockResolvedValue({
+      ...persistedRecipe,
+      pest: 'Roya',
+      crop: 'Trigo',
+    });
+
+    await expect(
+      repository.update('recipe-1', 'tenant-1', {
+        pest: 'Roya',
+        crop: 'Trigo',
+        sprayVolume: 180,
+        items: [
+          {
+            inputId: 'input-1',
+            dose: 4,
+            dosageBasis: 'POR_HECTAREA',
+            unit: 'L',
+            loadOrder: 1,
+          },
+        ],
+      }),
+    ).resolves.toEqual(expect.objectContaining({ pest: 'Roya', crop: 'Trigo' }));
+
+    expect(prisma.recipe.findFirst).toHaveBeenCalledWith({
+      where: {
+        id: 'recipe-1',
+        lot: { farm: { client: { tenantId: 'tenant-1' } } },
+      },
+      select: { id: true },
+    });
+    expect(prisma.recipe.update).toHaveBeenCalledWith({
+      where: { id: 'recipe-1' },
+      data: {
+        pest: 'Roya',
+        crop: 'Trigo',
+        sprayVolume: 180,
+        items: {
+          deleteMany: {},
+          create: [
+            {
+              inputId: 'input-1',
+              dose: 4,
+              dosageBasis: 'POR_HECTAREA',
+              unit: 'L',
+              loadOrder: 1,
+            },
+          ],
+        },
+      },
+      include: { items: itemInclude },
+    });
+  });
+
+  it('rejects an update of a recipe outside the tenant', async () => {
+    prisma.recipe.findFirst.mockResolvedValue(null);
+
+    await expect(
+      repository.update('recipe-1', 'tenant-2', { sprayVolume: 180 }),
+    ).rejects.toBeInstanceOf(EntityNotFoundError);
+
+    expect(prisma.recipe.update).not.toHaveBeenCalled();
   });
 });

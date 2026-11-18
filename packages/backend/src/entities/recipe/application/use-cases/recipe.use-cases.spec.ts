@@ -59,7 +59,9 @@ const validRecipeInput: CreateRecipeInput = {
 function createRepository(): jest.Mocked<RecipeRepositoryPort> {
   return {
     create: jest.fn(),
+    update: jest.fn(),
     findByIdForTenant: jest.fn(),
+    findByTaskId: jest.fn(),
     findAllByLotForTenant: jest.fn(),
   };
 }
@@ -82,13 +84,20 @@ describe('Recipe use cases', () => {
     const files = [
       'domain/errors.ts',
       'domain/recipe-status.ts',
+      'domain/dosage-basis.ts',
+      'domain/dosage-unit.ts',
       'domain/recipe.rules.ts',
+      'domain/spray-calculation.ts',
       'application/recipe.ports.ts',
       'application/recipe.types.ts',
       'application/recipe.validation.ts',
+      'application/recipe.totals.ts',
       'application/use-cases/create-recipe.use-case.ts',
       'application/use-cases/find-recipe.use-case.ts',
       'application/use-cases/find-recipes-by-lot.use-case.ts',
+      'application/use-cases/create-prescription.use-case.ts',
+      'application/use-cases/update-recipe.use-case.ts',
+      'application/use-cases/find-pending-prescriptions.use-case.ts',
     ];
 
     const contents = files

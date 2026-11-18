@@ -2,30 +2,57 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
 import {
   LOT_READER,
+  PENDING_PRESCRIPTION_READER,
+  REAPPLICATION_ALERT_READER,
   RECIPE_INPUT_READER,
   RECIPE_REPOSITORY,
+  TASK_PRESCRIPTION,
   LotReaderPort,
+  PendingPrescriptionReaderPort,
+  ReapplicationAlertReaderPort,
   RecipeInputReaderPort,
   RecipeRepositoryPort,
+  TaskPrescriptionPort,
 } from './application/recipe.ports';
+import { CreatePrescriptionUseCase } from './application/use-cases/create-prescription.use-case';
 import { CreateRecipeUseCase } from './application/use-cases/create-recipe.use-case';
+import { FindPendingPrescriptionsUseCase } from './application/use-cases/find-pending-prescriptions.use-case';
 import { FindRecipeUseCase } from './application/use-cases/find-recipe.use-case';
 import { FindRecipesByLotUseCase } from './application/use-cases/find-recipes-by-lot.use-case';
+import { ListReapplicationAlertsUseCase } from './application/use-cases/list-reapplication-alerts.use-case';
+import { UpdateRecipeUseCase } from './application/use-cases/update-recipe.use-case';
+import { PrescriptionController } from './adapters/inbound/prescription.controller';
 import { RecipeController } from './adapters/inbound/recipe.controller';
 import { PrismaLotReader } from './adapters/outbound/prisma-lot.reader';
+import { PrismaReapplicationAlertReader } from './adapters/outbound/prisma-reapplication-alert.reader';
 import { PrismaRecipeInputReader } from './adapters/outbound/prisma-recipe-input.reader';
 import { PrismaRecipeRepository } from './adapters/outbound/prisma-recipe.repository';
+import { PrismaTaskPrescriptionAdapter } from './adapters/outbound/prisma-task-prescription.adapter';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [RecipeController],
+  controllers: [RecipeController, PrescriptionController],
   providers: [
     PrismaRecipeRepository,
     PrismaLotReader,
     PrismaRecipeInputReader,
+    PrismaTaskPrescriptionAdapter,
+    PrismaReapplicationAlertReader,
     { provide: RECIPE_REPOSITORY, useExisting: PrismaRecipeRepository },
     { provide: LOT_READER, useExisting: PrismaLotReader },
     { provide: RECIPE_INPUT_READER, useExisting: PrismaRecipeInputReader },
+    {
+      provide: TASK_PRESCRIPTION,
+      useExisting: PrismaTaskPrescriptionAdapter,
+    },
+    {
+      provide: PENDING_PRESCRIPTION_READER,
+      useExisting: PrismaTaskPrescriptionAdapter,
+    },
+    {
+      provide: REAPPLICATION_ALERT_READER,
+      useExisting: PrismaReapplicationAlertReader,
+    },
     {
       provide: FindRecipesByLotUseCase,
       useFactory: (repository: RecipeRepositoryPort) =>
@@ -39,6 +66,18 @@ import { PrismaRecipeRepository } from './adapters/outbound/prisma-recipe.reposi
       inject: [RECIPE_REPOSITORY],
     },
     {
+      provide: FindPendingPrescriptionsUseCase,
+      useFactory: (reader: PendingPrescriptionReaderPort) =>
+        new FindPendingPrescriptionsUseCase(reader),
+      inject: [PENDING_PRESCRIPTION_READER],
+    },
+    {
+      provide: ListReapplicationAlertsUseCase,
+      useFactory: (reader: ReapplicationAlertReaderPort) =>
+        new ListReapplicationAlertsUseCase(reader),
+      inject: [REAPPLICATION_ALERT_READER],
+    },
+    {
       provide: CreateRecipeUseCase,
       useFactory: (
         repository: RecipeRepositoryPort,
@@ -47,7 +86,37 @@ import { PrismaRecipeRepository } from './adapters/outbound/prisma-recipe.reposi
       ) => new CreateRecipeUseCase(repository, lotReader, inputReader),
       inject: [RECIPE_REPOSITORY, LOT_READER, RECIPE_INPUT_READER],
     },
+    {
+      provide: CreatePrescriptionUseCase,
+      useFactory: (
+        repository: RecipeRepositoryPort,
+        taskPrescription: TaskPrescriptionPort,
+        inputReader: RecipeInputReaderPort,
+      ) =>
+        new CreatePrescriptionUseCase(
+          repository,
+          taskPrescription,
+          inputReader,
+        ),
+      inject: [RECIPE_REPOSITORY, TASK_PRESCRIPTION, RECIPE_INPUT_READER],
+    },
+    {
+      provide: UpdateRecipeUseCase,
+      useFactory: (
+        repository: RecipeRepositoryPort,
+        taskPrescription: TaskPrescriptionPort,
+        inputReader: RecipeInputReaderPort,
+      ) => new UpdateRecipeUseCase(repository, taskPrescription, inputReader),
+      inject: [RECIPE_REPOSITORY, TASK_PRESCRIPTION, RECIPE_INPUT_READER],
+    },
   ],
-  exports: [FindRecipesByLotUseCase, FindRecipeUseCase, CreateRecipeUseCase],
+  exports: [
+    FindRecipesByLotUseCase,
+    FindRecipeUseCase,
+    CreateRecipeUseCase,
+    CreatePrescriptionUseCase,
+    UpdateRecipeUseCase,
+    ListReapplicationAlertsUseCase,
+  ],
 })
 export class RecipeModule {}

@@ -52,13 +52,13 @@ export interface DailyReportCompanyReaderPort {
 export interface DailyReportTaskRecord {
   id: string;
   lotId: string;
-  taskTypeId: string;
+  laborTypeId: string;
   tenantId: string;
 }
 
 /**
  * The company belongs to the daily report, not to the task. The task is only
- * read to inherit its lot and task type, and to corroborate that the task and
+ * read to inherit its lot and labor type, and to corroborate that the task and
  * the company share the same tenant.
  */
 export interface DailyReportTaskReaderPort {

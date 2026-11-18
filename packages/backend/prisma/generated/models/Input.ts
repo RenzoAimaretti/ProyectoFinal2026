@@ -37,8 +37,9 @@ export type InputSumAggregateOutputType = {
 export type InputMinAggregateOutputType = {
   id: string | null
   tenantId: string | null
+  categoryId: string | null
   name: string | null
-  unit: string | null
+  unit: $Enums.InputUnit | null
   active: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -49,8 +50,9 @@ export type InputMinAggregateOutputType = {
 export type InputMaxAggregateOutputType = {
   id: string | null
   tenantId: string | null
+  categoryId: string | null
   name: string | null
-  unit: string | null
+  unit: $Enums.InputUnit | null
   active: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -61,6 +63,7 @@ export type InputMaxAggregateOutputType = {
 export type InputCountAggregateOutputType = {
   id: number
   tenantId: number
+  categoryId: number
   name: number
   unit: number
   active: number
@@ -83,6 +86,7 @@ export type InputSumAggregateInputType = {
 export type InputMinAggregateInputType = {
   id?: true
   tenantId?: true
+  categoryId?: true
   name?: true
   unit?: true
   active?: true
@@ -95,6 +99,7 @@ export type InputMinAggregateInputType = {
 export type InputMaxAggregateInputType = {
   id?: true
   tenantId?: true
+  categoryId?: true
   name?: true
   unit?: true
   active?: true
@@ -107,6 +112,7 @@ export type InputMaxAggregateInputType = {
 export type InputCountAggregateInputType = {
   id?: true
   tenantId?: true
+  categoryId?: true
   name?: true
   unit?: true
   active?: true
@@ -206,8 +212,9 @@ export type InputGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type InputGroupByOutputType = {
   id: string
   tenantId: string
+  categoryId: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active: boolean
   createdAt: Date
   updatedAt: Date
@@ -241,14 +248,16 @@ export type InputWhereInput = {
   NOT?: Prisma.InputWhereInput | Prisma.InputWhereInput[]
   id?: Prisma.StringFilter<"Input"> | string
   tenantId?: Prisma.StringFilter<"Input"> | string
+  categoryId?: Prisma.StringFilter<"Input"> | string
   name?: Prisma.StringFilter<"Input"> | string
-  unit?: Prisma.StringFilter<"Input"> | string
+  unit?: Prisma.EnumInputUnitFilter<"Input"> | $Enums.InputUnit
   active?: Prisma.BoolFilter<"Input"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Input"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Input"> | Date | string
   version?: Prisma.IntFilter<"Input"> | number
   deleted?: Prisma.BoolFilter<"Input"> | boolean
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
+  category?: Prisma.XOR<Prisma.InputCategoryScalarRelationFilter, Prisma.InputCategoryWhereInput>
   recipeItems?: Prisma.RecipeItemListRelationFilter
   dailyReportItems?: Prisma.DailyReportItemListRelationFilter
   receptionItems?: Prisma.ReceptionItemListRelationFilter
@@ -258,6 +267,7 @@ export type InputWhereInput = {
 export type InputOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  categoryId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -266,6 +276,7 @@ export type InputOrderByWithRelationInput = {
   version?: Prisma.SortOrder
   deleted?: Prisma.SortOrder
   tenant?: Prisma.TenantOrderByWithRelationInput
+  category?: Prisma.InputCategoryOrderByWithRelationInput
   recipeItems?: Prisma.RecipeItemOrderByRelationAggregateInput
   dailyReportItems?: Prisma.DailyReportItemOrderByRelationAggregateInput
   receptionItems?: Prisma.ReceptionItemOrderByRelationAggregateInput
@@ -278,14 +289,16 @@ export type InputWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.InputWhereInput[]
   NOT?: Prisma.InputWhereInput | Prisma.InputWhereInput[]
   tenantId?: Prisma.StringFilter<"Input"> | string
+  categoryId?: Prisma.StringFilter<"Input"> | string
   name?: Prisma.StringFilter<"Input"> | string
-  unit?: Prisma.StringFilter<"Input"> | string
+  unit?: Prisma.EnumInputUnitFilter<"Input"> | $Enums.InputUnit
   active?: Prisma.BoolFilter<"Input"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Input"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Input"> | Date | string
   version?: Prisma.IntFilter<"Input"> | number
   deleted?: Prisma.BoolFilter<"Input"> | boolean
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
+  category?: Prisma.XOR<Prisma.InputCategoryScalarRelationFilter, Prisma.InputCategoryWhereInput>
   recipeItems?: Prisma.RecipeItemListRelationFilter
   dailyReportItems?: Prisma.DailyReportItemListRelationFilter
   receptionItems?: Prisma.ReceptionItemListRelationFilter
@@ -295,6 +308,7 @@ export type InputWhereUniqueInput = Prisma.AtLeast<{
 export type InputOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  categoryId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -315,8 +329,9 @@ export type InputScalarWhereWithAggregatesInput = {
   NOT?: Prisma.InputScalarWhereWithAggregatesInput | Prisma.InputScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Input"> | string
   tenantId?: Prisma.StringWithAggregatesFilter<"Input"> | string
+  categoryId?: Prisma.StringWithAggregatesFilter<"Input"> | string
   name?: Prisma.StringWithAggregatesFilter<"Input"> | string
-  unit?: Prisma.StringWithAggregatesFilter<"Input"> | string
+  unit?: Prisma.EnumInputUnitWithAggregatesFilter<"Input"> | $Enums.InputUnit
   active?: Prisma.BoolWithAggregatesFilter<"Input"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Input"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Input"> | Date | string
@@ -327,13 +342,14 @@ export type InputScalarWhereWithAggregatesInput = {
 export type InputCreateInput = {
   id?: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
   tenant: Prisma.TenantCreateNestedOneWithoutInputsInput
+  category: Prisma.InputCategoryCreateNestedOneWithoutInputsInput
   recipeItems?: Prisma.RecipeItemCreateNestedManyWithoutInputInput
   dailyReportItems?: Prisma.DailyReportItemCreateNestedManyWithoutInputInput
   receptionItems?: Prisma.ReceptionItemCreateNestedManyWithoutInputInput
@@ -343,8 +359,9 @@ export type InputCreateInput = {
 export type InputUncheckedCreateInput = {
   id?: string
   tenantId: string
+  categoryId: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -359,13 +376,14 @@ export type InputUncheckedCreateInput = {
 export type InputUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tenant?: Prisma.TenantUpdateOneRequiredWithoutInputsNestedInput
+  category?: Prisma.InputCategoryUpdateOneRequiredWithoutInputsNestedInput
   recipeItems?: Prisma.RecipeItemUpdateManyWithoutInputNestedInput
   dailyReportItems?: Prisma.DailyReportItemUpdateManyWithoutInputNestedInput
   receptionItems?: Prisma.ReceptionItemUpdateManyWithoutInputNestedInput
@@ -375,8 +393,9 @@ export type InputUpdateInput = {
 export type InputUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -391,8 +410,9 @@ export type InputUncheckedUpdateInput = {
 export type InputCreateManyInput = {
   id?: string
   tenantId: string
+  categoryId: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -403,7 +423,7 @@ export type InputCreateManyInput = {
 export type InputUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -414,8 +434,9 @@ export type InputUpdateManyMutationInput = {
 export type InputUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -436,6 +457,7 @@ export type InputOrderByRelationAggregateInput = {
 export type InputCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  categoryId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -452,6 +474,7 @@ export type InputAvgOrderByAggregateInput = {
 export type InputMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  categoryId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -464,6 +487,7 @@ export type InputMaxOrderByAggregateInput = {
 export type InputMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  categoryId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   unit?: Prisma.SortOrder
   active?: Prisma.SortOrder
@@ -522,6 +546,52 @@ export type InputUncheckedUpdateManyWithoutTenantNestedInput = {
   update?: Prisma.InputUpdateWithWhereUniqueWithoutTenantInput | Prisma.InputUpdateWithWhereUniqueWithoutTenantInput[]
   updateMany?: Prisma.InputUpdateManyWithWhereWithoutTenantInput | Prisma.InputUpdateManyWithWhereWithoutTenantInput[]
   deleteMany?: Prisma.InputScalarWhereInput | Prisma.InputScalarWhereInput[]
+}
+
+export type InputCreateNestedManyWithoutCategoryInput = {
+  create?: Prisma.XOR<Prisma.InputCreateWithoutCategoryInput, Prisma.InputUncheckedCreateWithoutCategoryInput> | Prisma.InputCreateWithoutCategoryInput[] | Prisma.InputUncheckedCreateWithoutCategoryInput[]
+  connectOrCreate?: Prisma.InputCreateOrConnectWithoutCategoryInput | Prisma.InputCreateOrConnectWithoutCategoryInput[]
+  createMany?: Prisma.InputCreateManyCategoryInputEnvelope
+  connect?: Prisma.InputWhereUniqueInput | Prisma.InputWhereUniqueInput[]
+}
+
+export type InputUncheckedCreateNestedManyWithoutCategoryInput = {
+  create?: Prisma.XOR<Prisma.InputCreateWithoutCategoryInput, Prisma.InputUncheckedCreateWithoutCategoryInput> | Prisma.InputCreateWithoutCategoryInput[] | Prisma.InputUncheckedCreateWithoutCategoryInput[]
+  connectOrCreate?: Prisma.InputCreateOrConnectWithoutCategoryInput | Prisma.InputCreateOrConnectWithoutCategoryInput[]
+  createMany?: Prisma.InputCreateManyCategoryInputEnvelope
+  connect?: Prisma.InputWhereUniqueInput | Prisma.InputWhereUniqueInput[]
+}
+
+export type InputUpdateManyWithoutCategoryNestedInput = {
+  create?: Prisma.XOR<Prisma.InputCreateWithoutCategoryInput, Prisma.InputUncheckedCreateWithoutCategoryInput> | Prisma.InputCreateWithoutCategoryInput[] | Prisma.InputUncheckedCreateWithoutCategoryInput[]
+  connectOrCreate?: Prisma.InputCreateOrConnectWithoutCategoryInput | Prisma.InputCreateOrConnectWithoutCategoryInput[]
+  upsert?: Prisma.InputUpsertWithWhereUniqueWithoutCategoryInput | Prisma.InputUpsertWithWhereUniqueWithoutCategoryInput[]
+  createMany?: Prisma.InputCreateManyCategoryInputEnvelope
+  set?: Prisma.InputWhereUniqueInput | Prisma.InputWhereUniqueInput[]
+  disconnect?: Prisma.InputWhereUniqueInput | Prisma.InputWhereUniqueInput[]
+  delete?: Prisma.InputWhereUniqueInput | Prisma.InputWhereUniqueInput[]
+  connect?: Prisma.InputWhereUniqueInput | Prisma.InputWhereUniqueInput[]
+  update?: Prisma.InputUpdateWithWhereUniqueWithoutCategoryInput | Prisma.InputUpdateWithWhereUniqueWithoutCategoryInput[]
+  updateMany?: Prisma.InputUpdateManyWithWhereWithoutCategoryInput | Prisma.InputUpdateManyWithWhereWithoutCategoryInput[]
+  deleteMany?: Prisma.InputScalarWhereInput | Prisma.InputScalarWhereInput[]
+}
+
+export type InputUncheckedUpdateManyWithoutCategoryNestedInput = {
+  create?: Prisma.XOR<Prisma.InputCreateWithoutCategoryInput, Prisma.InputUncheckedCreateWithoutCategoryInput> | Prisma.InputCreateWithoutCategoryInput[] | Prisma.InputUncheckedCreateWithoutCategoryInput[]
+  connectOrCreate?: Prisma.InputCreateOrConnectWithoutCategoryInput | Prisma.InputCreateOrConnectWithoutCategoryInput[]
+  upsert?: Prisma.InputUpsertWithWhereUniqueWithoutCategoryInput | Prisma.InputUpsertWithWhereUniqueWithoutCategoryInput[]
+  createMany?: Prisma.InputCreateManyCategoryInputEnvelope
+  set?: Prisma.InputWhereUniqueInput | Prisma.InputWhereUniqueInput[]
+  disconnect?: Prisma.InputWhereUniqueInput | Prisma.InputWhereUniqueInput[]
+  delete?: Prisma.InputWhereUniqueInput | Prisma.InputWhereUniqueInput[]
+  connect?: Prisma.InputWhereUniqueInput | Prisma.InputWhereUniqueInput[]
+  update?: Prisma.InputUpdateWithWhereUniqueWithoutCategoryInput | Prisma.InputUpdateWithWhereUniqueWithoutCategoryInput[]
+  updateMany?: Prisma.InputUpdateManyWithWhereWithoutCategoryInput | Prisma.InputUpdateManyWithWhereWithoutCategoryInput[]
+  deleteMany?: Prisma.InputScalarWhereInput | Prisma.InputScalarWhereInput[]
+}
+
+export type EnumInputUnitFieldUpdateOperationsInput = {
+  set?: $Enums.InputUnit
 }
 
 export type InputCreateNestedOneWithoutRecipeItemsInput = {
@@ -583,12 +653,13 @@ export type InputUpdateOneRequiredWithoutStocksNestedInput = {
 export type InputCreateWithoutTenantInput = {
   id?: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
+  category: Prisma.InputCategoryCreateNestedOneWithoutInputsInput
   recipeItems?: Prisma.RecipeItemCreateNestedManyWithoutInputInput
   dailyReportItems?: Prisma.DailyReportItemCreateNestedManyWithoutInputInput
   receptionItems?: Prisma.ReceptionItemCreateNestedManyWithoutInputInput
@@ -597,8 +668,9 @@ export type InputCreateWithoutTenantInput = {
 
 export type InputUncheckedCreateWithoutTenantInput = {
   id?: string
+  categoryId: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -642,8 +714,9 @@ export type InputScalarWhereInput = {
   NOT?: Prisma.InputScalarWhereInput | Prisma.InputScalarWhereInput[]
   id?: Prisma.StringFilter<"Input"> | string
   tenantId?: Prisma.StringFilter<"Input"> | string
+  categoryId?: Prisma.StringFilter<"Input"> | string
   name?: Prisma.StringFilter<"Input"> | string
-  unit?: Prisma.StringFilter<"Input"> | string
+  unit?: Prisma.EnumInputUnitFilter<"Input"> | $Enums.InputUnit
   active?: Prisma.BoolFilter<"Input"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Input"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Input"> | Date | string
@@ -651,16 +724,75 @@ export type InputScalarWhereInput = {
   deleted?: Prisma.BoolFilter<"Input"> | boolean
 }
 
-export type InputCreateWithoutRecipeItemsInput = {
+export type InputCreateWithoutCategoryInput = {
   id?: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
   tenant: Prisma.TenantCreateNestedOneWithoutInputsInput
+  recipeItems?: Prisma.RecipeItemCreateNestedManyWithoutInputInput
+  dailyReportItems?: Prisma.DailyReportItemCreateNestedManyWithoutInputInput
+  receptionItems?: Prisma.ReceptionItemCreateNestedManyWithoutInputInput
+  stocks?: Prisma.StockCreateNestedManyWithoutInputInput
+}
+
+export type InputUncheckedCreateWithoutCategoryInput = {
+  id?: string
+  tenantId: string
+  name: string
+  unit: $Enums.InputUnit
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  recipeItems?: Prisma.RecipeItemUncheckedCreateNestedManyWithoutInputInput
+  dailyReportItems?: Prisma.DailyReportItemUncheckedCreateNestedManyWithoutInputInput
+  receptionItems?: Prisma.ReceptionItemUncheckedCreateNestedManyWithoutInputInput
+  stocks?: Prisma.StockUncheckedCreateNestedManyWithoutInputInput
+}
+
+export type InputCreateOrConnectWithoutCategoryInput = {
+  where: Prisma.InputWhereUniqueInput
+  create: Prisma.XOR<Prisma.InputCreateWithoutCategoryInput, Prisma.InputUncheckedCreateWithoutCategoryInput>
+}
+
+export type InputCreateManyCategoryInputEnvelope = {
+  data: Prisma.InputCreateManyCategoryInput | Prisma.InputCreateManyCategoryInput[]
+  skipDuplicates?: boolean
+}
+
+export type InputUpsertWithWhereUniqueWithoutCategoryInput = {
+  where: Prisma.InputWhereUniqueInput
+  update: Prisma.XOR<Prisma.InputUpdateWithoutCategoryInput, Prisma.InputUncheckedUpdateWithoutCategoryInput>
+  create: Prisma.XOR<Prisma.InputCreateWithoutCategoryInput, Prisma.InputUncheckedCreateWithoutCategoryInput>
+}
+
+export type InputUpdateWithWhereUniqueWithoutCategoryInput = {
+  where: Prisma.InputWhereUniqueInput
+  data: Prisma.XOR<Prisma.InputUpdateWithoutCategoryInput, Prisma.InputUncheckedUpdateWithoutCategoryInput>
+}
+
+export type InputUpdateManyWithWhereWithoutCategoryInput = {
+  where: Prisma.InputScalarWhereInput
+  data: Prisma.XOR<Prisma.InputUpdateManyMutationInput, Prisma.InputUncheckedUpdateManyWithoutCategoryInput>
+}
+
+export type InputCreateWithoutRecipeItemsInput = {
+  id?: string
+  name: string
+  unit: $Enums.InputUnit
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  tenant: Prisma.TenantCreateNestedOneWithoutInputsInput
+  category: Prisma.InputCategoryCreateNestedOneWithoutInputsInput
   dailyReportItems?: Prisma.DailyReportItemCreateNestedManyWithoutInputInput
   receptionItems?: Prisma.ReceptionItemCreateNestedManyWithoutInputInput
   stocks?: Prisma.StockCreateNestedManyWithoutInputInput
@@ -669,8 +801,9 @@ export type InputCreateWithoutRecipeItemsInput = {
 export type InputUncheckedCreateWithoutRecipeItemsInput = {
   id?: string
   tenantId: string
+  categoryId: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -700,13 +833,14 @@ export type InputUpdateToOneWithWhereWithoutRecipeItemsInput = {
 export type InputUpdateWithoutRecipeItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tenant?: Prisma.TenantUpdateOneRequiredWithoutInputsNestedInput
+  category?: Prisma.InputCategoryUpdateOneRequiredWithoutInputsNestedInput
   dailyReportItems?: Prisma.DailyReportItemUpdateManyWithoutInputNestedInput
   receptionItems?: Prisma.ReceptionItemUpdateManyWithoutInputNestedInput
   stocks?: Prisma.StockUpdateManyWithoutInputNestedInput
@@ -715,8 +849,9 @@ export type InputUpdateWithoutRecipeItemsInput = {
 export type InputUncheckedUpdateWithoutRecipeItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -730,13 +865,14 @@ export type InputUncheckedUpdateWithoutRecipeItemsInput = {
 export type InputCreateWithoutDailyReportItemsInput = {
   id?: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
   tenant: Prisma.TenantCreateNestedOneWithoutInputsInput
+  category: Prisma.InputCategoryCreateNestedOneWithoutInputsInput
   recipeItems?: Prisma.RecipeItemCreateNestedManyWithoutInputInput
   receptionItems?: Prisma.ReceptionItemCreateNestedManyWithoutInputInput
   stocks?: Prisma.StockCreateNestedManyWithoutInputInput
@@ -745,8 +881,9 @@ export type InputCreateWithoutDailyReportItemsInput = {
 export type InputUncheckedCreateWithoutDailyReportItemsInput = {
   id?: string
   tenantId: string
+  categoryId: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -776,13 +913,14 @@ export type InputUpdateToOneWithWhereWithoutDailyReportItemsInput = {
 export type InputUpdateWithoutDailyReportItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tenant?: Prisma.TenantUpdateOneRequiredWithoutInputsNestedInput
+  category?: Prisma.InputCategoryUpdateOneRequiredWithoutInputsNestedInput
   recipeItems?: Prisma.RecipeItemUpdateManyWithoutInputNestedInput
   receptionItems?: Prisma.ReceptionItemUpdateManyWithoutInputNestedInput
   stocks?: Prisma.StockUpdateManyWithoutInputNestedInput
@@ -791,8 +929,9 @@ export type InputUpdateWithoutDailyReportItemsInput = {
 export type InputUncheckedUpdateWithoutDailyReportItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -806,13 +945,14 @@ export type InputUncheckedUpdateWithoutDailyReportItemsInput = {
 export type InputCreateWithoutReceptionItemsInput = {
   id?: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
   tenant: Prisma.TenantCreateNestedOneWithoutInputsInput
+  category: Prisma.InputCategoryCreateNestedOneWithoutInputsInput
   recipeItems?: Prisma.RecipeItemCreateNestedManyWithoutInputInput
   dailyReportItems?: Prisma.DailyReportItemCreateNestedManyWithoutInputInput
   stocks?: Prisma.StockCreateNestedManyWithoutInputInput
@@ -821,8 +961,9 @@ export type InputCreateWithoutReceptionItemsInput = {
 export type InputUncheckedCreateWithoutReceptionItemsInput = {
   id?: string
   tenantId: string
+  categoryId: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -852,13 +993,14 @@ export type InputUpdateToOneWithWhereWithoutReceptionItemsInput = {
 export type InputUpdateWithoutReceptionItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tenant?: Prisma.TenantUpdateOneRequiredWithoutInputsNestedInput
+  category?: Prisma.InputCategoryUpdateOneRequiredWithoutInputsNestedInput
   recipeItems?: Prisma.RecipeItemUpdateManyWithoutInputNestedInput
   dailyReportItems?: Prisma.DailyReportItemUpdateManyWithoutInputNestedInput
   stocks?: Prisma.StockUpdateManyWithoutInputNestedInput
@@ -867,8 +1009,9 @@ export type InputUpdateWithoutReceptionItemsInput = {
 export type InputUncheckedUpdateWithoutReceptionItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -882,13 +1025,14 @@ export type InputUncheckedUpdateWithoutReceptionItemsInput = {
 export type InputCreateWithoutStocksInput = {
   id?: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   version?: number
   deleted?: boolean
   tenant: Prisma.TenantCreateNestedOneWithoutInputsInput
+  category: Prisma.InputCategoryCreateNestedOneWithoutInputsInput
   recipeItems?: Prisma.RecipeItemCreateNestedManyWithoutInputInput
   dailyReportItems?: Prisma.DailyReportItemCreateNestedManyWithoutInputInput
   receptionItems?: Prisma.ReceptionItemCreateNestedManyWithoutInputInput
@@ -897,8 +1041,9 @@ export type InputCreateWithoutStocksInput = {
 export type InputUncheckedCreateWithoutStocksInput = {
   id?: string
   tenantId: string
+  categoryId: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -928,13 +1073,14 @@ export type InputUpdateToOneWithWhereWithoutStocksInput = {
 export type InputUpdateWithoutStocksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   tenant?: Prisma.TenantUpdateOneRequiredWithoutInputsNestedInput
+  category?: Prisma.InputCategoryUpdateOneRequiredWithoutInputsNestedInput
   recipeItems?: Prisma.RecipeItemUpdateManyWithoutInputNestedInput
   dailyReportItems?: Prisma.DailyReportItemUpdateManyWithoutInputNestedInput
   receptionItems?: Prisma.ReceptionItemUpdateManyWithoutInputNestedInput
@@ -943,8 +1089,9 @@ export type InputUpdateWithoutStocksInput = {
 export type InputUncheckedUpdateWithoutStocksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -957,8 +1104,9 @@ export type InputUncheckedUpdateWithoutStocksInput = {
 
 export type InputCreateManyTenantInput = {
   id?: string
+  categoryId: string
   name: string
-  unit: string
+  unit: $Enums.InputUnit
   active?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -969,12 +1117,13 @@ export type InputCreateManyTenantInput = {
 export type InputUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.InputCategoryUpdateOneRequiredWithoutInputsNestedInput
   recipeItems?: Prisma.RecipeItemUpdateManyWithoutInputNestedInput
   dailyReportItems?: Prisma.DailyReportItemUpdateManyWithoutInputNestedInput
   receptionItems?: Prisma.ReceptionItemUpdateManyWithoutInputNestedInput
@@ -983,8 +1132,9 @@ export type InputUpdateWithoutTenantInput = {
 
 export type InputUncheckedUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -998,8 +1148,65 @@ export type InputUncheckedUpdateWithoutTenantInput = {
 
 export type InputUncheckedUpdateManyWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  unit?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+}
+
+export type InputCreateManyCategoryInput = {
+  id?: string
+  tenantId: string
+  name: string
+  unit: $Enums.InputUnit
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+}
+
+export type InputUpdateWithoutCategoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutInputsNestedInput
+  recipeItems?: Prisma.RecipeItemUpdateManyWithoutInputNestedInput
+  dailyReportItems?: Prisma.DailyReportItemUpdateManyWithoutInputNestedInput
+  receptionItems?: Prisma.ReceptionItemUpdateManyWithoutInputNestedInput
+  stocks?: Prisma.StockUpdateManyWithoutInputNestedInput
+}
+
+export type InputUncheckedUpdateWithoutCategoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  recipeItems?: Prisma.RecipeItemUncheckedUpdateManyWithoutInputNestedInput
+  dailyReportItems?: Prisma.DailyReportItemUncheckedUpdateManyWithoutInputNestedInput
+  receptionItems?: Prisma.ReceptionItemUncheckedUpdateManyWithoutInputNestedInput
+  stocks?: Prisma.StockUncheckedUpdateManyWithoutInputNestedInput
+}
+
+export type InputUncheckedUpdateManyWithoutCategoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1068,6 +1275,7 @@ export type InputCountOutputTypeCountStocksArgs<ExtArgs extends runtime.Types.Ex
 export type InputSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   tenantId?: boolean
+  categoryId?: boolean
   name?: boolean
   unit?: boolean
   active?: boolean
@@ -1076,6 +1284,7 @@ export type InputSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   version?: boolean
   deleted?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  category?: boolean | Prisma.InputCategoryDefaultArgs<ExtArgs>
   recipeItems?: boolean | Prisma.Input$recipeItemsArgs<ExtArgs>
   dailyReportItems?: boolean | Prisma.Input$dailyReportItemsArgs<ExtArgs>
   receptionItems?: boolean | Prisma.Input$receptionItemsArgs<ExtArgs>
@@ -1086,6 +1295,7 @@ export type InputSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type InputSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   tenantId?: boolean
+  categoryId?: boolean
   name?: boolean
   unit?: boolean
   active?: boolean
@@ -1094,11 +1304,13 @@ export type InputSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   version?: boolean
   deleted?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  category?: boolean | Prisma.InputCategoryDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["input"]>
 
 export type InputSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   tenantId?: boolean
+  categoryId?: boolean
   name?: boolean
   unit?: boolean
   active?: boolean
@@ -1107,11 +1319,13 @@ export type InputSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   version?: boolean
   deleted?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  category?: boolean | Prisma.InputCategoryDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["input"]>
 
 export type InputSelectScalar = {
   id?: boolean
   tenantId?: boolean
+  categoryId?: boolean
   name?: boolean
   unit?: boolean
   active?: boolean
@@ -1121,9 +1335,10 @@ export type InputSelectScalar = {
   deleted?: boolean
 }
 
-export type InputOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "name" | "unit" | "active" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["input"]>
+export type InputOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "categoryId" | "name" | "unit" | "active" | "createdAt" | "updatedAt" | "version" | "deleted", ExtArgs["result"]["input"]>
 export type InputInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  category?: boolean | Prisma.InputCategoryDefaultArgs<ExtArgs>
   recipeItems?: boolean | Prisma.Input$recipeItemsArgs<ExtArgs>
   dailyReportItems?: boolean | Prisma.Input$dailyReportItemsArgs<ExtArgs>
   receptionItems?: boolean | Prisma.Input$receptionItemsArgs<ExtArgs>
@@ -1132,15 +1347,18 @@ export type InputInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 }
 export type InputIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  category?: boolean | Prisma.InputCategoryDefaultArgs<ExtArgs>
 }
 export type InputIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
+  category?: boolean | Prisma.InputCategoryDefaultArgs<ExtArgs>
 }
 
 export type $InputPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Input"
   objects: {
     tenant: Prisma.$TenantPayload<ExtArgs>
+    category: Prisma.$InputCategoryPayload<ExtArgs>
     recipeItems: Prisma.$RecipeItemPayload<ExtArgs>[]
     dailyReportItems: Prisma.$DailyReportItemPayload<ExtArgs>[]
     receptionItems: Prisma.$ReceptionItemPayload<ExtArgs>[]
@@ -1149,8 +1367,9 @@ export type $InputPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     tenantId: string
+    categoryId: string
     name: string
-    unit: string
+    unit: $Enums.InputUnit
     active: boolean
     createdAt: Date
     updatedAt: Date
@@ -1551,6 +1770,7 @@ readonly fields: InputFieldRefs;
 export interface Prisma__InputClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   tenant<T extends Prisma.TenantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TenantDefaultArgs<ExtArgs>>): Prisma.Prisma__TenantClient<runtime.Types.Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  category<T extends Prisma.InputCategoryDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.InputCategoryDefaultArgs<ExtArgs>>): Prisma.Prisma__InputCategoryClient<runtime.Types.Result.GetResult<Prisma.$InputCategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   recipeItems<T extends Prisma.Input$recipeItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Input$recipeItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RecipeItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dailyReportItems<T extends Prisma.Input$dailyReportItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Input$dailyReportItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyReportItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   receptionItems<T extends Prisma.Input$receptionItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Input$receptionItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReceptionItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1586,8 +1806,9 @@ export interface Prisma__InputClient<T, Null = never, ExtArgs extends runtime.Ty
 export interface InputFieldRefs {
   readonly id: Prisma.FieldRef<"Input", 'String'>
   readonly tenantId: Prisma.FieldRef<"Input", 'String'>
+  readonly categoryId: Prisma.FieldRef<"Input", 'String'>
   readonly name: Prisma.FieldRef<"Input", 'String'>
-  readonly unit: Prisma.FieldRef<"Input", 'String'>
+  readonly unit: Prisma.FieldRef<"Input", 'InputUnit'>
   readonly active: Prisma.FieldRef<"Input", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Input", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Input", 'DateTime'>

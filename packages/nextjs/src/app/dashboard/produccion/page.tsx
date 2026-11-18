@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/ui/layout";
 import {
+  Badge,
   Button,
   Card,
   EmptyState,
@@ -14,6 +15,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { isAdminRole, navItems } from "@/components/ui/nav";
 import { useAuth } from "@/components/ui/auth";
 import {
+  PrescriptionEditor,
+  type EditorContext,
+} from "@/components/recetas/prescription-editor";
+import { PrescriptionDetail } from "@/components/recetas/prescription-detail";
+import {
   PeopleIcon,
   PlusIcon,
   ProductionIcon,
@@ -23,15 +29,19 @@ import {
   ApiError,
   assignTaskOperator,
   createTask,
+  getRecipe,
   listFarms,
   listLots,
-  listTaskTypes,
+  listRecipesByLot,
+  listLaborTypes,
   listTasks,
   listUsers,
   type FarmDTO,
   type LotDTO,
+  type PrescriptionStatus,
+  type RecipeDetailDTO,
   type TaskDTO,
-  type TaskTypeDTO,
+  type LaborTypeDTO,
   type UserDTO,
 } from "@/api/client";
 
@@ -127,6 +137,12 @@ function describeOperators(task: TaskDTO): string {
   }`;
 }
 
+/** Joins Spanish labels with a final "y" instead of a trailing comma. */
+function joinWithY(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? "";
+  return `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
+}
+
 function describeError(err: unknown): string {
   if (err instanceof ApiError) {
     const body = err.body as { message?: string } | string | null;
@@ -141,6 +157,22 @@ function describeError(err: unknown): string {
     return `No se pudo completar la acción (código ${err.status}).`;
   }
   return "Ocurrió un error inesperado. Intentá nuevamente.";
+}
+
+/**
+ * Prescription state of an activity from `Task.prescriptionStatus`.
+ * `NO_REQUIERE` (and an unknown/missing value) render nothing: a task type that
+ * does not require a prescription is not flagged as missing one.
+ */
+function PrescriptionStateBadge({ status }: { status?: PrescriptionStatus }) {
+  if (status === "SIN_RECETA") return <Badge tone="wheat">Sin receta</Badge>;
+  if (status === "CON_RECETA") return <Badge tone="green">Con receta</Badge>;
+  return null;
+}
+
+/** A task that already started freezes its prescription (R7). */
+function isTaskStarted(status: TaskDTO["status"]): boolean {
+  return status === "EN_PROGRESO" || status === "FINALIZADA";
 }
 
 /* ------------------------------------------------------------------ */
@@ -190,12 +222,40 @@ const STATUS_ORDER: TaskStatus[] = [
 
 type TimelineRow = {
   task: TaskDTO;
-  taskTypeName: string;
+  laborTypeName: string;
   farmName: string;
   lotName: string;
   operatorsLabel: string;
   time: string | null;
   duration: string | null;
+};
+
+/** A prescription loaded for the read-only detail modal. */
+type PrescriptionView = {
+  recipe: RecipeDetailDTO;
+  laborTypeName: string;
+  farmName: string;
+  lotName: string;
+};
+
+/**
+ * Auxiliary collections the board can live without. `true` means its read
+ * failed, so anything that depends on it must degrade instead of showing
+ * empty-but-valid data. Only `listTasks` is required: `GET /tasks` already
+ * carries the lot/farm/task-type/operator names the board renders.
+ */
+type Degraded = {
+  lots: boolean;
+  farms: boolean;
+  laborTypes: boolean;
+  users: boolean;
+};
+
+const NO_DEGRADED: Degraded = {
+  lots: false,
+  farms: false,
+  laborTypes: false,
+  users: false,
 };
 
 /* ------------------------------------------------------------------ */
@@ -206,17 +266,26 @@ export default function ProduccionPage() {
   const toast = useToast();
   const { user } = useAuth();
   const isAdmin = isAdminRole(user?.role);
+  // Only the roles the backend allows may write a prescription (INGENIERO, ADMIN).
+  const canEditPrescription = user?.role === "INGENIERO" || user?.role === "ADMIN";
 
   const [tasks, setTasks] = useState<TaskDTO[]>([]);
   const [lots, setLots] = useState<LotDTO[]>([]);
   const [farms, setFarms] = useState<FarmDTO[]>([]);
-  const [taskTypes, setTaskTypes] = useState<TaskTypeDTO[]>([]);
+  const [laborTypes, setLaborTypes] = useState<LaborTypeDTO[]>([]);
   const [users, setUsers] = useState<UserDTO[]>([]);
+  const [degraded, setDegraded] = useState<Degraded>(NO_DEGRADED);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
   const [selectedDate, setSelectedDate] = useState(todayKey);
+
+  const [prescriptionView, setPrescriptionView] = useState<PrescriptionView | null>(null);
+  const [editorContext, setEditorContext] = useState<EditorContext | null>(null);
+  const [editorRecipeId, setEditorRecipeId] = useState<string | null>(null);
+  const [prescriptionError, setPrescriptionError] = useState<string | null>(null);
+  const [prescriptionBusyTaskId, setPrescriptionBusyTaskId] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
     setLoading(true);
@@ -224,29 +293,112 @@ export default function ProduccionPage() {
     setVersion((v) => v + 1);
   }, []);
 
+  /**
+   * Finds the prescription of a task by lot (`GET /recipes?lotId=`, matched on
+   * `taskId`) and either loads its detail (`GET /recipes/:id`) or opens the
+   * editor. The read-only detail is used for "Ver receta".
+   */
+  const openPrescription = useCallback(
+    async (row: TimelineRow, intent: "view" | "edit") => {
+      if (prescriptionBusyTaskId) return;
+      setPrescriptionError(null);
+      setPrescriptionBusyTaskId(row.task.id);
+      try {
+        const recipes = await listRecipesByLot(row.task.lotId);
+        const match = (Array.isArray(recipes) ? recipes : []).find(
+          (recipe) => recipe.taskId === row.task.id,
+        );
+        if (!match) {
+          setPrescriptionError(
+            "La actividad figura con receta, pero no se encontró la receta de su lote.",
+          );
+          return;
+        }
+        if (intent === "edit") {
+          setEditorRecipeId(match.id);
+          setEditorContext({
+            taskId: row.task.id,
+            laborTypeName: row.laborTypeName,
+            farmName: row.farmName,
+            lotName: row.lotName,
+            lotArea: null,
+            status: row.task.status,
+            startedAt: row.task.startedAt,
+          });
+        } else {
+          const detail = await getRecipe(match.id);
+          setPrescriptionView({
+            recipe: detail,
+            laborTypeName: row.laborTypeName,
+            farmName: row.farmName,
+            lotName: row.lotName,
+          });
+        }
+      } catch (err) {
+        setPrescriptionError(describeError(err));
+      } finally {
+        setPrescriptionBusyTaskId(null);
+      }
+    },
+    [prescriptionBusyTaskId],
+  );
+
   useEffect(() => {
     let alive = true;
-    Promise.all([
+
+    // Only `listTasks` is required to render the board: `GET /tasks` already
+    // enriches every task with its lot, farm, task-type and operator names. The
+    // auxiliary catalogues below are read best-effort, so a role that cannot
+    // read one of them (e.g. `GET /users` is ADMIN/SUPERVISOR-only) still gets
+    // the board instead of a blank page.
+    Promise.allSettled([
       listTasks(),
       listLots(),
       listFarms(),
-      listTaskTypes(),
+      listLaborTypes(),
       listUsers(),
     ])
-      .then(([taskList, lotList, farmList, typeList, userList]) => {
+      .then((results) => {
         if (!alive) return;
-        setTasks(Array.isArray(taskList) ? taskList : []);
-        setLots(Array.isArray(lotList) ? lotList : []);
-        setFarms(Array.isArray(farmList) ? farmList : []);
-        setTaskTypes(Array.isArray(typeList) ? typeList : []);
-        setUsers(Array.isArray(userList) ? userList : []);
-      })
-      .catch((err) => {
-        if (alive) setError(describeError(err));
+        const [tasksResult, lotsResult, farmsResult, typesResult, usersResult] = results;
+
+        if (tasksResult.status === "rejected") {
+          setError(describeError(tasksResult.reason));
+          return;
+        }
+
+        setTasks(Array.isArray(tasksResult.value) ? tasksResult.value : []);
+        setLots(
+          lotsResult.status === "fulfilled" && Array.isArray(lotsResult.value)
+            ? lotsResult.value
+            : [],
+        );
+        setFarms(
+          farmsResult.status === "fulfilled" && Array.isArray(farmsResult.value)
+            ? farmsResult.value
+            : [],
+        );
+        setLaborTypes(
+          typesResult.status === "fulfilled" && Array.isArray(typesResult.value)
+            ? typesResult.value
+            : [],
+        );
+        setUsers(
+          usersResult.status === "fulfilled" && Array.isArray(usersResult.value)
+            ? usersResult.value
+            : [],
+        );
+        setDegraded({
+          lots: lotsResult.status === "rejected",
+          farms: farmsResult.status === "rejected",
+          laborTypes: typesResult.status === "rejected",
+          users: usersResult.status === "rejected",
+        });
       })
       .finally(() => {
         if (alive) setLoading(false);
       });
+
     return () => {
       alive = false;
     };
@@ -255,9 +407,22 @@ export default function ProduccionPage() {
   const lotById = useMemo(() => new Map(lots.map((lot) => [lot.id, lot])), [lots]);
   const farmById = useMemo(() => new Map(farms.map((farm) => [farm.id, farm])), [farms]);
   const typeById = useMemo(
-    () => new Map(taskTypes.map((type) => [type.id, type])),
-    [taskTypes],
+    () => new Map(laborTypes.map((type) => [type.id, type])),
+    [laborTypes],
   );
+
+  /**
+   * Names of the board-relevant catalogues that failed to load. Only these are
+   * surfaced as a page-level notice: `users` is deliberately ADMIN/SUPERVISOR
+   * only, so its absence for other roles is expected, not an incident.
+   */
+  const degradedCatalogueLabels = useMemo(() => {
+    const labels: string[] = [];
+    if (degraded.lots) labels.push("los lotes");
+    if (degraded.farms) labels.push("los campos");
+    if (degraded.laborTypes) labels.push("las labores");
+    return labels;
+  }, [degraded]);
 
   /** Tasks of the selected day, ordered by start time ascending. */
   const dayTasks = useMemo(
@@ -292,26 +457,31 @@ export default function ProduccionPage() {
         const farmName =
           task.farmName ??
           (lot ? farmById.get(lot.farmId)?.name : undefined) ??
-          "Sin campo";
+          (degraded.farms ? "Campo no disponible" : "Sin campo");
+        const laborTypeName =
+          task.laborTypeName ??
+          typeById.get(task.laborTypeId)?.name ??
+          (degraded.laborTypes ? "Labor no disponible" : "Sin labor");
+        const lotName =
+          task.lotName ?? lot?.name ?? (degraded.lots ? "Lote no disponible" : "Sin lote");
         return {
           task,
-          taskTypeName:
-            task.taskTypeName ?? typeById.get(task.taskTypeId)?.name ?? "Sin labor",
+          laborTypeName,
           farmName,
-          lotName: task.lotName ?? lot?.name ?? "Sin lote",
+          lotName,
           operatorsLabel: describeOperators(task),
           time: fmtTime(task.startedAt),
           duration: fmtDuration(task.startedAt, task.finishedAt),
         };
       }),
-    [dayTasks, lotById, farmById, typeById],
+    [dayTasks, lotById, farmById, typeById, degraded],
   );
 
   /* ----- Create task modal ----- */
   const [createOpen, setCreateOpen] = useState(false);
   const [createFarmId, setCreateFarmId] = useState("");
   const [createLotId, setCreateLotId] = useState("");
-  const [createTaskTypeId, setCreateTaskTypeId] = useState("");
+  const [createLaborTypeId, setCreateLaborTypeId] = useState("");
   const [createDate, setCreateDate] = useState(todayKey);
   const [createTime, setCreateTime] = useState(nowTimeKey);
   const [createOperatorId, setCreateOperatorId] = useState("");
@@ -329,9 +499,9 @@ export default function ProduccionPage() {
         .map((lot) => ({ value: lot.id, label: lot.name })),
     [lots, createFarmId],
   );
-  const taskTypeOptions = useMemo(
-    () => taskTypes.map((type) => ({ value: type.id, label: type.name })),
-    [taskTypes],
+  const laborTypeOptions = useMemo(
+    () => laborTypes.map((type) => ({ value: type.id, label: type.name })),
+    [laborTypes],
   );
   const operatorOptions = useMemo(
     () => [
@@ -346,7 +516,7 @@ export default function ProduccionPage() {
   const openCreate = useCallback(() => {
     setCreateFarmId("");
     setCreateLotId("");
-    setCreateTaskTypeId("");
+    setCreateLaborTypeId("");
     // `selectedDate` defaults to today, so the default is "today" in the common case.
     setCreateDate(selectedDate || todayKey());
     setCreateTime(nowTimeKey());
@@ -355,13 +525,16 @@ export default function ProduccionPage() {
     setCreateOpen(true);
   }, [selectedDate]);
 
-  const canCreate = farms.length > 0 && taskTypes.length > 0;
-  const createBlockedReason =
-    farms.length === 0
-      ? "Cargá al menos un campo para crear una tarea."
-      : taskTypes.length === 0
-        ? "Cargá al menos una labor para crear una tarea."
-        : undefined;
+  const canCreate = farms.length > 0 && laborTypes.length > 0;
+  const createBlockedReason = degraded.farms
+    ? "No se pudieron cargar los campos. Reintentá."
+    : degraded.laborTypes
+      ? "No se pudieron cargar las labores. Reintentá."
+      : farms.length === 0
+        ? "Cargá al menos un campo para crear una tarea."
+        : laborTypes.length === 0
+          ? "Cargá al menos una labor para crear una tarea."
+          : undefined;
 
   const handleCreate = useCallback(async () => {
     if (creating) return;
@@ -373,7 +546,7 @@ export default function ProduccionPage() {
       setCreateError("Seleccioná un lote.");
       return;
     }
-    if (!createTaskTypeId) {
+    if (!createLaborTypeId) {
       setCreateError("Seleccioná una labor.");
       return;
     }
@@ -392,7 +565,7 @@ export default function ProduccionPage() {
     try {
       const created = await createTask({
         lotId: createLotId,
-        taskTypeId: createTaskTypeId,
+        laborTypeId: createLaborTypeId,
         startedAt,
       });
 
@@ -429,7 +602,7 @@ export default function ProduccionPage() {
     creating,
     createFarmId,
     createLotId,
-    createTaskTypeId,
+    createLaborTypeId,
     createDate,
     createTime,
     createOperatorId,
@@ -542,6 +715,24 @@ export default function ProduccionPage() {
         </Alert>
       )}
 
+      {!loading && !error && degradedCatalogueLabels.length > 0 && (
+        <Alert tone="warning" title="Datos parciales" className="mb-5">
+          No se pudieron cargar {joinWithY(degradedCatalogueLabels)}. Las tareas se
+          muestran igual, pero algunos nombres pueden faltar.
+        </Alert>
+      )}
+
+      {prescriptionError && (
+        <Alert
+          tone="error"
+          title="No se pudo abrir la receta"
+          className="mb-5"
+          onDismiss={() => setPrescriptionError(null)}
+        >
+          {prescriptionError}
+        </Alert>
+      )}
+
       {loading ? (
         <TimelineSkeleton />
       ) : error ? null : rows.length === 0 ? (
@@ -559,7 +750,7 @@ export default function ProduccionPage() {
       ) : (
         <ol className="space-y-0">
           {rows.map((row, index) => {
-            const { task, taskTypeName, farmName, lotName, operatorsLabel, time, duration } =
+            const { task, laborTypeName, farmName, lotName, operatorsLabel, time, duration } =
               row;
             const meta = STATUS_META[task.status];
             const isFirst = index === 0;
@@ -612,7 +803,7 @@ export default function ProduccionPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="op-swatch" data-status={meta.dataStatus} aria-hidden="true" />
                           <h3 className="text-base font-semibold text-ink">
-                            {taskTypeName}
+                            {laborTypeName}
                           </h3>
                           <span className="op-label">{meta.label}</span>
                         </div>
@@ -638,6 +829,38 @@ export default function ProduccionPage() {
                           <p className="mt-0.5 text-xs font-medium text-ink-faint">
                             {duration}
                           </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Prescription state (from Task.prescriptionStatus) */}
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-agro-border pt-3">
+                      <PrescriptionStateBadge status={task.prescriptionStatus} />
+                      <div className="flex flex-wrap items-center gap-2">
+                        {task.prescriptionStatus === "CON_RECETA" && (
+                          <>
+                            <button
+                              type="button"
+                              className="op-btn op-btn--quiet"
+                              onClick={() => void openPrescription(row, "view")}
+                              disabled={prescriptionBusyTaskId === task.id}
+                              aria-busy={prescriptionBusyTaskId === task.id}
+                            >
+                              {prescriptionBusyTaskId === task.id
+                                ? "Abriendo…"
+                                : "Ver receta"}
+                            </button>
+                            {canEditPrescription && !isTaskStarted(task.status) && (
+                              <button
+                                type="button"
+                                className="op-btn op-btn--primary"
+                                onClick={() => void openPrescription(row, "edit")}
+                                disabled={prescriptionBusyTaskId === task.id}
+                              >
+                                Editar receta
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -715,11 +938,11 @@ export default function ProduccionPage() {
 
             <SelectField
               label="Labor"
-              value={createTaskTypeId}
-              onChange={(e) => setCreateTaskTypeId(e.target.value)}
-              options={taskTypeOptions}
+              value={createLaborTypeId}
+              onChange={(e) => setCreateLaborTypeId(e.target.value)}
+              options={laborTypeOptions}
               placeholder="Seleccioná una labor"
-              disabled={creating || taskTypes.length === 0}
+              disabled={creating || laborTypes.length === 0}
               required
             />
 
@@ -746,11 +969,55 @@ export default function ProduccionPage() {
               value={createOperatorId}
               onChange={(e) => setCreateOperatorId(e.target.value)}
               options={operatorOptions}
-              disabled={creating}
-              hint="Opcional. Podés asignarlo ahora o más tarde."
+              disabled={creating || degraded.users}
+              hint={
+                degraded.users
+                  ? "No se pudo cargar la lista de operarios. Podés asignar el operario más tarde."
+                  : "Opcional. Podés asignarlo ahora o más tarde."
+              }
             />
           </div>
         </Modal>
+      )}
+
+      {/* Receta fitosanitaria (lectura) */}
+      <Modal
+        open={prescriptionView !== null}
+        onClose={() => setPrescriptionView(null)}
+        title="Receta fitosanitaria"
+        subtitle={
+          prescriptionView
+            ? `${prescriptionView.laborTypeName} · ${prescriptionView.farmName} · ${prescriptionView.lotName}`
+            : undefined
+        }
+        widthClass="max-w-2xl"
+      >
+        {prescriptionView && (
+          <PrescriptionDetail
+            recipe={prescriptionView.recipe}
+            laborTypeName={prescriptionView.laborTypeName}
+            farmName={prescriptionView.farmName}
+            lotName={prescriptionView.lotName}
+          />
+        )}
+      </Modal>
+
+      {editorContext && (
+        <PrescriptionEditor
+          key={editorContext.taskId}
+          mode="edit"
+          context={editorContext}
+          recipeId={editorRecipeId}
+          onClose={() => {
+            setEditorContext(null);
+            setEditorRecipeId(null);
+          }}
+          onSaved={() => {
+            setEditorContext(null);
+            setEditorRecipeId(null);
+            refresh();
+          }}
+        />
       )}
     </DashboardLayout>
   );

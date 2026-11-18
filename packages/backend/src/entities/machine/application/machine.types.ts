@@ -6,6 +6,7 @@ export type MachineRecord = {
   id: string;
   companyId: string;
   name: string;
+  type?: string | null;
   brand: string | null;
   status: MachineStatusValue;
   entryDate: Date | null;
@@ -19,6 +20,7 @@ export type MachineRecord = {
 export type CreateMachineInput = {
   companyId?: string;
   name: string;
+  type?: string | null;
   brand: string;
   entryDate: string;
 };
@@ -26,6 +28,7 @@ export type CreateMachineInput = {
 export type UpdateMachineInput = {
   companyId?: string;
   name?: string;
+  type?: string | null;
   brand?: string;
   entryDate?: string;
   status?: MachineStatusValue;
@@ -35,12 +38,14 @@ export type UpdateMachineInput = {
 export type CreateMachineData = {
   companyId: string;
   name: string;
+  type?: string | null;
   brand: string;
   entryDate: Date;
 };
 
 export type UpdateMachineData = {
   name?: string;
+  type?: string | null;
   brand?: string;
   entryDate?: Date;
   status?: MachineStatusValue;

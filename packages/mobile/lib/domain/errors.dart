@@ -31,6 +31,12 @@ class InvalidMachineActivityException extends DomainException {
   const InvalidMachineActivityException(super.message);
 }
 
+/// R021: el uso de maquinaria debe estar ligado a una tarea válida con al
+/// menos una medición positiva.
+class InvalidMachineUsageException extends DomainException {
+  const InvalidMachineUsageException(super.message);
+}
+
 /// R008: no se pueden adjuntar más de 5 fotos por entidad.
 class MaxPhotosExceededException extends DomainException {
   MaxPhotosExceededException(PhotoEntityType entityType, String entityId)

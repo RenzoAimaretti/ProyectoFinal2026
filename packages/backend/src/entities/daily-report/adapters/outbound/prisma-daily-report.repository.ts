@@ -31,7 +31,7 @@ export class PrismaDailyReportRepository implements DailyReportRepositoryPort {
           companyId: data.companyId,
           taskId: data.taskId,
           lotId: data.lotId,
-          taskTypeId: data.taskTypeId,
+          laborTypeId: data.laborTypeId,
           date: data.date,
           hectares: data.hectares,
           hours: data.hours,

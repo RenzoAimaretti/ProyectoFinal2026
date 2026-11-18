@@ -1,53 +1,130 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/data/services/app_database.dart';
-import 'package:mobile/data/services/daos/weather_cache_dao.dart';
 
-import '../repositories/drift_test_helper.dart';
+import '../../data/repositories/drift_test_helper.dart';
 
-/// 10.7 / §5 — Migración drift 3 → 4: aditiva y no destructiva (tabla nueva).
+/// Covers what the version 4 schema declares: the two new tables, the new
+/// nullable column on `inputs`, and the fact that foreign keys are enforced at
+/// runtime.
+///
+/// NOT covered here: the `onUpgrade` step that moves an existing version 3
+/// install to version 4. Reproducing a version 3 database faithfully needs
+/// drift's schema-verification setup (`drift_dev schema` plus a `schema_dir`
+/// and `SchemaVerifier`), which this project does not have configured, and a
+/// hand-rolled rollback does not work: SQLite refuses `ALTER TABLE ... DROP
+/// COLUMN` on a column that participates in a foreign key, which `category_id`
+/// does. Rather than fake it, the gap is stated here. Setting that tooling up is
+/// its own task.
 void main() {
-  test('migración 3 → 4 crea la tabla weather_cache', () async {
-    final db = createTestDatabase();
-    addTearDown(db.close);
+  late AppDatabase db;
 
-    // Simula una base v3: la tabla nueva todavía no existe.
-    await db.customStatement('DROP TABLE weather_cache');
-    expect(await _hasWeatherCacheTable(db), isFalse);
+  setUp(() => db = createTestDatabase());
+  tearDown(() => db.close());
 
-    await db.migration.onUpgrade(Migrator(db), 3, 4);
+  Future<List<String>> tableNames() async {
+    final rows = await db
+        .customSelect(
+          "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
+        )
+        .get();
+    return rows.map((row) => row.data['name']! as String).toList();
+  }
 
-    expect(await _hasWeatherCacheTable(db), isTrue);
-
-    // La tabla quedó usable por el DAO.
-    await db.weatherCacheDao.save(
-      WeatherCacheCompanion.insert(
-        id: WeatherCacheDao.currentRowId,
-        temperatureC: 18.4,
-        windSpeedKnots: 5.3,
-        windDirectionDeg: 156,
-        precipitationMm: 0.1,
-        resolvedFrom: 'lot',
-        fetchedAt: DateTime(2026, 10, 15, 15),
-      ),
+  test('version 4 declares the categories and the labour link', () async {
+    expect(
+      await tableNames(),
+      containsAll(<String>['input_categories', 'labor_type_categories']),
     );
 
-    expect((await db.weatherCacheDao.get())!.windSpeedKnots, 5.3);
+    final categoryColumns = await db
+        .customSelect('PRAGMA table_info(input_categories)')
+        .get();
+    expect(
+      categoryColumns.map((row) => row.data['name']),
+      containsAll(<String>['id', 'name', 'active', 'version', 'deleted']),
+    );
+
+    final joinColumns = await db
+        .customSelect('PRAGMA table_info(labor_type_categories)')
+        .get();
+    expect(
+      joinColumns.map((row) => row.data['name']),
+      containsAll(<String>['labor_type_id', 'category_id']),
+    );
   });
 
-  test('schemaVersion de la base es 4', () {
-    final db = createTestDatabase();
-    addTearDown(db.close);
+  test('version 5 declares task-linked machine usage without touching history', () async {
+    expect(await tableNames(), contains('machine_usages'));
 
-    expect(db.schemaVersion, 4);
+    final columns = await db.customSelect('PRAGMA table_info(machine_usages)').get();
+    final names = columns.map((row) => row.data['name']).toList();
+    expect(
+      names,
+      containsAll(<String>[
+        'id',
+        'machine_id',
+        'task_id',
+        'operator_id',
+        'usage_hours',
+        'hectares',
+        'work_date',
+        'observations',
+      ]),
+    );
+
+    final hours = columns.firstWhere((row) => row.data['name'] == 'usage_hours');
+    final hectares = columns.firstWhere((row) => row.data['name'] == 'hectares');
+    expect(hours.data['notnull'], 0);
+    expect(hectares.data['notnull'], 0);
+
+    // Historical standalone activities stay declared and readable.
+    expect(await tableNames(), contains('machine_activities'));
   });
-}
 
-/// ¿Existe la tabla `weather_cache` en el esquema SQLite?
-Future<bool> _hasWeatherCacheTable(AppDatabase db) async {
-  final rows = await db
-      .customSelect(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='weather_cache'",
-      )
-      .get();
-  return rows.isNotEmpty;
+  test('a machine usage cannot reference an unknown task', () async {
+    await expectLater(
+      db.customStatement(
+        "INSERT INTO machine_usages (id, machine_id, task_id, operator_id, work_date, created_at, updated_at) "
+        "VALUES ('u-1', 'machine-x', 'task-x', 'op-1', 0, 0, 0)",
+      ),
+      throwsA(anything),
+    );
+  });
+
+  test('an input category link is nullable, because cached rows predate it', () async {
+    final columns = await db.customSelect('PRAGMA table_info(inputs)').get();
+    final categoryId = columns.firstWhere(
+      (row) => row.data['name'] == 'category_id',
+    );
+
+    expect(categoryId.data['notnull'], 0);
+    expect(categoryId.data['dflt_value'], isNull);
+  });
+
+  test('an input cannot reference a category that does not exist', () async {
+    await db.customStatement(
+      "INSERT INTO inputs (id, name, unit, active, created_at, updated_at) "
+      "VALUES ('in-1', 'Glifosato', 'L', 1, 0, 0)",
+    );
+
+    await expectLater(
+      db.customStatement(
+        "UPDATE inputs SET category_id = 'does-not-exist' WHERE id = 'in-1'",
+      ),
+      throwsA(anything),
+    );
+  });
+
+  test('an input may keep a null category, which is the pre-upgrade state', () async {
+    await db.customStatement(
+      "INSERT INTO inputs (id, name, unit, active, created_at, updated_at) "
+      "VALUES ('in-1', 'Glifosato', 'L', 1, 0, 0)",
+    );
+
+    final row = await db
+        .customSelect("SELECT category_id FROM inputs WHERE id = 'in-1'")
+        .getSingle();
+
+    expect(row.data['category_id'], isNull);
+  });
 }

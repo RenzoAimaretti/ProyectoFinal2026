@@ -15,7 +15,8 @@ export const UserRole = {
   SUPERVISOR: 'SUPERVISOR',
   PRODUCTOR: 'PRODUCTOR',
   CONTRATISTA: 'CONTRATISTA',
-  VETERINARIO: 'VETERINARIO'
+  VETERINARIO: 'VETERINARIO',
+  INGENIERO: 'INGENIERO'
 } as const
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
@@ -90,6 +91,14 @@ export const MachineActivityType = {
 export type MachineActivityType = (typeof MachineActivityType)[keyof typeof MachineActivityType]
 
 
+export const FuelMovement = {
+  INCOME: 'INCOME',
+  CONSUMPTION: 'CONSUMPTION'
+} as const
+
+export type FuelMovement = (typeof FuelMovement)[keyof typeof FuelMovement]
+
+
 export const PhotoEntityType = {
   PARTE_DIARIO: 'PARTE_DIARIO',
   RECEPCION: 'RECEPCION',
@@ -105,3 +114,40 @@ export const RecipeStatus = {
 } as const
 
 export type RecipeStatus = (typeof RecipeStatus)[keyof typeof RecipeStatus]
+
+
+export const PrescriptionStatus = {
+  NO_REQUIERE: 'NO_REQUIERE',
+  SIN_RECETA: 'SIN_RECETA',
+  CON_RECETA: 'CON_RECETA'
+} as const
+
+export type PrescriptionStatus = (typeof PrescriptionStatus)[keyof typeof PrescriptionStatus]
+
+
+export const DosageBasis = {
+  POR_HECTAREA: 'POR_HECTAREA',
+  CONCENTRACION: 'CONCENTRACION'
+} as const
+
+export type DosageBasis = (typeof DosageBasis)[keyof typeof DosageBasis]
+
+
+export const InputUnit = {
+  L: 'L',
+  KG: 'KG',
+  UNIT: 'UNIT'
+} as const
+
+export type InputUnit = (typeof InputUnit)[keyof typeof InputUnit]
+
+
+export const LaborKind = {
+  SIEMBRA: 'SIEMBRA',
+  PULVERIZACION: 'PULVERIZACION',
+  FERTILIZACION: 'FERTILIZACION',
+  COSECHA: 'COSECHA',
+  OTRO: 'OTRO'
+} as const
+
+export type LaborKind = (typeof LaborKind)[keyof typeof LaborKind]

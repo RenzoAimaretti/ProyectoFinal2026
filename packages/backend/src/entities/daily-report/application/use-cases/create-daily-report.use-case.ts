@@ -78,7 +78,7 @@ export class CreateDailyReportUseCase {
       companyId: company,
       taskId: task.id,
       lotId: task.lotId,
-      taskTypeId: task.taskTypeId,
+      laborTypeId: task.laborTypeId,
       date,
       hectares,
       hours,

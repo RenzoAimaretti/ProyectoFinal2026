@@ -39,6 +39,7 @@ export type StockMinAggregateOutputType = {
   clientId: string | null
   inputId: string | null
   quantity: number | null
+  unit: $Enums.InputUnit | null
   updatedAt: Date | null
 }
 
@@ -47,6 +48,7 @@ export type StockMaxAggregateOutputType = {
   clientId: string | null
   inputId: string | null
   quantity: number | null
+  unit: $Enums.InputUnit | null
   updatedAt: Date | null
 }
 
@@ -55,6 +57,7 @@ export type StockCountAggregateOutputType = {
   clientId: number
   inputId: number
   quantity: number
+  unit: number
   updatedAt: number
   _all: number
 }
@@ -73,6 +76,7 @@ export type StockMinAggregateInputType = {
   clientId?: true
   inputId?: true
   quantity?: true
+  unit?: true
   updatedAt?: true
 }
 
@@ -81,6 +85,7 @@ export type StockMaxAggregateInputType = {
   clientId?: true
   inputId?: true
   quantity?: true
+  unit?: true
   updatedAt?: true
 }
 
@@ -89,6 +94,7 @@ export type StockCountAggregateInputType = {
   clientId?: true
   inputId?: true
   quantity?: true
+  unit?: true
   updatedAt?: true
   _all?: true
 }
@@ -184,6 +190,7 @@ export type StockGroupByOutputType = {
   clientId: string
   inputId: string
   quantity: number
+  unit: $Enums.InputUnit
   updatedAt: Date
   _count: StockCountAggregateOutputType | null
   _avg: StockAvgAggregateOutputType | null
@@ -215,6 +222,7 @@ export type StockWhereInput = {
   clientId?: Prisma.StringFilter<"Stock"> | string
   inputId?: Prisma.StringFilter<"Stock"> | string
   quantity?: Prisma.FloatFilter<"Stock"> | number
+  unit?: Prisma.EnumInputUnitFilter<"Stock"> | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFilter<"Stock"> | Date | string
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
   input?: Prisma.XOR<Prisma.InputScalarRelationFilter, Prisma.InputWhereInput>
@@ -225,6 +233,7 @@ export type StockOrderByWithRelationInput = {
   clientId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  unit?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   client?: Prisma.ClientOrderByWithRelationInput
   input?: Prisma.InputOrderByWithRelationInput
@@ -239,6 +248,7 @@ export type StockWhereUniqueInput = Prisma.AtLeast<{
   clientId?: Prisma.StringFilter<"Stock"> | string
   inputId?: Prisma.StringFilter<"Stock"> | string
   quantity?: Prisma.FloatFilter<"Stock"> | number
+  unit?: Prisma.EnumInputUnitFilter<"Stock"> | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFilter<"Stock"> | Date | string
   client?: Prisma.XOR<Prisma.ClientScalarRelationFilter, Prisma.ClientWhereInput>
   input?: Prisma.XOR<Prisma.InputScalarRelationFilter, Prisma.InputWhereInput>
@@ -249,6 +259,7 @@ export type StockOrderByWithAggregationInput = {
   clientId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  unit?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.StockCountOrderByAggregateInput
   _avg?: Prisma.StockAvgOrderByAggregateInput
@@ -265,12 +276,14 @@ export type StockScalarWhereWithAggregatesInput = {
   clientId?: Prisma.StringWithAggregatesFilter<"Stock"> | string
   inputId?: Prisma.StringWithAggregatesFilter<"Stock"> | string
   quantity?: Prisma.FloatWithAggregatesFilter<"Stock"> | number
+  unit?: Prisma.EnumInputUnitWithAggregatesFilter<"Stock"> | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Stock"> | Date | string
 }
 
 export type StockCreateInput = {
   id?: string
   quantity: number
+  unit: $Enums.InputUnit
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutStocksInput
   input: Prisma.InputCreateNestedOneWithoutStocksInput
@@ -281,12 +294,14 @@ export type StockUncheckedCreateInput = {
   clientId: string
   inputId: string
   quantity: number
+  unit: $Enums.InputUnit
   updatedAt?: Date | string
 }
 
 export type StockUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutStocksNestedInput
   input?: Prisma.InputUpdateOneRequiredWithoutStocksNestedInput
@@ -297,6 +312,7 @@ export type StockUncheckedUpdateInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -305,12 +321,14 @@ export type StockCreateManyInput = {
   clientId: string
   inputId: string
   quantity: number
+  unit: $Enums.InputUnit
   updatedAt?: Date | string
 }
 
 export type StockUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -319,6 +337,7 @@ export type StockUncheckedUpdateManyInput = {
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -342,6 +361,7 @@ export type StockCountOrderByAggregateInput = {
   clientId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  unit?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -354,6 +374,7 @@ export type StockMaxOrderByAggregateInput = {
   clientId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  unit?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -362,6 +383,7 @@ export type StockMinOrderByAggregateInput = {
   clientId?: Prisma.SortOrder
   inputId?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  unit?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
@@ -456,6 +478,7 @@ export type StockUncheckedUpdateManyWithoutInputNestedInput = {
 export type StockCreateWithoutClientInput = {
   id?: string
   quantity: number
+  unit: $Enums.InputUnit
   updatedAt?: Date | string
   input: Prisma.InputCreateNestedOneWithoutStocksInput
 }
@@ -464,6 +487,7 @@ export type StockUncheckedCreateWithoutClientInput = {
   id?: string
   inputId: string
   quantity: number
+  unit: $Enums.InputUnit
   updatedAt?: Date | string
 }
 
@@ -501,12 +525,14 @@ export type StockScalarWhereInput = {
   clientId?: Prisma.StringFilter<"Stock"> | string
   inputId?: Prisma.StringFilter<"Stock"> | string
   quantity?: Prisma.FloatFilter<"Stock"> | number
+  unit?: Prisma.EnumInputUnitFilter<"Stock"> | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFilter<"Stock"> | Date | string
 }
 
 export type StockCreateWithoutInputInput = {
   id?: string
   quantity: number
+  unit: $Enums.InputUnit
   updatedAt?: Date | string
   client: Prisma.ClientCreateNestedOneWithoutStocksInput
 }
@@ -515,6 +541,7 @@ export type StockUncheckedCreateWithoutInputInput = {
   id?: string
   clientId: string
   quantity: number
+  unit: $Enums.InputUnit
   updatedAt?: Date | string
 }
 
@@ -548,12 +575,14 @@ export type StockCreateManyClientInput = {
   id?: string
   inputId: string
   quantity: number
+  unit: $Enums.InputUnit
   updatedAt?: Date | string
 }
 
 export type StockUpdateWithoutClientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   input?: Prisma.InputUpdateOneRequiredWithoutStocksNestedInput
 }
@@ -562,6 +591,7 @@ export type StockUncheckedUpdateWithoutClientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -569,6 +599,7 @@ export type StockUncheckedUpdateManyWithoutClientInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   inputId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -576,12 +607,14 @@ export type StockCreateManyInputInput = {
   id?: string
   clientId: string
   quantity: number
+  unit: $Enums.InputUnit
   updatedAt?: Date | string
 }
 
 export type StockUpdateWithoutInputInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   client?: Prisma.ClientUpdateOneRequiredWithoutStocksNestedInput
 }
@@ -590,6 +623,7 @@ export type StockUncheckedUpdateWithoutInputInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -597,6 +631,7 @@ export type StockUncheckedUpdateManyWithoutInputInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clientId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.FloatFieldUpdateOperationsInput | number
+  unit?: Prisma.EnumInputUnitFieldUpdateOperationsInput | $Enums.InputUnit
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -607,6 +642,7 @@ export type StockSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   clientId?: boolean
   inputId?: boolean
   quantity?: boolean
+  unit?: boolean
   updatedAt?: boolean
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   input?: boolean | Prisma.InputDefaultArgs<ExtArgs>
@@ -617,6 +653,7 @@ export type StockSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   clientId?: boolean
   inputId?: boolean
   quantity?: boolean
+  unit?: boolean
   updatedAt?: boolean
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   input?: boolean | Prisma.InputDefaultArgs<ExtArgs>
@@ -627,6 +664,7 @@ export type StockSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   clientId?: boolean
   inputId?: boolean
   quantity?: boolean
+  unit?: boolean
   updatedAt?: boolean
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   input?: boolean | Prisma.InputDefaultArgs<ExtArgs>
@@ -637,10 +675,11 @@ export type StockSelectScalar = {
   clientId?: boolean
   inputId?: boolean
   quantity?: boolean
+  unit?: boolean
   updatedAt?: boolean
 }
 
-export type StockOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clientId" | "inputId" | "quantity" | "updatedAt", ExtArgs["result"]["stock"]>
+export type StockOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clientId" | "inputId" | "quantity" | "unit" | "updatedAt", ExtArgs["result"]["stock"]>
 export type StockInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   client?: boolean | Prisma.ClientDefaultArgs<ExtArgs>
   input?: boolean | Prisma.InputDefaultArgs<ExtArgs>
@@ -665,6 +704,7 @@ export type $StockPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     clientId: string
     inputId: string
     quantity: number
+    unit: $Enums.InputUnit
     updatedAt: Date
   }, ExtArgs["result"]["stock"]>
   composites: {}
@@ -1095,6 +1135,7 @@ export interface StockFieldRefs {
   readonly clientId: Prisma.FieldRef<"Stock", 'String'>
   readonly inputId: Prisma.FieldRef<"Stock", 'String'>
   readonly quantity: Prisma.FieldRef<"Stock", 'Float'>
+  readonly unit: Prisma.FieldRef<"Stock", 'InputUnit'>
   readonly updatedAt: Prisma.FieldRef<"Stock", 'DateTime'>
 }
     

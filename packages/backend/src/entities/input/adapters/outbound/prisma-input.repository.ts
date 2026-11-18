@@ -39,6 +39,7 @@ export class PrismaInputRepository implements InputRepositoryPort {
       where: { id, tenantId },
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.categoryId !== undefined ? { categoryId: data.categoryId } : {}),
         ...(data.unit !== undefined ? { unit: data.unit } : {}),
         ...(data.active !== undefined ? { active: data.active } : {}),
       },
