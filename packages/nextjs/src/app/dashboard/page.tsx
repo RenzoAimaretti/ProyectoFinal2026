@@ -64,6 +64,7 @@ import {
   UsdWidget,
   WeatherWidget,
   WindWidget,
+  type WeatherLotOption,
 } from "@/components/weather/weather-widgets";
 
 // Leaflet needs `window`, so the map is client-only and never server-rendered.
@@ -333,9 +334,11 @@ export default function Dashboard() {
 
   // External integrations block (weather, radar, USD, grain board).
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
-  const [weatherLocationName, setWeatherLocationName] = useState<string | null>(null);
+  const [weatherLots, setWeatherLots] = useState<WeatherLotOption[]>([]);
+  const [selectedLotId, setSelectedLotId] = useState<string | null>(null);
   const [usdRate, setUsdRate] = useState<UsdRateResponse | null>(null);
   const [grainPrices, setGrainPrices] = useState<GrainPricesResponse | null>(null);
+  const [marketLoading, setMarketLoading] = useState(true);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [weatherError, setWeatherError] = useState<string | null>(null);
   const [weatherVersion, setWeatherVersion] = useState(0);
@@ -349,9 +352,18 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     setVersion((v) => v + 1);
+    setMarketLoading(true);
     setWeatherLoading(true);
     setWeatherError(null);
     setWeatherVersion((v) => v + 1);
+  }, []);
+
+  // Loading is flagged here, in the event handler, so the weather effect below
+  // only writes state after its await.
+  const handleWeatherLotChange = useCallback((lotId: string) => {
+    setWeatherLoading(true);
+    setWeatherError(null);
+    setSelectedLotId(lotId);
   }, []);
 
   useEffect(() => {
@@ -428,9 +440,11 @@ export default function Dashboard() {
   }, [version, router]);
 
   // Integrations block. USD and grain prices are global market data; the
-  // weather is resolved server-side from the first lot with a polygon, because
-  // the backend refuses to invent a location (spec A4) and so do we. State is
-  // only written after the awaits, mirroring the effect above.
+  // weather is resolved server-side from a lot with a polygon, because the
+  // backend refuses to invent a location (spec A4) and so do we. Only lots with
+  // coordinates are offered; the first one is the default and the user's pick
+  // survives a refresh while that lot still exists. State is only written after
+  // the awaits, mirroring the effect above.
   useEffect(() => {
     if (isClientRole(user?.role)) return;
     let alive = true;
@@ -445,30 +459,56 @@ export default function Dashboard() {
 
       if (usdRes.status === "fulfilled") setUsdRate(usdRes.value);
       if (grainsRes.status === "fulfilled") setGrainPrices(grainsRes.value);
+      setMarketLoading(false);
 
-      const lot =
-        lotsRes.status === "fulfilled"
-          ? lotsRes.value.find((l) => Boolean(l.coords && l.coords.trim())) ?? null
-          : null;
-
-      if (!lot) {
+      if (lotsRes.status === "rejected") {
+        setWeatherLots([]);
+        setSelectedLotId(null);
         setWeather(null);
-        setWeatherLocationName(null);
+        setWeatherError("No se pudo cargar el clima. Reintentá en unos minutos.");
+        setWeatherLoading(false);
+        return;
+      }
+
+      const options: WeatherLotOption[] = lotsRes.value
+        .filter((l) => Boolean(l.coords && l.coords.trim()))
+        .map((l) => ({ id: l.id, name: l.name }));
+      setWeatherLots(options);
+
+      if (options.length === 0) {
+        setSelectedLotId(null);
+        setWeather(null);
         setWeatherError("Cargá coordenadas en algún lote para ver el clima de tu zona.");
         setWeatherLoading(false);
         return;
       }
 
+      setSelectedLotId((prev) =>
+        prev && options.some((o) => o.id === prev) ? prev : options[0].id,
+      );
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [weatherVersion, user?.role]);
+
+  // Weather for the selected lot. Re-runs on a lot change and on refresh.
+  useEffect(() => {
+    if (!selectedLotId) return;
+    let alive = true;
+
+    (async () => {
       try {
-        const resolved = await getLotWeather(lot.id);
+        const resolved = await getLotWeather(selectedLotId);
         if (!alive) return;
         setWeather(resolved);
-        setWeatherLocationName(lot.name);
         setWeatherError(null);
       } catch {
-        if (alive) {
-          setWeatherError("No se pudo cargar el clima. Reintentá en unos minutos.");
-        }
+        if (!alive) return;
+        // Never leave the previous lot's weather under the new lot's name.
+        setWeather(null);
+        setWeatherError("No se pudo cargar el clima. Reintentá en unos minutos.");
       } finally {
         if (alive) setWeatherLoading(false);
       }
@@ -477,7 +517,10 @@ export default function Dashboard() {
     return () => {
       alive = false;
     };
-  }, [weatherVersion, user?.role]);
+  }, [selectedLotId, weatherVersion]);
+
+  const weatherLocationName =
+    weatherLots.find((lot) => lot.id === selectedLotId)?.name ?? null;
 
   /* ----- Queues (the actionable work leads) ----- */
   const pendingReports = useMemo(
@@ -874,7 +917,7 @@ export default function Dashboard() {
     },
   ];
 
-  const marketError = weatherLoading
+  const marketError = marketLoading
     ? null
     : "No se pudo cargar la información de mercado. Reintentá en unos minutos.";
 
@@ -899,9 +942,12 @@ export default function Dashboard() {
           loading={weatherLoading}
           error={weatherError}
           locationName={weatherLocationName ?? undefined}
+          lots={weatherLots}
+          selectedLotId={selectedLotId}
+          onLotChange={handleWeatherLotChange}
         />
         <WindWidget data={weather} loading={weatherLoading} error={weatherError} />
-        <UsdWidget data={usdRate} loading={weatherLoading} error={usdRate ? null : marketError} />
+        <UsdWidget data={usdRate} loading={marketLoading} error={usdRate ? null : marketError} />
       </section>
 
       <section className="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
@@ -913,7 +959,7 @@ export default function Dashboard() {
         />
         <GrainPricesWidget
           data={grainPrices}
-          loading={weatherLoading}
+          loading={marketLoading}
           error={grainPrices ? null : marketError}
         />
       </section>

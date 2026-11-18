@@ -85,6 +85,7 @@
 - [x] 9.5 Montar el bloque de widgets superiores en `src/app/dashboard/page.tsx` (Dashboard General), cargando el mapa con `next/dynamic` y `{ ssr: false }` (design §2.11, spec A11).
 - [x] 9.6 `src/app/dashboard/mi-campo/page.tsx`: quitar `"Clima y heladas"` de `ROADMAP_ITEMS` (deja de ser "próximamente") (design §2.11).
 - [x] 9.7 `packages/nextjs/package.json`: agregar `leaflet` y `@types/leaflet` (dev) y validar los peers bajo React 19 / Next 16 (design §2.11, proposal Risks).
+- [x] 9.8 **Agregada en el cierre (decisión del usuario sobre design §6):** selector de lote en `WeatherWidget`. Se ofrecen solo los lotes con coordenadas, el primero es el default y la selección se conserva al refrescar mientras el lote exista. El clima, el viento y el radar siguen al lote elegido. Dólar y pizarra tienen su propio estado de carga y no se vuelven a pedir al cambiar de lote. Verificado con `tsc --noEmit` (0 errores) y `npm run lint` (0 errores).
 
 ## 10. Consumidor móvil
 
@@ -107,10 +108,10 @@
 
 ## 12. Verificación global
 
-- [ ] 12.1 `npm test` verde en `packages/backend` (suite de integraciones: núcleo, providers, parser y controllers) (design §2.13).
-- [ ] 12.2 `flutter analyze` → 0 errores / 0 warnings en `packages/mobile`.
-- [ ] 12.3 `flutter test` verde en `packages/mobile`.
-- [ ] 12.4 `npm run lint` verde en `packages/nextjs`. **Bloqueado por un error preexistente ajeno al sprint**: `src/components/ui/reveal.tsx:62` (`react-hooks/set-state-in-effect`), último tocado en `97c84a9`. El código de este sprint **no agrega errores** (lint acotado a las superficies de la unidad 3: 0 errores), pero el comando global no queda verde hasta arreglar ese archivo, que está fuera de la superficie del change.
+- [x] 12.1 `npm test` verde en `packages/backend` (suite de integraciones: núcleo, providers, parser y controllers) (design §2.13). Evidencia (2026-11-18): `Test Suites: 110 passed`, `Tests: 965 passed`.
+- [x] 12.2 `flutter analyze` → 0 errores / 0 warnings en `packages/mobile`. Evidencia (2026-11-18): 42 issues, todos `info` (25 `constant_identifier_names` y 17 `use_super_parameters`).
+- [x] 12.3 `flutter test` verde en `packages/mobile`. Evidencia (2026-11-18): `+185: All tests passed!`.
+- [x] 12.4 `npm run lint` verde en `packages/nextjs`. El error preexistente en `src/components/ui/reveal.tsx:62` (`react-hooks/set-state-in-effect`) se corrigió en el cierre: con movimiento reducido, `inView` se calcula al renderizar en lugar de llamar a `setState` dentro del efecto. Evidencia (2026-11-18): `0 errors, 2 warnings`, ambos preexistentes (`no-location-assign-relative-destination` en `client.ts:99` y `auth.tsx:26`).
 - [ ] 12.5 E2E manual con el backend y el frontend levantados: los cuatro endpoints responden con datos reales y **sin ninguna API key**; el dashboard muestra el bloque de widgets con mapa y radar; el móvil muestra la tarjeta con timestamp (Success Criteria del proposal).
 - [ ] 12.6 Verificación de degradación: con una fuente inalcanzable (red cortada al proveedor), los endpoints responden `stale: true` con `fetchedAt`; sin valor previo, responden 503/502. Verificar además que el backend levantado en el `PORT` local configurado sirve los cuatro endpoints.
 

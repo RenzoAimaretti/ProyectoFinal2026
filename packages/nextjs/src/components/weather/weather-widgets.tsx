@@ -191,14 +191,45 @@ function StatMini({ label, value }: { label: string; value: string }) {
 /* Weather                                                             */
 /* ------------------------------------------------------------------ */
 
+export type WeatherLotOption = { id: string; name: string };
+
 export type WeatherWidgetProps = {
   data: WeatherResponse | null;
   loading?: boolean;
   error?: string | null;
   /** Human-readable name of the resolved location (e.g. the lot name). */
   locationName?: string;
+  /** Lots with coordinates the user can pick the weather location from. */
+  lots?: WeatherLotOption[];
+  selectedLotId?: string | null;
+  onLotChange?: (lotId: string) => void;
   className?: string;
 };
+
+function LotSelect({
+  lots,
+  value,
+  onChange,
+}: {
+  lots: WeatherLotOption[];
+  value: string;
+  onChange: (lotId: string) => void;
+}) {
+  return (
+    <select
+      aria-label="Lote para el clima"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="max-w-[11rem] truncate rounded-lg border border-agro-border bg-card px-2 py-1 text-xs text-ink transition-colors focus:outline-none focus:ring-2 focus:ring-agro-green/40"
+    >
+      {lots.map((lot) => (
+        <option key={lot.id} value={lot.id}>
+          {lot.name}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 function locationLabel(weather: WeatherResponse): string {
   const from =
@@ -216,12 +247,21 @@ export function WeatherWidget({
   loading,
   error,
   locationName,
+  lots = [],
+  selectedLotId,
+  onLotChange,
   className = "",
 }: WeatherWidgetProps) {
   const current = data?.current ?? null;
+  // Only worth a control when there is an actual choice to make.
+  const selector =
+    onLotChange && selectedLotId && lots.length > 1 ? (
+      <LotSelect lots={lots} value={selectedLotId} onChange={onLotChange} />
+    ) : null;
   return (
     <WidgetShell
       title="Clima local"
+      action={selector}
       source={data ? { stale: data.stale, fetchedAt: data.fetchedAt, label: "Open-Meteo" } : null}
       className={className}
     >
