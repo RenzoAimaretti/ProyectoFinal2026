@@ -11,7 +11,7 @@
 | 2 | `exchange-rate` + `grain-price` + controllers + wiring | 4.1–4.6, 5.1–5.7, 6.1–6.6, 7.1–7.3, 8.3, 8.6 | — | ✅ Cerrada |
 | 3 | Consumidor Next.js | 9.1–9.7 | `e5a5840`, `8dc482a` (parciales) + pendientes | ✅ Cerrada |
 | 4 | Consumidor móvil | 10.1–10.10, 11.1–11.3 | — | ✅ Cerrada |
-| 5 | Verificación global | 12.1–12.6 | — | Pendiente |
+| 5 | Verificación global y cierre | 12.1–12.6, 9.8, 13.1–13.6 | `134661b`, `410604b`, `7f9378a`, `45e0f50`, `a903f18`, `84d5beb` + commit de cierre | ✅ Cerrada |
 
 ---
 
@@ -278,3 +278,55 @@ Hubo un **segundo RED de compilación** antes del GREEN en los tests de drift: `
 
 - **Selección de lote para la tarjeta del móvil** (diseño §6, sigue abierto): hoy es la primera tarea del operario; no hay camino por coordenadas cableado en la app real.
 - La entrada de esta unidad en `apply-progress.md` la escribió el orquestador: `openspec/**` está fuera de la superficie permitida de la unidad.
+
+---
+
+## Unidad 5 — Verificación global y cierre
+
+### Decisiones del usuario (Fase 0, sobre design §6)
+
+1. **Puerto:** `PORT=3001` en `packages/backend/.env`; `main.ts` sigue con `?? 3000` (el puerto es configuración local).
+2. **Clima web:** selector de lote en el widget (tarea 9.8, alcance nuevo).
+3. **Clima móvil:** se mantenía "lote de la primera tarea"; el E2E mostró que eso no funciona con un login real y se agregó el fallback de la tarea 13.4.
+4. **`coverageWarning`:** queda constante en `true`, documentado como deuda.
+
+### Verificación automática
+
+| Check | Resultado |
+|---|---|
+| `npm test` (backend) | 111 suites, **971 tests** en verde |
+| `npx tsc --noEmit` (backend) | limpio |
+| `flutter analyze` | 0 errores / 0 warnings (42 `info` preexistentes) |
+| `flutter test` | **189 tests** en verde |
+| `npm run lint` (nextjs) | 0 errores, 2 warnings preexistentes |
+| `tsc --noEmit` (nextjs) | limpio |
+
+### Verificación manual (E2E y degradación)
+
+- **Endpoints** (curl con JWT, backend en `:3001`): los cuatro con `200`, datos reales, `stale: false`, sin API keys. El clima por lote resolvió `resolvedFrom: "lot"` y reutilizó el cache del de coordenadas (mismo `fetchedAt`, spec A7).
+- **Web** (navegador integrado): cinco widgets, badges "Al día", selector con 7 lotes; el cambio de lote solo pidió `/lots/:id/weather`.
+- **Móvil** (Flutter web en Chrome, porque el navegador integrado no levanta el worker de drift y no hay toolchain de Visual Studio): tarjeta con `4.8 kn`, `240°` y timestamp.
+- **Degradación** (red de la PC cortada): dólar y clima con TTL vencido → `stale: true` con el `fetchedAt` original; coordenadas sin cache → `503`; pizarra con TTL vigente → servida desde cache.
+
+### Bugs encontrados y corregidos en el cierre
+
+| Tarea | Problema | Arreglo |
+|---|---|---|
+| 12.4 | Error de lint preexistente en `reveal.tsx:62` | `inView` derivado en render |
+| 13.2 | Seed con coords en texto → clima 400 en todos los lotes | Polígonos `[[lat, lon], …]` con `lotSquare()` |
+| 13.3 | Radar mostraba "Zoom Level Not Supported" | `maxNativeZoom: 7` |
+| 13.4 | Tarjeta móvil siempre vacía con login real | Fallback a `GET /lots` |
+| 13.5 | El 503 filtraba la URL del proveedor | `translateIntegrationError` con mensaje genérico |
+| 13.6 | Docker en 5432 chocaba con un PostgreSQL nativo | Puerto 5433 |
+
+### Hallazgos de entorno (no son código)
+
+- `packages/backend/.env` apuntaba `DATABASE_URL` al 5432 (PostgreSQL nativo) y no tenía `PORT=3001`; lo corrigió el usuario.
+- En Git Bash, `node` es un alias de `winpty` que rompe los pipes: usar `node.exe`.
+
+### Pendientes que quedan abiertos
+
+- **Down-sync de tareas al móvil** (heredado del Sprint 2): causa de fondo de la tarea 13.4.
+- **`coverageWarning`** constante.
+- Frames del radar sin animación.
+- Los warnings de lint y los 3.500+ errores de prettier preexistentes del backend (fin de línea CRLF) no se tocaron.

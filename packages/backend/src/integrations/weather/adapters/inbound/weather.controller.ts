@@ -1,21 +1,6 @@
-import {
-  BadGatewayException,
-  BadRequestException,
-  Controller,
-  Get,
-  NotFoundException,
-  Query,
-  ServiceUnavailableException,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
-import {
-  EntityNotFoundError,
-  InvalidInputError,
-  UpstreamError,
-  UpstreamParseError,
-  UpstreamUnavailableError,
-} from '../../../shared/domain/errors';
+import { translateIntegrationError } from '../../../shared/adapters/inbound/integration-http-errors';
 import { GetWeatherUseCase } from '../../application/use-cases/get-weather.use-case';
 
 @Controller('weather')
@@ -32,27 +17,7 @@ export class WeatherController {
         lon: query.lon as number,
       });
     } catch (error) {
-      this.translate(error);
+      translateIntegrationError(error);
     }
-  }
-
-  private translate(error: unknown): never {
-    if (error instanceof EntityNotFoundError) {
-      throw new NotFoundException(error.message);
-    }
-
-    if (error instanceof InvalidInputError) {
-      throw new BadRequestException(error.message);
-    }
-
-    if (error instanceof UpstreamUnavailableError) {
-      throw new ServiceUnavailableException(error.message);
-    }
-
-    if (error instanceof UpstreamError || error instanceof UpstreamParseError) {
-      throw new BadGatewayException(error.message);
-    }
-
-    throw error;
   }
 }

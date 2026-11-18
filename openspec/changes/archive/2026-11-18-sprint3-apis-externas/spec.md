@@ -147,6 +147,7 @@ Ante un fallo del proveedor externo, el sistema DEBE responder el último valor 
 - GIVEN que nunca se obtuvo un valor de la fuente
 - WHEN el cliente consulta esa fuente
 - THEN el sistema responde un error claro de servicio no disponible o de gateway
+- AND el mensaje al cliente es genérico: el detalle del proveedor (URL, causa de red) queda solo en el log del servidor *(agregado en el cierre: el E2E mostró que el 503 filtraba la URL de Open-Meteo)*
 
 ### Requirement: R-EXT-09 — Autenticación y scope multi-tenant (A9)
 
@@ -208,6 +209,13 @@ El dashboard web DEBE presentar el bloque de widgets superiores de la Visión §
 - WHEN el widget renderiza
 - THEN indica que el dato no es fresco e informa su `fetchedAt`
 
+#### Scenario: Selección del lote para el clima *(agregado en el cierre, decisión sobre design §6)*
+
+- GIVEN un usuario con más de un lote con coordenadas
+- WHEN elige otro lote en el selector del widget de clima
+- THEN el clima, el viento y el radar pasan a ese lote
+- AND el dólar y la pizarra no se vuelven a pedir
+
 ### Requirement: R-EXT-12 — Consumidor móvil: tarjeta con cache local (A12)
 
 El móvil DEBE presentar una tarjeta de clima y viento —con la velocidad en nudos y la dirección— alimentada por la API propia. La última lectura DEBE quedar cacheada localmente con su timestamp y DEBE poder mostrarse sin señal. Los widgets NO DEBEN instanciar repositorios ni servicios: el cableado vive en el composition root.
@@ -223,6 +231,13 @@ El móvil DEBE presentar una tarjeta de clima y viento —con la velocidad en nu
 - GIVEN un operario sin conectividad que ya había obtenido una lectura antes
 - WHEN abre el dashboard
 - THEN ve la última lectura cacheada localmente junto a su timestamp
+
+#### Scenario: Operario sin tareas locales *(agregado en el cierre)*
+
+- GIVEN un operario autenticado sin tareas en la base local (el móvil todavía no descarga tareas del backend)
+- WHEN abre el dashboard con conectividad
+- THEN la tarjeta usa el primer lote con coordenadas que devuelve `GET /lots`
+- AND si ningún lote tiene coordenadas, la tarjeta queda en modo cache sin inventar una ubicación
 
 ### Requirement: R-EXT-13 — Pruebas con fixtures reales capturados (A13)
 
@@ -250,3 +265,5 @@ Las pruebas del backend DEBEN usar **fixtures con payloads y HTML reales captura
 - Sin framework de tests en `packages/nextjs`.
 - Histórico de cotizaciones (`api.argentinadatos.com`, ~3 MB) fuera de alcance; opción futura para gráficos.
 - `packages/web` (scaffold Flutter ajeno) no se toca.
+- **Down-sync de tareas al móvil** (pendiente heredado del Sprint 2): sin él, la tarjeta del móvil depende del fallback a `GET /lots` y la pantalla de tareas queda vacía con un login real. Debe planificarse como un change propio.
+- **`coverageWarning` del radar** es una constante `true`: el provider no recibe coordenadas y no hay un umbral de cobertura definido (decisión del cierre: se acepta como deuda).

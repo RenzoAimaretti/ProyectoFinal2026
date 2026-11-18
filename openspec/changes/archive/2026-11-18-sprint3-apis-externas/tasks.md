@@ -108,12 +108,21 @@
 
 ## 12. Verificación global
 
-- [x] 12.1 `npm test` verde en `packages/backend` (suite de integraciones: núcleo, providers, parser y controllers) (design §2.13). Evidencia (2026-11-18): `Test Suites: 110 passed`, `Tests: 965 passed`.
-- [x] 12.2 `flutter analyze` → 0 errores / 0 warnings en `packages/mobile`. Evidencia (2026-11-18): 42 issues, todos `info` (25 `constant_identifier_names` y 17 `use_super_parameters`).
-- [x] 12.3 `flutter test` verde en `packages/mobile`. Evidencia (2026-11-18): `+185: All tests passed!`.
+- [x] 12.1 `npm test` verde en `packages/backend` (suite de integraciones: núcleo, providers, parser y controllers) (design §2.13). Evidencia (2026-11-18): `Test Suites: 110 passed`, `Tests: 965 passed`; tras las tareas 13.x, `111 passed`, `971 passed`.
+- [x] 12.2 `flutter analyze` → 0 errores / 0 warnings en `packages/mobile`. Evidencia (2026-11-18): 42 issues, todos `info` (25 `constant_identifier_names` y 17 `use_super_parameters`); sin cambios tras las tareas 13.x.
+- [x] 12.3 `flutter test` verde en `packages/mobile`. Evidencia (2026-11-18): `+185: All tests passed!`; tras las tareas 13.x, `+189`.
 - [x] 12.4 `npm run lint` verde en `packages/nextjs`. El error preexistente en `src/components/ui/reveal.tsx:62` (`react-hooks/set-state-in-effect`) se corrigió en el cierre: con movimiento reducido, `inView` se calcula al renderizar en lugar de llamar a `setState` dentro del efecto. Evidencia (2026-11-18): `0 errors, 2 warnings`, ambos preexistentes (`no-location-assign-relative-destination` en `client.ts:99` y `auth.tsx:26`).
-- [ ] 12.5 E2E manual con el backend y el frontend levantados: los cuatro endpoints responden con datos reales y **sin ninguna API key**; el dashboard muestra el bloque de widgets con mapa y radar; el móvil muestra la tarjeta con timestamp (Success Criteria del proposal).
-- [ ] 12.6 Verificación de degradación: con una fuente inalcanzable (red cortada al proveedor), los endpoints responden `stale: true` con `fetchedAt`; sin valor previo, responden 503/502. Verificar además que el backend levantado en el `PORT` local configurado sirve los cuatro endpoints.
+- [x] 12.5 E2E manual con el backend y el frontend levantados: los cuatro endpoints responden con datos reales y **sin ninguna API key**; el dashboard muestra el bloque de widgets con mapa y radar; el móvil muestra la tarjeta con timestamp (Success Criteria del proposal). Evidencia (2026-11-18): los cuatro endpoints respondieron `200` con `stale: false` (clima 25,7 °C / 5,6 kn; dólar 1530/1580; pizarra con 5 granos); el dashboard mostró los cinco widgets y el selector cambió de Lote N°1 a Lote A pidiendo solo `/lots/…144/weather`; el móvil (Flutter web en Chrome) mostró `25.2 °C · 4.8 kn · 240° · Actualizado 18/11 18:01`. Requirió las tareas 13.2 a 13.4.
+- [x] 12.6 Verificación de degradación: con una fuente inalcanzable (red cortada al proveedor), los endpoints responden `stale: true` con `fetchedAt`; sin valor previo, responden 503/502. Verificar además que el backend levantado en el `PORT` local configurado sirve los cuatro endpoints. Evidencia (2026-11-18, red de la PC desconectada): dólar `stale: true` con `fetchedAt` 20:37:20Z; clima del lote `stale: true` con `fetchedAt` 21:01:42Z; coordenadas sin cache → `503`; pizarra con TTL vigente → `stale: false` desde cache. Backend en `PORT=3001`. Derivó en la tarea 13.5.
+
+## 13. Cierre del sprint (agregadas durante la verificación)
+
+- [x] 13.1 Selector de lote en el dashboard web: ver tarea 9.8 (decisión del usuario sobre design §6).
+- [x] 13.2 Seed con coordenadas resolubles: los lotes guardaban texto (`"33° 23' S · 62° 18' O"`) que `centroidOfCoords` rechaza con 400. `prisma/seed.ts` ahora genera polígonos `[[lat, lon], …]` con `lotSquare()` sobre los mismos puntos. Verificado contra el parser real (centroide exacto) y en el E2E (`resolvedFrom: "lot"`).
+- [x] 13.3 Radar sin tiles "Zoom Level Not Supported": la API pública de RainViewer sirve hasta z7 y el mapa abre en z9. `leaflet-map.tsx` usa `maxNativeZoom: 7`. Verificado con tiles reales (z7 vacío, z8 imagen de error) y en el navegador.
+- [x] 13.4 Clima del móvil con login real: el móvil no descarga tareas (down-sync fuera del Sprint 2), así que la tarjeta nunca resolvía lote. Fallback a `GET /lots` (primer lote con coordenadas) vía `WeatherRepository.defaultLotId()`. RED → GREEN con 4 tests nuevos en `weather_api_service_test.dart`; verificado en Chrome.
+- [x] 13.5 Mensajes genéricos en 503/502: el 503 devolvía la URL completa de Open-Meteo. `translateIntegrationError` (compartido por los cuatro controllers) responde un mensaje genérico y deja el detalle en el log. RED → GREEN con 6 tests en `integration-http-errors.spec.ts`.
+- [x] 13.6 Postgres de Docker publicado en el puerto 5433 (`docker-compose.yml`): el 5432 lo ocupa un PostgreSQL nativo y `DATABASE_URL` ya apuntaba al 5433.
 
 ## Explicit Non-Goals
 

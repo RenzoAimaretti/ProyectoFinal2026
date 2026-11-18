@@ -1,20 +1,6 @@
-import {
-  BadGatewayException,
-  BadRequestException,
-  Controller,
-  Get,
-  NotFoundException,
-  ServiceUnavailableException,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
-import {
-  EntityNotFoundError,
-  InvalidInputError,
-  UpstreamError,
-  UpstreamParseError,
-  UpstreamUnavailableError,
-} from '../../../shared/domain/errors';
+import { translateIntegrationError } from '../../../shared/adapters/inbound/integration-http-errors';
 import { GetGrainPricesUseCase } from '../../application/use-cases/get-grain-prices.use-case';
 
 /** Dato de mercado global: exige JWT pero no se scopea por tenant (design §2.9). */
@@ -28,27 +14,7 @@ export class GrainPriceController {
     try {
       return await this.getGrainPrices.execute();
     } catch (error) {
-      this.translate(error);
+      translateIntegrationError(error);
     }
-  }
-
-  private translate(error: unknown): never {
-    if (error instanceof EntityNotFoundError) {
-      throw new NotFoundException(error.message);
-    }
-
-    if (error instanceof InvalidInputError) {
-      throw new BadRequestException(error.message);
-    }
-
-    if (error instanceof UpstreamUnavailableError) {
-      throw new ServiceUnavailableException(error.message);
-    }
-
-    if (error instanceof UpstreamError || error instanceof UpstreamParseError) {
-      throw new BadGatewayException(error.message);
-    }
-
-    throw error;
   }
 }
