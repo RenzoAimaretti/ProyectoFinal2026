@@ -167,4 +167,74 @@ void main() {
       );
     });
   });
+
+  group('WeatherApiService.fetchDefaultLotId', () {
+    test('200 → id del primer lote con coordenadas, con Bearer', () async {
+      final mock = MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/lots');
+        expect(request.headers['Authorization'], 'Bearer tok');
+        return http.Response(
+          jsonEncode([
+            {'id': 'lot-sin-coords', 'coords': null},
+            {'id': 'lot-vacio', 'coords': '   '},
+            {'id': 'lot-ok', 'coords': '[[-33.38,-62.3]]'},
+            {'id': 'lot-otro', 'coords': '[[-33.68,-61.92]]'},
+          ]),
+          200,
+        );
+      });
+
+      final service =
+          WeatherApiService(client: mock, baseUrl: 'http://test.api');
+
+      expect(await service.fetchDefaultLotId(token: 'tok'), 'lot-ok');
+    });
+
+    test('ningún lote con coordenadas → null (no se inventa ubicación)',
+        () async {
+      final mock = MockClient(
+        (request) async => http.Response(
+          jsonEncode([
+            {'id': 'lot-1', 'coords': null},
+          ]),
+          200,
+        ),
+      );
+
+      final service =
+          WeatherApiService(client: mock, baseUrl: 'http://test.api');
+
+      expect(await service.fetchDefaultLotId(token: 'tok'), isNull);
+    });
+
+    test('401 → SyncUnauthorizedException', () async {
+      final mock = MockClient(
+        (request) async =>
+            http.Response(jsonEncode({'message': 'Unauthorized'}), 401),
+      );
+
+      final service =
+          WeatherApiService(client: mock, baseUrl: 'http://test.api');
+
+      expect(
+        () => service.fetchDefaultLotId(token: 'tok'),
+        throwsA(isA<SyncUnauthorizedException>()),
+      );
+    });
+
+    test('SocketException → SyncRetriableException', () async {
+      final mock = MockClient(
+        (request) async => throw const SocketException('sin red'),
+      );
+
+      final service =
+          WeatherApiService(client: mock, baseUrl: 'http://test.api');
+
+      expect(
+        () => service.fetchDefaultLotId(token: 'tok'),
+        throwsA(isA<SyncRetriableException>()),
+      );
+    });
+  });
 }

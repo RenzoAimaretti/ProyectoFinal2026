@@ -45,6 +45,12 @@ class HttpWeatherRepository implements WeatherRepository {
     return reading;
   }
 
+  @override
+  Future<String?> defaultLotId() async {
+    final token = await _token();
+    return _apiService.fetchDefaultLotId(token: token);
+  }
+
   Future<String> _token() async {
     final session = await _sessionRepository.current();
     final token = session?.token;

@@ -13,6 +13,11 @@ abstract class WeatherRepository {
 
   /// Lectura remota por lote (resuelta y scopeada en el backend).
   Future<WeatherReading> fetchForLot({required String lotId});
+
+  /// Lote remoto por defecto para el clima (el primero con coordenadas), o
+  /// `null` si ninguno las tiene. Cubre al operario sin tareas locales
+  /// mientras no exista el down-sync de tareas.
+  Future<String?> defaultLotId();
 }
 
 /// Persistencia local de la última lectura (lado cache del puerto).

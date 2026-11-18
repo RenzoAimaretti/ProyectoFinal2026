@@ -42,6 +42,7 @@ import 'domain/models/catalogs.dart' as domain;
 import 'domain/models/session.dart';
 import 'domain/repositories/session_repository.dart';
 import 'domain/repositories/task_reader.dart';
+import 'domain/repositories/weather_repository.dart';
 import 'domain/usecases/add_photo_usecase.dart';
 import 'domain/usecases/create_daily_report_usecase.dart';
 import 'domain/usecases/create_reception_usecase.dart';
@@ -197,8 +198,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final getWeatherUseCase = GetWeatherUseCase(weatherRepository);
     _weatherViewModel = WeatherViewModel(
       getWeatherUseCase,
-      resolveLocation: () =>
-          _resolveWeatherLocation(taskReader, sessionRepository),
+      resolveLocation: () => _resolveWeatherLocation(
+        taskReader,
+        sessionRepository,
+        weatherRepository,
+      ),
     );
 
     // Selector global de firma (post-login): stream de razones sociales reales.
@@ -259,12 +263,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   /// Resuelve la ubicación con la que se pide el clima (spec A12).
   ///
   /// El móvil no tiene GPS ni lote seleccionado: se usa el lote de la primera
-  /// tarea asignada al operario. Si no hay tareas locales (o el plugin no
-  /// responde), devuelve `null` y la tarjeta queda solo con el cache local.
-  /// Queda como decisión abierta de producto (design §6).
+  /// tarea asignada al operario. Las tareas locales todavía salen del seed demo
+  /// (el down-sync de catálogos quedó fuera del Sprint 2), así que sin tareas
+  /// se cae al primer lote con coordenadas del backend, igual que el dashboard
+  /// web. Si nada resuelve, devuelve `null` y la tarjeta queda con el cache
+  /// local.
   Future<WeatherLocation?> _resolveWeatherLocation(
     TaskReader taskReader,
     SessionRepository sessionRepository,
+    WeatherRepository weatherRepository,
   ) async {
     try {
       final session = await sessionRepository.current();
@@ -276,7 +283,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
       }
     } catch (_) {
-      // Sin tareas locales o sin plugin de plataforma: cache local.
+      // Sin tareas locales o sin plugin de plataforma: probar el backend.
+    }
+    try {
+      final lotId = await weatherRepository.defaultLotId();
+      if (lotId != null) return WeatherLocation(lotId: lotId);
+    } catch (_) {
+      // Sin red o sin sesión: la tarjeta queda con el cache local.
     }
     return null;
   }

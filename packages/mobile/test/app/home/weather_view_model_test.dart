@@ -31,6 +31,9 @@ class _FakeWeatherRepository implements WeatherRepository {
     return _fetch();
   }
 
+  @override
+  Future<String?> defaultLotId() async => null;
+
   Future<WeatherReading> _fetch() async {
     final pending = gate;
     if (pending != null) return pending.future;

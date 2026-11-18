@@ -41,7 +41,34 @@ class WeatherApiService {
     return _get(url, token);
   }
 
+  /// GET /lots — id del primer lote con coordenadas, o `null` si ninguno las
+  /// tiene. Es la ubicación por defecto cuando el operario no tiene tareas
+  /// locales; el listado ya viene scopeado por tenant desde el backend.
+  Future<String?> fetchDefaultLotId({required String token}) async {
+    final data = await _getJson(Uri.parse('$_baseUrl/lots'), token);
+    if (data is! List) {
+      throw const SyncRetriableException('Respuesta de lotes inválida');
+    }
+    for (final lot in data) {
+      if (lot is! Map<String, dynamic>) continue;
+      final id = lot['id'];
+      final coords = lot['coords'];
+      if (id is String && coords is String && coords.trim().isNotEmpty) {
+        return id;
+      }
+    }
+    return null;
+  }
+
   Future<WeatherReading> _get(Uri url, String token) async {
+    final data = await _getJson(url, token);
+    if (data is! Map<String, dynamic>) {
+      throw const SyncRetriableException('Respuesta de clima inválida');
+    }
+    return _parse(data);
+  }
+
+  Future<Object?> _getJson(Uri url, String token) async {
     try {
       final response = await _client.get(
         url,
@@ -51,11 +78,7 @@ class WeatherApiService {
         },
       );
       _throwOnError(response);
-      final data = jsonDecode(response.body);
-      if (data is! Map<String, dynamic>) {
-        throw const SyncRetriableException('Respuesta de clima inválida');
-      }
-      return _parse(data);
+      return jsonDecode(response.body);
     } on DomainException {
       rethrow;
     } catch (_) {

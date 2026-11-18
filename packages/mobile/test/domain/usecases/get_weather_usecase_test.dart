@@ -34,6 +34,9 @@ class _FakeWeatherRepository implements WeatherRepository {
   }
 
   @override
+  Future<String?> defaultLotId() async => null;
+
+  @override
   Future<WeatherReading> fetchForLot({required String lotId}) async {
     fetchForLotCalls++;
     lastLotId = lotId;
