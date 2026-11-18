@@ -69,7 +69,9 @@ Decisión del cliente: `Company` es la firma; cada Company lleva su propia conta
 | T3 | Cobros: `Payment` facturado/informal, método, imputación a factura, cotización del día vía `ExchangeRateProviderPort` | S2, S5 | blocked: espera merge de `origin/APIs` a `dev` | — |
 | T4 | Cheques físicos: alta con número/vencimiento/emisor y máquina de estados (en cartera → depositado → cobrado / rechazado / endosado) | S3, S6 | inline | cf2b565 |
 | T5 | eCheqs: registro emitido/recibido, fecha de acreditación/débito, conciliación y bandeja de pendientes | S4, S6 | inline | 1abf645 |
-| T6 | UI Next.js `/dashboard/finanzas`: reemplazar el placeholder "Próximamente" con facturas, cobros, cheques y eCheqs pendientes | S1-S4 | worker | — |
+| T6 | UI Next.js `/dashboard/finanzas`: vistas de facturas, cheques y bandeja de eCheqs con conciliar/rechazar (slice de lectura + acciones) | S1, S3, S4 | inline | 8befb93 |
+| T6b | UI Next.js: formularios de alta de factura y de cheque | S1, S3 | pending | — |
+| T6c | Sección de cobros en la UI | S2 | blocked: depende de T3 | — |
 
 ## Fuera de alcance
 
@@ -117,3 +119,5 @@ Consecuencia: T3 queda bloqueada hasta que el merge aterrice en `dev`; T1, T2, T
 **L10 — Smoke contra PostgreSQL real.** Script desechable fuera de `src/`, 10/10 asserts PASS: factura y cheque de la firma A invisibles para la firma B por id y por listado, visibles para A, listados cruzados vacíos, duplicado `[number, issuer]` mapeado a conflicto, y fixture revertido a cero filas. Scratch eliminado después. Nota: los lectores de `Client`/`Task` no filtran por `companyId` y eso es correcto, porque `Client` pertenece al tenant, no a la firma.
 
 **L11 — Verificación de T5.** S6 PASS: todas las rutas toman la firma de `req.user.firmaId`, `findFirst`/`findMany`/`updateMany` filtran por `companyId`, la escritura de conciliación es condicional al estado y `paymentId` se rechaza. S4: el verificador marcó FAIL por `new Date()` en `echeq/adapters/outbound/system-clock.ts:6-7`. **Hallazgo rechazado con evidencia**: los cinco adaptadores de reloj del repo (`daily-report`, `invoice`, `machine-activity`, `reception`) hacen exactamente `return new Date()`. El adapter es la frontera con el tiempo real; el defecto sería `new Date()` en dominio o aplicación, y la bandeja recibe el reloj por puerto. El criterio mal escrito era del padre, no un defecto del código.
+
+**L12 — T6 dividido.** La UI de `/dashboard/finanzas` entró como slice de lectura más acciones (commit `8befb93`): facturas, cheques con sus transiciones, y la bandeja de eCheqs con conciliar/rechazar. Los formularios de alta van a T6b y la sección de cobros a T6c, que depende de T3. Verificado: build de Next.js verde con `/dashboard/finanzas` prerenderizada y `eslint` limpio en el archivo nuevo; el error de lint en `components/ui/reveal.tsx` es preexistente (último cambio `97c84a9`, diff cero).
