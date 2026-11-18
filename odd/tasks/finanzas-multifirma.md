@@ -1,0 +1,113 @@
+# Finanzas Multi-Firma — facturación, cobros, cheques físicos y eCheqs
+
+Sprint 4 / Fase 4. Alcance: contabilidad aislada por `Company` (firma), facturación de tareas del cliente, cobros facturados e informales, cheques físicos y eCheqs con conciliación. La cotización USD se consume del módulo `integrations/exchange-rate` que vive en `origin/APIs`.
+
+Rama: `feat/finanzas-multifirma`, cortada de `dev` @ `23c4660`. PR contra `dev`.
+
+## Specs
+
+### S1 — Emisión e ingreso de facturas por cliente (R026)
+
+> El sistema DEBE permitir que el administrativo emita e ingrese las facturas vinculadas a las tareas de cada cliente para llevar el control contable de los servicios prestados.
+
+- GIVEN un administrativo autenticado
+- WHEN emite e ingresa una factura vinculada a tareas de un cliente
+- THEN el sistema registra la factura para el control contable
+
+### S2 — Clasificación de cobros en facturados e informales (R027)
+
+> El sistema DEBE diferenciar que el administrativo clasifique los cobros e ingresos en facturados e informales para mantener una contabilidad financiera real y ordenada.
+
+- GIVEN un cobro o ingreso recibido
+- WHEN el administrativo lo clasifica como facturado o informal
+- THEN el sistema lo registra en su categoría correspondiente
+
+### S3 — Control de cheques físicos (R028)
+
+> El sistema DEBE permitir que el administrativo cargue y controle el flujo de cheques físicos (número, vencimiento, emisor) para evitar la pérdida o el traspaso involuntario de valores.
+
+- GIVEN un cheque físico recibido
+- WHEN el administrativo lo carga con número, vencimiento y emisor
+- THEN el sistema controla el flujo y alerta eventos del mismo
+
+### S4 — Conciliación de cheques electrónicos (R029)
+
+> El sistema DEBE permitir que el administrativo gestione y concilie cheques electrónicos (eCheqs) para evitar omisiones en las fechas de acreditación o débito.
+
+- GIVEN un eCheq emitido o recibido
+- WHEN el administrativo gestiona su conciliación
+- THEN el sistema evita omisiones en fechas de acreditación o débito
+
+Decisión del cliente: R029 queda **dentro** del alcance, completo (registro + conciliación). Ver `L5`.
+
+### S5 — Cotización del dólar del día en operaciones (R030)
+
+> El sistema DEBE aplicar la cotización del dólar (Banco Nación) del día a cada operación financiera para calcular el valor real en pesos de los servicios convenidos.
+
+- GIVEN una operación financiera de un servicio convenido
+- WHEN se calcula su valor
+- THEN el sistema aplica la cotización del dólar Banco Nación del día
+
+La cotización se obtiene de `ExchangeRateProviderPort.fetchOfficialUsd()` (`packages/backend/src/integrations/exchange-rate/application/exchange-rate.ports.ts` en `origin/APIs`), que consume `dolarapi.com` variante "oficial". No se scrapea el sitio del BNA. Ver `L4`.
+
+### S6 — Contabilidades aisladas por firma (R033)
+
+> El sistema DEBE mantener contabilidades aisladas por cada firma o razón social para evitar el solapamiento de balances entre entidades del mismo grupo.
+
+- GIVEN múltiples firmas dentro del grupo
+- WHEN el sistema registra operaciones financieras
+- THEN el sistema mantiene contabilidades separadas por firma o razón social
+
+Decisión del cliente: `Company` es la firma; cada Company lleva su propia contabilidad. Ver `L3`. En este repo `firma` **no** significa firma criptográfica ni co-aprobación de varias personas.
+
+## Tasks
+
+| ID | Tarea | Specs | Ruta | Commit |
+|----|-------|-------|------|--------|
+| T1 | Modelo Prisma: `Invoice`, `InvoiceItem`, `Payment`, `Cheque`, `Echeq` + enums + migración; FK a `Company`/`Client`/`Task` | S1-S6 | inline | bbd1044 |
+| T2 | Módulo hexagonal `invoice`: dominio (totales, transiciones), puertos, casos de uso, controller `@Roles`, scope por `firmaId` | S1, S6 | inline | — |
+| T3 | Cobros: `Payment` facturado/informal, método, imputación a factura, cotización del día vía `ExchangeRateProviderPort` | S2, S5 | blocked: espera merge de `origin/APIs` a `dev` | — |
+| T4 | Cheques físicos: alta con número/vencimiento/emisor y máquina de estados (en cartera → depositado → cobrado / rechazado / endosado) | S3, S6 | inline | — |
+| T5 | eCheqs: registro emitido/recibido, fecha de acreditación/débito, conciliación y bandeja de pendientes | S4, S6 | inline | — |
+| T6 | UI Next.js `/dashboard/finanzas`: reemplazar el placeholder "Próximamente" con facturas, cobros, cheques y eCheqs pendientes | S1-S4 | worker | — |
+
+## Fuera de alcance
+
+- R031 (indexación en kilos de cereal) y R032 (rentabilidad por lote): son la tarea hermana "Calculadora de Rentabilidad por Lote & Indexación a Cereal".
+- R034 (exportación contable): el formato no está definido (`spec.md:101`).
+- Co-firma criptográfica de varias personas: no está en ningún requisito del spec ni en CUU09.
+- Retenciones impositivas: no aparecen en el spec.
+
+## Log
+
+**L1 — Pedido original del usuario (verbatim).**
+
+> conectate al MCP de notion y busca la tarea que vamos a trabajar en este sprint https://app.notion.com/p/M-dulo-Multi-Firma-Facturaci-n-Control-de-Cheques-eCheqs-3c15961aad4681ff89b8c4b98ad44adc?v=4e3c495931864171855483e9d64d9476&source=copy_link
+>
+> Realizemos una exploracion de la tarea y planeemos como llevarla a cabo, la tarea por si sola no explica demasiado
+
+**L2 — Exploración.** La página de Notion está en blanco: solo propiedades (Sprint 4, Fase 4, responsable Renzo, 17–25/11/2026, estado "Sin empezar"). Los requisitos reales están en `doc/specs/finanzas-administracion/spec.md` (R026–R034) y `doc/casos-de-uso/CUU09-registrar-facturacion-cobro.md`. No existía ninguna entidad financiera en `schema.prisma` ni en migraciones: el módulo es greenfield.
+
+**L3 — Decisión del usuario (alcance "multi-firma").**
+
+> vamos con A, cada Company/firma tiene su propia contabilidad.
+
+**L4 — Corrección al usuario y decisión sobre la cotización.**
+
+> Respecto a la tarea de ignacio, usemos el scraper que el implemento
+
+Corrección: no hay scraper del BNA. Lo que Ignacio implementó es `dolarapi.exchange-rate.provider.ts`, un cliente HTTP de `dolarapi.com` ("oficial"), con puerto `ExchangeRateProviderPort`. Y no está en `dev`: vive solo en `origin/APIs`. Consulta de cotización del día: usar ese módulo cuando esté mergeado.
+
+**L5 — Decisión del usuario (R029).**
+
+> Dentro, completo: registro + conciliación
+
+**L6 — Decisión del usuario (integración de `origin/APIs`).**
+
+> Ignacio lo mergea a dev primero
+
+Consecuencia: T3 queda bloqueada hasta que el merge aterrice en `dev`; T1, T2, T4, T5 y T6 no dependen de ella.
+
+**L7 — Entorno de base de datos.** `docker compose up` falla: `freeclub-db` (otro proyecto) ocupa `0.0.0.0:5432`. Resolución sin tocar el compose ni el otro proyecto: contenedor `proyecto-final-postgres-dev` en `localhost:5434`, y `DATABASE_URL` inyectada por comando. Verificación de T1: 18 migraciones aplicadas sobre base limpia, `migrate status` al día y cero drift (`migrate diff --from-config-datasource --to-schema` vacío).
+
+**L8 — T2 implementado.** Módulo `invoice` por un worker; el worker no pudo correr build ni lint (restricción de superficies), así que el padre corrió `nest build` (verde) y `eslint --fix` más dos correcciones a mano en los specs (`require-await` en fakes, `no-unsafe-assignment` en una aserción). Suite del módulo: 5 suites / 13 tests.
