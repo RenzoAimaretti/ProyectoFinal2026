@@ -43,6 +43,26 @@ void main() {
               'operators': [{'id': 'op-1'}],
             },
           ],
+          'inputCategories': [
+            {'id': 'cat-1', 'name': 'Herbicidas', 'active': true},
+          ],
+          'inputs': [
+            {'id': 'input-1', 'name': 'Glifosato', 'unit': 'L', 'categoryId': 'cat-1', 'active': true},
+          ],
+          'laborTypeCategories': [
+            {'laborTypeId': 'labor-1', 'categoryId': 'cat-1'},
+          ],
+          'recipes': [
+            {
+              'id': 'recipe-1',
+              'lotId': 'lot-1',
+              'date': '2026-11-01T00:00:00.000Z',
+              'observations': null,
+              'items': [
+                {'id': 'item-1', 'inputId': 'input-1', 'dose': 2, 'unit': 'L', 'loadOrder': 1},
+              ],
+            },
+          ],
         }),
         200,
       );
@@ -58,6 +78,42 @@ void main() {
     expect(catalog.machines.last.status, MachineStatus.MAINTENANCE);
     expect(catalog.tasks.single.status, TaskStatus.IN_PROGRESS);
     expect(catalog.tasks.single.operatorIds, ['op-1']);
+    expect(catalog.inputCategories.single, (id: 'cat-1', name: 'Herbicidas', active: true));
+    expect(
+      catalog.inputs.single,
+      (id: 'input-1', name: 'Glifosato', unit: 'L', categoryId: 'cat-1', active: true),
+    );
+    expect(catalog.laborTypeCategories.single, (laborTypeId: 'labor-1', categoryId: 'cat-1'));
+    final recipe = catalog.recipes.single;
+    expect(recipe.id, 'recipe-1');
+    expect(recipe.lotId, 'lot-1');
+    expect(recipe.date, DateTime.utc(2026, 11, 1));
+    expect(recipe.observations, isNull);
+    expect(
+      recipe.items.single,
+      (id: 'item-1', inputId: 'input-1', dose: 2.0, unit: 'L', loadOrder: 1),
+    );
+  });
+
+  test('catálogo sin alguna colección → SyncPermanentException (no se reconcilia)', () async {
+    final mock = MockClient((request) async => http.Response(
+          jsonEncode({
+            'companies': [],
+            'clients': [],
+            'farms': [],
+            'lots': [],
+            'laborTypes': [],
+            'machines': [],
+            'tasks': [],
+          }),
+          200,
+        ));
+    final service = FieldCatalogApiService(client: mock, baseUrl: 'http://test.api');
+
+    await expectLater(
+      service.fetch(token: 'tok'),
+      throwsA(isA<SyncPermanentException>()),
+    );
   });
 
   test('401 → SyncUnauthorizedException', () async {

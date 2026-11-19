@@ -6,6 +6,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/domain/models/enums.dart';
 import 'package:mobile/domain/models/reception.dart';
 import 'package:mobile/domain/usecases/list_receptions_usecase.dart';
+import 'package:mobile/presentation/components/cards/list_item_tile.dart';
 
 import '../../domain/usecases/fakes.dart';
 
@@ -43,6 +44,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Cliente client-1'), findsOneWidget);
+      expect(find.byType(ListItemTile), findsOneWidget);
       // Solo lectura: no existe el botón "Validar".
       expect(find.text('Validar'), findsNothing);
     });

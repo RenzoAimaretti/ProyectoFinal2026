@@ -8,8 +8,9 @@ import 'app_database.dart';
 /// correspondiente está vacía (idempotente).
 ///
 /// Vive en `data/` porque escribe directo contra `AppDatabase` (drift) y no
-/// pasa por el dominio ni por use cases. Se invoca una sola vez al arranque
-/// desde el composition root (`main.dart`); si falla, se traga el error.
+/// pasa por el dominio ni por use cases. Solo se invoca al entrar en modo demo,
+/// a través de `DriftDemoCatalogSeeder` (puerto `DemoCatalogSeeder`), para que
+/// los datos ficticios nunca se mezclen con los de un login real.
 class CatalogSeeder {
   const CatalogSeeder._();
 

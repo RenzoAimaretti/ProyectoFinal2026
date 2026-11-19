@@ -77,6 +77,15 @@ class WeatherViewModel extends ChangeNotifier {
     }
   }
 
+  /// Olvida la lectura y el error del usuario anterior (logout): el próximo
+  /// usuario arranca con la tarjeta vacía hasta su propia carga.
+  void reset() {
+    _reading = null;
+    _errorMessage = null;
+    _hasLocation = false;
+    _notify();
+  }
+
   void _notify() {
     if (!_disposed) notifyListeners();
   }

@@ -42,7 +42,7 @@ class CreateDailyReportUseCase {
     // R009: sin receta agronómica no se habilita la carga del parte.
     final recipes = await _recipeReader.watchByLot(lotId).first;
     if (recipes.isEmpty) {
-      throw LotWithoutRecipeException(lotId);
+      throw LotWithoutRecipeException(lotId, lotName: task.lotName);
     }
 
     // Jornada: hectáreas y horas son obligatorias y mayores a cero.
@@ -50,6 +50,11 @@ class CreateDailyReportUseCase {
       throw const InvalidWorkDataException(
         'Las hectáreas y las horas deben ser mayores a 0',
       );
+    }
+
+    // Al menos un insumo consumido (misma regla que el backend).
+    if (items.isEmpty) {
+      throw const DailyReportWithoutItemsException();
     }
 
     // Cada ítem de consumo debe tener cantidad mayor a cero.

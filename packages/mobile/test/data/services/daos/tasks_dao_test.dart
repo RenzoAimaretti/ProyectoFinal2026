@@ -74,10 +74,10 @@ void main() {
   test('watchAssignedTo filtra por operatorId vía join Tasks ⋈ TaskOperators',
       () async {
     final forOp1 = await dao.watchAssignedTo('op-1').first;
-    expect(forOp1.map((t) => t.id).toSet(), {'task-1', 'task-2'});
+    expect(forOp1.map((t) => t.task.id).toSet(), {'task-1', 'task-2'});
 
     final forOp2 = await dao.watchAssignedTo('op-2').first;
-    expect(forOp2.map((t) => t.id).toSet(), {'task-1'});
+    expect(forOp2.map((t) => t.task.id).toSet(), {'task-1'});
 
     final forNobody = await dao.watchAssignedTo('op-99').first;
     expect(forNobody, isEmpty);
@@ -85,7 +85,7 @@ void main() {
 
   test('watchAll devuelve todas las tareas', () async {
     final all = await dao.watchAll().first;
-    expect(all.map((t) => t.id).toSet(), {'task-1', 'task-2'});
+    expect(all.map((t) => t.task.id).toSet(), {'task-1', 'task-2'});
   });
 
   test('getById devuelve la tarea correcta (o null si no existe)', () async {

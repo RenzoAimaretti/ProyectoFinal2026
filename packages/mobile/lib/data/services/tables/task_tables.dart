@@ -3,8 +3,8 @@ import 'package:uuid/uuid.dart';
 
 import 'catalog_tables.dart';
 
-/// Tareas de labor (CUU08). Solo lectura en el móvil: se pueblan por sync de
-/// tareas (Sprint 2), NO por pull versionado, por eso no llevan
+/// Tareas de labor (CUU08). Solo lectura en el móvil: se pueblan por el pull
+/// del catálogo de campo (foto completa), por eso no llevan
 /// `version`/`deleted`.
 @TableIndex(name: 'idx_tasks_lot_id', columns: {#lotId})
 @TableIndex(name: 'idx_tasks_status', columns: {#status})

@@ -1,7 +1,7 @@
 change: sprint1-polish-operario-tareas
-status: active
+status: archived
 artifact_store: openspec
-updated_at: 2026-09-14
+updated_at: 2026-11-19
 mode: auto
 branch: UI-PersistenciaLocal
 scope:

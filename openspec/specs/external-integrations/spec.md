@@ -234,7 +234,7 @@ El móvil DEBE presentar una tarjeta de clima y viento —con la velocidad en nu
 
 #### Scenario: Operario sin tareas locales *(agregado en el cierre)*
 
-- GIVEN un operario autenticado sin tareas en la base local (el móvil todavía no descarga tareas del backend)
+- GIVEN un operario autenticado sin tareas asignadas en la base local (el catálogo de campo descargado no le asigna ninguna)
 - WHEN abre el dashboard con conectividad
 - THEN la tarjeta usa el primer lote con coordenadas que devuelve `GET /lots`
 - AND si ningún lote tiene coordenadas, la tarjeta queda en modo cache sin inventar una ubicación

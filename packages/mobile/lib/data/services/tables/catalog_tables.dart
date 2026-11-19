@@ -1,7 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-/// Catálogos (con `version` + `deleted` para pull versionado).
+/// Catálogos. Llegan por el pull del catálogo de campo (foto completa); las
+/// columnas `version` + `deleted` quedan reservadas para un pull incremental.
 /// Row class con nombre Prisma: `@DataClassName('X') class Xs extends Table`.
 @DataClassName('Company')
 class Companies extends Table {

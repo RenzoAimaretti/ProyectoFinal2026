@@ -15,8 +15,8 @@ abstract class WeatherRepository {
   Future<WeatherReading> fetchForLot({required String lotId});
 
   /// Lote remoto por defecto para el clima (el primero con coordenadas), o
-  /// `null` si ninguno las tiene. Cubre al operario sin tareas locales
-  /// mientras no exista el down-sync de tareas.
+  /// `null` si ninguno las tiene. Cubre al operario sin tareas asignadas
+  /// (el catálogo descargado no trae coordenadas de lote).
   Future<String?> defaultLotId();
 }
 

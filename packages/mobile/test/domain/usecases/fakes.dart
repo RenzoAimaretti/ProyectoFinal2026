@@ -33,6 +33,8 @@ import 'package:mobile/data/services/photo_picker_service.dart';
 import 'package:mobile/domain/repositories/session_repository.dart';
 import 'package:mobile/domain/repositories/stock_repository.dart';
 import 'package:mobile/domain/repositories/task_reader.dart';
+import 'package:mobile/domain/repositories/demo_catalog_seeder.dart';
+import 'package:mobile/domain/repositories/local_data_repository.dart';
 
 /// Fakes en memoria para tests unitarios de use cases.
 ///
@@ -91,6 +93,27 @@ class FakeSessionRepository implements SessionRepository {
     clearCalled = true;
     _session = null;
   }
+}
+
+class FakeLocalDataRepository implements LocalDataRepository {
+  int pending = 0;
+  bool clearAllCalled = false;
+
+  @override
+  Future<int> countPendingSync() async => pending;
+
+  @override
+  Future<void> clearAll() async {
+    clearAllCalled = true;
+    pending = 0;
+  }
+}
+
+class FakeDemoCatalogSeeder implements DemoCatalogSeeder {
+  int seedCalls = 0;
+
+  @override
+  Future<void> seed() async => seedCalls++;
 }
 
 // ─── DailyReport ─────────────────────────────────────────────────────────────

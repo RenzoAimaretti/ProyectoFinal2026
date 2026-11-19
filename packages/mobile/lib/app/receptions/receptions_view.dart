@@ -6,6 +6,7 @@ import '../../domain/models/reception_summary.dart';
 import '../../presentation/components/badges/status_badge.dart';
 import '../../presentation/components/empty_state.dart';
 import 'receptions_view_model.dart';
+import '../../presentation/components/cards/list_item_tile.dart';
 
 /// Bandeja de recepciones de insumos (CUU06), solo lectura.
 ///
@@ -56,13 +57,7 @@ class _ReceptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      tileColor: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.outlineVariant),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+    return ListItemTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
