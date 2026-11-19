@@ -30,7 +30,42 @@ export type FieldCatalogTask = {
   operators: { id: string }[];
 };
 
-/// Catalog needed by the mobile field flow (CUU08).
+export type FieldCatalogInputCategory = {
+  id: string;
+  name: string;
+  active: boolean;
+};
+export type FieldCatalogInput = {
+  id: string;
+  name: string;
+  unit: 'L' | 'KG' | 'UNIT';
+  categoryId: string;
+  active: boolean;
+};
+export type FieldCatalogLaborTypeCategory = {
+  laborTypeId: string;
+  categoryId: string;
+};
+export type FieldCatalogRecipeItem = {
+  id: string;
+  inputId: string;
+  dose: number;
+  unit: string | null;
+  loadOrder: number;
+};
+export type FieldCatalogRecipe = {
+  id: string;
+  lotId: string;
+  date: Date;
+  observations: string | null;
+  items: FieldCatalogRecipeItem[];
+};
+
+/// Catalog needed by the mobile field flow (CUU05, CUU08).
+///
+/// It is a full snapshot: the mobile app treats it as authoritative, so every
+/// collection excludes deleted rows and rows whose parent is deleted. Recipes
+/// are the active ones (R009 needs one per lot to enable a daily report).
 ///
 /// Only the caller's firma is exposed, so an OPERARIO can cache the company row
 /// its machines reference without widening any existing endpoint.
@@ -42,6 +77,10 @@ export type FieldCatalog = {
   laborTypes: FieldCatalogLaborType[];
   machines: FieldCatalogMachine[];
   tasks: FieldCatalogTask[];
+  inputCategories: FieldCatalogInputCategory[];
+  inputs: FieldCatalogInput[];
+  laborTypeCategories: FieldCatalogLaborTypeCategory[];
+  recipes: FieldCatalogRecipe[];
 };
 
 export type FieldCatalogScope = {
