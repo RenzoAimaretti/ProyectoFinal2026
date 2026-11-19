@@ -164,13 +164,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // Motor de sincronización (Sprint 2): composition root del outbox.
     _setupSyncEngine(authApiService, sessionRepository);
 
-    // Gate/trigger de conectividad: dispara un ciclo al recuperar señal. La
-    // conectividad es heurística de trigger; la sonda real es el intento HTTP.
+    // Gate/trigger de conectividad: al recuperar señal dispara un ciclo de push
+    // y un pull del catálogo. La conectividad es heurística de trigger; la
+    // sonda real es el intento HTTP.
     _connectivity = Connectivity();
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
       (results) {
         if (results.any((r) => r != ConnectivityResult.none)) {
           unawaited(_maybeRunSync());
+          unawaited(_refreshFieldCatalog());
         }
       },
       onError: (Object _) {
@@ -298,6 +300,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       source: FieldCatalogApiService(),
       store: DriftFieldCatalogRepository(_database),
       sessionRepository: sessionRepository,
+      tokenRefresher: TokenRefresher(authApiService, sessionRepository),
     );
   }
 

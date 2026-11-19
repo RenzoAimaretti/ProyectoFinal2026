@@ -3,6 +3,7 @@ import 'package:mobile/domain/errors.dart';
 import 'package:mobile/domain/models/enums.dart';
 import 'package:mobile/domain/models/field_catalog.dart';
 import 'package:mobile/domain/models/session.dart';
+import 'package:mobile/domain/repositories/access_token_refresher.dart';
 import 'package:mobile/domain/repositories/field_catalog_source.dart';
 import 'package:mobile/domain/repositories/field_catalog_store.dart';
 import 'package:mobile/domain/usecases/refresh_field_catalog_usecase.dart';
@@ -27,6 +28,19 @@ class FakeFieldCatalogStore implements FieldCatalogStore {
 
   @override
   Future<void> replaceWith(FieldCatalog catalog) async => saved.add(catalog);
+}
+
+class FakeAccessTokenRefresher implements AccessTokenRefresher {
+  FakeAccessTokenRefresher(this.respond);
+
+  Future<String> Function() respond;
+  int calls = 0;
+
+  @override
+  Future<String> refreshAccessToken() {
+    calls++;
+    return respond();
+  }
 }
 
 const _catalog = FieldCatalog(
@@ -54,16 +68,19 @@ void main() {
   late FakeSessionRepository sessions;
   late FakeFieldCatalogSource source;
   late FakeFieldCatalogStore store;
+  late FakeAccessTokenRefresher refresher;
   late RefreshFieldCatalogUseCase useCase;
 
   setUp(() {
     sessions = FakeSessionRepository();
     source = FakeFieldCatalogSource((_) async => _catalog);
     store = FakeFieldCatalogStore();
+    refresher = FakeAccessTokenRefresher(() async => 'new-tok');
     useCase = RefreshFieldCatalogUseCase(
       source: source,
       store: store,
       sessionRepository: sessions,
+      tokenRefresher: refresher,
     );
   });
 
@@ -88,6 +105,38 @@ void main() {
     source.respond = (_) async => throw const SyncRetriableException('sin red');
 
     await expectLater(useCase.execute(), throwsA(isA<SyncRetriableException>()));
+    expect(store.saved, isEmpty);
+  });
+
+  test('ante 401 renueva el token una vez y reintenta con el nuevo', () async {
+    await sessions.save(_session());
+    source.respond = (token) async => token == 'tok'
+        ? throw const SyncUnauthorizedException('expirado')
+        : _catalog;
+
+    expect(await useCase.execute(), _catalog.rowCount);
+    expect(source.tokens, ['tok', 'new-tok']);
+    expect(refresher.calls, 1);
+    expect(store.saved, [same(_catalog)]);
+  });
+
+  test('si el token renovado también es rechazado, propaga el 401 sin reintentar más', () async {
+    await sessions.save(_session());
+    source.respond = (_) async => throw const SyncUnauthorizedException('expirado');
+
+    await expectLater(useCase.execute(), throwsA(isA<SyncUnauthorizedException>()));
+    expect(source.tokens, ['tok', 'new-tok']);
+    expect(refresher.calls, 1);
+    expect(store.saved, isEmpty);
+  });
+
+  test('si el refresh falla, propaga ese error y no toca la caché', () async {
+    await sessions.save(_session());
+    source.respond = (_) async => throw const SyncUnauthorizedException('expirado');
+    refresher.respond = () async => throw const SyncPermanentException('Sesión expirada');
+
+    await expectLater(useCase.execute(), throwsA(isA<SyncPermanentException>()));
+    expect(source.tokens, ['tok']);
     expect(store.saved, isEmpty);
   });
 }
