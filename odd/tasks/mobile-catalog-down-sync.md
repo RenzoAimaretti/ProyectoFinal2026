@@ -12,6 +12,7 @@ Branch: `fix/mobile-catalog-down-sync` (from `origin/dev` 36d828f) · Delivery: 
 - **S5 — Pull robustness.** On 401 the pull refreshes the token once (existing `TokenRefresher`) and retries; the pull also runs when connectivity comes back.
 - **S6 — Hexagonal boundary.** `RefreshFieldCatalogUseCase` depends only on domain ports; the import-boundary test catches any `data/` import from `domain/`, at any relative depth.
 - **S7 — Docs.** User request (L4), verbatim: "actualiza la doc ya que estamos". Update `openspec/specs/offline-sync-engine/spec.md` with the down-sync requirements, fix the stale "no down-sync" scenario in `openspec/specs/external-integrations/spec.md`, and archive the two finished Sprint 1 changes (`sprint1-flutter-ui-persistencia-local`, `sprint1-polish-operario-tareas`).
+- **S8 — List views usable with real data.** User requests (L9, L10), verbatim: "fijate que la vista esta mal" and "El widget del clima y viento no se tendria que ver en todas las pantallas unicamente en la principal. Queda horrible sinop". Task rows show "Labor · Lote" names instead of UUIDs (spec "Nombres resueltos en el listado"); list items paint inside their own clipped surface so scrolling never draws them over the header (tasks, daily reports, receptions, machinery); the weather card shows only on the main tab (Tareas).
 
 ## Tasks
 
@@ -22,7 +23,8 @@ Branch: `fix/mobile-catalog-down-sync` (from `origin/dev` 36d828f) · Delivery: 
 | T3 | S5 | inline | done | `dc4ed11` · RED → GREEN 6/6 |
 | T4 | S2, S4 | inline | done | `5958e20` · RED → GREEN 13/13 + owner guard RED → GREEN 9/9; verifier: no blockers |
 | T5 | S7 | inline | done | `docs(openspec): document catalog down-sync and archive sprint 1 changes` (same commit as this row) |
-| T6 | S1–S5 runtime smoke | inline | pending | |
+| T6 | S1–S5 runtime smoke | inline | in progress | backend + seed + Flutter web in the user's Chrome |
+| T7 | S8 | inline | done, uncommitted | RED (6 suites failed to compile) → GREEN 24; full suite 267/267; checked in Chrome |
 
 Route evidence: units are sequential (mobile parsing depends on the T1 contract; T4 builds on T2's repository), so there is no parallel-writer reason; work stays inline. Risk: item 1 (T4 deletes local stored data on logout) and item 2 (T4 session/tenant isolation) → independent verifier (sonnet) after T4. RDD is globally disabled by the user.
 
@@ -38,3 +40,6 @@ Forecast: ~900 authored changed lines.
 - **L6 (2026-11-19, user):** commits need the user's OK first ("Antes de hacer commits consultamelo a mi porfa!!!"); T1/T2 had already been committed locally.
 - **L7 (2026-11-19, verifier sonnet):** S1, S2, S3, S5, S6 PASS; S4 PARTIAL: `TokenRefresher` clears the session on refresh failure without wiping data, so a next user could push the previous user's outbox (pre-existing). User chose "Filtrar por dueño" → owner guard in `daily_report_sync_handler.dart` and `machine_usage_sync_handler.dart`. Checked that new rows take `operatorId` from `session.userId` (`dashboard_view.dart:138,280`, `MachineUsageFormViewModel.setOperator`). Known limits: demo rows referenced by local records survive a real pull; an unknown task/machine status is dropped by the parser and therefore pruned.
 - **L8 (2026-11-19, checks):** mobile `flutter test` 258/258, `flutter analyze` 0 errors / 0 warnings (46 infos), backend `jest` 144 suites / 1384 tests. T4 and T5 committed with the user's OK. Next: T6 runtime smoke.
+- **L9 (2026-11-19, user, verbatim):** "abrime el navaegador para ver como esta hecho... fiajte que la vista esta mal". Seen in Chrome: task rows printed `Lote <uuid> · Labor <uuid>` (`tasks_view.dart:188`, pre-existing) and `ListTile.tileColor` painted outside the scroll clip in four lists (pre-existing).
+- **L10 (2026-11-19, user, verbatim):** "El widget del clima y viento no se tendria que ver en todas las pantallas unicamente en la principal. Queda horrible sinop".
+- **L11 (2026-11-19, T7):** new `ListItemTile` (own clipped `Material`) used by the four lists; `TasksDao` LEFT JOINs lots and labor types; `Task.displayLabel` moved to the domain (removed the unused `taskDisplayLabel` from data); weather card only when the Tareas tab is selected (no dashboard widget test: it needs 9 view models for one condition; checked in Chrome instead). Checks: `flutter test` 267/267, `flutter analyze` 0 errors / 0 warnings. Chrome: names shown, rows clip under the header while scrolling, no weather card on Partes.

@@ -179,12 +179,4 @@ void main() {
     expect(await db.select(db.machines).get(), hasLength(2));
     expect((await db.select(db.tasks).get()).map((r) => r.id), ['task-1']);
   });
-
-  test('construye etiquetas legibles cuando hay nombres', () {
-    expect(
-      taskDisplayLabel(taskId: 'task-1', lotName: 'Lote 1', laborTypeName: 'Siembra'),
-      'Siembra · Lote 1',
-    );
-    expect(taskDisplayLabel(taskId: '1234567890'), 'Tarea 12345678');
-  });
 }

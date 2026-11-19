@@ -88,8 +88,11 @@ class DashboardView extends StatefulWidget {
   State<DashboardView> createState() => _DashboardViewState();
 }
 
+/// Pestaña principal (Tareas): la única que muestra la tarjeta de clima.
+const _homeTabIndex = 0;
+
 class _DashboardViewState extends State<DashboardView> {
-  int _selectedIndex = 0;
+  int _selectedIndex = _homeTabIndex;
 
   @override
   void initState() {
@@ -270,7 +273,9 @@ class _DashboardViewState extends State<DashboardView> {
       body: Column(
         children: [
           _buildFirmSelector(),
-          _buildWeatherCard(),
+          // El clima es contexto de la pantalla principal; en Partes,
+          // Recepciones y Maquinaria solo quitaría espacio a la lista.
+          if (_selectedIndex == _homeTabIndex) _buildWeatherCard(),
           Expanded(
             child: IndexedStack(
               index: _selectedIndex,

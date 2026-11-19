@@ -17,6 +17,8 @@ class Task {
     this.updatedTaskAt,
     this.createdAt,
     this.updatedAt,
+    this.lotName,
+    this.laborTypeName,
   });
 
   final String? id;
@@ -28,4 +30,21 @@ class Task {
   final DateTime? updatedTaskAt;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  /// Nombres resueltos para mostrar (opcionales: `null` si no se resolvieron).
+  final String? lotName;
+  final String? laborTypeName;
+
+  /// Etiqueta legible "Labor · Lote". Sin nombres cae a un id corto, nunca al
+  /// UUID completo.
+  String get displayLabel {
+    final parts = [
+      for (final name in [laborTypeName, lotName])
+        if (name != null && name.trim().isNotEmpty) name.trim(),
+    ];
+    if (parts.isNotEmpty) return parts.join(' · ');
+    final taskId = id;
+    if (taskId == null || taskId.isEmpty) return 'Tarea';
+    return 'Tarea ${taskId.length > 8 ? taskId.substring(0, 8) : taskId}';
+  }
 }

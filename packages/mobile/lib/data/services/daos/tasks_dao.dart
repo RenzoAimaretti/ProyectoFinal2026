@@ -5,26 +5,47 @@ import '../tables/task_tables.dart';
 
 part 'tasks_dao.g.dart';
 
+/// Tarea con los nombres de su lote y labor (LEFT JOIN: si el catálogo todavía
+/// no los tiene, quedan `null` y la UI cae a un id corto).
+typedef TaskWithNames = ({Task task, String? lotName, String? laborTypeName});
+
 @DriftAccessor(tables: [Tasks, TaskOperators])
 class TasksDao extends DatabaseAccessor<AppDatabase> with _$TasksDaoMixin {
   TasksDao(AppDatabase db) : super(db);
 
-  /// Tareas asignadas a un operario (join `Tasks ⋈ TaskOperators`).
-  Stream<List<Task>> watchAssignedTo(String operatorId) {
-    final query = select(tasks).join([
+  /// Tareas asignadas a un operario (join `Tasks ⋈ TaskOperators`), con los
+  /// nombres de lote y labor.
+  Stream<List<TaskWithNames>> watchAssignedTo(String operatorId) {
+    final query = _withNames([
       innerJoin(taskOperators, taskOperators.taskId.equalsExp(tasks.id)),
     ])
-      ..where(taskOperators.operatorId.equals(operatorId))
-      ..orderBy([OrderingTerm.desc(tasks.createdAt)]);
-    return query.map((row) => row.readTable(tasks)).watch();
+      ..where(taskOperators.operatorId.equals(operatorId));
+    return query.map(_readWithNames).watch();
   }
 
-  Stream<List<Task>> watchAll() {
-    return (select(tasks)..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-        .watch();
+  /// Todas las tareas (selector A4), con los nombres de lote y labor.
+  Stream<List<TaskWithNames>> watchAll() {
+    return _withNames(const []).map(_readWithNames).watch();
   }
 
   Future<Task?> getById(String id) {
     return (select(tasks)..where((t) => t.id.equals(id))).getSingleOrNull();
   }
+
+  JoinedSelectStatement<HasResultSet, dynamic> _withNames(List<Join> extra) {
+    final lots = attachedDatabase.lots;
+    final laborTypes = attachedDatabase.laborTypes;
+    return select(tasks).join([
+      ...extra,
+      leftOuterJoin(lots, lots.id.equalsExp(tasks.lotId)),
+      leftOuterJoin(laborTypes, laborTypes.id.equalsExp(tasks.laborTypeId)),
+    ])
+      ..orderBy([OrderingTerm.desc(tasks.createdAt)]);
+  }
+
+  TaskWithNames _readWithNames(TypedResult row) => (
+        task: row.readTable(tasks),
+        lotName: row.readTableOrNull(attachedDatabase.lots)?.name,
+        laborTypeName: row.readTableOrNull(attachedDatabase.laborTypes)?.name,
+      );
 }

@@ -315,25 +315,6 @@ class DriftFieldCatalogRepository implements FieldCatalogStore {
   }
 }
 
-/// Extrae el nombre legible de una tarea a partir del catálogo cacheado.
-/// Se mantiene aquí para que la UI no dependa de ids cuando hay nombres.
-String taskDisplayLabel({
-  required String taskId,
-  String? lotName,
-  String? laborTypeName,
-}) {
-  final parts = [
-    if (laborTypeName != null && laborTypeName.trim().isNotEmpty)
-      laborTypeName.trim(),
-    if (lotName != null && lotName.trim().isNotEmpty) lotName.trim(),
-  ];
-  if (parts.isEmpty) {
-    final short = taskId.length > 8 ? taskId.substring(0, 8) : taskId;
-    return 'Tarea $short';
-  }
-  return parts.join(' · ');
-}
-
 /// Estado local de una máquina a partir del wire (compatibilidad).
 String machineStatusWireToLocalText(String wire) =>
     machineStatusToText(machineStatusFromWire(wire) ?? MachineStatus.OUT_OF_SERVICE);
