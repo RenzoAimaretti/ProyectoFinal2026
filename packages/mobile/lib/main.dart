@@ -295,8 +295,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
 
     _refreshFieldCatalogUseCase = RefreshFieldCatalogUseCase(
-      apiService: FieldCatalogApiService(),
-      cache: DriftFieldCatalogRepository(_database),
+      source: FieldCatalogApiService(),
+      store: DriftFieldCatalogRepository(_database),
       sessionRepository: sessionRepository,
     );
   }

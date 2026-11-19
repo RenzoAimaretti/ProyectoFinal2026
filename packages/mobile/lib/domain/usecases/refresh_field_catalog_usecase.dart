@@ -1,23 +1,23 @@
+import '../repositories/field_catalog_source.dart';
+import '../repositories/field_catalog_store.dart';
 import '../repositories/session_repository.dart';
-import '../../data/repositories/drift_field_catalog_repository.dart';
-import '../../data/services/field_catalog_api_service.dart';
 
-/// Refresca el catálogo de campo local (T14).
+/// Refresca el catálogo de campo local con la foto autoritativa del backend.
 ///
 /// Sin sesión con token (demo o logout) no hace nada y devuelve 0: el móvil
 /// sigue operando con lo cacheado. Un error de red se propaga al caller, que lo
-/// trata como best-effort para no bloquear la app.
+/// trata como best-effort para no bloquear la app; la caché queda intacta.
 class RefreshFieldCatalogUseCase {
   RefreshFieldCatalogUseCase({
-    required FieldCatalogApiService apiService,
-    required DriftFieldCatalogRepository cache,
+    required FieldCatalogSource source,
+    required FieldCatalogStore store,
     required SessionRepository sessionRepository,
-  })  : _apiService = apiService,
-        _cache = cache,
+  })  : _source = source,
+        _store = store,
         _sessionRepository = sessionRepository;
 
-  final FieldCatalogApiService _apiService;
-  final DriftFieldCatalogRepository _cache;
+  final FieldCatalogSource _source;
+  final FieldCatalogStore _store;
   final SessionRepository _sessionRepository;
 
   Future<int> execute() async {
@@ -25,8 +25,8 @@ class RefreshFieldCatalogUseCase {
     final token = session?.token ?? '';
     if (token.isEmpty) return 0;
 
-    final catalog = await _apiService.fetch(token: token);
-    await _cache.save(catalog);
+    final catalog = await _source.fetch(token: token);
+    await _store.replaceWith(catalog);
     return catalog.rowCount;
   }
 }

@@ -4,72 +4,16 @@ import 'package:http/http.dart' as http;
 
 import '../../core/config/api_config.dart';
 import '../../domain/errors.dart';
-import '../../domain/models/enums.dart';
+import '../../domain/models/field_catalog.dart';
+import '../../domain/repositories/field_catalog_source.dart';
 import '../models/enum_wire_mapper.dart';
 
-typedef CatalogCompany = ({String id, String name, String cuit});
-typedef CatalogClient = ({String id, String name});
-typedef CatalogFarm = ({
-  String id,
-  String clientId,
-  String name,
-  double surface,
-});
-typedef CatalogLot = ({String id, String farmId, String name, double area});
-typedef CatalogLaborType = ({String id, String name});
-typedef CatalogMachine = ({
-  String id,
-  String companyId,
-  String name,
-  String? brand,
-  MachineStatus status,
-});
-typedef CatalogTask = ({
-  String id,
-  String lotId,
-  String laborTypeId,
-  TaskStatus status,
-  List<String> operatorIds,
-});
-
-/// Catálogo de campo que el móvil cachea para operar offline (T14).
+/// Servicio API del catálogo de campo (`GET /catalog/field`).
 ///
-/// Una sola lectura autenticada (`GET /catalog/field`) trae la firma propia, la
-/// taxonomía del tenant, las máquinas de la firma y las tareas con sus
-/// operarios asignados.
-class FieldCatalog {
-  const FieldCatalog({
-    required this.companies,
-    required this.clients,
-    required this.farms,
-    required this.lots,
-    required this.laborTypes,
-    required this.machines,
-    required this.tasks,
-  });
-
-  final List<CatalogCompany> companies;
-  final List<CatalogClient> clients;
-  final List<CatalogFarm> farms;
-  final List<CatalogLot> lots;
-  final List<CatalogLaborType> laborTypes;
-  final List<CatalogMachine> machines;
-  final List<CatalogTask> tasks;
-
-  bool get isEmpty => tasks.isEmpty && machines.isEmpty;
-
-  int get rowCount =>
-      companies.length +
-      clients.length +
-      farms.length +
-      lots.length +
-      laborTypes.length +
-      machines.length +
-      tasks.length;
-}
-
-/// Servicio API del catálogo de campo.
-class FieldCatalogApiService {
+/// La respuesta es una foto autoritativa que la caché local reconcilia, así que
+/// una respuesta sin alguna colección se rechaza en lugar de interpretarse como
+/// "vacía" (eso borraría datos locales).
+class FieldCatalogApiService implements FieldCatalogSource {
   FieldCatalogApiService({http.Client? client, String? baseUrl})
       : _client = client ?? http.Client(),
         _baseUrl = baseUrl ?? ApiConfig.baseUrl;
@@ -77,6 +21,21 @@ class FieldCatalogApiService {
   final http.Client _client;
   final String _baseUrl;
 
+  static const _collections = [
+    'companies',
+    'clients',
+    'farms',
+    'lots',
+    'laborTypes',
+    'machines',
+    'tasks',
+    'inputCategories',
+    'inputs',
+    'laborTypeCategories',
+    'recipes',
+  ];
+
+  @override
   Future<FieldCatalog> fetch({required String token}) async {
     final url = Uri.parse('$_baseUrl/catalog/field');
     try {
@@ -89,7 +48,8 @@ class FieldCatalogApiService {
       );
       _throwOnError(response);
       final data = jsonDecode(response.body);
-      if (data is! Map<String, dynamic>) {
+      if (data is! Map<String, dynamic> ||
+          _collections.any((key) => data[key] is! List)) {
         throw const SyncPermanentException('Catálogo inválido del servidor');
       }
       return _parse(data);
@@ -131,6 +91,8 @@ class FieldCatalogApiService {
       if (value is! List) return const [];
       return value.whereType<Map<String, dynamic>>().toList();
     }
+
+    double number(Object? value) => (value as num).toDouble();
 
     return FieldCatalog(
       companies: [
@@ -188,6 +150,51 @@ class FieldCatalogApiService {
                     operator['id'] as String,
               ],
             ),
+      ],
+      inputCategories: [
+        for (final row in list('inputCategories'))
+          (
+            id: row['id'] as String,
+            name: row['name'] as String,
+            active: (row['active'] as bool?) ?? true,
+          ),
+      ],
+      inputs: [
+        for (final row in list('inputs'))
+          (
+            id: row['id'] as String,
+            name: row['name'] as String,
+            unit: row['unit'] as String,
+            categoryId: row['categoryId'] as String,
+            active: (row['active'] as bool?) ?? true,
+          ),
+      ],
+      laborTypeCategories: [
+        for (final row in list('laborTypeCategories'))
+          (
+            laborTypeId: row['laborTypeId'] as String,
+            categoryId: row['categoryId'] as String,
+          ),
+      ],
+      recipes: [
+        for (final row in list('recipes'))
+          (
+            id: row['id'] as String,
+            lotId: row['lotId'] as String,
+            date: DateTime.parse(row['date'] as String),
+            observations: row['observations'] as String?,
+            items: [
+              for (final item in (row['items'] as List? ?? const []))
+                if (item is Map<String, dynamic>)
+                  (
+                    id: item['id'] as String,
+                    inputId: item['inputId'] as String,
+                    dose: number(item['dose']),
+                    unit: item['unit'] as String?,
+                    loadOrder: (item['loadOrder'] as num).toInt(),
+                  ),
+            ],
+          ),
       ],
     );
   }
