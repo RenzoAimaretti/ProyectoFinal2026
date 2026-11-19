@@ -72,3 +72,13 @@ class SyncPermanentException extends DomainException {
 class SyncUnauthorizedException extends DomainException {
   const SyncUnauthorizedException(super.message);
 }
+
+/// Logout con registros del outbox sin enviar: si se cierra la sesión se
+/// descartan (nunca se envían con el token de otro usuario). La UI pide
+/// confirmación explícita antes de reintentar con `discardPending: true`.
+class PendingSyncOnLogoutException extends DomainException {
+  PendingSyncOnLogoutException(this.pendingCount)
+      : super('Hay $pendingCount registros sin sincronizar');
+
+  final int pendingCount;
+}

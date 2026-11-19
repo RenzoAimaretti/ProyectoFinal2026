@@ -40,7 +40,7 @@ import 'data/repositories/sync_queue_writer.dart';
 import 'data/repositories/token_refresher.dart';
 import 'data/services/app_database.dart';
 import 'data/services/auth_api_service.dart';
-import 'data/services/catalog_seeder.dart';
+import 'data/repositories/drift_local_data_repository.dart';
 import 'data/services/field_catalog_api_service.dart';
 import 'data/services/photo_picker_service.dart';
 import 'data/services/weather_api_service.dart';
@@ -142,8 +142,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _sessionRepository = sessionRepository;
 
     final loginUseCase = LoginUseCase(authRepository, sessionRepository);
-    final demoLoginUseCase = DemoLoginUseCase(sessionRepository);
-    _logoutUseCase = LogoutUseCase(authRepository, sessionRepository);
+    final demoLoginUseCase = DemoLoginUseCase(
+      sessionRepository,
+      DriftDemoCatalogSeeder(_database),
+    );
+    _logoutUseCase = LogoutUseCase(
+      authRepository,
+      sessionRepository,
+      DriftLocalDataRepository(_database),
+    );
     _loginViewModel = LoginViewModel(
       loginUseCase: loginUseCase,
       demoLoginUseCase: demoLoginUseCase,
@@ -153,9 +160,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // dashboard; si no, en login. Corre en background para no bloquear el UI.
     _restoreSessionUseCase = RestoreSessionUseCase(sessionRepository);
     unawaited(_restoreSession());
-
-    // Seed de catálogos de desarrollo (idempotente, best-effort).
-    unawaited(_seedCatalogs());
 
     // Badge "pendientes de sincronización": el stream se construye en data
     // (SyncQueueDao) y se inyecta aquí; el badge solo recibe Stream<int>.
@@ -399,16 +403,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  /// Siembra las tablas de catálogo vacías. Corre en background y se traga el
-  /// error: el seed no debe impedir el arranque de la app.
-  Future<void> _seedCatalogs() async {
-    try {
-      await CatalogSeeder.seedIfEmpty(_database);
-    } catch (e) {
-      debugPrint('Seed de catálogos falló: $e');
-    }
-  }
-
   /// Restaura la sesión local al arranque (CUU00). Al resolver desactiva
   /// `_restoringSession` para que `build` pase de la pantalla de carga a
   /// login (sin sesión) o al dashboard (con sesión).
@@ -470,9 +464,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     unawaited(_sessionRepository.save(updated));
   }
 
-  /// Logout: revocación remota best-effort + limpieza de la sesión local.
-  Future<void> _handleLogout() async {
-    await _logoutUseCase.execute();
+  /// Logout (CUU00): con pendientes sin confirmar el use case lanza
+  /// `PendingSyncOnLogoutException`, que `LogoutButton` convierte en el aviso
+  /// "Descartar y salir".
+  Future<void> _handleLogout({required bool discardPending}) async {
+    await _logoutUseCase.execute(discardPending: discardPending);
     if (mounted) {
       setState(() => _session = null);
     }

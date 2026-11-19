@@ -44,6 +44,13 @@ class MachineUsageSyncHandler implements SyncEntityHandler {
     if (token.isEmpty) {
       throw const SyncPermanentException('No hay sesión activa para sincronizar');
     }
+    // Una fila de otro usuario (sesión vencida y login de otra persona) nunca
+    // se envía con este token.
+    if (row.operatorId != session!.userId) {
+      throw const SyncPermanentException(
+        'El uso de maquinaria pertenece a otro usuario: no se envía con esta sesión',
+      );
+    }
 
     final payload = _payload(row.toDomain());
 

@@ -68,8 +68,9 @@ void main() {
 
   tearDown(() => db.close());
 
-  DailyReport newReport() => DailyReport(
-        operatorId: 'op-1',
+  // El dueño del parte es el usuario de la sesión ('u1'): solo así se envía.
+  DailyReport newReport({String operatorId = 'u1'}) => DailyReport(
+        operatorId: operatorId,
         companyId: 'company-1',
         taskId: 'task-1',
         lotId: 'lot-1',
@@ -167,6 +168,35 @@ void main() {
     expect(remote.calls, hasLength(2));
     expect(remote.calls[0].token, 'old-tok');
     expect(remote.calls[1].token, 'new-tok');
+  });
+
+  test('parte de otro usuario → SyncPermanentException y no se envía', () async {
+    final reportId = await repository.create(
+      newReport(operatorId: 'otro-usuario'),
+      const [DailyReportItem(inputId: 'input-1', quantity: 5, unit: 'L')],
+    );
+    final sessionRepo = _FakeSessionRepository()
+      ..seed(Session(
+        userId: 'u1',
+        email: 'e@e.com',
+        fullName: 'U',
+        role: UserRole.operario,
+        token: 'tok',
+        lastAccessedAt: DateTime(2026, 1, 1),
+      ));
+    final remote = _FakeRemoteRepo();
+    final handler = DailyReportSyncHandler(
+      db: db,
+      remoteRepository: remote,
+      sessionRepository: sessionRepo,
+      tokenRefresher: TokenRefresher(AuthApiService(), sessionRepo),
+    );
+
+    await expectLater(
+      handler.handle(itemFor(reportId)),
+      throwsA(isA<SyncPermanentException>()),
+    );
+    expect(remote.calls, isEmpty);
   });
 
   test('parte inexistente → SyncPermanentException', () async {

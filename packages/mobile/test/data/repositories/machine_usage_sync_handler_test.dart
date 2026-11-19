@@ -45,7 +45,7 @@ void main() {
       id: 'usage-1',
       machineId: 'machine-1',
       taskId: 'task-1',
-      operatorId: 'operator-1',
+      operatorId: 'u1',
       usageHours: 2,
       hectares: 7,
       workDate: DateTime.utc(2026, 3, 8),
@@ -67,7 +67,7 @@ void main() {
     expect(call.payload['id'], 'usage-1');
     expect(call.payload['machineId'], 'machine-1');
     expect(call.payload['taskId'], 'task-1');
-    expect(call.payload['operatorId'], 'operator-1');
+    expect(call.payload['operatorId'], 'u1');
     expect(call.payload['usageHours'], 2);
     expect(call.payload['hectares'], 7);
     expect(call.payload['workDate'], '2026-03-08');
@@ -79,7 +79,7 @@ void main() {
       id: 'usage-2',
       machineId: 'machine-1',
       taskId: 'task-1',
-      operatorId: 'operator-1',
+      operatorId: 'u1',
       usageHours: 3,
       workDate: DateTime.utc(2026, 3, 9),
     ));
@@ -125,12 +125,36 @@ void main() {
     );
   });
 
+  test('uso de otro usuario → SyncPermanentException y no se envía', () async {
+    await repository.create(MachineUsage(
+      id: 'usage-4',
+      machineId: 'machine-1',
+      taskId: 'task-1',
+      operatorId: 'otro-usuario',
+      hectares: 4,
+      workDate: DateTime.utc(2026, 3, 11),
+    ));
+    final remote = _FakeRemote();
+    final handler = MachineUsageSyncHandler(
+      db: db,
+      remoteRepository: remote,
+      sessionRepository: _FakeSessions()..seed('tok'),
+      tokenRefresher: TokenRefresher(AuthApiService(), _FakeSessions()),
+    );
+
+    await expectLater(
+      handler.handle(itemFor('usage-4')),
+      throwsA(isA<SyncPermanentException>()),
+    );
+    expect(remote.calls, isEmpty);
+  });
+
   test('sin sesión activa → SyncPermanentException', () async {
     await repository.create(MachineUsage(
       id: 'usage-3',
       machineId: 'machine-1',
       taskId: 'task-1',
-      operatorId: 'operator-1',
+      operatorId: 'u1',
       hectares: 4,
       workDate: DateTime.utc(2026, 3, 10),
     ));

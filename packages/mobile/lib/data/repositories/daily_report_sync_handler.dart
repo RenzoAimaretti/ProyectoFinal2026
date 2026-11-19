@@ -44,6 +44,13 @@ class DailyReportSyncHandler implements SyncEntityHandler {
     if (token.isEmpty) {
       throw const SyncPermanentException('No hay sesión activa para sincronizar');
     }
+    // El backend atribuye el parte al usuario del JWT: una fila de otro usuario
+    // (sesión vencida y login de otra persona) nunca se envía con este token.
+    if (report.operatorId != session!.userId) {
+      throw const SyncPermanentException(
+        'El parte pertenece a otro usuario: no se envía con esta sesión',
+      );
+    }
 
     final domainReport = report.toDomain();
     final domainItems = items.map((i) => i.toDomain()).toList();

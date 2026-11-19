@@ -25,6 +25,7 @@ import '../reports/daily_reports_view.dart';
 import '../reports/daily_reports_view_model.dart';
 import '../tasks/tasks_view.dart';
 import '../tasks/tasks_view_model.dart';
+import 'logout_button.dart';
 import 'weather_view_model.dart';
 
 /// Dashboard principal post-login: navegación inferior a los 4 módulos
@@ -69,7 +70,7 @@ class DashboardView extends StatefulWidget {
   /// Cantidad de operaciones pendientes de sincronización (`SyncQueue`).
   final Stream<int> pendingSyncCount;
 
-  final VoidCallback onLogout;
+  final Future<void> Function({required bool discardPending}) onLogout;
 
   final TasksViewModel tasksViewModel;
   final DailyReportsViewModel dailyReportsViewModel;
@@ -262,11 +263,7 @@ class _DashboardViewState extends State<DashboardView> {
         actions: [
           SyncPendingBadge(pendingCount: widget.pendingSyncCount),
           const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Cerrar sesión',
-            onPressed: widget.onLogout,
-          ),
+          LogoutButton(onLogout: widget.onLogout),
           const SizedBox(width: 4),
         ],
       ),

@@ -5,11 +5,13 @@ import 'fakes.dart';
 
 void main() {
   late FakeSessionRepository sessionRepository;
+  late FakeDemoCatalogSeeder seeder;
   late DemoLoginUseCase sut;
 
   setUp(() {
     sessionRepository = FakeSessionRepository();
-    sut = DemoLoginUseCase(sessionRepository);
+    seeder = FakeDemoCatalogSeeder();
+    sut = DemoLoginUseCase(sessionRepository, seeder);
   });
 
   test('crea sesión demo y la persiste', () async {
@@ -22,5 +24,11 @@ void main() {
     final stored = await sessionRepository.current();
     expect(stored, isNotNull);
     expect(stored!.userId, 'demo-operario');
+  });
+
+  test('siembra el catálogo demo al entrar en modo demo', () async {
+    await sut.execute();
+
+    expect(seeder.seedCalls, 1);
   });
 }
