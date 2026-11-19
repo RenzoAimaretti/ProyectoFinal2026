@@ -21,8 +21,13 @@ class DriftTaskReader implements TaskReader {
       _db.tasksDao.watchAll().map(_toDomain);
 
   @override
-  Future<domain.Task?> getById(String id) async =>
-      (await _db.tasksDao.getById(id))?.toDomain();
+  Future<domain.Task?> getById(String id) async {
+    final row = await _db.tasksDao.getByIdWithNames(id);
+    return row?.task.toDomain(
+      lotName: row.lotName,
+      laborTypeName: row.laborTypeName,
+    );
+  }
 
   List<domain.Task> _toDomain(List<TaskWithNames> rows) => [
         for (final row in rows)

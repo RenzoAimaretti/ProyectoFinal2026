@@ -32,6 +32,13 @@ class TasksDao extends DatabaseAccessor<AppDatabase> with _$TasksDaoMixin {
     return (select(tasks)..where((t) => t.id.equals(id))).getSingleOrNull();
   }
 
+  /// Una tarea por id, con los nombres de lote y labor.
+  Future<TaskWithNames?> getByIdWithNames(String id) {
+    return (_withNames(const [])..where(tasks.id.equals(id)))
+        .map(_readWithNames)
+        .getSingleOrNull();
+  }
+
   JoinedSelectStatement<HasResultSet, dynamic> _withNames(List<Join> extra) {
     final lots = attachedDatabase.lots;
     final laborTypes = attachedDatabase.laborTypes;

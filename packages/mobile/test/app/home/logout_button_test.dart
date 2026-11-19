@@ -57,6 +57,20 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
   });
 
+  testWidgets('con un solo pendiente usa el singular', (tester) async {
+    pending = 1;
+    await pumpButton(tester);
+
+    await tester.tap(find.byTooltip('Cerrar sesión'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Hay 1 registro sin sincronizar. Si cierra la sesión ahora, '
+          'se descartará y no se enviará.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('"Cancelar" cierra el aviso sin cerrar sesión', (tester) async {
     pending = 1;
     await pumpButton(tester);

@@ -48,11 +48,13 @@ void main() {
     expect(tasks.map((t) => t.displayLabel).toSet(), {'Pulverización · Lote N°4'});
   });
 
-  test('getById conserva lote y labor para heredar en el parte', () async {
+  test('getById conserva lote y labor (ids y nombres) para el parte', () async {
     final task = await reader.getById('task-1');
 
     expect(task!.lotId, 'lot-1');
     expect(task.laborTypeId, 'labor-1');
     expect(task.status, TaskStatus.IN_PROGRESS);
+    expect(task.lotName, 'Lote N°4');
+    expect(task.laborTypeName, 'Pulverización');
   });
 }

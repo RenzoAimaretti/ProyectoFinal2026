@@ -14,10 +14,15 @@ class DomainException implements Exception {
 }
 
 /// R009: el lote no tiene receta agronómica, por lo que no se puede cargar el
-/// parte diario.
+/// parte diario. El mensaje es para el operario: nombra el lote y nunca muestra
+/// su id; [lotId] queda para quien necesite identificarlo.
 class LotWithoutRecipeException extends DomainException {
-  LotWithoutRecipeException(String lotId)
-      : super('El lote $lotId no tiene una receta agronómica asociada');
+  LotWithoutRecipeException(this.lotId, {String? lotName})
+      : super(lotName != null && lotName.trim().isNotEmpty
+            ? '${lotName.trim()} no tiene una receta agronómica asociada'
+            : 'El lote de la tarea no tiene una receta agronómica asociada');
+
+  final String lotId;
 }
 
 /// La tarea referenciada al cargar un parte diario no existe.

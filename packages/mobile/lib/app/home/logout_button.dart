@@ -18,10 +18,7 @@ class LogoutButton extends StatelessWidget {
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: const Text('Datos sin sincronizar'),
-          content: Text(
-            'Hay ${e.pendingCount} registros sin sincronizar. Si cierra la '
-            'sesión ahora, se descartarán y no se enviarán.',
-          ),
+          content: Text(_pendingMessage(e.pendingCount)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -42,6 +39,12 @@ class LogoutButton extends StatelessWidget {
       }
     }
   }
+
+  static String _pendingMessage(int count) => count == 1
+      ? 'Hay 1 registro sin sincronizar. Si cierra la sesión ahora, se '
+          'descartará y no se enviará.'
+      : 'Hay $count registros sin sincronizar. Si cierra la sesión ahora, se '
+          'descartarán y no se enviarán.';
 
   @override
   Widget build(BuildContext context) {

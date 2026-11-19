@@ -24,12 +24,13 @@ void main() {
   });
 
   /// Siembra una tarea (id por defecto `task-1`, lote `lot-1`) y devuelve su id.
-  void seedTask({String id = 'task-1', String lotId = 'lot-1'}) {
+  void seedTask({String id = 'task-1', String lotId = 'lot-1', String? lotName}) {
     taskReader.seed(Task(
       id: id,
       lotId: lotId,
       laborTypeId: 'labor-1',
       status: TaskStatus.PENDING,
+      lotName: lotName,
     ));
   }
 
@@ -90,6 +91,48 @@ void main() {
           items: [],
         ),
         throwsA(isA<TaskNotFoundException>()),
+      );
+    });
+
+    test('R009: el mensaje nombra el lote, nunca su id', () async {
+      seedTask(lotId: '00000000-0000-4000-8000-000000000140', lotName: 'Lote N°1');
+
+      await expectLater(
+        sut.execute(
+          operatorId: 'op-1',
+          companyId: 'company-1',
+          taskId: 'task-1',
+          date: now,
+          hectares: 10.0,
+          hours: 8.0,
+          items: [],
+        ),
+        throwsA(isA<LotWithoutRecipeException>().having(
+          (e) => e.message,
+          'message',
+          'Lote N°1 no tiene una receta agronómica asociada',
+        )),
+      );
+    });
+
+    test('R009: sin nombre resuelto el mensaje tampoco muestra el id', () async {
+      seedTask(lotId: '00000000-0000-4000-8000-000000000140');
+
+      await expectLater(
+        sut.execute(
+          operatorId: 'op-1',
+          companyId: 'company-1',
+          taskId: 'task-1',
+          date: now,
+          hectares: 10.0,
+          hours: 8.0,
+          items: [],
+        ),
+        throwsA(isA<LotWithoutRecipeException>().having(
+          (e) => e.message,
+          'message',
+          'El lote de la tarea no tiene una receta agronómica asociada',
+        )),
       );
     });
 
