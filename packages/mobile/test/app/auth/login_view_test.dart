@@ -84,6 +84,22 @@ void main() {
       expect(find.text('Iniciar sesión'), findsOneWidget);
     });
 
+    testWidgets('el ojito muestra y oculta la contraseña', (tester) async {
+      await tester.pumpWidget(createTestableLoginView(viewModel));
+
+      TextField passwordField() =>
+          tester.widget<TextField>(find.byType(TextField).at(1));
+      expect(passwordField().obscureText, isTrue);
+
+      await tester.tap(find.byTooltip('Mostrar contraseña'));
+      await tester.pump();
+      expect(passwordField().obscureText, isFalse);
+
+      await tester.tap(find.byTooltip('Ocultar contraseña'));
+      await tester.pump();
+      expect(passwordField().obscureText, isTrue);
+    });
+
     testWidgets('debería mostrar errores de validación si se presiona el botón con campos vacíos', (tester) async {
       await tester.pumpWidget(createTestableLoginView(viewModel));
 
