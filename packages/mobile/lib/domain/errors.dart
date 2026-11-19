@@ -25,6 +25,14 @@ class LotWithoutRecipeException extends DomainException {
   final String lotId;
 }
 
+/// Parte diario sin insumos consumidos. El backend exige al menos uno: sin esta
+/// validación local el parte se guardaría, el envío fallaría con 4xx y quedaría
+/// FAILED sin llegar nunca.
+class DailyReportWithoutItemsException extends DomainException {
+  const DailyReportWithoutItemsException()
+      : super('El parte debe tener al menos un insumo consumido');
+}
+
 /// La tarea referenciada al cargar un parte diario no existe.
 class TaskNotFoundException extends DomainException {
   TaskNotFoundException(String taskId)

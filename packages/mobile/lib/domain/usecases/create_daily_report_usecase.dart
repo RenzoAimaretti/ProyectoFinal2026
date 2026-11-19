@@ -52,6 +52,11 @@ class CreateDailyReportUseCase {
       );
     }
 
+    // Al menos un insumo consumido (misma regla que el backend).
+    if (items.isEmpty) {
+      throw const DailyReportWithoutItemsException();
+    }
+
     // Cada ítem de consumo debe tener cantidad mayor a cero.
     for (final item in items) {
       if (item.quantity <= 0) {

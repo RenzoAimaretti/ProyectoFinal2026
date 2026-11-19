@@ -94,6 +94,29 @@ void main() {
       );
     });
 
+    test('sin insumos no se guarda (el backend exige al menos uno)', () async {
+      seedTask();
+      seedRecipe('lot-1');
+
+      await expectLater(
+        sut.execute(
+          operatorId: 'op-1',
+          companyId: 'company-1',
+          taskId: 'task-1',
+          date: now,
+          hectares: 10.0,
+          hours: 8.0,
+          items: [],
+        ),
+        throwsA(isA<DailyReportWithoutItemsException>().having(
+          (e) => e.message,
+          'message',
+          'El parte debe tener al menos un insumo consumido',
+        )),
+      );
+      expect(reportRepo.reports, isEmpty);
+    });
+
     test('R009: el mensaje nombra el lote, nunca su id', () async {
       seedTask(lotId: '00000000-0000-4000-8000-000000000140', lotName: 'Lote N°1');
 
