@@ -1,7 +1,7 @@
 import 'enums.dart';
 
-/// Tarea de labor (CUU08). Solo lectura en el móvil: llega por sync de tareas
-/// (Sprint 2) y no se crea desde el dominio.
+/// Tarea de labor (CUU08). Solo lectura en el móvil: llega por el pull del
+/// catálogo de campo y no se crea desde el dominio.
 ///
 /// `id` es nullable porque en el alta la genera la base (drift). `lotId`,
 /// `laborTypeId` y `status` son obligatorios; las fechas de inicio/fin y los

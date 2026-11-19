@@ -119,8 +119,44 @@ El móvil MUST mapear enums **EN→ES al enviar** y **ES→EN al recibir** en un
 - **THEN** se lee como `PENDING_APPROVAL`.
 - **AND** `PhotoEntityType` del backend tiene `ACTIVIDAD_MAQUINARIA`, valor extra que el móvil no modela y debe ignorar en el mapeo.
 
+### Área E — Down-sync del catálogo de campo (móvil + backend)
+
+*Agregada por `fix/mobile-catalog-down-sync` (2026-11-19).*
+
+#### Requirement: Foto completa del catálogo
+`GET /catalog/field` (JWT; ADMIN, SUPERVISOR, OPERARIO) MUST devolver en una sola lectura la firma del usuario, los clientes, campos, lotes, labores, categorías de insumo, insumos, vínculos labor↔categoría, máquinas de la firma, tareas con sus operarios y las recetas `ACTIVA` con sus ítems. Todo queda acotado al tenant del usuario (máquinas y firma: a su firma) y MUST excluir filas borradas y filas cuyo padre está borrado. El móvil MUST rechazar una respuesta a la que le falte alguna colección (no la interpreta como vacía).
+
+- **GIVEN** un operario con login real y conectividad
+- **WHEN** el móvil descarga el catálogo
+- **THEN** guarda insumos y recetas reales y puede cargar un parte de una tarea asignada sin `LotWithoutRecipeException` y con ids de insumo del backend.
+
+#### Requirement: Reconciliación autoritativa
+El móvil MUST aplicar el catálogo como foto autoritativa en una transacción: inserta o actualiza lo que viene y retira lo que ya no viene, salvo filas que un registro local todavía referencia (parte, recepción, stock, uso o actividad de máquina). Una tarea que ya no viene pierde sus operarios aunque se conserve, así deja de figurar como asignada.
+
+- **GIVEN** una tarea reasignada a otro operario en el backend
+- **WHEN** el móvil vuelve a descargar el catálogo
+- **THEN** la tarea desaparece de la lista del operario.
+- **GIVEN** un lote borrado en el backend que tiene un parte local
+- **WHEN** el móvil reconcilia
+- **THEN** el lote se conserva localmente para no romper el parte.
+
+#### Requirement: Disparadores y refresh del pull
+El móvil MUST descargar el catálogo al restaurar la sesión, al iniciar sesión, al volver la app a primer plano y al recuperar conectividad. Sin token (modo demo) no descarga nada. Ante un 401 MUST renovar el token una vez y reintentar; si vuelve a fallar, conserva la caché.
+
+#### Requirement: Datos demo solo en modo demo
+El catálogo ficticio MUST cargarse únicamente al entrar en modo demo, nunca al arrancar la app ni con una sesión real.
+
+#### Requirement: Cierre de sesión con datos sin sincronizar
+Al cerrar sesión, el móvil MUST borrar los datos de negocio locales (catálogo, registros y outbox) además de la sesión, para que el próximo usuario no herede datos ni envíos pendientes de otro. Si quedan registros sin sincronizar, MUST avisar cuántos hay y ofrecer "Descartar y salir"; sin esa confirmación no cierra la sesión.
+
+- **GIVEN** un operario con 3 registros sin sincronizar
+- **WHEN** toca "Cerrar sesión"
+- **THEN** ve el aviso "Hay 3 registros sin sincronizar" con "Cancelar" y "Descartar y salir".
+- **WHEN** elige "Descartar y salir"
+- **THEN** se borran los pendientes y el catálogo local, y la sesión se cierra.
+
 ## Pendientes / Fuera de alcance
 
 - Solo `DAILY_REPORT` cableado end-to-end. `RECEPTION`, `MACHINE_ACTIVITY`, `PHOTO` y `STOCK` existen en la cola pero **sin endpoint backend** este sprint.
-- Down-sync de catálogos (tasks/lots/inputs/recipes): change futuro.
+- Down-sync de catálogos: resuelto en el Área E. Las filas retiradas que siguen referenciadas quedan en el dispositivo (no se marcan `deleted`), y no hay pull incremental (`since`/`version`): cada pull es una foto completa.
 - No hay migración de enums del backend.

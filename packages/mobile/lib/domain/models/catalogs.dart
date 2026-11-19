@@ -1,7 +1,7 @@
 import 'enums.dart';
 
-/// Catálogos (solo lectura: se bajan por pull versionado, no se crean en el
-/// dominio). Llevan `version` + `deleted` para la sincronización por versión.
+/// Catálogos (solo lectura: llegan por el pull del catálogo de campo, no se
+/// crean en el dominio).
 ///
 /// `Recipe`/`RecipeItem` no son catálogos (pertenecen a producción), por eso
 /// NO tienen `version`/`deleted`; `Recipe.status` queda como texto (valores a

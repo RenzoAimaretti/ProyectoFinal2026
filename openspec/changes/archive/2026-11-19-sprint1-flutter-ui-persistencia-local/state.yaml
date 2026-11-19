@@ -1,7 +1,7 @@
 change: sprint1-flutter-ui-persistencia-local
-status: active
+status: archived
 artifact_store: openspec
-updated_at: 2026-08-26
+updated_at: 2026-11-19
 mode: auto
 branch: UI-PersistenciaLocal
 scope:
