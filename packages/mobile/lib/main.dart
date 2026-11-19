@@ -64,6 +64,7 @@ import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
 import 'domain/services/sync_engine.dart';
 import 'domain/usecases/register_machine_activity_usecase.dart';
+import 'domain/services/outbox_sync_trigger.dart';
 import 'domain/usecases/refresh_field_catalog_usecase.dart';
 import 'domain/usecases/register_machine_usage_usecase.dart';
 import 'domain/usecases/restore_session_usecase.dart';
@@ -110,6 +111,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   SyncEngine? _syncEngine;
   late final Connectivity _connectivity;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  StreamSubscription<int>? _outboxTriggerSubscription;
 
   /// Pendientes de sincronización (badge del dashboard).
   late final Stream<int> _pendingSyncCount;
@@ -164,6 +166,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     // Badge "pendientes de sincronización": el stream se construye en data
     // (SyncQueueDao) y se inyecta aquí; el badge solo recibe Stream<int>.
     _pendingSyncCount = _database.syncQueueDao.watchPendingCount();
+
+    // Sync al guardar: una fila nueva en el outbox dispara un ciclo (el gate
+    // de `_maybeRunSync` sigue exigiendo token y conectividad).
+    _outboxTriggerSubscription = OutboxSyncTrigger(
+      queuedRows: _database.syncQueueDao.watchQueuedCount(),
+      runSync: _maybeRunSync,
+    ).start();
 
     // Motor de sincronización (Sprint 2): composition root del outbox.
     _setupSyncEngine(authApiService, sessionRepository);
@@ -436,6 +445,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _connectivitySubscription?.cancel();
+    _outboxTriggerSubscription?.cancel();
     _loginViewModel.dispose();
     _dailyReportsViewModel.dispose();
     _machineActivitiesViewModel.dispose();
@@ -469,6 +479,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   /// "Descartar y salir".
   Future<void> _handleLogout({required bool discardPending}) async {
     await _logoutUseCase.execute(discardPending: discardPending);
+    // La tarjeta de clima no debe mostrarle al próximo usuario la lectura del
+    // anterior (el cache local ya lo borró el logout).
+    _weatherViewModel.reset();
     if (mounted) {
       setState(() => _session = null);
     }

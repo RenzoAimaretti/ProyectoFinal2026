@@ -82,6 +82,27 @@ void main() {
     expect(sut.isLoading, isFalse);
   });
 
+  test('reset olvida la lectura y el error del usuario anterior (logout)', () async {
+    repository.local = _reading(windSpeedKnots: 4.0, stale: true);
+    repository.remoteError = const SyncRetriableException('sin señal');
+    final sut = WeatherViewModel(
+      GetWeatherUseCase(repository),
+      resolveLocation: () async => const WeatherLocation(lotId: 'lot-1'),
+    );
+    await sut.load();
+    expect(sut.reading, isNotNull);
+    expect(sut.errorMessage, isNotNull);
+
+    var notified = false;
+    sut.addListener(() => notified = true);
+    sut.reset();
+
+    expect(sut.reading, isNull);
+    expect(sut.errorMessage, isNull);
+    expect(sut.hasLocation, isFalse);
+    expect(notified, isTrue);
+  });
+
   test('sin red conserva la lectura local y expone el motivo', () async {
     repository.local = _reading(windSpeedKnots: 4.0, stale: true);
     repository.remoteError = const SyncRetriableException('sin señal');
