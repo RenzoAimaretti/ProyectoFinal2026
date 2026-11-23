@@ -27,6 +27,15 @@ class SyncQueueDao extends DatabaseAccessor<AppDatabase>
         .watchSingle();
   }
 
+  /// Cantidad total de filas del outbox, en cualquier estado. Solo sube cuando
+  /// se encola una fila nueva (dispara el sync al guardar).
+  Stream<int> watchQueuedCount() {
+    final countExp = syncQueue.id.count();
+    return (selectOnly(syncQueue)..addColumns([countExp]))
+        .map((row) => row.read(countExp) ?? 0)
+        .watchSingle();
+  }
+
   // ─── Motor de sincronización (Sprint 2) ─────────────────────────────────────
 
   /// Próximas filas `PENDING` en orden FIFO (`createdAt` ascendente).

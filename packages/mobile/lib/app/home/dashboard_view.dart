@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../domain/models/catalogs.dart';
 import '../../domain/models/session.dart';
 import '../../domain/models/task.dart';
+import '../../domain/models/weather_reading.dart';
 import '../../presentation/components/badges/sync_pending_badge.dart';
 import '../../presentation/components/selectors/multi_firma_selector.dart';
 import '../machinery/machine_activities_view.dart';
@@ -24,6 +25,8 @@ import '../reports/daily_reports_view.dart';
 import '../reports/daily_reports_view_model.dart';
 import '../tasks/tasks_view.dart';
 import '../tasks/tasks_view_model.dart';
+import 'logout_button.dart';
+import 'weather_view_model.dart';
 
 /// Dashboard principal post-login: navegación inferior a los 4 módulos
 /// (Tareas, Partes, Recepciones, Maquinaria). Los cuatro módulos están
@@ -51,6 +54,7 @@ class DashboardView extends StatefulWidget {
     required this.receptionFormViewModel,
     required this.machineActivitiesViewModel,
     required this.machineActivityFormViewModel,
+    required this.weatherViewModel,
     required this.machineUsageFormViewModel,
   });
 
@@ -66,7 +70,7 @@ class DashboardView extends StatefulWidget {
   /// Cantidad de operaciones pendientes de sincronización (`SyncQueue`).
   final Stream<int> pendingSyncCount;
 
-  final VoidCallback onLogout;
+  final Future<void> Function({required bool discardPending}) onLogout;
 
   final TasksViewModel tasksViewModel;
   final DailyReportsViewModel dailyReportsViewModel;
@@ -77,12 +81,25 @@ class DashboardView extends StatefulWidget {
   final MachineActivityFormViewModel machineActivityFormViewModel;
   final MachineUsageFormViewModel machineUsageFormViewModel;
 
+  /// Tarjeta de clima/viento (spec A12). El cableado vive en `main.dart`.
+  final WeatherViewModel weatherViewModel;
+
   @override
   State<DashboardView> createState() => _DashboardViewState();
 }
 
+/// Pestaña principal (Tareas): la única que muestra la tarjeta de clima.
+const _homeTabIndex = 0;
+
 class _DashboardViewState extends State<DashboardView> {
-  int _selectedIndex = 0;
+  int _selectedIndex = _homeTabIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    // Cache-first: publica la última lectura local y refresca si hay red.
+    unawaited(widget.weatherViewModel.load());
+  }
 
   void _showComingSoon() {
     ScaffoldMessenger.of(context)
@@ -220,6 +237,19 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
+  /// Tarjeta de clima y viento (spec A12): siempre visible en el dashboard,
+  /// arriba del contenido de cada pestaña.
+  Widget _buildWeatherCard() {
+    return ListenableBuilder(
+      listenable: widget.weatherViewModel,
+      builder: (context, _) => WeatherCard(
+        reading: widget.weatherViewModel.reading,
+        isLoading: widget.weatherViewModel.isLoading,
+        errorMessage: widget.weatherViewModel.errorMessage,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -236,17 +266,16 @@ class _DashboardViewState extends State<DashboardView> {
         actions: [
           SyncPendingBadge(pendingCount: widget.pendingSyncCount),
           const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Cerrar sesión',
-            onPressed: widget.onLogout,
-          ),
+          LogoutButton(onLogout: widget.onLogout),
           const SizedBox(width: 4),
         ],
       ),
       body: Column(
         children: [
           _buildFirmSelector(),
+          // El clima es contexto de la pantalla principal; en Partes,
+          // Recepciones y Maquinaria solo quitaría espacio a la lista.
+          if (_selectedIndex == _homeTabIndex) _buildWeatherCard(),
           Expanded(
             child: IndexedStack(
               index: _selectedIndex,
@@ -300,6 +329,142 @@ class _DashboardViewState extends State<DashboardView> {
       ),
     );
   }
+}
+
+/// Tarjeta de clima y viento (spec A12): velocidad del viento en nudos,
+/// dirección y timestamp de la lectura. Nunca presenta un valor degradado como
+/// fresco: si el backend marca `stale`, lo advierte.
+class WeatherCard extends StatelessWidget {
+  const WeatherCard({
+    super.key,
+    required this.reading,
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  /// Última lectura conocida (local o remota). `null` = sin datos todavía.
+  final WeatherReading? reading;
+  final bool isLoading;
+  final String? errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    final current = reading;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.cloud_outlined,
+                size: 20,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Clima y viento',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurface,
+                ),
+              ),
+              const Spacer(),
+              if (isLoading)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
+                ),
+            ],
+          ),
+          if (current == null)
+            const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text(
+                'Sin datos de clima',
+                style: TextStyle(color: AppColors.onSurfaceVariant),
+              ),
+            )
+          else ...[
+            const SizedBox(height: 8),
+            Text(
+              '${current.temperatureC.toStringAsFixed(1)} °C',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.onSurface,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Text(
+                  '${current.windSpeedKnots.toStringAsFixed(1)} kn',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '${current.windDirectionDeg.toStringAsFixed(0)}°',
+                  style: const TextStyle(color: AppColors.onSurfaceVariant),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Actualizado ${formatWeatherTimestamp(current.fetchedAt)}',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+            if (current.stale)
+              const Padding(
+                padding: EdgeInsets.only(top: 6),
+                child: Text(
+                  'Dato desactualizado',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.pending,
+                  ),
+                ),
+              ),
+          ],
+          if (errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                errorMessage!,
+                style: const TextStyle(fontSize: 12, color: AppColors.offline),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Timestamp de la lectura en hora local, formato `dd/MM HH:mm`.
+String formatWeatherTimestamp(DateTime value) {
+  final local = value.toLocal();
+  String two(int number) => number.toString().padLeft(2, '0');
+  return '${two(local.day)}/${two(local.month)} '
+      '${two(local.hour)}:${two(local.minute)}';
 }
 
 /// Paleta de colores de avatar para el selector global de firmas (ciclada por

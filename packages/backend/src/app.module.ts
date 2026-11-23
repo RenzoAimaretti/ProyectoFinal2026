@@ -28,6 +28,9 @@ import { MachineReportModule } from './entities/machine-report/machine-report.mo
 import { FieldCatalogModule } from './entities/field-catalog/field-catalog.module';
 import { AuthModule } from './auth/auth.module';
 import { RbacModule } from './auth/rbac.module';
+import { WeatherModule } from './integrations/weather/weather.module';
+import { ExchangeRateModule } from './integrations/exchange-rate/exchange-rate.module';
+import { GrainPriceModule } from './integrations/grain-price/grain-price.module';
 
 @Module({
   imports: [
@@ -60,6 +63,9 @@ import { RbacModule } from './auth/rbac.module';
     MaintenanceThresholdModule,
     MachineModule,
     MachineUsageModule,
+    WeatherModule,
+    ExchangeRateModule,
+    GrainPriceModule,
     MachineReportModule,
     FieldCatalogModule,
   ],

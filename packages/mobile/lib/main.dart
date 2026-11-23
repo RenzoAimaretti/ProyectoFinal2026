@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'app/auth/login_view.dart';
 import 'app/auth/login_view_model.dart';
 import 'app/home/dashboard_view.dart';
+import 'app/home/weather_view_model.dart';
 import 'app/machinery/machine_activities_view_model.dart';
 import 'app/machinery/machine_activity_form_view_model.dart';
 import 'app/machinery/machine_usage_form_view_model.dart';
@@ -28,25 +29,32 @@ import 'data/repositories/drift_session_repository.dart';
 import 'data/repositories/drift_sync_queue_store.dart';
 import 'data/repositories/machine_usage_sync_handler.dart';
 import 'data/repositories/drift_task_reader.dart';
+import 'data/repositories/drift_weather_cache_repository.dart';
 import 'data/repositories/flutter_sync_delayer.dart';
 import 'data/repositories/http_auth_repository.dart';
 import 'data/repositories/http_daily_report_repository.dart';
+import 'data/repositories/http_weather_repository.dart';
 import 'data/repositories/http_machine_usage_repository.dart';
 import 'data/repositories/path_provider_photo_storage_repository.dart';
 import 'data/repositories/sync_queue_writer.dart';
 import 'data/repositories/token_refresher.dart';
 import 'data/services/app_database.dart';
 import 'data/services/auth_api_service.dart';
-import 'data/services/catalog_seeder.dart';
+import 'data/repositories/drift_local_data_repository.dart';
 import 'data/services/field_catalog_api_service.dart';
 import 'data/services/photo_picker_service.dart';
+import 'data/services/weather_api_service.dart';
 import 'domain/models/catalogs.dart' as domain;
 import 'domain/models/session.dart';
+import 'domain/repositories/session_repository.dart';
+import 'domain/repositories/task_reader.dart';
+import 'domain/repositories/weather_repository.dart';
 import 'domain/usecases/add_photo_usecase.dart';
 import 'domain/usecases/create_daily_report_usecase.dart';
 import 'domain/usecases/create_reception_usecase.dart';
 import 'domain/usecases/delete_photo_usecase.dart';
 import 'domain/usecases/demo_login_usecase.dart';
+import 'domain/usecases/get_weather_usecase.dart';
 import 'domain/usecases/list_assigned_tasks_usecase.dart';
 import 'domain/usecases/list_daily_reports_usecase.dart';
 import 'domain/usecases/list_machine_activities_usecase.dart';
@@ -56,6 +64,7 @@ import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
 import 'domain/services/sync_engine.dart';
 import 'domain/usecases/register_machine_activity_usecase.dart';
+import 'domain/services/outbox_sync_trigger.dart';
 import 'domain/usecases/refresh_field_catalog_usecase.dart';
 import 'domain/usecases/register_machine_usage_usecase.dart';
 import 'domain/usecases/restore_session_usecase.dart';
@@ -91,6 +100,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final ReceptionFormViewModel _receptionFormViewModel;
   late final MachineActivitiesViewModel _machineActivitiesViewModel;
   late final MachineActivityFormViewModel _machineActivityFormViewModel;
+  late final WeatherViewModel _weatherViewModel;
   late final MachineUsageFormViewModel _machineUsageFormViewModel;
   late final RestoreSessionUseCase _restoreSessionUseCase;
 
@@ -101,6 +111,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   SyncEngine? _syncEngine;
   late final Connectivity _connectivity;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  StreamSubscription<int>? _outboxTriggerSubscription;
 
   /// Pendientes de sincronización (badge del dashboard).
   late final Stream<int> _pendingSyncCount;
@@ -133,8 +144,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _sessionRepository = sessionRepository;
 
     final loginUseCase = LoginUseCase(authRepository, sessionRepository);
-    final demoLoginUseCase = DemoLoginUseCase(sessionRepository);
-    _logoutUseCase = LogoutUseCase(authRepository, sessionRepository);
+    final demoLoginUseCase = DemoLoginUseCase(
+      sessionRepository,
+      DriftDemoCatalogSeeder(_database),
+    );
+    _logoutUseCase = LogoutUseCase(
+      authRepository,
+      sessionRepository,
+      DriftLocalDataRepository(_database),
+    );
     _loginViewModel = LoginViewModel(
       loginUseCase: loginUseCase,
       demoLoginUseCase: demoLoginUseCase,
@@ -145,23 +163,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _restoreSessionUseCase = RestoreSessionUseCase(sessionRepository);
     unawaited(_restoreSession());
 
-    // Seed de catálogos de desarrollo (idempotente, best-effort).
-    unawaited(_seedCatalogs());
-
     // Badge "pendientes de sincronización": el stream se construye en data
     // (SyncQueueDao) y se inyecta aquí; el badge solo recibe Stream<int>.
     _pendingSyncCount = _database.syncQueueDao.watchPendingCount();
 
+    // Sync al guardar: una fila nueva en el outbox dispara un ciclo (el gate
+    // de `_maybeRunSync` sigue exigiendo token y conectividad).
+    _outboxTriggerSubscription = OutboxSyncTrigger(
+      queuedRows: _database.syncQueueDao.watchQueuedCount(),
+      runSync: _maybeRunSync,
+    ).start();
+
     // Motor de sincronización (Sprint 2): composition root del outbox.
     _setupSyncEngine(authApiService, sessionRepository);
 
-    // Gate/trigger de conectividad: dispara un ciclo al recuperar señal. La
-    // conectividad es heurística de trigger; la sonda real es el intento HTTP.
+    // Gate/trigger de conectividad: al recuperar señal dispara un ciclo de push
+    // y un pull del catálogo. La conectividad es heurística de trigger; la
+    // sonda real es el intento HTTP.
     _connectivity = Connectivity();
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
       (results) {
         if (results.any((r) => r != ConnectivityResult.none)) {
           unawaited(_maybeRunSync());
+          unawaited(_refreshFieldCatalog());
         }
       },
       onError: (Object _) {
@@ -190,6 +214,25 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final taskReader = DriftTaskReader(_database);
     final listAssignedTasksUseCase = ListAssignedTasksUseCase(taskReader);
     _tasksViewModel = TasksViewModel(listAssignedTasksUseCase, taskReader);
+
+    // Clima y viento (spec A12): servicio HTTP → cache drift → repositorio →
+    // use case → ViewModel. Los widgets NO instancian nada de esto.
+    final weatherApiService = WeatherApiService();
+    final weatherCache = DriftWeatherCacheRepository(_database);
+    final weatherRepository = HttpWeatherRepository(
+      apiService: weatherApiService,
+      cache: weatherCache,
+      sessionRepository: sessionRepository,
+    );
+    final getWeatherUseCase = GetWeatherUseCase(weatherRepository);
+    _weatherViewModel = WeatherViewModel(
+      getWeatherUseCase,
+      resolveLocation: () => _resolveWeatherLocation(
+        taskReader,
+        sessionRepository,
+        weatherRepository,
+      ),
+    );
 
     // Selector global de firma (post-login): stream de razones sociales reales.
     _companies = companyReader.watchAll();
@@ -267,10 +310,45 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
 
     _refreshFieldCatalogUseCase = RefreshFieldCatalogUseCase(
-      apiService: FieldCatalogApiService(),
-      cache: DriftFieldCatalogRepository(_database),
+      source: FieldCatalogApiService(),
+      store: DriftFieldCatalogRepository(_database),
       sessionRepository: sessionRepository,
+      tokenRefresher: TokenRefresher(authApiService, sessionRepository),
     );
+  }
+
+  /// Resuelve la ubicación con la que se pide el clima (spec A12).
+  ///
+  /// El móvil no tiene GPS ni lote seleccionado: se usa el lote de la primera
+  /// tarea asignada al operario. Las tareas locales todavía salen del seed demo
+  /// (el down-sync de catálogos quedó fuera del Sprint 2), así que sin tareas
+  /// se cae al primer lote con coordenadas del backend, igual que el dashboard
+  /// web. Si nada resuelve, devuelve `null` y la tarjeta queda con el cache
+  /// local.
+  Future<WeatherLocation?> _resolveWeatherLocation(
+    TaskReader taskReader,
+    SessionRepository sessionRepository,
+    WeatherRepository weatherRepository,
+  ) async {
+    try {
+      final session = await sessionRepository.current();
+      if (session == null) return null;
+      final tasks = await taskReader.watchAssignedTo(session.userId).first;
+      for (final task in tasks) {
+        if (task.lotId.isNotEmpty) {
+          return WeatherLocation(lotId: task.lotId);
+        }
+      }
+    } catch (_) {
+      // Sin tareas locales o sin plugin de plataforma: probar el backend.
+    }
+    try {
+      final lotId = await weatherRepository.defaultLotId();
+      if (lotId != null) return WeatherLocation(lotId: lotId);
+    } catch (_) {
+      // Sin red o sin sesión: la tarjeta queda con el cache local.
+    }
+    return null;
   }
 
   /// Composition root del motor de sincronización (Sprint 2).
@@ -334,16 +412,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  /// Siembra las tablas de catálogo vacías. Corre en background y se traga el
-  /// error: el seed no debe impedir el arranque de la app.
-  Future<void> _seedCatalogs() async {
-    try {
-      await CatalogSeeder.seedIfEmpty(_database);
-    } catch (e) {
-      debugPrint('Seed de catálogos falló: $e');
-    }
-  }
-
   /// Restaura la sesión local al arranque (CUU00). Al resolver desactiva
   /// `_restoringSession` para que `build` pase de la pantalla de carga a
   /// login (sin sesión) o al dashboard (con sesión).
@@ -377,12 +445,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _connectivitySubscription?.cancel();
+    _outboxTriggerSubscription?.cancel();
     _loginViewModel.dispose();
     _dailyReportsViewModel.dispose();
     _machineActivitiesViewModel.dispose();
     _dailyReportFormViewModel.dispose();
     _receptionFormViewModel.dispose();
     _machineActivityFormViewModel.dispose();
+    _weatherViewModel.dispose();
     _machineUsageFormViewModel.dispose();
     if (widget.database == null) {
       _database.close();
@@ -404,9 +474,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     unawaited(_sessionRepository.save(updated));
   }
 
-  /// Logout: revocación remota best-effort + limpieza de la sesión local.
-  Future<void> _handleLogout() async {
-    await _logoutUseCase.execute();
+  /// Logout (CUU00): con pendientes sin confirmar el use case lanza
+  /// `PendingSyncOnLogoutException`, que `LogoutButton` convierte en el aviso
+  /// "Descartar y salir".
+  Future<void> _handleLogout({required bool discardPending}) async {
+    await _logoutUseCase.execute(discardPending: discardPending);
+    // La tarjeta de clima no debe mostrarle al próximo usuario la lectura del
+    // anterior (el cache local ya lo borró el logout).
+    _weatherViewModel.reset();
     if (mounted) {
       setState(() => _session = null);
     }
@@ -436,6 +511,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       receptionFormViewModel: _receptionFormViewModel,
                       machineActivitiesViewModel: _machineActivitiesViewModel,
                       machineActivityFormViewModel: _machineActivityFormViewModel,
+                      weatherViewModel: _weatherViewModel,
                       machineUsageFormViewModel: _machineUsageFormViewModel,
                     )
                   : LoginView(

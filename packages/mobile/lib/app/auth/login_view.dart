@@ -124,6 +124,10 @@ class LoginView extends StatelessWidget {
                       suffixIcon: viewModel.obscurePassword
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
+                      suffixTooltip: viewModel.obscurePassword
+                          ? 'Mostrar contraseña'
+                          : 'Ocultar contraseña',
+                      onSuffixTap: viewModel.toggleObscurePassword,
                       errorText: viewModel.passwordError,
                       enabled: !viewModel.isLoading,
                       onChanged: viewModel.setPassword,

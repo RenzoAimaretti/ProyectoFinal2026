@@ -58,10 +58,8 @@ export function useInView<T extends Element = HTMLDivElement>(
   const reduced = usePrefersReducedMotion();
 
   useEffect(() => {
-    if (reduced) {
-      setInView(true);
-      return;
-    }
+    // Reduced motion is handled at render time (see return), not via state.
+    if (reduced) return;
     const el = ref.current;
     if (!el || typeof IntersectionObserver === "undefined") {
       setInView(true);
@@ -82,7 +80,7 @@ export function useInView<T extends Element = HTMLDivElement>(
     return () => observer.disconnect();
   }, [reduced, rootMargin, threshold]);
 
-  return { ref, inView };
+  return { ref, inView: reduced || inView };
 }
 
 export type RevealProps = {

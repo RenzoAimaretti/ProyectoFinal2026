@@ -4,8 +4,9 @@ import 'enum_converters.dart';
 
 /// Mappers fila drift → modelo de dominio para los catálogos y recetas.
 ///
-/// Los catálogos son de SOLO LECTURA en el móvil (se bajan por pull versionado
-/// en Sprint 2), por lo que solo se provee `toDomain()`; no hay `fromDomain`.
+/// Los catálogos son de SOLO LECTURA en el móvil (llegan por el pull del
+/// catálogo de campo), por lo que solo se provee `toDomain()`; no hay
+/// `fromDomain`.
 
 extension CompanyRowMapper on Company {
   domain.Company toDomain() => domain.Company(

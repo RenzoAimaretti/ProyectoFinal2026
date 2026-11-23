@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/domain/errors.dart';
 import 'package:mobile/domain/models/enums.dart';
 import 'package:mobile/domain/models/session.dart';
 import 'package:mobile/domain/usecases/logout_usecase.dart';
@@ -8,12 +9,14 @@ import 'fakes.dart';
 void main() {
   late FakeAuthRepository authRepository;
   late FakeSessionRepository sessionRepository;
+  late FakeLocalDataRepository localData;
   late LogoutUseCase sut;
 
   setUp(() {
     authRepository = FakeAuthRepository();
     sessionRepository = FakeSessionRepository();
-    sut = LogoutUseCase(authRepository, sessionRepository);
+    localData = FakeLocalDataRepository();
+    sut = LogoutUseCase(authRepository, sessionRepository, localData);
   });
 
   test('logout revoca token remoto y limpia sesión local', () async {
@@ -46,6 +49,36 @@ void main() {
     await sut.execute();
 
     expect(authRepository.logoutRefreshToken, 'ref-token');
+    expect(sessionRepository.clearCalled, isTrue);
+  });
+
+  test('sin pendientes limpia también los datos locales del usuario', () async {
+    await sut.execute();
+
+    expect(localData.clearAllCalled, isTrue);
+    expect(sessionRepository.clearCalled, isTrue);
+  });
+
+  test('con pendientes y sin confirmar descarte: avisa cuántos hay y no toca nada', () async {
+    localData.pending = 3;
+
+    await expectLater(
+      sut.execute(),
+      throwsA(isA<PendingSyncOnLogoutException>()
+          .having((e) => e.pendingCount, 'pendingCount', 3)),
+    );
+    expect(authRepository.logoutCalled, isFalse);
+    expect(localData.clearAllCalled, isFalse);
+    expect(sessionRepository.clearCalled, isFalse);
+  });
+
+  test('con pendientes y descarte confirmado: borra pendientes y catálogo y cierra sesión', () async {
+    localData.pending = 3;
+
+    await sut.execute(discardPending: true);
+
+    expect(authRepository.logoutCalled, isTrue);
+    expect(localData.clearAllCalled, isTrue);
     expect(sessionRepository.clearCalled, isTrue);
   });
 }
