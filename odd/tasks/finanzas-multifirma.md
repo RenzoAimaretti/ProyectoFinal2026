@@ -71,8 +71,9 @@ Decisión del cliente: `Company` es la firma; cada Company lleva su propia conta
 | T5 | eCheqs: registro emitido/recibido, fecha de acreditación/débito, conciliación y bandeja de pendientes | S4, S6 | inline | 1abf645 |
 | T6 | UI Next.js `/dashboard/finanzas`: vistas de facturas, cheques y bandeja de eCheqs con conciliar/rechazar (slice de lectura + acciones) | S1, S3, S4 | inline | 8befb93 |
 | T6b | UI Next.js: formularios de alta de factura y de cheque | S1, S3 | inline | 89478db |
-| T6c | Sección de cobros en la UI | S2 | blocked: depende de T3 | — |
+| T6c | Sección de cobros en la UI | S2, S5 | inline | 024dd79 |
 | T7 | Picker de tarea para los conceptos de factura (hoy se ingresa por id) | S1 | pending | — |
+| T8 | Vincular cheque/eCheq a un cobro con validación de firma y de método | S3, S4, S6 | inline | 484ac99 |
 
 ## Fuera de alcance
 
@@ -131,4 +132,4 @@ La verificación independiente encontró **dos defectos reales**, ambos corregid
 1. **Concurrencia (S2)**: bajo `READ COMMITTED` dos cobros simultáneos agregaban sin verse, los dos quedaban cortos y la factura quedaba `EMITIDA` con el total cubierto. Cerrado con `SELECT ... FOR UPDATE` sobre la fila de la factura dentro de la transacción. **Reproducido y probado contra PostgreSQL**: con lock, dos corridas terminan `COBRADA` con 110 cobrados sobre 100; sin lock (copia del adapter sin la línea), una corrida termina `EMITIDA` con 110 cobrados. Control negativo incluido, no solo el caso feliz.
 2. **Cotización vieja (S5)**: el caché devuelve la cotización previa marcada `stale` cuando el proveedor falla, y el cobro la persistía como si fuera la del día. Ahora `stale` se descarta y queda `null` explícito. Test agregado.
 
-**L15 — Decisión de producto pendiente de confirmación.** Política adoptada ante caída del proveedor de cotización: el cobro se registra igual con `usdRate = null`, en vez de rechazarse. Razón: perder el registro de plata que entró por una API caída es peor que un campo vacío explícito. La alternativa dura (rechazar el cobro) queda a un cambio de una línea si el cliente prefiere lo contrario.
+**L15 — Decisión de producto pendiente de confirmación.** Política adoptada ante caída del proveedor de cotización: el cobro se registra igual con `usdRate = null`, en vez de rechazarse. Razón: perder el registro de plata que entró por una API caída es peor que un campo vacío explícito. **L16 — T8 y T6c cerrados (`484ac99`, `024dd79`).** El guard de `paymentId` en cheque y eCheq se reemplazó por validación real: el pago tiene que existir dentro de la firma y el método tiene que corresponder (cheque→`CHEQUE`, eCheq→`ECHEQ`). Cada módulo tiene su propio port de lectura de pagos con adapter Prisma scopeado por `companyId`; ninguno importa las entrañas del módulo `payment`. En la UI, la sección de cobros lista con filtro por tipo y muestra `usdRate` nulo como **"sin cotización"**, para no fingir un dato que no existe. Verificado: build verde, eslint limpio, **155 suites / 1442 tests**, y build de Next.js con `/dashboard/finanzas` prerenderizada.
