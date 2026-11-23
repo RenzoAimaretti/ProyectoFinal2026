@@ -530,6 +530,8 @@ export const PaymentScalarFieldEnum = {
   method: 'method',
   amount: 'amount',
   date: 'date',
+  usdRate: 'usdRate',
+  usdRateDate: 'usdRateDate',
   notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

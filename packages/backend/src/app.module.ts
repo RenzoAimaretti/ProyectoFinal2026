@@ -6,6 +6,7 @@ import { InputCategoryModule } from './entities/input-category/input-category.mo
 import { RecipeModule } from './entities/recipe/recipe.module';
 import { DailyReportModule } from './entities/daily-report/daily-report.module';
 import { InvoiceModule } from './entities/invoice/invoice.module';
+import { PaymentModule } from './entities/payment/payment.module';
 import { ChequeModule } from './entities/cheque/cheque.module';
 import { EcheqModule } from './entities/echeq/echeq.module';
 import { ReceptionModule } from './entities/reception/reception.module';
@@ -43,6 +44,7 @@ import { GrainPriceModule } from './integrations/grain-price/grain-price.module'
     RecipeModule,
     DailyReportModule,
     InvoiceModule,
+    PaymentModule,
     ChequeModule,
     EcheqModule,
     ReceptionModule,
