@@ -189,3 +189,8 @@ export type WeightRecord = Prisma.WeightRecordModel
  * 
  */
 export type LivestockMovement = Prisma.LivestockMovementModel
+/**
+ * Model Tariff
+ * 
+ */
+export type Tariff = Prisma.TariffModel

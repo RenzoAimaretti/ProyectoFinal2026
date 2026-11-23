@@ -10,41 +10,41 @@
 
 ### 1.A Migración y esquema
 
-- [ ] 1.1 `prisma/schema.prisma`: agregar enums `MoneyUnit`, `Grain`, `TariffBasis`, `UsdRateType` y el modelo `Tariff` con `@@unique([companyId, laborTypeId])` y relaciones inversas en `Company` y `LaborType` (design §2.3, spec R-FIN-01/02).
-- [ ] 1.2 Escribir a mano la migración aditiva `prisma/migrations/<ts>_add_finance_valuation_and_expenses/migration.sql` con la **parte de U1** (`CREATE TYPE` de los cuatro enums, `CREATE TABLE "Tariff"`, índice único, FKs, `CHECK ("priceUnit" = 'KG_CEREAL') = ("priceGrain" IS NOT NULL)` y análogo para costo, montos `>= 0`). Timestamp redondo posterior a `20261019090000_add_machine_type_and_thresholds` (design §2.3/§5, T9).
+- [x] 1.1 `prisma/schema.prisma`: agregar enums `MoneyUnit`, `Grain`, `TariffBasis`, `UsdRateType` y el modelo `Tariff` con `@@unique([companyId, laborTypeId])` y relaciones inversas en `Company` y `LaborType` (design §2.3, spec R-FIN-01/02).
+- [x] 1.2 Escribir a mano la migración aditiva `prisma/migrations/20261123090000_add_tariffs/migration.sql`, propia de esta unidad (una migración **por unidad**: editar una migración ya aplicada rompe su checksum en Prisma) (`CREATE TYPE` de los cuatro enums, `CREATE TABLE "Tariff"`, índice único, FKs, `CHECK ("priceUnit" = 'KG_CEREAL') = ("priceGrain" IS NOT NULL)` y análogo para costo, montos `>= 0`). Timestamp redondo posterior a `20261019090000_add_machine_type_and_thresholds` (design §2.3/§5, T9).
 
 ### 1.B Núcleo de valuación (dominio y aplicación)
 
-- [ ] 1.3 `src/entities/valuation/domain/decimal.ts`: tipo `Dec` inmutable sobre `BigInt` (`parse`, `add`, `sub`, `mul`, `div`, `roundHalfUp`, `toString`), sin imports de Prisma (design §2.1, T1).
-- [ ] 1.4 `src/entities/valuation/domain/money.ts`: `Money`, `MoneyUnit`, `Grain` y `assertValidMoney` (grano obligatorio solo en `KG_CEREAL`, monto `>= 0`, 0 permitido) (spec R-FIN-02).
-- [ ] 1.5 `src/entities/valuation/domain/valuation-rate-policy.ts`: `UsdRateType` y la constante única `VALUATION_USD_RATE_TYPE = 'OFICIAL_VENTA'`; función `usdRateFor(market)` que lee el campo según la política (design §2.2, D5/T2).
-- [ ] 1.6 `src/entities/valuation/domain/valuation.rules.ts`: `toArs(money, market)` (ARS, USD×tasa, kg×precio/1000, `null` si falta dato, redondeo a 2 decimales) (spec R-FIN-03).
-- [ ] 1.7 `src/entities/valuation/domain/errors.ts` y `application/ports/market-price.port.ts` (`MARKET_PRICE`, `MarketPricePort`, `MarketSnapshot`) (design §2.2).
-- [ ] 1.8 `src/entities/valuation/application/use-cases/value-money.use-case.ts` (`ValueMoneyUseCase`: monto → ARS con registro de precio/tasa, fuente y tipo de tasa) y `get-market-snapshot.use-case.ts` (un snapshot de precios con `need`) (design §2.2/§2.8).
-- [ ] 1.9 `src/entities/valuation/adapters/outbound/integrations-market-price.adapter.ts`: implementa `MarketPricePort` inyectando `GetGrainPricesUseCase` y `GetUsdOfficialUseCase`; un error `Upstream*` de un componente produce `null` en ese componente; consulta solo lo requerido (design §2.2, T4).
-- [ ] 1.10 `src/entities/valuation/valuation.module.ts`: composition root (`useFactory` + tokens `Symbol`); importa `PrismaModule`, `GrainPriceModule` y `ExchangeRateModule`; exporta `ValueMoneyUseCase` y `GetMarketSnapshotUseCase` (por ahora).
+- [x] 1.3 `src/entities/valuation/domain/decimal.ts`: tipo `Dec` inmutable sobre `BigInt` (`parse`, `add`, `sub`, `mul`, `div`, `roundHalfUp`, `toString`), sin imports de Prisma (design §2.1, T1).
+- [x] 1.4 `src/entities/valuation/domain/money.ts`: `Money`, `MoneyUnit`, `Grain` y `assertValidMoney` (grano obligatorio solo en `KG_CEREAL`, monto `>= 0`, 0 permitido) (spec R-FIN-02).
+- [x] 1.5 `src/entities/valuation/domain/valuation-rate-policy.ts`: `UsdRateType` y la constante única `VALUATION_USD_RATE_TYPE = 'OFICIAL_VENTA'`; función `usdRateFor(market)` que lee el campo según la política (design §2.2, D5/T2).
+- [x] 1.6 `src/entities/valuation/domain/valuation.rules.ts`: `toArs(money, market)` (ARS, USD×tasa, kg×precio/1000, `null` si falta dato, redondeo a 2 decimales) (spec R-FIN-03).
+- [x] 1.7 `src/entities/valuation/domain/errors.ts` y `application/ports/market-price.port.ts` (`MARKET_PRICE`, `MarketPricePort`, `MarketSnapshot`) (design §2.2).
+- [x] 1.8 `src/entities/valuation/application/use-cases/value-money.use-case.ts` (`ValueMoneyUseCase`: monto → ARS con registro de precio/tasa, fuente y tipo de tasa) y `get-market-snapshot.use-case.ts` (un snapshot de precios con `need`) (design §2.2/§2.8).
+- [x] 1.9 `src/entities/valuation/adapters/outbound/integrations-market-price.adapter.ts`: implementa `MarketPricePort` inyectando `GetGrainPricesUseCase` y `GetUsdOfficialUseCase`; un error `Upstream*` de un componente produce `null` en ese componente; consulta solo lo requerido (design §2.2, T4).
+- [x] 1.10 `src/entities/valuation/valuation.module.ts`: composition root (`useFactory` + tokens `Symbol`); importa `PrismaModule`, `GrainPriceModule` y `ExchangeRateModule`; exporta `ValueMoneyUseCase` y `GetMarketSnapshotUseCase` (por ahora).
 
 ### 1.C Módulo `tariff`
 
-- [ ] 1.11 `src/entities/tariff/domain/`: validación de tarifa (precio y costo obligatorios, bases `POR_HECTAREA`/`POR_HORA`, monedas con `assertValidMoney`), `errors.ts` (spec R-FIN-01/02).
-- [ ] 1.12 `src/entities/tariff/application/`: puertos (`TariffRepositoryPort`, `LaborTypeReaderPort` del tenant, `MoneyValuationPort`, `ClockPort`) y casos de uso `UpsertTariffUseCase` (upsert por par firma+labor, `updatedBy`), `DeleteTariffUseCase`, `FindTariffsUseCase`, `GetTariffKgEquivalentsUseCase` (design §2.8, spec R-FIN-04).
-- [ ] 1.13 `src/entities/tariff/adapters/outbound/`: `PrismaTariffRepository` (mapeo `Decimal`↔string), `PrismaLaborTypeReader` (labor del **tenant** del caller), adapter de `MoneyValuationPort` sobre `ValueMoneyUseCase`.
-- [ ] 1.14 `src/entities/tariff/adapters/inbound/tariff.controller.ts`: `GET /tariffs`, `PUT /tariffs/:laborTypeId`, `DELETE /tariffs/:laborTypeId`, `GET /tariffs/kg-equivalents?grain=`; `JwtAuthGuard` + `RolesGuard` + `@Roles('ADMIN')`; `companyId = req.user.firmaId`, nunca del body/query; traducción 400/404/503 (design §2.11, spec R-FIN-15).
-- [ ] 1.15 `src/entities/tariff/tariff.module.ts` y registro de `ValuationModule` y `TariffModule` en `src/app.module.ts`.
+- [x] 1.11 `src/entities/tariff/domain/`: validación de tarifa (precio y costo obligatorios, bases `POR_HECTAREA`/`POR_HORA`, monedas con `assertValidMoney`), `errors.ts` (spec R-FIN-01/02).
+- [x] 1.12 `src/entities/tariff/application/`: puertos (`TariffRepositoryPort`, `LaborTypeReaderPort` del tenant, `MoneyValuationPort`, `ClockPort`) y casos de uso `UpsertTariffUseCase` (upsert por par firma+labor, `updatedBy`), `DeleteTariffUseCase`, `FindTariffsUseCase`, `GetTariffKgEquivalentsUseCase` (design §2.8, spec R-FIN-04).
+- [x] 1.13 `src/entities/tariff/adapters/outbound/`: `PrismaTariffRepository` (mapeo `Decimal`↔string), `PrismaLaborTypeReader` (labor del **tenant** del caller), adapter de `MoneyValuationPort` sobre `ValueMoneyUseCase`.
+- [x] 1.14 `src/entities/tariff/adapters/inbound/tariff.controller.ts`: `GET /tariffs`, `PUT /tariffs/:laborTypeId`, `DELETE /tariffs/:laborTypeId`, `GET /tariffs/kg-equivalents?grain=`; `JwtAuthGuard` + `RolesGuard` + `@Roles('ADMIN')`; `companyId = req.user.firmaId`, nunca del body/query; traducción 400/404/503 (design §2.11, spec R-FIN-15).
+- [x] 1.15 `src/entities/tariff/tariff.module.ts` y registro de `ValuationModule` y `TariffModule` en `src/app.module.ts`.
 
 ### 1.D Web: Tarifario
 
-- [ ] 1.16 `src/api/client.ts`: DTOs y funciones `getTariffs`, `putTariff`, `deleteTariff`, `getTariffKgEquivalents(grain)` (design §2.12).
-- [ ] 1.17 `src/app/dashboard/finanzas/{format,access}.ts`: formato de montos string y reglas de acceso por pestaña (puras) (design §2.12).
-- [ ] 1.18 `src/app/dashboard/finanzas/page.tsx` + `tarifario-tab.tsx`: reemplazar el `EmptyState`, barra de pestañas con gating (Tarifario solo ADMIN), tabla de tarifas por tipo de labor (precio y costo estándar, cada uno con moneda y base), formulario con validación (grano obligatorio en kg, 0 permitido) y **selector de grano** solo de UI (default soja) con equivalentes en kg; nota visible: "editar una tarifa solo afecta valorizaciones futuras" (spec R-FIN-04/16).
+- [x] 1.16 `src/api/client.ts`: DTOs y funciones `getTariffs`, `putTariff`, `deleteTariff`, `getTariffKgEquivalents(grain)` (design §2.12).
+- [x] 1.17 `src/app/dashboard/finanzas/{format,access}.ts`: formato de montos string y reglas de acceso por pestaña (puras) (design §2.12).
+- [x] 1.18 `src/app/dashboard/finanzas/page.tsx` + `tarifario-tab.tsx`: reemplazar el `EmptyState`, barra de pestañas con gating (Tarifario solo ADMIN), tabla de tarifas por tipo de labor (precio y costo estándar, cada uno con moneda y base), formulario con validación (grano obligatorio en kg, 0 permitido) y **selector de grano** solo de UI (default soja) con equivalentes en kg; nota visible: "editar una tarifa solo afecta valorizaciones futuras" (spec R-FIN-04/16).
 
 ### 1.E Tests y documentación de la unidad
 
-- [ ] 1.19 Jest dominio: `decimal.spec.ts`, `money.spec.ts`, `valuation.rules.spec.ts` (kg→ARS, USD→ARS con la tasa de la política, ARS directo, grano `null` → sin dato, redondeo), `valuation-rate-policy.spec.ts` (spec R-FIN-02/03).
-- [ ] 1.20 Jest aplicación con fakes: `ValueMoneyUseCase` y casos de uso de `tariff` (upsert por par, precio/costo faltante → 400, 0 válido, equivalentes con grano sin precio → `null`).
-- [ ] 1.21 Jest adapter y controller: `integrations-market-price.adapter.spec.ts` (usa solo lo requerido; error upstream → `null`), `tariff.controller.spec.ts` (SUPERVISOR/OPERARIO → 403, 401 sin token, `companyId` del body ignorado).
-- [ ] 1.22 Web: `test/finance-format.test.mjs` y `test/finance-access.test.mjs` con `node:test`.
-- [ ] 1.23 Documentación: describir el Tarifario y la política de tasa en la sección de Finanzas de los docs del change; `Risk:` declarado para la migración y los permisos.
+- [x] 1.19 Jest dominio: `decimal.spec.ts`, `money.spec.ts`, `valuation.rules.spec.ts` (kg→ARS, USD→ARS con la tasa de la política, ARS directo, grano `null` → sin dato, redondeo), `valuation-rate-policy.spec.ts` (spec R-FIN-02/03).
+- [x] 1.20 Jest aplicación con fakes: `ValueMoneyUseCase` y casos de uso de `tariff` (upsert por par, precio/costo faltante → 400, 0 válido, equivalentes con grano sin precio → `null`).
+- [x] 1.21 Jest adapter y controller: `integrations-market-price.adapter.spec.ts` (usa solo lo requerido; error upstream → `null`), `tariff.controller.spec.ts` (SUPERVISOR/OPERARIO → 403, 401 sin token, `companyId` del body ignorado).
+- [x] 1.22 Web: `test/finance-format.test.mjs` y `test/finance-access.test.mjs` con `node:test`.
+- [x] 1.23 Documentación: describir el Tarifario y la política de tasa en la sección de Finanzas de los docs del change; `Risk:` declarado para la migración y los permisos.
 
 ## 2. Unidad 2 — Valorización de partes (R030, R031, R032, CUU05)
 
@@ -53,7 +53,7 @@
 ### 2.A Esquema
 
 - [ ] 2.1 `prisma/schema.prisma`: enum `ValuationOrigin` y modelo `DailyReportValuation` (`dailyReportId @unique`, `tariffId` con `onDelete: SetNull`, campos aplicados, cantidades nativas, precios/tasa usados, resultados ARS, `valuedAt`) y relaciones inversas en `DailyReport` y `Tariff` (design §2.3).
-- [ ] 2.2 Ampliar la migración manual con la **parte de U2** (enum, tabla, índice único `dailyReportId`, índice `companyId,lotId`, `CHECK`s de grano y de montos) (T9).
+- [ ] 2.2 Migración manual propia `prisma/migrations/20261123100000_add_daily_report_valuations/migration.sql` (enum, tabla, índice único `dailyReportId`, índice `companyId,lotId`, `CHECK`s de grano y de montos) (T9).
 
 ### 2.B Valorización y reintento
 
@@ -90,7 +90,7 @@
 ### 3.A Esquema
 
 - [ ] 3.1 `prisma/schema.prisma`: enums `ExpenseSuggestionKind` y `ExpenseSuggestionStatus`; modelos `ExpenseCategory`, `Expense` y `ExpenseSuggestion`; relaciones inversas en `Tenant`, `Company` y `Lot` (design §2.3).
-- [ ] 3.2 Ampliar la migración manual con la **parte de U3**: tablas, `@@unique(tenantId,name)`, FKs (sugerencias sin cascada), columnas `deletedAt`/`deletedBy` de `Expense` (baja lógica), `CHECK`s de grano/monto y el **índice único parcial** `"ExpenseSuggestion_one_pending_per_expense" ... WHERE "status" = 'PENDIENTE'` (design §2.3/§2.9).
+- [ ] 3.2 Migración manual propia `prisma/migrations/20261123110000_add_expenses/migration.sql`: tablas, `@@unique(tenantId,name)`, FKs (sugerencias sin cascada), columnas `deletedAt`/`deletedBy` de `Expense` (baja lógica), `CHECK`s de grano/monto y el **índice único parcial** `"ExpenseSuggestion_one_pending_per_expense" ... WHERE "status" = 'PENDIENTE'` (design §2.3/§2.9).
 
 ### 3.B Categorías de gasto
 

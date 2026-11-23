@@ -1319,3 +1319,71 @@ export function getUsdOfficial(): Promise<UsdRateResponse> {
 export function getGrainPrices(): Promise<GrainPricesResponse> {
   return apiGet<GrainPricesResponse>("/grain-prices");
 }
+
+/* ------------------------------------------------------------------ */
+/* Finanzas: tarifario                                                 */
+/* ------------------------------------------------------------------ */
+
+export type MoneyUnit = "ARS" | "USD" | "KG_CEREAL";
+export type Grain = "TRIGO" | "MAIZ" | "GIRASOL" | "SOJA" | "SORGO";
+export type TariffBasis = "POR_HECTAREA" | "POR_HORA";
+
+/** One side of a tariff. Amounts travel as decimal strings, never numbers. */
+export type TariffComponentDTO = {
+  amount: string;
+  unit: MoneyUnit;
+  /** Set if and only if `unit` is `KG_CEREAL`. */
+  grain: Grain | null;
+  basis: TariffBasis;
+};
+
+export type TariffDTO = {
+  id: string;
+  laborTypeId: string;
+  price: TariffComponentDTO;
+  cost: TariffComponentDTO;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** Body of `PUT /tariffs/:laborTypeId`. The company comes from the token. */
+export type TariffInput = {
+  price: Omit<TariffComponentDTO, "grain"> & { grain?: Grain | null };
+  cost: Omit<TariffComponentDTO, "grain"> & { grain?: Grain | null };
+};
+
+export type TariffKgEquivalentDTO = {
+  tariffId: string;
+  laborTypeId: string;
+  /** Kilos of the chosen grain; `null` when there is no market price. */
+  priceKg: string | null;
+  costKg: string | null;
+};
+
+export type TariffKgEquivalentsDTO = {
+  grain: Grain;
+  /** ARS per ton of the chosen grain; `null` when the board has no price. */
+  grainArsPerTon: string | null;
+  calculatedAt: string;
+  items: TariffKgEquivalentDTO[];
+};
+
+/** Tariffs of the session company (ADMIN only). */
+export function getTariffs(): Promise<TariffDTO[]> {
+  return apiGet<TariffDTO[]>("/tariffs");
+}
+
+/** Creates or replaces the tariff of a labor type (one tariff per labor type). */
+export function putTariff(laborTypeId: string, input: TariffInput): Promise<TariffDTO> {
+  return apiPut<TariffDTO>(`/tariffs/${encodeURIComponent(laborTypeId)}`, input);
+}
+
+export function deleteTariff(laborTypeId: string): Promise<void> {
+  return apiDelete<void>(`/tariffs/${encodeURIComponent(laborTypeId)}`);
+}
+
+/** Equivalent in kilos of one grain; the grain choice is UI-only (never persisted). */
+export function getTariffKgEquivalents(grain: Grain): Promise<TariffKgEquivalentsDTO> {
+  return apiGet<TariffKgEquivalentsDTO>(`/tariffs/kg-equivalents?grain=${encodeURIComponent(grain)}`);
+}

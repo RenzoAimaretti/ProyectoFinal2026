@@ -80,7 +80,8 @@ export const ModelName = {
   Livestock: 'Livestock',
   LivestockEvent: 'LivestockEvent',
   WeightRecord: 'WeightRecord',
-  LivestockMovement: 'LivestockMovement'
+  LivestockMovement: 'LivestockMovement',
+  Tariff: 'Tariff'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -551,6 +552,26 @@ export const LivestockMovementScalarFieldEnum = {
 } as const
 
 export type LivestockMovementScalarFieldEnum = (typeof LivestockMovementScalarFieldEnum)[keyof typeof LivestockMovementScalarFieldEnum]
+
+
+export const TariffScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  laborTypeId: 'laborTypeId',
+  priceAmount: 'priceAmount',
+  priceUnit: 'priceUnit',
+  priceGrain: 'priceGrain',
+  priceBasis: 'priceBasis',
+  costAmount: 'costAmount',
+  costUnit: 'costUnit',
+  costGrain: 'costGrain',
+  costBasis: 'costBasis',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TariffScalarFieldEnum = (typeof TariffScalarFieldEnum)[keyof typeof TariffScalarFieldEnum]
 
 
 export const SortOrder = {

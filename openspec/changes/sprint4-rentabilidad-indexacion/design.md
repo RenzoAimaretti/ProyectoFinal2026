@@ -447,7 +447,7 @@ Calculadora (ADMIN)                                         Gastos (ADMIN / SUPE
 | Archivo | Acción | Qué |
 |---|---|---|
 | `prisma/schema.prisma` | Modify | Modelos `Tariff`, `DailyReportValuation`, `ExpenseCategory`, `Expense`, `ExpenseSuggestion` y enums (§2.3); relaciones inversas en `Company`, `LaborType`, `Lot`, `DailyReport`, `Tenant` |
-| `prisma/migrations/<ts>_add_finance_valuation_and_expenses/migration.sql` | Create | SQL manual aditivo: `CREATE TYPE`, `CREATE TABLE`, índices únicos, índice parcial de sugerencia pendiente, `CHECK`, FKs |
+| `prisma/migrations/{20261123090000_add_tariffs,20261123100000_add_daily_report_valuations,20261123110000_add_expenses}/migration.sql` | Create | Una por unidad (U1, U2, U3). SQL manual aditivo: `CREATE TYPE`, `CREATE TABLE`, índices únicos, índice parcial de sugerencia pendiente, `CHECK`, FKs |
 | `prisma/seed.ts` | Modify | Categorías de gasto y tarifas de ejemplo para las seis labores del seed (T8) |
 | `src/entities/valuation/domain/{decimal,money,valuation-rate-policy,valuation.rules,errors}.ts` | Create | Núcleo exacto y puro (§2.1, §2.2, §2.4) |
 | `src/entities/valuation/application/ports/{market-price,tariff-reader,daily-report-reader,valuation-repository,clock}.port.ts` | Create | Puertos de `valuation` |
@@ -482,7 +482,7 @@ Calculadora (ADMIN)                                         Gastos (ADMIN / SUPE
 
 ## 5. Migración / Rollout
 
-- **Una migración aditiva escrita a mano** (T9) con timestamp redondo posterior a `20261019090000_add_machine_type_and_thresholds`, p. ej. `20261123090000_add_finance_valuation_and_expenses`. Solo `CREATE TYPE` / `CREATE TABLE` / índices / FKs; **ninguna tabla ni columna existente se altera** (las relaciones inversas de `schema.prisma` no generan SQL). Incluye lo que Prisma no expresa: índice único parcial de sugerencia pendiente y los `CHECK`. Tras escribirla, `prisma migrate diff` debe mostrar solo esa diferencia esperada.
+- **Una migración aditiva escrita a mano por unidad** (T9), con timestamps redondos posteriores a `20261019090000_add_machine_type_and_thresholds`: `20261123090000_add_tariffs` (U1), `20261123100000_add_daily_report_valuations` (U2) y `20261123110000_add_expenses` (U3). Cada unidad se commitea por separado, y editar una migración ya aplicada rompe su checksum en Prisma; por eso no se comparte un único archivo. Solo `CREATE TYPE` / `CREATE TABLE` / índices / FKs; **ninguna tabla ni columna existente se altera** (las relaciones inversas de `schema.prisma` no generan SQL). Incluye lo que Prisma no expresa: índice único parcial de sugerencia pendiente y los `CHECK`. Tras escribirla, `prisma migrate diff` debe mostrar solo esa diferencia esperada.
 - **Sin backfill**: los partes anteriores se valorizan por el reintento (§2.6).
 - **Orden de rollout**: migración → backend (las rutas nuevas son aditivas; `approve` conserva su contrato) → web. Hasta que exista una tarifa, los partes aprobados quedan "sin valorizar" y nada más cambia.
 - **Reversión**: ver proposal (Rollback Plan). `DROP` de los objetos nuevos en orden inverso de dependencias; sin pérdida de datos previos.

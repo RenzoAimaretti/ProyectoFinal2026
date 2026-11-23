@@ -413,7 +413,8 @@ export const ModelName = {
   Livestock: 'Livestock',
   LivestockEvent: 'LivestockEvent',
   WeightRecord: 'WeightRecord',
-  LivestockMovement: 'LivestockMovement'
+  LivestockMovement: 'LivestockMovement',
+  Tariff: 'Tariff'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -429,7 +430,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "tenant" | "company" | "userCompany" | "user" | "refreshToken" | "module" | "client" | "inputCategory" | "input" | "laborType" | "laborTypeCategory" | "farm" | "lot" | "task" | "recipe" | "recipeItem" | "dailyReport" | "dailyReportItem" | "reception" | "receptionItem" | "stock" | "machine" | "maintenanceThreshold" | "machineUsage" | "machineActivity" | "photo" | "livestock" | "livestockEvent" | "weightRecord" | "livestockMovement"
+    modelProps: "tenant" | "company" | "userCompany" | "user" | "refreshToken" | "module" | "client" | "inputCategory" | "input" | "laborType" | "laborTypeCategory" | "farm" | "lot" | "task" | "recipe" | "recipeItem" | "dailyReport" | "dailyReportItem" | "reception" | "receptionItem" | "stock" | "machine" | "maintenanceThreshold" | "machineUsage" | "machineActivity" | "photo" | "livestock" | "livestockEvent" | "weightRecord" | "livestockMovement" | "tariff"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2653,6 +2654,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Tariff: {
+      payload: Prisma.$TariffPayload<ExtArgs>
+      fields: Prisma.TariffFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TariffFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TariffFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload>
+        }
+        findFirst: {
+          args: Prisma.TariffFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TariffFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload>
+        }
+        findMany: {
+          args: Prisma.TariffFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload>[]
+        }
+        create: {
+          args: Prisma.TariffCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload>
+        }
+        createMany: {
+          args: Prisma.TariffCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TariffCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload>[]
+        }
+        delete: {
+          args: Prisma.TariffDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload>
+        }
+        update: {
+          args: Prisma.TariffUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload>
+        }
+        deleteMany: {
+          args: Prisma.TariffDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TariffUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TariffUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload>[]
+        }
+        upsert: {
+          args: Prisma.TariffUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TariffPayload>
+        }
+        aggregate: {
+          args: Prisma.TariffAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTariff>
+        }
+        groupBy: {
+          args: Prisma.TariffGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TariffGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TariffCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TariffCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3146,6 +3221,26 @@ export const LivestockMovementScalarFieldEnum = {
 export type LivestockMovementScalarFieldEnum = (typeof LivestockMovementScalarFieldEnum)[keyof typeof LivestockMovementScalarFieldEnum]
 
 
+export const TariffScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  laborTypeId: 'laborTypeId',
+  priceAmount: 'priceAmount',
+  priceUnit: 'priceUnit',
+  priceGrain: 'priceGrain',
+  priceBasis: 'priceBasis',
+  costAmount: 'costAmount',
+  costUnit: 'costUnit',
+  costGrain: 'costGrain',
+  costBasis: 'costBasis',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TariffScalarFieldEnum = (typeof TariffScalarFieldEnum)[keyof typeof TariffScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3479,6 +3574,62 @@ export type EnumEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 export type ListEnumEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EventType[]'>
     
 
+
+/**
+ * Reference to a field of type 'Decimal'
+ */
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal[]'
+ */
+export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+/**
+ * Reference to a field of type 'MoneyUnit'
+ */
+export type EnumMoneyUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MoneyUnit'>
+    
+
+
+/**
+ * Reference to a field of type 'MoneyUnit[]'
+ */
+export type ListEnumMoneyUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MoneyUnit[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Grain'
+ */
+export type EnumGrainFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Grain'>
+    
+
+
+/**
+ * Reference to a field of type 'Grain[]'
+ */
+export type ListEnumGrainFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Grain[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TariffBasis'
+ */
+export type EnumTariffBasisFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TariffBasis'>
+    
+
+
+/**
+ * Reference to a field of type 'TariffBasis[]'
+ */
+export type ListEnumTariffBasisFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TariffBasis[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -3619,6 +3770,7 @@ export type GlobalOmitConfig = {
   livestockEvent?: Prisma.LivestockEventOmit
   weightRecord?: Prisma.WeightRecordOmit
   livestockMovement?: Prisma.LivestockMovementOmit
+  tariff?: Prisma.TariffOmit
 }
 
 /* Types for Logging */
