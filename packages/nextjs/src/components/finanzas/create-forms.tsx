@@ -98,6 +98,78 @@ export function CreateInvoiceForm({ clients, onClose, onCreated, describeError }
   );
 }
 
+type PaymentKind = "FACTURADO" | "INFORMAL";
+type PaymentMethod = "EFECTIVO" | "TRANSFERENCIA" | "CHEQUE" | "ECHEQ";
+type PaymentInvoice = { id: string; number: string; clientId: string; status: "EMITIDA" | "COBRADA" | "ANULADA" };
+
+export function CreatePaymentForm({ clients, invoices, onClose, onCreated, describeError }: FormCallbacks & { clients: ClientDTO[]; invoices: PaymentInvoice[] }) {
+  const [clientId, setClientId] = useState("");
+  const [kind, setKind] = useState<PaymentKind | "">("");
+  const [method, setMethod] = useState<PaymentMethod | "">("");
+  const [amount, setAmount] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [invoiceId, setInvoiceId] = useState("");
+  const [notes, setNotes] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (saving) return;
+    setError(null);
+    if (!clientId || !clients.some((client) => client.id === clientId)) {
+      setError("Seleccioná un cliente.");
+      return;
+    }
+    if (!kind || !method || !date || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
+      setError("Indicá el tipo, medio, importe mayor a cero y fecha del cobro.");
+      return;
+    }
+    if (kind === "FACTURADO" && !invoiceId.trim()) {
+      setError("Un cobro facturado requiere una factura.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await apiPost("/payments", {
+        clientId, kind, method, amount: Number(amount), date,
+        ...(kind === "FACTURADO" ? { invoiceId: invoiceId.trim() } : {}),
+        ...(notes.trim() ? { notes: notes.trim() } : {}),
+      });
+      onCreated();
+    } catch (failure) {
+      setError(describeError(failure));
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <Modal open onClose={saving ? () => undefined : onClose} title="Nuevo cobro" subtitle="Registrá un ingreso de esta firma.">
+      <form onSubmit={(event) => void submit(event)} noValidate className="space-y-4">
+        {error && <Alert tone="error" onDismiss={() => setError(null)}>{error}</Alert>}
+        <SelectField label="Cliente" required value={clientId} onChange={(event) => { setClientId(event.target.value); setInvoiceId(""); }}
+          placeholder="Seleccioná un cliente" options={clients.map((client) => ({ value: client.id, label: client.name }))} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <SelectField label="Tipo" required value={kind} onChange={(event) => { setKind(event.target.value as PaymentKind); setInvoiceId(""); }}
+            placeholder="Seleccioná un tipo" options={[{ value: "FACTURADO", label: "Facturado" }, { value: "INFORMAL", label: "Informal" }]} />
+          <SelectField label="Medio" required value={method} onChange={(event) => setMethod(event.target.value as PaymentMethod)}
+            placeholder="Seleccioná un medio" options={[{ value: "EFECTIVO", label: "Efectivo" }, { value: "TRANSFERENCIA", label: "Transferencia" }, { value: "CHEQUE", label: "Cheque" }, { value: "ECHEQ", label: "eCheq" }]} />
+          <TextField label="Importe (ARS)" type="number" min="0.01" step="any" required value={amount} onChange={(event) => setAmount(event.target.value)} />
+          <TextField label="Fecha" type="date" required value={date} onChange={(event) => setDate(event.target.value)} />
+        </div>
+        {kind === "FACTURADO" && <>
+          <TextField label="Factura" required list="payment-invoices" hint="Ingresá el ID de una factura de este cliente. La factura es obligatoria para cobros facturados." value={invoiceId} onChange={(event) => setInvoiceId(event.target.value)} />
+          <datalist id="payment-invoices">{invoices.filter((invoice) => invoice.clientId === clientId && invoice.status !== "ANULADA").map((invoice) => <option key={invoice.id} value={invoice.id} label={invoice.number} />)}</datalist>
+        </>}
+        <TextareaField label="Notas (opcional)" value={notes} onChange={(event) => setNotes(event.target.value)} />
+        <div className="flex justify-end gap-2 border-t border-agro-border pt-4">
+          <Button variant="secondary" disabled={saving} onClick={onClose}>Cancelar</Button>
+          <Button type="submit" disabled={saving}>{saving ? "Guardando…" : "Registrar cobro"}</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
 export function CreateChequeForm({ onClose, onCreated, describeError }: FormCallbacks) {
   const [number, setNumber] = useState("");
   const [issuer, setIssuer] = useState("");

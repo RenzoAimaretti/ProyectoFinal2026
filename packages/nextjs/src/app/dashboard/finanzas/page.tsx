@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { apiGet, API_BASE, ApiError, getToken, handleUnauthorized, listClients, type ClientDTO } from "@/api/client";
-import { CreateChequeForm, CreateInvoiceForm } from "@/components/finanzas/create-forms";
+import { CreateChequeForm, CreateInvoiceForm, CreatePaymentForm } from "@/components/finanzas/create-forms";
 import { useAuth } from "@/components/ui/auth";
 import { Alert } from "@/components/ui/feedback";
 import { FinanceIcon } from "@/components/ui/icons";
@@ -17,13 +17,23 @@ type EcheqStatus = "PENDIENTE" | "ACREDITADO" | "DEBITADO" | "RECHAZADO";
 type Invoice = { id: string; number: string; clientId: string; issueDate: string; totalAmount: number; status: InvoiceStatus };
 type Cheque = { id: string; number: string; issuer: string; dueDate: string; amount: number; status: ChequeStatus };
 type PendingEcheq = { id: string; code: string; issuer: string; direction: "EMITIDO" | "RECIBIDO"; dueDate: string; amount: number; status: EcheqStatus; overdue: boolean };
+type PaymentKind = "FACTURADO" | "INFORMAL";
+type Payment = { id: string; clientId: string; kind: PaymentKind; method: "EFECTIVO" | "TRANSFERENCIA" | "CHEQUE" | "ECHEQ"; amount: number; date: string; usdRate: number | null };
 type InvoiceData = { invoices: Invoice[]; clients: ClientDTO[] };
+type PaymentData = { payments: Payment[]; clients: ClientDTO[] };
 type LoadState<T> = { data: T | null; loading: boolean; error: string | null };
 
 const invoiceStatuses: StatusMap<InvoiceStatus> = {
   EMITIDA: { label: "Emitida", tone: "wheat" },
   COBRADA: { label: "Cobrada", tone: "green" },
   ANULADA: { label: "Anulada", tone: "earth" },
+};
+const paymentKinds: StatusMap<PaymentKind> = {
+  FACTURADO: { label: "Facturado", tone: "green" },
+  INFORMAL: { label: "Informal", tone: "wheat" },
+};
+const paymentMethods: Record<Payment["method"], string> = {
+  EFECTIVO: "Efectivo", TRANSFERENCIA: "Transferencia", CHEQUE: "Cheque", ECHEQ: "eCheq",
 };
 const chequeStatuses: StatusMap<ChequeStatus> = {
   EN_CARTERA: { label: "En cartera", tone: "wheat" },
@@ -99,18 +109,23 @@ export default function FinanzasPage() {
   const { user, ready } = useAuth();
   const allowed = ready && isApproverRole(user?.role);
   const [invoiceState, setInvoiceState] = useState<LoadState<InvoiceData>>({ data: null, loading: true, error: null });
+  const [paymentState, setPaymentState] = useState<LoadState<PaymentData>>({ data: null, loading: true, error: null });
+  const [paymentKind, setPaymentKind] = useState<PaymentKind | "">("");
   const [chequeState, setChequeState] = useState<LoadState<Cheque[]>>({ data: null, loading: true, error: null });
   const [echeqState, setEcheqState] = useState<LoadState<PendingEcheq[]>>({ data: null, loading: true, error: null });
   const [invoiceVersion, setInvoiceVersion] = useState(0);
+  const [paymentVersion, setPaymentVersion] = useState(0);
   const [chequeVersion, setChequeVersion] = useState(0);
   const [echeqVersion, setEcheqVersion] = useState(0);
   const [invoiceFormOpen, setInvoiceFormOpen] = useState(false);
   const [chequeFormOpen, setChequeFormOpen] = useState(false);
+  const [paymentFormOpen, setPaymentFormOpen] = useState(false);
   const [acting, setActing] = useState<string | null>(null);
   const [chequeActionError, setChequeActionError] = useState<string | null>(null);
   const [echeqActionError, setEcheqActionError] = useState<string | null>(null);
 
   const refreshInvoices = useCallback(() => { setInvoiceState({ data: null, loading: true, error: null }); setInvoiceVersion((v) => v + 1); }, []);
+  const refreshPayments = useCallback(() => { setPaymentState({ data: null, loading: true, error: null }); setPaymentVersion((v) => v + 1); }, []);
   const refreshCheques = useCallback(() => { setChequeState({ data: null, loading: true, error: null }); setChequeVersion((v) => v + 1); }, []);
   const refreshEcheqs = useCallback(() => { setEcheqState({ data: null, loading: true, error: null }); setEcheqVersion((v) => v + 1); }, []);
 
@@ -122,6 +137,15 @@ export default function FinanzasPage() {
       .catch((error: unknown) => { if (alive) setInvoiceState({ data: null, loading: false, error: describeError(error) }); });
     return () => { alive = false; };
   }, [allowed, invoiceVersion]);
+  useEffect(() => {
+    if (!allowed) return;
+    let alive = true;
+    const path = paymentKind ? `/payments?kind=${paymentKind}` : "/payments";
+    Promise.all([apiGet<Payment[]>(path), listClients()])
+      .then(([payments, clients]) => { if (alive) setPaymentState({ data: { payments, clients }, loading: false, error: null }); })
+      .catch((error: unknown) => { if (alive) setPaymentState({ data: null, loading: false, error: describeError(error) }); });
+    return () => { alive = false; };
+  }, [allowed, paymentKind, paymentVersion]);
   useEffect(() => {
     if (!allowed) return;
     let alive = true;
@@ -173,6 +197,15 @@ export default function FinanzasPage() {
     { key: "total", header: "Total", align: "right", render: (row) => amountFormatter.format(row.totalAmount) },
     { key: "status", header: "Estado", render: (row) => <StatusBadge status={row.status} map={invoiceStatuses} /> },
   ];
+  const paymentClientNames = new Map(paymentState.data?.clients.map((client) => [client.id, client.name]) ?? []);
+  const paymentColumns: DataTableColumn<Payment>[] = [
+    { key: "client", header: "Cliente", render: (row) => paymentClientNames.get(row.clientId) ?? row.clientId },
+    { key: "kind", header: "Tipo", render: (row) => <StatusBadge status={row.kind} map={paymentKinds} /> },
+    { key: "method", header: "Medio", render: (row) => paymentMethods[row.method] },
+    { key: "amount", header: "Importe", align: "right", render: (row) => amountFormatter.format(row.amount) },
+    { key: "date", header: "Fecha", render: (row) => formatDate(row.date) },
+    { key: "usdRate", header: "Cotización USD", render: (row) => row.usdRate === null ? "sin cotización" : amountFormatter.format(row.usdRate) },
+  ];
   const chequeColumns: DataTableColumn<Cheque>[] = [
     { key: "number", header: "Número", render: (row) => row.number },
     { key: "issuer", header: "Emisor", render: (row) => row.issuer },
@@ -192,14 +225,16 @@ export default function FinanzasPage() {
   ];
   return (
     <DashboardLayout title="Finanzas" sidebarItems={navItems} breadcrumb="Administración y facturación">
-      <PageHeader title="Finanzas" subtitle="Facturación a clientes y control de cheques de tu firma." />
+      <PageHeader title="Finanzas" subtitle="Facturación, cobros y control de cheques de tu firma." />
       {!ready ? <p className="text-sm text-ink-soft">Cargando sesión…</p> : !allowed ? <Alert tone="error">No tenés permisos para consultar las finanzas.</Alert> : (
         <div className="space-y-5">
           <section aria-label="Facturas"><Card><CardHeader title="Facturas" subtitle="Facturas emitidas por esta firma" action={<div className="flex flex-wrap gap-2"><Button onClick={() => setInvoiceFormOpen(true)} disabled={!invoiceState.data?.clients.length}>Nueva factura</Button><Button variant="secondary" onClick={refreshInvoices}>Actualizar</Button></div>} /><SectionContent state={invoiceState} onRetry={refreshInvoices} columns={invoiceColumns} rows={invoiceState.data?.invoices ?? []} emptyTitle="Sin facturas" emptySubtitle="Todavía no hay facturas registradas para esta firma." /></Card></section>
+          <section aria-label="Cobros"><Card><CardHeader title="Cobros" subtitle="Ingresos facturados e informales de esta firma" action={<div className="flex flex-wrap gap-2"><Button onClick={() => setPaymentFormOpen(true)} disabled={!paymentState.data?.clients.length}>Nuevo cobro</Button><Button variant="secondary" onClick={refreshPayments}>Actualizar</Button></div>} /><div className="px-5 pt-4"><label htmlFor="payment-kind-filter" className="mr-2 text-sm text-ink-soft">Tipo de cobro</label><select id="payment-kind-filter" value={paymentKind} onChange={(event) => { setPaymentState({ data: null, loading: true, error: null }); setPaymentKind(event.target.value as PaymentKind | ""); }} className="rounded-lg border border-agro-border bg-card px-3 py-2 text-sm text-ink"><option value="">Todos</option><option value="FACTURADO">Facturados</option><option value="INFORMAL">Informales</option></select></div><SectionContent state={paymentState} onRetry={refreshPayments} columns={paymentColumns} rows={paymentState.data?.payments ?? []} emptyTitle="Sin cobros" emptySubtitle="No hay cobros registrados para esta firma y tipo." /></Card></section>
           <section aria-label="Cheques"><Card><CardHeader title="Cheques" subtitle="Seguimiento de cheques físicos" action={<div className="flex flex-wrap gap-2"><Button onClick={() => setChequeFormOpen(true)}>Nuevo cheque</Button><Button variant="secondary" onClick={refreshCheques}>Actualizar</Button></div>} />{chequeActionError && <div className="px-5 pt-4"><Alert tone="error" onDismiss={() => setChequeActionError(null)}>{chequeActionError}</Alert></div>}<SectionContent state={chequeState} onRetry={refreshCheques} columns={chequeColumns} rows={chequeState.data ?? []} emptyTitle="Sin cheques" emptySubtitle="No hay cheques físicos registrados para esta firma." /></Card></section>
           <section aria-label="eCheqs"><Card><CardHeader title="eCheqs pendientes" subtitle="Ordenados por vencimiento para su conciliación" action={<Button variant="secondary" onClick={refreshEcheqs}>Actualizar</Button>} />{echeqActionError && <div className="px-5 pt-4"><Alert tone="error" onDismiss={() => setEcheqActionError(null)}>{echeqActionError}</Alert></div>}<SectionContent state={echeqState} onRetry={refreshEcheqs} columns={echeqColumns} rows={[...(echeqState.data ?? [])].sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.id.localeCompare(b.id))} emptyTitle="Sin eCheqs pendientes" emptySubtitle="No hay eCheqs pendientes de conciliación." /></Card></section>
           {invoiceFormOpen && <CreateInvoiceForm clients={invoiceState.data?.clients ?? []} describeError={describeError} onClose={() => setInvoiceFormOpen(false)} onCreated={() => { setInvoiceFormOpen(false); refreshInvoices(); }} />}
           {chequeFormOpen && <CreateChequeForm describeError={describeError} onClose={() => setChequeFormOpen(false)} onCreated={() => { setChequeFormOpen(false); refreshCheques(); }} />}
+          {paymentFormOpen && <CreatePaymentForm clients={paymentState.data?.clients ?? []} invoices={invoiceState.data?.invoices ?? []} describeError={describeError} onClose={() => setPaymentFormOpen(false)} onCreated={() => { setPaymentFormOpen(false); refreshPayments(); refreshInvoices(); }} />}
         </div>
       )}
     </DashboardLayout>
