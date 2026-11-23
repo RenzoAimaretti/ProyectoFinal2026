@@ -32,6 +32,7 @@ import { ValuationModule } from './entities/valuation/valuation.module';
 import { TariffModule } from './entities/tariff/tariff.module';
 import { ExpenseCategoryModule } from './entities/expense-category/expense-category.module';
 import { ExpenseModule } from './entities/expense/expense.module';
+import { ProfitabilityModule } from './entities/profitability/profitability.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { ExpenseModule } from './entities/expense/expense.module';
     TariffModule,
     ExpenseCategoryModule,
     ExpenseModule,
+    ProfitabilityModule,
   ],
   controllers: [],
   providers: [],

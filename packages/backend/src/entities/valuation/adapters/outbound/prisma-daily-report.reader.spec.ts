@@ -83,7 +83,7 @@ describe('PrismaDailyReportReader', () => {
     expect(result[0].hours.toString()).toBe('0.1000');
   });
 
-  it('does not filter by labor type when none is given', async () => {
+  it('company-wide retry only takes reports whose labor type has a tariff, so unpriced reports cannot starve it', async () => {
     const { reader, dailyReport } = build();
 
     await reader.findApprovedWithoutValuation({
@@ -91,16 +91,33 @@ describe('PrismaDailyReportReader', () => {
       limit: 5,
     });
 
-    expect(dailyReport.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: {
-          companyId: 'company-1',
-          status: 'APROBADO',
-          valuation: { is: null },
-        },
-        take: 5,
-      }),
-    );
+    expect(dailyReport.findMany).toHaveBeenCalledWith({
+      where: {
+        companyId: 'company-1',
+        status: 'APROBADO',
+        valuation: { is: null },
+        laborType: { tariffs: { some: { companyId: 'company-1' } } },
+      },
+      orderBy: [{ date: 'asc' }, { id: 'asc' }],
+      take: 5,
+      select: SELECT,
+    });
+  });
+
+  it('keeps the labor-type (tariff save) query free of the tariff filter', async () => {
+    const { reader, dailyReport } = build();
+
+    await reader.findApprovedWithoutValuation({
+      companyId: 'company-1',
+      laborTypeId: 'labor-1',
+      limit: 5,
+    });
+
+    const call = (dailyReport.findMany.mock.calls as unknown[][])[0][0] as {
+      where: Record<string, unknown>;
+    };
+    expect(call.where).not.toHaveProperty('laborType');
+    expect(call.where).toMatchObject({ laborTypeId: 'labor-1' });
   });
 
   it('summarizes every pending report (count and hectares) without a limit', async () => {

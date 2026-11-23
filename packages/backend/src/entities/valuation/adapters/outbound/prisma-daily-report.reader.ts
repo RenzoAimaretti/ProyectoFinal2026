@@ -46,9 +46,17 @@ export class PrismaDailyReportReader implements DailyReportReaderPort {
       where: {
         companyId: query.companyId,
         status: 'APROBADO',
+        // The tariff-save trigger names a labor type that has a tariff. The
+        // company-wide retry (calculator) must only take reports that a tariff
+        // could value: otherwise the oldest `limit` unpriced reports would
+        // starve the ones that can be valued.
         ...(query.laborTypeId !== undefined
           ? { laborTypeId: query.laborTypeId }
-          : {}),
+          : {
+              laborType: {
+                tariffs: { some: { companyId: query.companyId } },
+              },
+            }),
         valuation: { is: null },
       },
       orderBy: [{ date: 'asc' }, { id: 'asc' }],

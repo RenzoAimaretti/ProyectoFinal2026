@@ -31,7 +31,10 @@ export interface DailyReportReaderPort {
     companyId: string,
     reportId: string,
   ): Promise<ReportToValuate | null>;
-  /** APPROVED reports without a valuation, oldest first, at most `limit`. */
+  /**
+   * APPROVED reports without a valuation, oldest first, at most `limit`. Without
+   * `laborTypeId` only reports whose labor type has a tariff of the company.
+   */
   findApprovedWithoutValuation(
     query: FindApprovedWithoutValuationQuery,
   ): Promise<ReportToValuate[]>;
