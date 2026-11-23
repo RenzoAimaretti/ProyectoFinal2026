@@ -14,6 +14,9 @@ export const DAILY_REPORT_INPUT_READER = Symbol('DAILY_REPORT_INPUT_READER');
 export const DAILY_REPORT_CLIENT_READER = Symbol('DAILY_REPORT_CLIENT_READER');
 export const DAILY_REPORT_APPROVAL = Symbol('DAILY_REPORT_APPROVAL');
 export const DAILY_REPORT_CLOCK = Symbol('DAILY_REPORT_CLOCK');
+export const DAILY_REPORT_VALUATION_HOOK = Symbol(
+  'DAILY_REPORT_VALUATION_HOOK',
+);
 
 export interface DailyReportRepositoryPort {
   create(data: CreateDailyReportData): Promise<DailyReportRecord>;
@@ -82,4 +85,17 @@ export interface DailyReportClientReaderPort {
 
 export interface ClockPort {
   now(): Date;
+}
+
+/**
+ * Capability: notify that a report approval was committed so it can be valued.
+ * Contract: it NEVER throws and is called only after the approval transaction
+ * (stock deduction included) has resolved, never inside it.
+ */
+export interface DailyReportValuationHookPort {
+  onApproved(input: {
+    companyId: string;
+    reportId: string;
+    approvedAt: Date;
+  }): Promise<void>;
 }

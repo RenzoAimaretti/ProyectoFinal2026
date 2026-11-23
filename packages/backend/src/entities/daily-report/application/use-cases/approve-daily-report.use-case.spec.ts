@@ -10,6 +10,7 @@ import {
   DailyReportApprovalPort,
   DailyReportClientReaderPort,
   DailyReportRepositoryPort,
+  DailyReportValuationHookPort,
 } from '../daily-report.ports';
 import {
   ApproveDailyReportData,
@@ -63,6 +64,10 @@ function createApproval(): jest.Mocked<DailyReportApprovalPort> {
   return { approveWithStockDeduction: jest.fn() };
 }
 
+function createHook(): jest.Mocked<DailyReportValuationHookPort> {
+  return { onApproved: jest.fn().mockResolvedValue(undefined) };
+}
+
 function createClock(): jest.Mocked<ClockPort> {
   return { now: jest.fn().mockReturnValue(approvalDate) };
 }
@@ -72,6 +77,7 @@ describe('ApproveDailyReportUseCase', () => {
   let clientReader: jest.Mocked<DailyReportClientReaderPort>;
   let approval: jest.Mocked<DailyReportApprovalPort>;
   let clock: jest.Mocked<ClockPort>;
+  let valuationHook: jest.Mocked<DailyReportValuationHookPort>;
   let useCase: ApproveDailyReportUseCase;
 
   beforeEach(() => {
@@ -79,11 +85,13 @@ describe('ApproveDailyReportUseCase', () => {
     clientReader = createClientReader();
     approval = createApproval();
     clock = createClock();
+    valuationHook = createHook();
     useCase = new ApproveDailyReportUseCase(
       repository,
       clientReader,
       approval,
       clock,
+      valuationHook,
     );
     repository.findByIdForCompany.mockResolvedValue(pendingReport);
     clientReader.findClientIdByLotId.mockResolvedValue('client-1');
@@ -103,6 +111,7 @@ describe('ApproveDailyReportUseCase', () => {
       expect(repository.findByIdForCompany).not.toHaveBeenCalled();
       expect(clientReader.findClientIdByLotId).not.toHaveBeenCalled();
       expect(approval.approveWithStockDeduction).not.toHaveBeenCalled();
+      expect(valuationHook.onApproved).not.toHaveBeenCalled();
     },
   );
 
@@ -119,6 +128,7 @@ describe('ApproveDailyReportUseCase', () => {
     );
     expect(clientReader.findClientIdByLotId).not.toHaveBeenCalled();
     expect(approval.approveWithStockDeduction).not.toHaveBeenCalled();
+    expect(valuationHook.onApproved).not.toHaveBeenCalled();
   });
 
   it.each(['APROBADO', 'RECHAZADO'] as const)(
@@ -134,6 +144,8 @@ describe('ApproveDailyReportUseCase', () => {
       ).rejects.toBeInstanceOf(InvalidStateTransitionError);
 
       expect(approval.approveWithStockDeduction).not.toHaveBeenCalled();
+      expect(valuationHook.onApproved).not.toHaveBeenCalled();
+      expect(valuationHook.onApproved).not.toHaveBeenCalled();
     },
   );
 
@@ -146,6 +158,7 @@ describe('ApproveDailyReportUseCase', () => {
 
     expect(clientReader.findClientIdByLotId).toHaveBeenCalledWith('lot-1');
     expect(approval.approveWithStockDeduction).not.toHaveBeenCalled();
+    expect(valuationHook.onApproved).not.toHaveBeenCalled();
   });
 
   it('approves with the resolved client scope and the current time', async () => {
@@ -172,6 +185,75 @@ describe('ApproveDailyReportUseCase', () => {
     expect(clock.now).toHaveBeenCalled();
   });
 
+  it('hands the approved report to the valuation hook only after the approval transaction resolved', async () => {
+    const order: string[] = [];
+    const approved: DailyReportRecord = {
+      ...pendingReport,
+      status: 'APROBADO',
+      approvedBy: 'user-1',
+      approvedAt: approvalDate,
+    };
+    approval.approveWithStockDeduction.mockImplementation(() => {
+      order.push('approval-started');
+      return Promise.resolve().then(() => {
+        order.push('approval-committed');
+        return approved;
+      });
+    });
+    valuationHook.onApproved.mockImplementation(() => {
+      order.push('hook');
+      return Promise.resolve();
+    });
+
+    await expect(
+      useCase.execute('company-1', 'report-1', 'user-1'),
+    ).resolves.toBe(approved);
+
+    expect(order).toEqual(['approval-started', 'approval-committed', 'hook']);
+    expect(valuationHook.onApproved).toHaveBeenCalledTimes(1);
+    expect(valuationHook.onApproved).toHaveBeenCalledWith({
+      companyId: 'company-1',
+      reportId: 'report-1',
+      approvedAt: approvalDate,
+    });
+  });
+
+  it('answers the very same approved report when the valuation hook breaks its contract and throws', async () => {
+    const approved: DailyReportRecord = {
+      ...pendingReport,
+      status: 'APROBADO',
+      approvedBy: 'user-1',
+      approvedAt: approvalDate,
+    };
+    approval.approveWithStockDeduction.mockResolvedValue(approved);
+    valuationHook.onApproved.mockRejectedValue(new Error('valuation exploded'));
+
+    await expect(
+      useCase.execute('company-1', 'report-1', 'user-1'),
+    ).resolves.toBe(approved);
+
+    expect(valuationHook.onApproved).toHaveBeenCalledTimes(1);
+    expect(approval.approveWithStockDeduction).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to the clock time when the approved report carries no approval date', async () => {
+    const approved: DailyReportRecord = {
+      ...pendingReport,
+      status: 'APROBADO',
+      approvedBy: 'user-1',
+      approvedAt: null,
+    };
+    approval.approveWithStockDeduction.mockResolvedValue(approved);
+
+    await useCase.execute('company-1', 'report-1', 'user-1');
+
+    expect(valuationHook.onApproved).toHaveBeenCalledWith({
+      companyId: 'company-1',
+      reportId: 'report-1',
+      approvedAt: approvalDate,
+    });
+  });
+
   it('propagates an insufficient stock rejection from the approval port', async () => {
     approval.approveWithStockDeduction.mockRejectedValue(
       new InsufficientStockError('client-1', 'input-1', 10, 4),
@@ -180,5 +262,7 @@ describe('ApproveDailyReportUseCase', () => {
     await expect(
       useCase.execute('company-1', 'report-1', 'user-1'),
     ).rejects.toBeInstanceOf(InsufficientStockError);
+
+    expect(valuationHook.onApproved).not.toHaveBeenCalled();
   });
 });

@@ -294,6 +294,7 @@ export type TariffWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Tariff"> | Date | string
   company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
   laborType?: Prisma.XOR<Prisma.LaborTypeScalarRelationFilter, Prisma.LaborTypeWhereInput>
+  valuations?: Prisma.DailyReportValuationListRelationFilter
 }
 
 export type TariffOrderByWithRelationInput = {
@@ -313,6 +314,7 @@ export type TariffOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   company?: Prisma.CompanyOrderByWithRelationInput
   laborType?: Prisma.LaborTypeOrderByWithRelationInput
+  valuations?: Prisma.DailyReportValuationOrderByRelationAggregateInput
 }
 
 export type TariffWhereUniqueInput = Prisma.AtLeast<{
@@ -336,6 +338,7 @@ export type TariffWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Tariff"> | Date | string
   company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
   laborType?: Prisma.XOR<Prisma.LaborTypeScalarRelationFilter, Prisma.LaborTypeWhereInput>
+  valuations?: Prisma.DailyReportValuationListRelationFilter
 }, "id" | "companyId_laborTypeId">
 
 export type TariffOrderByWithAggregationInput = {
@@ -395,6 +398,7 @@ export type TariffCreateInput = {
   updatedAt?: Date | string
   company: Prisma.CompanyCreateNestedOneWithoutTariffsInput
   laborType: Prisma.LaborTypeCreateNestedOneWithoutTariffsInput
+  valuations?: Prisma.DailyReportValuationCreateNestedManyWithoutTariffInput
 }
 
 export type TariffUncheckedCreateInput = {
@@ -412,6 +416,7 @@ export type TariffUncheckedCreateInput = {
   updatedBy: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  valuations?: Prisma.DailyReportValuationUncheckedCreateNestedManyWithoutTariffInput
 }
 
 export type TariffUpdateInput = {
@@ -429,6 +434,7 @@ export type TariffUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company?: Prisma.CompanyUpdateOneRequiredWithoutTariffsNestedInput
   laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutTariffsNestedInput
+  valuations?: Prisma.DailyReportValuationUpdateManyWithoutTariffNestedInput
 }
 
 export type TariffUncheckedUpdateInput = {
@@ -446,6 +452,7 @@ export type TariffUncheckedUpdateInput = {
   updatedBy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  valuations?: Prisma.DailyReportValuationUncheckedUpdateManyWithoutTariffNestedInput
 }
 
 export type TariffCreateManyInput = {
@@ -573,6 +580,11 @@ export type TariffSumOrderByAggregateInput = {
   costAmount?: Prisma.SortOrder
 }
 
+export type TariffNullableScalarRelationFilter = {
+  is?: Prisma.TariffWhereInput | null
+  isNot?: Prisma.TariffWhereInput | null
+}
+
 export type TariffCreateNestedManyWithoutCompanyInput = {
   create?: Prisma.XOR<Prisma.TariffCreateWithoutCompanyInput, Prisma.TariffUncheckedCreateWithoutCompanyInput> | Prisma.TariffCreateWithoutCompanyInput[] | Prisma.TariffUncheckedCreateWithoutCompanyInput[]
   connectOrCreate?: Prisma.TariffCreateOrConnectWithoutCompanyInput | Prisma.TariffCreateOrConnectWithoutCompanyInput[]
@@ -677,6 +689,22 @@ export type EnumTariffBasisFieldUpdateOperationsInput = {
   set?: $Enums.TariffBasis
 }
 
+export type TariffCreateNestedOneWithoutValuationsInput = {
+  create?: Prisma.XOR<Prisma.TariffCreateWithoutValuationsInput, Prisma.TariffUncheckedCreateWithoutValuationsInput>
+  connectOrCreate?: Prisma.TariffCreateOrConnectWithoutValuationsInput
+  connect?: Prisma.TariffWhereUniqueInput
+}
+
+export type TariffUpdateOneWithoutValuationsNestedInput = {
+  create?: Prisma.XOR<Prisma.TariffCreateWithoutValuationsInput, Prisma.TariffUncheckedCreateWithoutValuationsInput>
+  connectOrCreate?: Prisma.TariffCreateOrConnectWithoutValuationsInput
+  upsert?: Prisma.TariffUpsertWithoutValuationsInput
+  disconnect?: Prisma.TariffWhereInput | boolean
+  delete?: Prisma.TariffWhereInput | boolean
+  connect?: Prisma.TariffWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TariffUpdateToOneWithWhereWithoutValuationsInput, Prisma.TariffUpdateWithoutValuationsInput>, Prisma.TariffUncheckedUpdateWithoutValuationsInput>
+}
+
 export type TariffCreateWithoutCompanyInput = {
   id?: string
   priceAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -691,6 +719,7 @@ export type TariffCreateWithoutCompanyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   laborType: Prisma.LaborTypeCreateNestedOneWithoutTariffsInput
+  valuations?: Prisma.DailyReportValuationCreateNestedManyWithoutTariffInput
 }
 
 export type TariffUncheckedCreateWithoutCompanyInput = {
@@ -707,6 +736,7 @@ export type TariffUncheckedCreateWithoutCompanyInput = {
   updatedBy: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  valuations?: Prisma.DailyReportValuationUncheckedCreateNestedManyWithoutTariffInput
 }
 
 export type TariffCreateOrConnectWithoutCompanyInput = {
@@ -769,6 +799,7 @@ export type TariffCreateWithoutLaborTypeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   company: Prisma.CompanyCreateNestedOneWithoutTariffsInput
+  valuations?: Prisma.DailyReportValuationCreateNestedManyWithoutTariffInput
 }
 
 export type TariffUncheckedCreateWithoutLaborTypeInput = {
@@ -785,6 +816,7 @@ export type TariffUncheckedCreateWithoutLaborTypeInput = {
   updatedBy: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  valuations?: Prisma.DailyReportValuationUncheckedCreateNestedManyWithoutTariffInput
 }
 
 export type TariffCreateOrConnectWithoutLaborTypeInput = {
@@ -811,6 +843,90 @@ export type TariffUpdateWithWhereUniqueWithoutLaborTypeInput = {
 export type TariffUpdateManyWithWhereWithoutLaborTypeInput = {
   where: Prisma.TariffScalarWhereInput
   data: Prisma.XOR<Prisma.TariffUpdateManyMutationInput, Prisma.TariffUncheckedUpdateManyWithoutLaborTypeInput>
+}
+
+export type TariffCreateWithoutValuationsInput = {
+  id?: string
+  priceAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  priceUnit: $Enums.MoneyUnit
+  priceGrain?: $Enums.Grain | null
+  priceBasis: $Enums.TariffBasis
+  costAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costUnit: $Enums.MoneyUnit
+  costGrain?: $Enums.Grain | null
+  costBasis: $Enums.TariffBasis
+  updatedBy: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  company: Prisma.CompanyCreateNestedOneWithoutTariffsInput
+  laborType: Prisma.LaborTypeCreateNestedOneWithoutTariffsInput
+}
+
+export type TariffUncheckedCreateWithoutValuationsInput = {
+  id?: string
+  companyId: string
+  laborTypeId: string
+  priceAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  priceUnit: $Enums.MoneyUnit
+  priceGrain?: $Enums.Grain | null
+  priceBasis: $Enums.TariffBasis
+  costAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  costUnit: $Enums.MoneyUnit
+  costGrain?: $Enums.Grain | null
+  costBasis: $Enums.TariffBasis
+  updatedBy: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type TariffCreateOrConnectWithoutValuationsInput = {
+  where: Prisma.TariffWhereUniqueInput
+  create: Prisma.XOR<Prisma.TariffCreateWithoutValuationsInput, Prisma.TariffUncheckedCreateWithoutValuationsInput>
+}
+
+export type TariffUpsertWithoutValuationsInput = {
+  update: Prisma.XOR<Prisma.TariffUpdateWithoutValuationsInput, Prisma.TariffUncheckedUpdateWithoutValuationsInput>
+  create: Prisma.XOR<Prisma.TariffCreateWithoutValuationsInput, Prisma.TariffUncheckedCreateWithoutValuationsInput>
+  where?: Prisma.TariffWhereInput
+}
+
+export type TariffUpdateToOneWithWhereWithoutValuationsInput = {
+  where?: Prisma.TariffWhereInput
+  data: Prisma.XOR<Prisma.TariffUpdateWithoutValuationsInput, Prisma.TariffUncheckedUpdateWithoutValuationsInput>
+}
+
+export type TariffUpdateWithoutValuationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  priceAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  priceUnit?: Prisma.EnumMoneyUnitFieldUpdateOperationsInput | $Enums.MoneyUnit
+  priceGrain?: Prisma.NullableEnumGrainFieldUpdateOperationsInput | $Enums.Grain | null
+  priceBasis?: Prisma.EnumTariffBasisFieldUpdateOperationsInput | $Enums.TariffBasis
+  costAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costUnit?: Prisma.EnumMoneyUnitFieldUpdateOperationsInput | $Enums.MoneyUnit
+  costGrain?: Prisma.NullableEnumGrainFieldUpdateOperationsInput | $Enums.Grain | null
+  costBasis?: Prisma.EnumTariffBasisFieldUpdateOperationsInput | $Enums.TariffBasis
+  updatedBy?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  company?: Prisma.CompanyUpdateOneRequiredWithoutTariffsNestedInput
+  laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutTariffsNestedInput
+}
+
+export type TariffUncheckedUpdateWithoutValuationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  priceAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  priceUnit?: Prisma.EnumMoneyUnitFieldUpdateOperationsInput | $Enums.MoneyUnit
+  priceGrain?: Prisma.NullableEnumGrainFieldUpdateOperationsInput | $Enums.Grain | null
+  priceBasis?: Prisma.EnumTariffBasisFieldUpdateOperationsInput | $Enums.TariffBasis
+  costAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  costUnit?: Prisma.EnumMoneyUnitFieldUpdateOperationsInput | $Enums.MoneyUnit
+  costGrain?: Prisma.NullableEnumGrainFieldUpdateOperationsInput | $Enums.Grain | null
+  costBasis?: Prisma.EnumTariffBasisFieldUpdateOperationsInput | $Enums.TariffBasis
+  updatedBy?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type TariffCreateManyCompanyInput = {
@@ -843,6 +959,7 @@ export type TariffUpdateWithoutCompanyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutTariffsNestedInput
+  valuations?: Prisma.DailyReportValuationUpdateManyWithoutTariffNestedInput
 }
 
 export type TariffUncheckedUpdateWithoutCompanyInput = {
@@ -859,6 +976,7 @@ export type TariffUncheckedUpdateWithoutCompanyInput = {
   updatedBy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  valuations?: Prisma.DailyReportValuationUncheckedUpdateManyWithoutTariffNestedInput
 }
 
 export type TariffUncheckedUpdateManyWithoutCompanyInput = {
@@ -907,6 +1025,7 @@ export type TariffUpdateWithoutLaborTypeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company?: Prisma.CompanyUpdateOneRequiredWithoutTariffsNestedInput
+  valuations?: Prisma.DailyReportValuationUpdateManyWithoutTariffNestedInput
 }
 
 export type TariffUncheckedUpdateWithoutLaborTypeInput = {
@@ -923,6 +1042,7 @@ export type TariffUncheckedUpdateWithoutLaborTypeInput = {
   updatedBy?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  valuations?: Prisma.DailyReportValuationUncheckedUpdateManyWithoutTariffNestedInput
 }
 
 export type TariffUncheckedUpdateManyWithoutLaborTypeInput = {
@@ -942,6 +1062,35 @@ export type TariffUncheckedUpdateManyWithoutLaborTypeInput = {
 }
 
 
+/**
+ * Count Type TariffCountOutputType
+ */
+
+export type TariffCountOutputType = {
+  valuations: number
+}
+
+export type TariffCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  valuations?: boolean | TariffCountOutputTypeCountValuationsArgs
+}
+
+/**
+ * TariffCountOutputType without action
+ */
+export type TariffCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TariffCountOutputType
+   */
+  select?: Prisma.TariffCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * TariffCountOutputType without action
+ */
+export type TariffCountOutputTypeCountValuationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DailyReportValuationWhereInput
+}
+
 
 export type TariffSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -960,6 +1109,8 @@ export type TariffSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   updatedAt?: boolean
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   laborType?: boolean | Prisma.LaborTypeDefaultArgs<ExtArgs>
+  valuations?: boolean | Prisma.Tariff$valuationsArgs<ExtArgs>
+  _count?: boolean | Prisma.TariffCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["tariff"]>
 
 export type TariffSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1021,6 +1172,8 @@ export type TariffOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 export type TariffInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
   laborType?: boolean | Prisma.LaborTypeDefaultArgs<ExtArgs>
+  valuations?: boolean | Prisma.Tariff$valuationsArgs<ExtArgs>
+  _count?: boolean | Prisma.TariffCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TariffIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
@@ -1036,6 +1189,7 @@ export type $TariffPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   objects: {
     company: Prisma.$CompanyPayload<ExtArgs>
     laborType: Prisma.$LaborTypePayload<ExtArgs>
+    valuations: Prisma.$DailyReportValuationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1448,6 +1602,7 @@ export interface Prisma__TariffClient<T, Null = never, ExtArgs extends runtime.T
   readonly [Symbol.toStringTag]: "PrismaPromise"
   company<T extends Prisma.CompanyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CompanyDefaultArgs<ExtArgs>>): Prisma.Prisma__CompanyClient<runtime.Types.Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   laborType<T extends Prisma.LaborTypeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LaborTypeDefaultArgs<ExtArgs>>): Prisma.Prisma__LaborTypeClient<runtime.Types.Result.GetResult<Prisma.$LaborTypePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  valuations<T extends Prisma.Tariff$valuationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tariff$valuationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyReportValuationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1889,6 +2044,30 @@ export type TariffDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many Tariffs to delete.
    */
   limit?: number
+}
+
+/**
+ * Tariff.valuations
+ */
+export type Tariff$valuationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DailyReportValuation
+   */
+  select?: Prisma.DailyReportValuationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DailyReportValuation
+   */
+  omit?: Prisma.DailyReportValuationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DailyReportValuationInclude<ExtArgs> | null
+  where?: Prisma.DailyReportValuationWhereInput
+  orderBy?: Prisma.DailyReportValuationOrderByWithRelationInput | Prisma.DailyReportValuationOrderByWithRelationInput[]
+  cursor?: Prisma.DailyReportValuationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DailyReportValuationScalarFieldEnum | Prisma.DailyReportValuationScalarFieldEnum[]
 }
 
 /**

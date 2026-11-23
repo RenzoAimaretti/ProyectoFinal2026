@@ -194,3 +194,8 @@ export type LivestockMovement = Prisma.LivestockMovementModel
  * 
  */
 export type Tariff = Prisma.TariffModel
+/**
+ * Model DailyReportValuation
+ * 
+ */
+export type DailyReportValuation = Prisma.DailyReportValuationModel

@@ -8,6 +8,7 @@ import {
   DailyReportApprovalPort,
   DailyReportClientReaderPort,
   DailyReportRepositoryPort,
+  DailyReportValuationHookPort,
 } from '../daily-report.ports';
 import { DailyReportRecord } from '../daily-report.types';
 import { assertRequiredString } from '../daily-report.validation';
@@ -23,6 +24,7 @@ export class ApproveDailyReportUseCase {
     private readonly clientReader: DailyReportClientReaderPort,
     private readonly approval: DailyReportApprovalPort,
     private readonly clock: ClockPort,
+    private readonly valuationHook: DailyReportValuationHookPort,
   ) {}
 
   async execute(
@@ -48,12 +50,28 @@ export class ApproveDailyReportUseCase {
       );
     }
 
-    return this.approval.approveWithStockDeduction({
+    const approvedAt = this.clock.now();
+    const approved = await this.approval.approveWithStockDeduction({
       id: report.id,
       companyId: company,
       clientId,
       approvedBy: approver,
-      approvedAt: this.clock.now(),
+      approvedAt,
     });
+
+    // The approval transaction is already committed. Valuation is best effort:
+    // the hook contract says it never throws, and this guard keeps a violating
+    // implementation from changing the approval answer (R017 contract).
+    try {
+      await this.valuationHook.onApproved({
+        companyId: company,
+        reportId: approved.id,
+        approvedAt: approved.approvedAt ?? approvedAt,
+      });
+    } catch {
+      // Intentionally ignored: the report stays approved and unvalued.
+    }
+
+    return approved;
   }
 }

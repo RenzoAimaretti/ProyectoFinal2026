@@ -99,7 +99,9 @@ async function main(): Promise<void> {
     await prisma.$transaction([
       prisma.photo.deleteMany(),
       prisma.dailyReportItem.deleteMany(),
+      prisma.dailyReportValuation.deleteMany(),
       prisma.dailyReport.deleteMany(),
+      prisma.tariff.deleteMany(),
       prisma.machineUsage.deleteMany(),
       prisma.machineActivity.deleteMany(),
       prisma.receptionItem.deleteMany(),

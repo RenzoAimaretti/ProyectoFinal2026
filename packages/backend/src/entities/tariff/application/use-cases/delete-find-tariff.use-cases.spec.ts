@@ -1,6 +1,7 @@
 import { EntityNotFoundError } from '../../domain/errors';
 import {
   FakeLaborTypeReader,
+  FakePendingValuationRetry,
   InMemoryTariffRepository,
 } from '../tariff.test-fakes';
 import { DeleteTariffUseCase } from './delete-tariff.use-case';
@@ -15,6 +16,7 @@ async function seeded() {
   const upsert = new UpsertTariffUseCase(
     repository,
     new FakeLaborTypeReader(['tenant-1|labor-1', 'tenant-1|labor-2']),
+    new FakePendingValuationRetry(),
   );
   await upsert.execute({
     companyId: 'company-1',

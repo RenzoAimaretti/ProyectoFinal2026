@@ -1,6 +1,7 @@
 import { InvalidInputError } from '../../domain/errors';
 import {
   FakeLaborTypeReader,
+  FakePendingValuationRetry,
   FakeMoneyValuation,
   FixedClock,
   InMemoryTariffRepository,
@@ -13,6 +14,7 @@ function harness(valuation: FakeMoneyValuation) {
   const upsert = new UpsertTariffUseCase(
     repository,
     new FakeLaborTypeReader(['t|l1', 't|l2', 't|l3']),
+    new FakePendingValuationRetry(),
   );
   const save = (laborTypeId: string, price: object, cost: object) =>
     upsert.execute({

@@ -52,36 +52,36 @@
 
 ### 2.A Esquema
 
-- [ ] 2.1 `prisma/schema.prisma`: enum `ValuationOrigin` y modelo `DailyReportValuation` (`dailyReportId @unique`, `tariffId` con `onDelete: SetNull`, campos aplicados, cantidades nativas, precios/tasa usados, resultados ARS, `valuedAt`) y relaciones inversas en `DailyReport` y `Tariff` (design §2.3).
-- [ ] 2.2 Migración manual propia `prisma/migrations/20261123100000_add_daily_report_valuations/migration.sql` (enum, tabla, índice único `dailyReportId`, índice `companyId,lotId`, `CHECK`s de grano y de montos) (T9).
+- [x] 2.1 `prisma/schema.prisma`: enum `ValuationOrigin` y modelo `DailyReportValuation` (`dailyReportId @unique`, `tariffId` con `onDelete: SetNull`, campos aplicados, cantidades nativas, precios/tasa usados, resultados ARS, `valuedAt`) y relaciones inversas en `DailyReport` y `Tariff` (design §2.3).
+- [x] 2.2 Migración manual propia `prisma/migrations/20261123100000_add_daily_report_valuations/migration.sql` (enum, tabla, índice único `dailyReportId`, índice `companyId,lotId`, `CHECK`s de grano y de montos) (T9).
 
 ### 2.B Valorización y reintento
 
-- [ ] 2.3 `valuation.rules.ts`: `computeValuation(report, tariff, market, policy)` pura — base `POR_HECTAREA`/`POR_HORA`, cantidades nativas, todo o nada, un parte con horas y 0 ha produce costo sin ingreso (spec R-FIN-02/05/06).
-- [ ] 2.4 Puertos de `valuation`: `TariffReaderPort`, `DailyReportReaderPort` (por id y `findApprovedWithoutValuation` con `limit`), `ValuationRepositoryPort` (`saveIfAbsent` → `'CREATED' | 'ALREADY_EXISTS'`), `ClockPort`.
-- [ ] 2.5 `ValuateDailyReportUseCase` (`origin: APROBACION`) y `RetryPendingValuationsUseCase` (`origin: REINTENTO`, `limit` 200 — **Supuesto**) con resultado tipado `VALUADO | SIN_TARIFA | PRECIO_NO_DISPONIBLE | YA_VALORIZADO` (design §2.4/§2.6, spec R-FIN-05..07).
-- [ ] 2.6 Adapters Prisma: `PrismaTariffReader`, `PrismaDailyReportReader` (partes `APROBADO` sin valorización, `NOT EXISTS`; resumen de pendientes con conteo y suma de hectáreas), `PrismaValuationRepository` (traduce `P2002` de `dailyReportId` a `ALREADY_EXISTS` **dentro del adapter**).
-- [ ] 2.7 Exportar `ValuateDailyReportUseCase` y `RetryPendingValuationsUseCase` desde `ValuationModule`.
-- [ ] 2.8 `tariff`: tras `UpsertTariffUseCase`, disparar el reintento de **esa firma y labor** por un `PendingValuationRetryPort` (adapter sobre `RetryPendingValuationsUseCase`), best-effort: el error se loguea y no cambia la respuesta del `PUT` (spec R-FIN-07).
+- [x] 2.3 `valuation.rules.ts`: `computeValuation(report, tariff, market, policy)` pura — base `POR_HECTAREA`/`POR_HORA`, cantidades nativas, todo o nada, un parte con horas y 0 ha produce costo sin ingreso (spec R-FIN-02/05/06).
+- [x] 2.4 Puertos de `valuation`: `TariffReaderPort`, `DailyReportReaderPort` (por id y `findApprovedWithoutValuation` con `limit`), `ValuationRepositoryPort` (`saveIfAbsent` → `'CREATED' | 'ALREADY_EXISTS'`), `ClockPort`.
+- [x] 2.5 `ValuateDailyReportUseCase` (`origin: APROBACION`) y `RetryPendingValuationsUseCase` (`origin: REINTENTO`, `limit` 200 — **Supuesto**) con resultado tipado `VALUADO | SIN_TARIFA | PRECIO_NO_DISPONIBLE | YA_VALORIZADO` (design §2.4/§2.6, spec R-FIN-05..07).
+- [x] 2.6 Adapters Prisma: `PrismaTariffReader`, `PrismaDailyReportReader` (partes `APROBADO` sin valorización, `NOT EXISTS`; resumen de pendientes con conteo y suma de hectáreas), `PrismaValuationRepository` (traduce `P2002` de `dailyReportId` a `ALREADY_EXISTS` **dentro del adapter**).
+- [x] 2.7 Exportar `ValuateDailyReportUseCase` y `RetryPendingValuationsUseCase` desde `ValuationModule`.
+- [x] 2.8 `tariff`: tras `UpsertTariffUseCase`, disparar el reintento de **esa firma y labor** por un `PendingValuationRetryPort` (adapter sobre `RetryPendingValuationsUseCase`), best-effort: el error se loguea y no cambia la respuesta del `PUT` (spec R-FIN-07).
 
 ### 2.C Cambio al caso de uso de aprobación (alto riesgo)
 
-- [ ] 2.9 `daily-report.ports.ts`: `DAILY_REPORT_VALUATION_HOOK` + `DailyReportValuationHookPort.onApproved(...)` con contrato "no lanza" (design §2.5, T6).
-- [ ] 2.10 `approve-daily-report.use-case.ts`: 5.º parámetro `valuationHook`; invocarlo **después** de `approveWithStockDeduction` dentro de `try/catch` y devolver el mismo parte; actualizar los tests existentes del caso de uso (4 → 5 argumentos).
-- [ ] 2.11 `daily-report/adapters/outbound/valuation-daily-report-hook.adapter.ts`: llama a `ValuateDailyReportUseCase`, captura y loguea con `Logger`; `daily-report.module.ts` importa `ValuationModule`, provee el gancho y la factory con 5 dependencias; actualizar `daily-report.module.spec.ts`. Verificar que `ValuationModule` **no** importa `DailyReportModule` (sin ciclo).
-- [ ] 2.12 Confirmar que el contrato HTTP de `POST /daily-reports/:id/approve` (respuesta y códigos) no cambió, incluida la ruta de error de stock insuficiente (R017).
+- [x] 2.9 `daily-report.ports.ts`: `DAILY_REPORT_VALUATION_HOOK` + `DailyReportValuationHookPort.onApproved(...)` con contrato "no lanza" (design §2.5, T6).
+- [x] 2.10 `approve-daily-report.use-case.ts`: 5.º parámetro `valuationHook`; invocarlo **después** de `approveWithStockDeduction` dentro de `try/catch` y devolver el mismo parte; actualizar los tests existentes del caso de uso (4 → 5 argumentos).
+- [x] 2.11 `daily-report/adapters/outbound/valuation-daily-report-hook.adapter.ts`: llama a `ValuateDailyReportUseCase`, captura y loguea con `Logger`; `daily-report.module.ts` importa `ValuationModule`, provee el gancho y la factory con 5 dependencias; actualizar `daily-report.module.spec.ts`. Verificar que `ValuationModule` **no** importa `DailyReportModule` (sin ciclo).
+- [x] 2.12 Confirmar que el contrato HTTP de `POST /daily-reports/:id/approve` (respuesta y códigos) no cambió, incluida la ruta de error de stock insuficiente (R017).
 
 ### 2.D Valor a hoy
 
-- [ ] 2.13 `valuation.rules.ts`: `revalueToday(nativeAmounts, market)` (kg y USD con el mercado de hoy, ARS sin cambio, sin ajuste por inflación) y `MarketUnavailableError` si falta un dato requerido (spec R-FIN-08, design §2.7).
+- [x] 2.13 `valuation.rules.ts`: `revalueToday(nativeAmounts, market)` (kg y USD con el mercado de hoy, ARS sin cambio, sin ajuste por inflación) y `MarketUnavailableError` si falta un dato requerido (spec R-FIN-08, design §2.7).
 
 ### 2.E Tests y documentación de la unidad
 
-- [ ] 2.14 Jest dominio: `computeValuation` (tarifa en kg/USD/ARS, bases por hectárea y por hora, 0 ha con horas, tarifa con 0, precio `null` → todo o nada) y `revalueToday` (kg a precio nuevo, ARS fijo) (spec R-FIN-05/06/08).
-- [ ] 2.15 Jest aplicación con fakes: `ValuateDailyReportUseCase` (sin tarifa → `SIN_TARIFA`, mercado caído → `PRECIO_NO_DISPONIBLE`, solo ARS no consulta mercado, snapshot registra tasa/fuente/fecha) y `RetryPendingValuationsUseCase` (marca `REINTENTO`, `ALREADY_EXISTS` no es error, `limit`).
-- [ ] 2.16 **Prueba de concurrencia**: dos reintentos simultáneos sobre el mismo parte producen una sola valorización y ninguno falla (fake de repositorio con conflicto) (spec R-FIN-07).
-- [ ] 2.17 **Regresión del `approve`**: con el gancho que lanza, el resultado es idéntico al de antes del sprint; con el gancho OK se invoca después de `approveWithStockDeduction`; una aprobación rechazada por stock **no** invoca el gancho (spec R-FIN-05/06).
-- [ ] 2.18 Documentación: registrar `Risk: item 1, 4` y el cambio del `approve` en el log del change; anotar que `PUT /tariffs` ahora dispara reintentos.
+- [x] 2.14 Jest dominio: `computeValuation` (tarifa en kg/USD/ARS, bases por hectárea y por hora, 0 ha con horas, tarifa con 0, precio `null` → todo o nada) y `revalueToday` (kg a precio nuevo, ARS fijo) (spec R-FIN-05/06/08).
+- [x] 2.15 Jest aplicación con fakes: `ValuateDailyReportUseCase` (sin tarifa → `SIN_TARIFA`, mercado caído → `PRECIO_NO_DISPONIBLE`, solo ARS no consulta mercado, snapshot registra tasa/fuente/fecha) y `RetryPendingValuationsUseCase` (marca `REINTENTO`, `ALREADY_EXISTS` no es error, `limit`).
+- [x] 2.16 **Prueba de concurrencia**: dos reintentos simultáneos sobre el mismo parte producen una sola valorización y ninguno falla (fake de repositorio con conflicto) (spec R-FIN-07).
+- [x] 2.17 **Regresión del `approve`**: con el gancho que lanza, el resultado es idéntico al de antes del sprint; con el gancho OK se invoca después de `approveWithStockDeduction`; una aprobación rechazada por stock **no** invoca el gancho (spec R-FIN-05/06).
+- [x] 2.18 Documentación: registrar `Risk: item 1, 4` y el cambio del `approve` en el log del change; anotar que `PUT /tariffs` ahora dispara reintentos.
 
 ## 3. Unidad 3 — Gastos manuales (R032)
 

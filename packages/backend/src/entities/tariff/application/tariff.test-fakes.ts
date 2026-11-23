@@ -8,6 +8,10 @@ import {
 import { LaborTypeReaderPort } from './ports/labor-type-reader.port';
 import { TariffRepositoryPort } from './ports/tariff-repository.port';
 import { ClockPort } from './ports/clock.port';
+import {
+  PendingValuationRetryInput,
+  PendingValuationRetryPort,
+} from './ports/pending-valuation-retry.port';
 
 /** Fakes in-memory compartidos por los specs de los casos de uso de tariff. */
 export class InMemoryTariffRepository implements TariffRepositoryPort {
@@ -108,5 +112,20 @@ export class FakeMoneyValuation implements MoneyValuationPort {
 export class FixedClock implements ClockPort {
   now(): Date {
     return new Date('2026-11-23T12:00:00Z');
+  }
+}
+
+export class FakePendingValuationRetry implements PendingValuationRetryPort {
+  readonly calls: PendingValuationRetryInput[] = [];
+  /** Each call sees how many tariffs were already stored, to prove ordering. */
+  constructor(
+    private readonly failWith: Error | null = null,
+    private readonly onCall: (() => void) | null = null,
+  ) {}
+
+  retry(input: PendingValuationRetryInput): Promise<void> {
+    this.calls.push(input);
+    this.onCall?.();
+    return this.failWith ? Promise.reject(this.failWith) : Promise.resolve();
   }
 }

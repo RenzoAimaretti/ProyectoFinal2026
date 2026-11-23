@@ -22,3 +22,11 @@ export class MarketUnavailableError extends Error {
     this.name = 'MarketUnavailableError';
   }
 }
+
+/** The report to value does not exist, belongs to another company or is not approved. */
+export class EntityNotFoundError extends Error {
+  constructor(message = 'Entity not found') {
+    super(message);
+    this.name = 'EntityNotFoundError';
+  }
+}

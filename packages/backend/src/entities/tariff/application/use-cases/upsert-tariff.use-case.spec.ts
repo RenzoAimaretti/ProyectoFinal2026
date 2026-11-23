@@ -1,6 +1,7 @@
 import { EntityNotFoundError, InvalidInputError } from '../../domain/errors';
 import {
   FakeLaborTypeReader,
+  FakePendingValuationRetry,
   InMemoryTariffRepository,
 } from '../tariff.test-fakes';
 import { UpsertTariffUseCase } from './upsert-tariff.use-case';
@@ -13,21 +14,21 @@ const price = {
 };
 const cost = { amount: '8000', unit: 'ARS', basis: 'POR_HORA' };
 
-function harness() {
+function harness(retry = new FakePendingValuationRetry()) {
   const repository = new InMemoryTariffRepository();
   const laborTypes = new FakeLaborTypeReader([
     'tenant-1|labor-1',
     'tenant-1|labor-2',
     'tenant-2|labor-9',
   ]);
-  const useCase = new UpsertTariffUseCase(repository, laborTypes);
+  const useCase = new UpsertTariffUseCase(repository, laborTypes, retry);
   const base = {
     companyId: 'company-1',
     tenantId: 'tenant-1',
     userId: 'admin-1',
     laborTypeId: 'labor-1',
   };
-  return { repository, useCase, base };
+  return { repository, useCase, base, retry };
 }
 
 describe('UpsertTariffUseCase', () => {
@@ -137,5 +138,57 @@ describe('UpsertTariffUseCase', () => {
     await expect(
       useCase.execute({ ...base, laborTypeId: 'deleted-labor', price, cost }),
     ).rejects.toBeInstanceOf(EntityNotFoundError);
+  });
+
+  it('retries the pending valuations of that company and labor after saving the tariff', async () => {
+    let storedWhenRetried = -1;
+    const repository = new InMemoryTariffRepository();
+    const retry = new FakePendingValuationRetry(null, () => {
+      storedWhenRetried = repository.records.size;
+    });
+    const useCase = new UpsertTariffUseCase(
+      repository,
+      new FakeLaborTypeReader(['tenant-1|labor-1']),
+      retry,
+    );
+
+    await useCase.execute({
+      companyId: 'company-1',
+      tenantId: 'tenant-1',
+      userId: 'admin-1',
+      laborTypeId: 'labor-1',
+      price,
+      cost,
+    });
+
+    expect(retry.calls).toEqual([
+      { companyId: 'company-1', laborTypeId: 'labor-1' },
+    ]);
+    expect(storedWhenRetried).toBe(1);
+  });
+
+  it('answers the same saved tariff when the retry fails (best effort)', async () => {
+    const retry = new FakePendingValuationRetry(new Error('market down'));
+    const { useCase, base, repository } = harness(retry);
+
+    const result = await useCase.execute({ ...base, price, cost });
+
+    expect(retry.calls).toHaveLength(1);
+    expect(result.laborTypeId).toBe('labor-1');
+    expect(result.price.amount).toBe('12');
+    expect(await repository.findAllByCompany('company-1')).toHaveLength(1);
+  });
+
+  it('does not retry anything when the tariff is rejected', async () => {
+    const { useCase, base, retry } = harness();
+
+    await expect(
+      useCase.execute({ ...base, price: undefined, cost }),
+    ).rejects.toBeInstanceOf(InvalidInputError);
+    await expect(
+      useCase.execute({ ...base, laborTypeId: 'labor-9', price, cost }),
+    ).rejects.toBeInstanceOf(EntityNotFoundError);
+
+    expect(retry.calls).toEqual([]);
   });
 });

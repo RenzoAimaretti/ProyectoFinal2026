@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RetryPendingValuationsUseCase } from '../valuation/application/use-cases/retry-pending-valuations.use-case';
 import { ValueMoneyUseCase } from '../valuation/application/use-cases/value-money.use-case';
 import { ValuationModule } from '../valuation/valuation.module';
 import { TariffController } from './adapters/inbound/tariff.controller';
@@ -8,6 +9,7 @@ import { PrismaLaborTypeReader } from './adapters/outbound/prisma-labor-type.rea
 import { PrismaTariffRepository } from './adapters/outbound/prisma-tariff.repository';
 import { SystemClock } from './adapters/outbound/system-clock';
 import { ValuationMoneyValuationAdapter } from './adapters/outbound/valuation-money-valuation.adapter';
+import { ValuationPendingValuationRetryAdapter } from './adapters/outbound/valuation-pending-valuation-retry.adapter';
 import { CLOCK, ClockPort } from './application/ports/clock.port';
 import {
   LABOR_TYPE_READER,
@@ -17,6 +19,10 @@ import {
   MONEY_VALUATION,
   MoneyValuationPort,
 } from './application/ports/money-valuation.port';
+import {
+  PENDING_VALUATION_RETRY,
+  PendingValuationRetryPort,
+} from './application/ports/pending-valuation-retry.port';
 import {
   TARIFF_REPOSITORY,
   TariffRepositoryPort,
@@ -46,6 +52,12 @@ import { UpsertTariffUseCase } from './application/use-cases/upsert-tariff.use-c
         new ValuationMoneyValuationAdapter(valueMoney),
       inject: [ValueMoneyUseCase],
     },
+    {
+      provide: PENDING_VALUATION_RETRY,
+      useFactory: (retry: RetryPendingValuationsUseCase) =>
+        new ValuationPendingValuationRetryAdapter(retry),
+      inject: [RetryPendingValuationsUseCase],
+    },
     { provide: CLOCK, useFactory: () => new SystemClock() },
     {
       provide: FindTariffsUseCase,
@@ -58,8 +70,9 @@ import { UpsertTariffUseCase } from './application/use-cases/upsert-tariff.use-c
       useFactory: (
         tariffs: TariffRepositoryPort,
         laborTypes: LaborTypeReaderPort,
-      ) => new UpsertTariffUseCase(tariffs, laborTypes),
-      inject: [TARIFF_REPOSITORY, LABOR_TYPE_READER],
+        pendingRetry: PendingValuationRetryPort,
+      ) => new UpsertTariffUseCase(tariffs, laborTypes, pendingRetry),
+      inject: [TARIFF_REPOSITORY, LABOR_TYPE_READER, PENDING_VALUATION_RETRY],
     },
     {
       provide: DeleteTariffUseCase,

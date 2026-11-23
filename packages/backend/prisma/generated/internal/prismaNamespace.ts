@@ -414,7 +414,8 @@ export const ModelName = {
   LivestockEvent: 'LivestockEvent',
   WeightRecord: 'WeightRecord',
   LivestockMovement: 'LivestockMovement',
-  Tariff: 'Tariff'
+  Tariff: 'Tariff',
+  DailyReportValuation: 'DailyReportValuation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -430,7 +431,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "tenant" | "company" | "userCompany" | "user" | "refreshToken" | "module" | "client" | "inputCategory" | "input" | "laborType" | "laborTypeCategory" | "farm" | "lot" | "task" | "recipe" | "recipeItem" | "dailyReport" | "dailyReportItem" | "reception" | "receptionItem" | "stock" | "machine" | "maintenanceThreshold" | "machineUsage" | "machineActivity" | "photo" | "livestock" | "livestockEvent" | "weightRecord" | "livestockMovement" | "tariff"
+    modelProps: "tenant" | "company" | "userCompany" | "user" | "refreshToken" | "module" | "client" | "inputCategory" | "input" | "laborType" | "laborTypeCategory" | "farm" | "lot" | "task" | "recipe" | "recipeItem" | "dailyReport" | "dailyReportItem" | "reception" | "receptionItem" | "stock" | "machine" | "maintenanceThreshold" | "machineUsage" | "machineActivity" | "photo" | "livestock" | "livestockEvent" | "weightRecord" | "livestockMovement" | "tariff" | "dailyReportValuation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2728,6 +2729,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DailyReportValuation: {
+      payload: Prisma.$DailyReportValuationPayload<ExtArgs>
+      fields: Prisma.DailyReportValuationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DailyReportValuationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DailyReportValuationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload>
+        }
+        findFirst: {
+          args: Prisma.DailyReportValuationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DailyReportValuationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload>
+        }
+        findMany: {
+          args: Prisma.DailyReportValuationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload>[]
+        }
+        create: {
+          args: Prisma.DailyReportValuationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload>
+        }
+        createMany: {
+          args: Prisma.DailyReportValuationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DailyReportValuationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload>[]
+        }
+        delete: {
+          args: Prisma.DailyReportValuationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload>
+        }
+        update: {
+          args: Prisma.DailyReportValuationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload>
+        }
+        deleteMany: {
+          args: Prisma.DailyReportValuationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DailyReportValuationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DailyReportValuationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload>[]
+        }
+        upsert: {
+          args: Prisma.DailyReportValuationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DailyReportValuationPayload>
+        }
+        aggregate: {
+          args: Prisma.DailyReportValuationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDailyReportValuation>
+        }
+        groupBy: {
+          args: Prisma.DailyReportValuationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyReportValuationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DailyReportValuationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DailyReportValuationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3241,6 +3316,42 @@ export const TariffScalarFieldEnum = {
 export type TariffScalarFieldEnum = (typeof TariffScalarFieldEnum)[keyof typeof TariffScalarFieldEnum]
 
 
+export const DailyReportValuationScalarFieldEnum = {
+  id: 'id',
+  dailyReportId: 'dailyReportId',
+  companyId: 'companyId',
+  lotId: 'lotId',
+  tariffId: 'tariffId',
+  origin: 'origin',
+  priceAmount: 'priceAmount',
+  priceUnit: 'priceUnit',
+  priceGrain: 'priceGrain',
+  priceBasis: 'priceBasis',
+  costAmount: 'costAmount',
+  costUnit: 'costUnit',
+  costGrain: 'costGrain',
+  costBasis: 'costBasis',
+  hectares: 'hectares',
+  hours: 'hours',
+  incomeNative: 'incomeNative',
+  costNative: 'costNative',
+  incomeGrainArsPerTon: 'incomeGrainArsPerTon',
+  costGrainArsPerTon: 'costGrainArsPerTon',
+  usdRate: 'usdRate',
+  usdRateType: 'usdRateType',
+  grainSource: 'grainSource',
+  usdSource: 'usdSource',
+  priceFetchedAt: 'priceFetchedAt',
+  priceStale: 'priceStale',
+  incomeArs: 'incomeArs',
+  costArs: 'costArs',
+  valuedAt: 'valuedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type DailyReportValuationScalarFieldEnum = (typeof DailyReportValuationScalarFieldEnum)[keyof typeof DailyReportValuationScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3630,6 +3741,34 @@ export type EnumTariffBasisFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
 export type ListEnumTariffBasisFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TariffBasis[]'>
     
 
+
+/**
+ * Reference to a field of type 'ValuationOrigin'
+ */
+export type EnumValuationOriginFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ValuationOrigin'>
+    
+
+
+/**
+ * Reference to a field of type 'ValuationOrigin[]'
+ */
+export type ListEnumValuationOriginFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ValuationOrigin[]'>
+    
+
+
+/**
+ * Reference to a field of type 'UsdRateType'
+ */
+export type EnumUsdRateTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UsdRateType'>
+    
+
+
+/**
+ * Reference to a field of type 'UsdRateType[]'
+ */
+export type ListEnumUsdRateTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UsdRateType[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -3771,6 +3910,7 @@ export type GlobalOmitConfig = {
   weightRecord?: Prisma.WeightRecordOmit
   livestockMovement?: Prisma.LivestockMovementOmit
   tariff?: Prisma.TariffOmit
+  dailyReportValuation?: Prisma.DailyReportValuationOmit
 }
 
 /* Types for Logging */

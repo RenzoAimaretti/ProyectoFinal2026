@@ -81,7 +81,8 @@ export const ModelName = {
   LivestockEvent: 'LivestockEvent',
   WeightRecord: 'WeightRecord',
   LivestockMovement: 'LivestockMovement',
-  Tariff: 'Tariff'
+  Tariff: 'Tariff',
+  DailyReportValuation: 'DailyReportValuation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -572,6 +573,42 @@ export const TariffScalarFieldEnum = {
 } as const
 
 export type TariffScalarFieldEnum = (typeof TariffScalarFieldEnum)[keyof typeof TariffScalarFieldEnum]
+
+
+export const DailyReportValuationScalarFieldEnum = {
+  id: 'id',
+  dailyReportId: 'dailyReportId',
+  companyId: 'companyId',
+  lotId: 'lotId',
+  tariffId: 'tariffId',
+  origin: 'origin',
+  priceAmount: 'priceAmount',
+  priceUnit: 'priceUnit',
+  priceGrain: 'priceGrain',
+  priceBasis: 'priceBasis',
+  costAmount: 'costAmount',
+  costUnit: 'costUnit',
+  costGrain: 'costGrain',
+  costBasis: 'costBasis',
+  hectares: 'hectares',
+  hours: 'hours',
+  incomeNative: 'incomeNative',
+  costNative: 'costNative',
+  incomeGrainArsPerTon: 'incomeGrainArsPerTon',
+  costGrainArsPerTon: 'costGrainArsPerTon',
+  usdRate: 'usdRate',
+  usdRateType: 'usdRateType',
+  grainSource: 'grainSource',
+  usdSource: 'usdSource',
+  priceFetchedAt: 'priceFetchedAt',
+  priceStale: 'priceStale',
+  incomeArs: 'incomeArs',
+  costArs: 'costArs',
+  valuedAt: 'valuedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type DailyReportValuationScalarFieldEnum = (typeof DailyReportValuationScalarFieldEnum)[keyof typeof DailyReportValuationScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -188,3 +188,11 @@ export const UsdRateType = {
 } as const
 
 export type UsdRateType = (typeof UsdRateType)[keyof typeof UsdRateType]
+
+
+export const ValuationOrigin = {
+  APROBACION: 'APROBACION',
+  REINTENTO: 'REINTENTO'
+} as const
+
+export type ValuationOrigin = (typeof ValuationOrigin)[keyof typeof ValuationOrigin]

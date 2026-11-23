@@ -388,6 +388,7 @@ model DailyReport {
   lot       Lot               @relation(fields: [lotId], references: [id])
   laborType LaborType         @relation(fields: [laborTypeId], references: [id])
   items     DailyReportItem[]
+  valuation DailyReportValuation?
 
   @@index([companyId, date])
   @@index([status, date])
@@ -810,7 +811,55 @@ model Tariff {
   updatedAt   DateTime    @updatedAt
 
   company   Company   @relation(fields: [companyId], references: [id])
-  laborType LaborType @relation(fields: [laborTypeId], references: [id])
+  laborType  LaborType              @relation(fields: [laborTypeId], references: [id])
+  valuations DailyReportValuation[]
 
   @@unique([companyId, laborTypeId])
+}
+
+enum ValuationOrigin {
+  APROBACION
+  REINTENTO
+}
+
+model DailyReportValuation {
+  id            String          @id @default(uuid())
+  dailyReportId String          @unique
+  companyId     String
+  lotId         String
+  tariffId      String?
+  origin        ValuationOrigin
+
+  priceAmount Decimal     @db.Decimal(18, 4)
+  priceUnit   MoneyUnit
+  priceGrain  Grain?
+  priceBasis  TariffBasis
+  costAmount  Decimal     @db.Decimal(18, 4)
+  costUnit    MoneyUnit
+  costGrain   Grain?
+  costBasis   TariffBasis
+
+  hectares     Decimal @db.Decimal(18, 4)
+  hours        Decimal @db.Decimal(18, 4)
+  incomeNative Decimal @db.Decimal(18, 4)
+  costNative   Decimal @db.Decimal(18, 4)
+
+  incomeGrainArsPerTon Decimal?     @db.Decimal(18, 4)
+  costGrainArsPerTon   Decimal?     @db.Decimal(18, 4)
+  usdRate              Decimal?     @db.Decimal(18, 4)
+  usdRateType          UsdRateType?
+  grainSource          String?
+  usdSource            String?
+  priceFetchedAt       DateTime?
+  priceStale           Boolean      @default(false)
+
+  incomeArs Decimal  @db.Decimal(18, 4)
+  costArs   Decimal  @db.Decimal(18, 4)
+  valuedAt  DateTime
+  createdAt DateTime @default(now())
+
+  dailyReport DailyReport @relation(fields: [dailyReportId], references: [id])
+  tariff      Tariff?     @relation(fields: [tariffId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, lotId])
 }
