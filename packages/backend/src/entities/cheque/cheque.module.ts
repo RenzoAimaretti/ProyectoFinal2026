@@ -2,8 +2,11 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { ChequeController } from './adapters/inbound/cheque.controller';
 import { PrismaChequeRepository } from './adapters/outbound/prisma-cheque.repository';
+import { PrismaChequePaymentReader } from './adapters/outbound/prisma-cheque-payment-reader';
 import {
+  CHEQUE_PAYMENT_READER,
   CHEQUE_REPOSITORY,
+  ChequePaymentReaderPort,
   ChequeRepositoryPort,
 } from './application/cheque.ports';
 import { ChangeChequeStatusUseCase } from './application/use-cases/change-cheque-status.use-case';
@@ -16,12 +19,16 @@ import { ListChequesUseCase } from './application/use-cases/list-cheques.use-cas
   controllers: [ChequeController],
   providers: [
     PrismaChequeRepository,
+    PrismaChequePaymentReader,
     { provide: CHEQUE_REPOSITORY, useExisting: PrismaChequeRepository },
+    { provide: CHEQUE_PAYMENT_READER, useExisting: PrismaChequePaymentReader },
     {
       provide: CreateChequeUseCase,
-      useFactory: (repository: ChequeRepositoryPort) =>
-        new CreateChequeUseCase(repository),
-      inject: [CHEQUE_REPOSITORY],
+      useFactory: (
+        repository: ChequeRepositoryPort,
+        payments: ChequePaymentReaderPort,
+      ) => new CreateChequeUseCase(repository, payments),
+      inject: [CHEQUE_REPOSITORY, CHEQUE_PAYMENT_READER],
     },
     {
       provide: FindChequeUseCase,

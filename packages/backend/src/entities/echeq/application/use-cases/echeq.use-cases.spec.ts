@@ -1,10 +1,15 @@
-import { EcheqClockPort, EcheqRepositoryPort } from '../echeq.ports';
+import {
+  EcheqClockPort,
+  EcheqPaymentReaderPort,
+  EcheqRepositoryPort,
+} from '../echeq.ports';
 import { CreateEcheqData, CreateEcheqInput, EcheqRecord } from '../echeq.types';
 import { EcheqStatus } from '../../domain/echeq.rules';
 import {
   DuplicateEntityError,
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
   InvalidStateTransitionError,
 } from '../../domain/errors';
 import { ConciliateEcheqUseCase } from './conciliate-echeq.use-case';
@@ -25,6 +30,15 @@ const input: CreateEcheqInput = {
 
 function fixture() {
   const rows: EcheqRecord[] = [];
+  const paymentRows: { id: string; companyId: string; method: string }[] = [];
+  const payments: EcheqPaymentReaderPort = {
+    findMethodForCompany(id, companyId) {
+      return Promise.resolve(
+        paymentRows.find((row) => row.id === id && row.companyId === companyId)
+          ?.method ?? null,
+      );
+    },
+  };
   let writes = 0;
   const repository: EcheqRepositoryPort = {
     create(data: CreateEcheqData) {
@@ -75,8 +89,9 @@ function fixture() {
   const clock: EcheqClockPort = { now: () => now };
   return {
     rows,
+    paymentRows,
     repository,
-    create: new CreateEcheqUseCase(repository),
+    create: new CreateEcheqUseCase(repository, payments),
     find: new FindEcheqUseCase(repository),
     list: new ListEcheqsUseCase(repository),
     pending: new ListPendingEcheqsUseCase(repository, clock),
@@ -120,13 +135,37 @@ describe('Echeq use cases', () => {
       ).rejects.toThrow(InvalidInputError);
   });
 
-  it('refuses paymentId before payments can be resolved within the firma', async () => {
+  it('links only a payment of the same firma with ECHEQ method', async () => {
+    const { create, paymentRows } = fixture();
+    paymentRows.push({ id: 'payment-1', companyId: 'firm', method: 'ECHEQ' });
     await expect(
-      fixture().create.execute('firm', {
-        ...input,
-        paymentId: 'other-payment',
-      }),
-    ).rejects.toThrow(InvalidInputError);
+      create.execute('firm', { ...input, paymentId: 'payment-1' }),
+    ).resolves.toMatchObject({ companyId: 'firm', paymentId: 'payment-1' });
+  });
+
+  it('refuses linking another firma payment as not found without writing', async () => {
+    const { create, paymentRows, rows } = fixture();
+    paymentRows.push({
+      id: 'other-payment',
+      companyId: 'other',
+      method: 'ECHEQ',
+    });
+    await expect(
+      create.execute('firm', { ...input, paymentId: 'other-payment' }),
+    ).rejects.toThrow(EntityNotFoundError);
+    await expect(
+      create.execute('firm', { ...input, paymentId: 'missing' }),
+    ).rejects.toThrow('Payment not found');
+    expect(rows).toHaveLength(0);
+  });
+
+  it('refuses a payment with another method as an invalid relation', async () => {
+    const { create, paymentRows, rows } = fixture();
+    paymentRows.push({ id: 'payment-1', companyId: 'firm', method: 'CHEQUE' });
+    await expect(
+      create.execute('firm', { ...input, paymentId: 'payment-1' }),
+    ).rejects.toThrow(InvalidRelationError);
+    expect(rows).toHaveLength(0);
   });
 
   it('conflicts on repeated code only within the same firma', async () => {

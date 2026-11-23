@@ -1,4 +1,4 @@
-import { ChequeRepositoryPort } from '../cheque.ports';
+import { ChequePaymentReaderPort, ChequeRepositoryPort } from '../cheque.ports';
 import {
   ChequeRecord,
   CreateChequeData,
@@ -13,6 +13,7 @@ import {
   DuplicateEntityError,
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
   InvalidStateTransitionError,
 } from '../../domain/errors';
 
@@ -26,6 +27,15 @@ const input: CreateChequeInput = {
 
 function fixture() {
   const rows: ChequeRecord[] = [];
+  const paymentRows: { id: string; companyId: string; method: string }[] = [];
+  const payments: ChequePaymentReaderPort = {
+    findMethodForCompany(id, companyId) {
+      return Promise.resolve(
+        paymentRows.find((row) => row.id === id && row.companyId === companyId)
+          ?.method ?? null,
+      );
+    },
+  };
   let writes = 0;
   const repository: ChequeRepositoryPort = {
     create(data: CreateChequeData) {
@@ -78,8 +88,9 @@ function fixture() {
   };
   return {
     rows,
+    paymentRows,
     repository,
-    create: new CreateChequeUseCase(repository),
+    create: new CreateChequeUseCase(repository, payments),
     find: new FindChequeUseCase(repository),
     list: new ListChequesUseCase(repository),
     change: new ChangeChequeStatusUseCase(repository),
@@ -121,14 +132,47 @@ describe('Cheque use cases', () => {
     }
   });
 
-  it('refuses linking a payment until payments are resolved within the firma', async () => {
-    const { create } = fixture();
+  it('links only a payment of the same firma with CHEQUE method', async () => {
+    const { create, paymentRows } = fixture();
+    paymentRows.push({ id: 'payment-1', companyId: 'firm', method: 'CHEQUE' });
+    await expect(
+      create.execute('firm', { ...input, paymentId: 'payment-1' }),
+    ).resolves.toMatchObject({ companyId: 'firm', paymentId: 'payment-1' });
+  });
+
+  it('refuses linking a payment of another firma as not found without writing', async () => {
+    const { create, paymentRows, rows } = fixture();
+    paymentRows.push({
+      id: 'payment-of-another-firma',
+      companyId: 'other',
+      method: 'CHEQUE',
+    });
     await expect(
       create.execute('firm', {
         ...input,
         paymentId: 'payment-of-another-firma',
       }),
-    ).rejects.toThrow(InvalidInputError);
+    ).rejects.toThrow(EntityNotFoundError);
+    await expect(
+      create.execute('firm', { ...input, paymentId: 'missing' }),
+    ).rejects.toThrow('Payment not found');
+    expect(rows).toHaveLength(0);
+  });
+
+  it('refuses a payment with another method as an invalid relation', async () => {
+    const { create, paymentRows, rows } = fixture();
+    paymentRows.push({ id: 'payment-1', companyId: 'firm', method: 'ECHEQ' });
+    await expect(
+      create.execute('firm', { ...input, paymentId: 'payment-1' }),
+    ).rejects.toThrow(InvalidRelationError);
+    expect(rows).toHaveLength(0);
+  });
+
+  it('creates without a payment link', async () => {
+    const { create } = fixture();
+    await expect(create.execute('firm', input)).resolves.toMatchObject({
+      paymentId: null,
+    });
   });
 
   it('reports duplicate number and issuer only in the same firma', async () => {

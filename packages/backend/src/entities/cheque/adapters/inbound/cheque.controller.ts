@@ -24,6 +24,7 @@ import {
   DuplicateEntityError,
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
   InvalidStateTransitionError,
 } from '../../domain/errors';
 import { CreateChequeDto } from './dto/create-cheque.dto';
@@ -98,6 +99,7 @@ export class ChequeController {
       throw new ConflictException(error.message);
     if (
       error instanceof InvalidInputError ||
+      error instanceof InvalidRelationError ||
       error instanceof InvalidStateTransitionError
     )
       throw new BadRequestException(error.message);

@@ -1,6 +1,6 @@
 import { CHEQUE_INITIAL_STATUS } from '../../domain/cheque-status';
-import { InvalidInputError } from '../../domain/errors';
-import { ChequeRepositoryPort } from '../cheque.ports';
+import { EntityNotFoundError, InvalidRelationError } from '../../domain/errors';
+import { ChequePaymentReaderPort, ChequeRepositoryPort } from '../cheque.ports';
 import { CreateChequeInput, ChequeRecord } from '../cheque.types';
 import {
   positiveAmount,
@@ -9,7 +9,10 @@ import {
 } from '../cheque.validation';
 
 export class CreateChequeUseCase {
-  constructor(private readonly repository: ChequeRepositoryPort) {}
+  constructor(
+    private readonly repository: ChequeRepositoryPort,
+    private readonly payments: ChequePaymentReaderPort,
+  ) {}
 
   async execute(
     companyId: string,
@@ -21,15 +24,15 @@ export class CreateChequeUseCase {
     const dueDate = requiredDate(input.dueDate, 'dueDate');
     const amount = positiveAmount(input.amount);
 
-    // The payment FK and the company FK are independent columns, so a payment
-    // id taken from the body could link this cheque to another firma's payment
-    // and overlap two accountings (R033). Until the payments module can resolve
-    // a payment INSIDE the caller's firma, the link is refused instead of
-    // silently persisted.
     if (input.paymentId != null) {
-      throw new InvalidInputError(
-        'paymentId cannot be linked until the payments module resolves it within the firma',
+      const method = await this.payments.findMethodForCompany(
+        input.paymentId,
+        company,
       );
+      if (method == null) throw new EntityNotFoundError('Payment not found');
+      // A physical cheque must not be recorded against a payment made by another method.
+      if (method !== 'CHEQUE')
+        throw new InvalidRelationError('Payment method must be CHEQUE');
     }
 
     return await this.repository.create({
@@ -41,7 +44,7 @@ export class CreateChequeUseCase {
       status: CHEQUE_INITIAL_STATUS,
       bank: input.bank == null ? null : requiredString(input.bank, 'bank'),
       notes: input.notes ?? null,
-      paymentId: null,
+      paymentId: input.paymentId ?? null,
     });
   }
 }

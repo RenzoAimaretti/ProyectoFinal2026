@@ -2,11 +2,14 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { EcheqController } from './adapters/inbound/echeq.controller';
 import { PrismaEcheqRepository } from './adapters/outbound/prisma-echeq.repository';
+import { PrismaEcheqPaymentReader } from './adapters/outbound/prisma-echeq-payment-reader';
 import { EcheqSystemClock } from './adapters/outbound/system-clock';
 import {
   ECHEQ_CLOCK,
   ECHEQ_REPOSITORY,
+  ECHEQ_PAYMENT_READER,
   EcheqClockPort,
+  EcheqPaymentReaderPort,
   EcheqRepositoryPort,
 } from './application/echeq.ports';
 import { ConciliateEcheqUseCase } from './application/use-cases/conciliate-echeq.use-case';
@@ -21,14 +24,18 @@ import { RejectEcheqUseCase } from './application/use-cases/reject-echeq.use-cas
   controllers: [EcheqController],
   providers: [
     PrismaEcheqRepository,
+    PrismaEcheqPaymentReader,
     EcheqSystemClock,
     { provide: ECHEQ_REPOSITORY, useExisting: PrismaEcheqRepository },
+    { provide: ECHEQ_PAYMENT_READER, useExisting: PrismaEcheqPaymentReader },
     { provide: ECHEQ_CLOCK, useExisting: EcheqSystemClock },
     {
       provide: CreateEcheqUseCase,
-      useFactory: (repository: EcheqRepositoryPort) =>
-        new CreateEcheqUseCase(repository),
-      inject: [ECHEQ_REPOSITORY],
+      useFactory: (
+        repository: EcheqRepositoryPort,
+        payments: EcheqPaymentReaderPort,
+      ) => new CreateEcheqUseCase(repository, payments),
+      inject: [ECHEQ_REPOSITORY, ECHEQ_PAYMENT_READER],
     },
     {
       provide: FindEcheqUseCase,

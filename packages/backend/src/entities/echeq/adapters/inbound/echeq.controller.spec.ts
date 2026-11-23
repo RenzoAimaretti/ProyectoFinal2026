@@ -14,6 +14,7 @@ import {
   DuplicateEntityError,
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
   InvalidStateTransitionError,
 } from '../../domain/errors';
 
@@ -111,6 +112,24 @@ describe('EcheqController', () => {
       controller({
         create: {
           execute: jest.fn().mockRejectedValue(new InvalidInputError('Bad')),
+        },
+      }).create(req, body),
+    ).rejects.toThrow(BadRequestException);
+    await expect(
+      controller({
+        create: {
+          execute: jest
+            .fn()
+            .mockRejectedValue(new EntityNotFoundError('Payment not found')),
+        },
+      }).create(req, body),
+    ).rejects.toThrow(NotFoundException);
+    await expect(
+      controller({
+        create: {
+          execute: jest
+            .fn()
+            .mockRejectedValue(new InvalidRelationError('Wrong method')),
         },
       }).create(req, body),
     ).rejects.toThrow(BadRequestException);

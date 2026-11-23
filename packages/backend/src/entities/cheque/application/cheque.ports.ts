@@ -2,6 +2,11 @@ import { ChequeStatus } from '../domain/cheque-status';
 import { ChequeRecord, CreateChequeData } from './cheque.types';
 
 export const CHEQUE_REPOSITORY = Symbol('CHEQUE_REPOSITORY');
+export const CHEQUE_PAYMENT_READER = Symbol('CHEQUE_PAYMENT_READER');
+
+export interface ChequePaymentReaderPort {
+  findMethodForCompany(id: string, companyId: string): Promise<string | null>;
+}
 
 export interface ChequeRepositoryPort {
   create(data: CreateChequeData): Promise<ChequeRecord>;

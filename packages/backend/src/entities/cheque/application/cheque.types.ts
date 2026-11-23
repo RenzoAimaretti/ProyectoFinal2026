@@ -7,7 +7,6 @@ export type CreateChequeInput = {
   amount: number;
   bank?: string | null;
   notes?: string | null;
-  // Payment linkage is accepted but not checked: the payment module (T3) does not exist yet.
   paymentId?: string | null;
 };
 

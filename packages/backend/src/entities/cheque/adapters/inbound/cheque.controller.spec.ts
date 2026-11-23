@@ -11,6 +11,7 @@ import { ChangeChequeStatusUseCase } from '../../application/use-cases/change-ch
 import {
   DuplicateEntityError,
   EntityNotFoundError,
+  InvalidRelationError,
   InvalidStateTransitionError,
 } from '../../domain/errors';
 
@@ -69,6 +70,28 @@ describe('ChequeController', () => {
     expect(find.execute).toHaveBeenCalledWith('cheque', 'firm');
     expect(list.execute).toHaveBeenCalledWith('firm', 'DEPOSITADO');
     expect(change.execute).toHaveBeenCalledWith('firm', 'cheque', 'COBRADO');
+  });
+
+  it('maps missing payment to 404 and wrong payment method to 400', async () => {
+    const create = { execute: jest.fn() };
+    const controller = new ChequeController(
+      create as unknown as CreateChequeUseCase,
+      {} as FindChequeUseCase,
+      {} as ListChequesUseCase,
+      {} as ChangeChequeStatusUseCase,
+    );
+    create.execute.mockRejectedValueOnce(
+      new EntityNotFoundError('Payment not found'),
+    );
+    await expect(controller.create(req, body)).rejects.toThrow(
+      NotFoundException,
+    );
+    create.execute.mockRejectedValueOnce(
+      new InvalidRelationError('Wrong method'),
+    );
+    await expect(controller.create(req, body)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('translates duplicate to conflict and illegal transitions to bad request', async () => {

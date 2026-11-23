@@ -26,6 +26,7 @@ import {
   DuplicateEntityError,
   EntityNotFoundError,
   InvalidInputError,
+  InvalidRelationError,
   InvalidStateTransitionError,
 } from '../../domain/errors';
 import { CreateEcheqDto } from './dto/create-echeq.dto';
@@ -128,7 +129,10 @@ export class EcheqController {
       error instanceof InvalidStateTransitionError
     )
       throw new ConflictException(error.message);
-    if (error instanceof InvalidInputError)
+    if (
+      error instanceof InvalidInputError ||
+      error instanceof InvalidRelationError
+    )
       throw new BadRequestException(error.message);
     throw error;
   }

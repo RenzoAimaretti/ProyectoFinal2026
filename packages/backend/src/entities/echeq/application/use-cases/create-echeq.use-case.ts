@@ -1,6 +1,10 @@
 import { isEcheqDirection } from '../../domain/echeq.rules';
-import { InvalidInputError } from '../../domain/errors';
-import { EcheqRepositoryPort } from '../echeq.ports';
+import {
+  EntityNotFoundError,
+  InvalidInputError,
+  InvalidRelationError,
+} from '../../domain/errors';
+import { EcheqPaymentReaderPort, EcheqRepositoryPort } from '../echeq.ports';
 import { CreateEcheqInput, EcheqRecord } from '../echeq.types';
 import {
   positiveAmount,
@@ -9,7 +13,10 @@ import {
 } from '../echeq.validation';
 
 export class CreateEcheqUseCase {
-  constructor(private readonly repository: EcheqRepositoryPort) {}
+  constructor(
+    private readonly repository: EcheqRepositoryPort,
+    private readonly payments: EcheqPaymentReaderPort,
+  ) {}
 
   async execute(
     companyId: string,
@@ -22,15 +29,19 @@ export class CreateEcheqUseCase {
     const amount = positiveAmount(input.amount);
     if (!isEcheqDirection(input.direction))
       throw new InvalidInputError('direction must be a valid eCheq direction');
-    // Independent payment and company FKs could link another firma's payment.
-    // Refuse the link until the payments module resolves it within the caller's firma.
-    if (input.paymentId != null)
-      throw new InvalidInputError(
-        'paymentId cannot be linked until the payments module resolves it within the firma',
+    if (input.paymentId != null) {
+      const method = await this.payments.findMethodForCompany(
+        input.paymentId,
+        company,
       );
+      if (method == null) throw new EntityNotFoundError('Payment not found');
+      // An eCheq must not be reconciled against a payment made by another method.
+      if (method !== 'ECHEQ')
+        throw new InvalidRelationError('Payment method must be ECHEQ');
+    }
     return this.repository.create({
       companyId: company,
-      paymentId: null,
+      paymentId: input.paymentId ?? null,
       code,
       issuer,
       dueDate,
