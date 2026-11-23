@@ -199,3 +199,18 @@ export type Tariff = Prisma.TariffModel
  * 
  */
 export type DailyReportValuation = Prisma.DailyReportValuationModel
+/**
+ * Model ExpenseCategory
+ * 
+ */
+export type ExpenseCategory = Prisma.ExpenseCategoryModel
+/**
+ * Model Expense
+ * 
+ */
+export type Expense = Prisma.ExpenseModel
+/**
+ * Model ExpenseSuggestion
+ * 
+ */
+export type ExpenseSuggestion = Prisma.ExpenseSuggestionModel

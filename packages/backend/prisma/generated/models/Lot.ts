@@ -270,6 +270,7 @@ export type LotWhereInput = {
   livestock?: Prisma.LivestockListRelationFilter
   recipes?: Prisma.RecipeListRelationFilter
   dailyReports?: Prisma.DailyReportListRelationFilter
+  expenses?: Prisma.ExpenseListRelationFilter
 }
 
 export type LotOrderByWithRelationInput = {
@@ -290,6 +291,7 @@ export type LotOrderByWithRelationInput = {
   livestock?: Prisma.LivestockOrderByRelationAggregateInput
   recipes?: Prisma.RecipeOrderByRelationAggregateInput
   dailyReports?: Prisma.DailyReportOrderByRelationAggregateInput
+  expenses?: Prisma.ExpenseOrderByRelationAggregateInput
 }
 
 export type LotWhereUniqueInput = Prisma.AtLeast<{
@@ -313,6 +315,7 @@ export type LotWhereUniqueInput = Prisma.AtLeast<{
   livestock?: Prisma.LivestockListRelationFilter
   recipes?: Prisma.RecipeListRelationFilter
   dailyReports?: Prisma.DailyReportListRelationFilter
+  expenses?: Prisma.ExpenseListRelationFilter
 }, "id">
 
 export type LotOrderByWithAggregationInput = {
@@ -368,6 +371,7 @@ export type LotCreateInput = {
   livestock?: Prisma.LivestockCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutLotInput
 }
 
 export type LotUncheckedCreateInput = {
@@ -387,6 +391,7 @@ export type LotUncheckedCreateInput = {
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeUncheckedCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutLotInput
 }
 
 export type LotUpdateInput = {
@@ -406,6 +411,7 @@ export type LotUpdateInput = {
   livestock?: Prisma.LivestockUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutLotNestedInput
 }
 
 export type LotUncheckedUpdateInput = {
@@ -425,6 +431,7 @@ export type LotUncheckedUpdateInput = {
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUncheckedUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutLotNestedInput
 }
 
 export type LotCreateManyInput = {
@@ -652,6 +659,20 @@ export type LotUpdateOneRequiredWithoutMovementsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.LotUpdateToOneWithWhereWithoutMovementsInput, Prisma.LotUpdateWithoutMovementsInput>, Prisma.LotUncheckedUpdateWithoutMovementsInput>
 }
 
+export type LotCreateNestedOneWithoutExpensesInput = {
+  create?: Prisma.XOR<Prisma.LotCreateWithoutExpensesInput, Prisma.LotUncheckedCreateWithoutExpensesInput>
+  connectOrCreate?: Prisma.LotCreateOrConnectWithoutExpensesInput
+  connect?: Prisma.LotWhereUniqueInput
+}
+
+export type LotUpdateOneRequiredWithoutExpensesNestedInput = {
+  create?: Prisma.XOR<Prisma.LotCreateWithoutExpensesInput, Prisma.LotUncheckedCreateWithoutExpensesInput>
+  connectOrCreate?: Prisma.LotCreateOrConnectWithoutExpensesInput
+  upsert?: Prisma.LotUpsertWithoutExpensesInput
+  connect?: Prisma.LotWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LotUpdateToOneWithWhereWithoutExpensesInput, Prisma.LotUpdateWithoutExpensesInput>, Prisma.LotUncheckedUpdateWithoutExpensesInput>
+}
+
 export type LotCreateWithoutFarmInput = {
   id?: string
   name: string
@@ -668,6 +689,7 @@ export type LotCreateWithoutFarmInput = {
   livestock?: Prisma.LivestockCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutLotInput
 }
 
 export type LotUncheckedCreateWithoutFarmInput = {
@@ -686,6 +708,7 @@ export type LotUncheckedCreateWithoutFarmInput = {
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeUncheckedCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutLotInput
 }
 
 export type LotCreateOrConnectWithoutFarmInput = {
@@ -747,6 +770,7 @@ export type LotCreateWithoutTasksInput = {
   livestock?: Prisma.LivestockCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutLotInput
 }
 
 export type LotUncheckedCreateWithoutTasksInput = {
@@ -765,6 +789,7 @@ export type LotUncheckedCreateWithoutTasksInput = {
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeUncheckedCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutLotInput
 }
 
 export type LotCreateOrConnectWithoutTasksInput = {
@@ -799,6 +824,7 @@ export type LotUpdateWithoutTasksInput = {
   livestock?: Prisma.LivestockUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutLotNestedInput
 }
 
 export type LotUncheckedUpdateWithoutTasksInput = {
@@ -817,6 +843,7 @@ export type LotUncheckedUpdateWithoutTasksInput = {
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUncheckedUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutLotNestedInput
 }
 
 export type LotCreateWithoutRecipesInput = {
@@ -835,6 +862,7 @@ export type LotCreateWithoutRecipesInput = {
   tasks?: Prisma.TaskCreateNestedManyWithoutLotInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutLotInput
 }
 
 export type LotUncheckedCreateWithoutRecipesInput = {
@@ -853,6 +881,7 @@ export type LotUncheckedCreateWithoutRecipesInput = {
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutLotInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutLotInput
 }
 
 export type LotCreateOrConnectWithoutRecipesInput = {
@@ -887,6 +916,7 @@ export type LotUpdateWithoutRecipesInput = {
   tasks?: Prisma.TaskUpdateManyWithoutLotNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutLotNestedInput
 }
 
 export type LotUncheckedUpdateWithoutRecipesInput = {
@@ -905,6 +935,7 @@ export type LotUncheckedUpdateWithoutRecipesInput = {
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutLotNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutLotNestedInput
 }
 
 export type LotCreateWithoutDailyReportsInput = {
@@ -923,6 +954,7 @@ export type LotCreateWithoutDailyReportsInput = {
   tasks?: Prisma.TaskCreateNestedManyWithoutLotInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutLotInput
 }
 
 export type LotUncheckedCreateWithoutDailyReportsInput = {
@@ -941,6 +973,7 @@ export type LotUncheckedCreateWithoutDailyReportsInput = {
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutLotInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeUncheckedCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutLotInput
 }
 
 export type LotCreateOrConnectWithoutDailyReportsInput = {
@@ -975,6 +1008,7 @@ export type LotUpdateWithoutDailyReportsInput = {
   tasks?: Prisma.TaskUpdateManyWithoutLotNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutLotNestedInput
 }
 
 export type LotUncheckedUpdateWithoutDailyReportsInput = {
@@ -993,6 +1027,7 @@ export type LotUncheckedUpdateWithoutDailyReportsInput = {
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutLotNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUncheckedUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutLotNestedInput
 }
 
 export type LotCreateWithoutLivestockInput = {
@@ -1011,6 +1046,7 @@ export type LotCreateWithoutLivestockInput = {
   tasks?: Prisma.TaskCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutLotInput
 }
 
 export type LotUncheckedCreateWithoutLivestockInput = {
@@ -1029,6 +1065,7 @@ export type LotUncheckedCreateWithoutLivestockInput = {
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeUncheckedCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutLotInput
 }
 
 export type LotCreateOrConnectWithoutLivestockInput = {
@@ -1063,6 +1100,7 @@ export type LotUpdateWithoutLivestockInput = {
   tasks?: Prisma.TaskUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutLotNestedInput
 }
 
 export type LotUncheckedUpdateWithoutLivestockInput = {
@@ -1081,6 +1119,7 @@ export type LotUncheckedUpdateWithoutLivestockInput = {
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUncheckedUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutLotNestedInput
 }
 
 export type LotCreateWithoutMovementsInput = {
@@ -1099,6 +1138,7 @@ export type LotCreateWithoutMovementsInput = {
   livestock?: Prisma.LivestockCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutLotInput
 }
 
 export type LotUncheckedCreateWithoutMovementsInput = {
@@ -1117,6 +1157,7 @@ export type LotUncheckedCreateWithoutMovementsInput = {
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutLotInput
   recipes?: Prisma.RecipeUncheckedCreateNestedManyWithoutLotInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLotInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutLotInput
 }
 
 export type LotCreateOrConnectWithoutMovementsInput = {
@@ -1151,6 +1192,7 @@ export type LotUpdateWithoutMovementsInput = {
   livestock?: Prisma.LivestockUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutLotNestedInput
 }
 
 export type LotUncheckedUpdateWithoutMovementsInput = {
@@ -1165,6 +1207,99 @@ export type LotUncheckedUpdateWithoutMovementsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutLotNestedInput
+  livestock?: Prisma.LivestockUncheckedUpdateManyWithoutLotNestedInput
+  recipes?: Prisma.RecipeUncheckedUpdateManyWithoutLotNestedInput
+  dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutLotNestedInput
+}
+
+export type LotCreateWithoutExpensesInput = {
+  id?: string
+  name: string
+  coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area: number
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  farm: Prisma.FarmCreateNestedOneWithoutLotsInput
+  movements?: Prisma.LivestockMovementCreateNestedManyWithoutLotInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutLotInput
+  livestock?: Prisma.LivestockCreateNestedManyWithoutLotInput
+  recipes?: Prisma.RecipeCreateNestedManyWithoutLotInput
+  dailyReports?: Prisma.DailyReportCreateNestedManyWithoutLotInput
+}
+
+export type LotUncheckedCreateWithoutExpensesInput = {
+  id?: string
+  farmId: string
+  name: string
+  coords?: string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area: number
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  movements?: Prisma.LivestockMovementUncheckedCreateNestedManyWithoutLotInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutLotInput
+  livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutLotInput
+  recipes?: Prisma.RecipeUncheckedCreateNestedManyWithoutLotInput
+  dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutLotInput
+}
+
+export type LotCreateOrConnectWithoutExpensesInput = {
+  where: Prisma.LotWhereUniqueInput
+  create: Prisma.XOR<Prisma.LotCreateWithoutExpensesInput, Prisma.LotUncheckedCreateWithoutExpensesInput>
+}
+
+export type LotUpsertWithoutExpensesInput = {
+  update: Prisma.XOR<Prisma.LotUpdateWithoutExpensesInput, Prisma.LotUncheckedUpdateWithoutExpensesInput>
+  create: Prisma.XOR<Prisma.LotCreateWithoutExpensesInput, Prisma.LotUncheckedCreateWithoutExpensesInput>
+  where?: Prisma.LotWhereInput
+}
+
+export type LotUpdateToOneWithWhereWithoutExpensesInput = {
+  where?: Prisma.LotWhereInput
+  data: Prisma.XOR<Prisma.LotUpdateWithoutExpensesInput, Prisma.LotUncheckedUpdateWithoutExpensesInput>
+}
+
+export type LotUpdateWithoutExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area?: Prisma.FloatFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  farm?: Prisma.FarmUpdateOneRequiredWithoutLotsNestedInput
+  movements?: Prisma.LivestockMovementUpdateManyWithoutLotNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutLotNestedInput
+  livestock?: Prisma.LivestockUpdateManyWithoutLotNestedInput
+  recipes?: Prisma.RecipeUpdateManyWithoutLotNestedInput
+  dailyReports?: Prisma.DailyReportUpdateManyWithoutLotNestedInput
+}
+
+export type LotUncheckedUpdateWithoutExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  farmId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  coords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polygon?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  area?: Prisma.FloatFieldUpdateOperationsInput | number
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  movements?: Prisma.LivestockMovementUncheckedUpdateManyWithoutLotNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutLotNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUncheckedUpdateManyWithoutLotNestedInput
@@ -1200,6 +1335,7 @@ export type LotUpdateWithoutFarmInput = {
   livestock?: Prisma.LivestockUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutLotNestedInput
 }
 
 export type LotUncheckedUpdateWithoutFarmInput = {
@@ -1218,6 +1354,7 @@ export type LotUncheckedUpdateWithoutFarmInput = {
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutLotNestedInput
   recipes?: Prisma.RecipeUncheckedUpdateManyWithoutLotNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutLotNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutLotNestedInput
 }
 
 export type LotUncheckedUpdateManyWithoutFarmInput = {
@@ -1244,6 +1381,7 @@ export type LotCountOutputType = {
   livestock: number
   recipes: number
   dailyReports: number
+  expenses: number
 }
 
 export type LotCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1252,6 +1390,7 @@ export type LotCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.In
   livestock?: boolean | LotCountOutputTypeCountLivestockArgs
   recipes?: boolean | LotCountOutputTypeCountRecipesArgs
   dailyReports?: boolean | LotCountOutputTypeCountDailyReportsArgs
+  expenses?: boolean | LotCountOutputTypeCountExpensesArgs
 }
 
 /**
@@ -1299,6 +1438,13 @@ export type LotCountOutputTypeCountDailyReportsArgs<ExtArgs extends runtime.Type
   where?: Prisma.DailyReportWhereInput
 }
 
+/**
+ * LotCountOutputType without action
+ */
+export type LotCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExpenseWhereInput
+}
+
 
 export type LotSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1318,6 +1464,7 @@ export type LotSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
   livestock?: boolean | Prisma.Lot$livestockArgs<ExtArgs>
   recipes?: boolean | Prisma.Lot$recipesArgs<ExtArgs>
   dailyReports?: boolean | Prisma.Lot$dailyReportsArgs<ExtArgs>
+  expenses?: boolean | Prisma.Lot$expensesArgs<ExtArgs>
   _count?: boolean | Prisma.LotCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["lot"]>
 
@@ -1373,6 +1520,7 @@ export type LotInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   livestock?: boolean | Prisma.Lot$livestockArgs<ExtArgs>
   recipes?: boolean | Prisma.Lot$recipesArgs<ExtArgs>
   dailyReports?: boolean | Prisma.Lot$dailyReportsArgs<ExtArgs>
+  expenses?: boolean | Prisma.Lot$expensesArgs<ExtArgs>
   _count?: boolean | Prisma.LotCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type LotIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1391,6 +1539,7 @@ export type $LotPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
     livestock: Prisma.$LivestockPayload<ExtArgs>[]
     recipes: Prisma.$RecipePayload<ExtArgs>[]
     dailyReports: Prisma.$DailyReportPayload<ExtArgs>[]
+    expenses: Prisma.$ExpensePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1804,6 +1953,7 @@ export interface Prisma__LotClient<T, Null = never, ExtArgs extends runtime.Type
   livestock<T extends Prisma.Lot$livestockArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Lot$livestockArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LivestockPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   recipes<T extends Prisma.Lot$recipesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Lot$recipesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RecipePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dailyReports<T extends Prisma.Lot$dailyReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Lot$dailyReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  expenses<T extends Prisma.Lot$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Lot$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2362,6 +2512,30 @@ export type Lot$dailyReportsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.DailyReportScalarFieldEnum | Prisma.DailyReportScalarFieldEnum[]
+}
+
+/**
+ * Lot.expenses
+ */
+export type Lot$expensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Expense
+   */
+  select?: Prisma.ExpenseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Expense
+   */
+  omit?: Prisma.ExpenseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExpenseInclude<ExtArgs> | null
+  where?: Prisma.ExpenseWhereInput
+  orderBy?: Prisma.ExpenseOrderByWithRelationInput | Prisma.ExpenseOrderByWithRelationInput[]
+  cursor?: Prisma.ExpenseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
 }
 
 /**

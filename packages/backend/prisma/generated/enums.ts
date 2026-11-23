@@ -196,3 +196,20 @@ export const ValuationOrigin = {
 } as const
 
 export type ValuationOrigin = (typeof ValuationOrigin)[keyof typeof ValuationOrigin]
+
+
+export const ExpenseSuggestionKind = {
+  EDICION: 'EDICION',
+  BAJA: 'BAJA'
+} as const
+
+export type ExpenseSuggestionKind = (typeof ExpenseSuggestionKind)[keyof typeof ExpenseSuggestionKind]
+
+
+export const ExpenseSuggestionStatus = {
+  PENDIENTE: 'PENDIENTE',
+  APROBADA: 'APROBADA',
+  RECHAZADA: 'RECHAZADA'
+} as const
+
+export type ExpenseSuggestionStatus = (typeof ExpenseSuggestionStatus)[keyof typeof ExpenseSuggestionStatus]

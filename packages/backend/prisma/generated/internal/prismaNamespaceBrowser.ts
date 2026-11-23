@@ -82,7 +82,10 @@ export const ModelName = {
   WeightRecord: 'WeightRecord',
   LivestockMovement: 'LivestockMovement',
   Tariff: 'Tariff',
-  DailyReportValuation: 'DailyReportValuation'
+  DailyReportValuation: 'DailyReportValuation',
+  ExpenseCategory: 'ExpenseCategory',
+  Expense: 'Expense',
+  ExpenseSuggestion: 'ExpenseSuggestion'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -609,6 +612,70 @@ export const DailyReportValuationScalarFieldEnum = {
 } as const
 
 export type DailyReportValuationScalarFieldEnum = (typeof DailyReportValuationScalarFieldEnum)[keyof typeof DailyReportValuationScalarFieldEnum]
+
+
+export const ExpenseCategoryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ExpenseCategoryScalarFieldEnum = (typeof ExpenseCategoryScalarFieldEnum)[keyof typeof ExpenseCategoryScalarFieldEnum]
+
+
+export const ExpenseScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  lotId: 'lotId',
+  categoryId: 'categoryId',
+  date: 'date',
+  description: 'description',
+  amount: 'amount',
+  unit: 'unit',
+  grain: 'grain',
+  grainArsPerTon: 'grainArsPerTon',
+  usdRate: 'usdRate',
+  usdRateType: 'usdRateType',
+  priceSource: 'priceSource',
+  priceFetchedAt: 'priceFetchedAt',
+  priceStale: 'priceStale',
+  amountArs: 'amountArs',
+  valuedAt: 'valuedAt',
+  createdBy: 'createdBy',
+  updatedBy: 'updatedBy',
+  deletedAt: 'deletedAt',
+  deletedBy: 'deletedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
+
+
+export const ExpenseSuggestionScalarFieldEnum = {
+  id: 'id',
+  expenseId: 'expenseId',
+  companyId: 'companyId',
+  kind: 'kind',
+  status: 'status',
+  proposedLotId: 'proposedLotId',
+  proposedCategoryId: 'proposedCategoryId',
+  proposedDate: 'proposedDate',
+  proposedDescription: 'proposedDescription',
+  proposedAmount: 'proposedAmount',
+  proposedUnit: 'proposedUnit',
+  proposedGrain: 'proposedGrain',
+  suggestedBy: 'suggestedBy',
+  rejectionReason: 'rejectionReason',
+  resolvedBy: 'resolvedBy',
+  resolvedAt: 'resolvedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ExpenseSuggestionScalarFieldEnum = (typeof ExpenseSuggestionScalarFieldEnum)[keyof typeof ExpenseSuggestionScalarFieldEnum]
 
 
 export const SortOrder = {

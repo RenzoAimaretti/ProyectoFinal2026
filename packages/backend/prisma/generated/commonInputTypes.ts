@@ -701,6 +701,57 @@ export type EnumUsdRateTypeNullableWithAggregatesFilter<$PrismaModel = never> = 
   _max?: Prisma.NestedEnumUsdRateTypeNullableFilter<$PrismaModel>
 }
 
+export type EnumExpenseSuggestionKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExpenseSuggestionKind | Prisma.EnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExpenseSuggestionKind[] | Prisma.ListEnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExpenseSuggestionKind[] | Prisma.ListEnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExpenseSuggestionKindFilter<$PrismaModel> | $Enums.ExpenseSuggestionKind
+}
+
+export type EnumExpenseSuggestionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExpenseSuggestionStatus | Prisma.EnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ExpenseSuggestionStatus[] | Prisma.ListEnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExpenseSuggestionStatus[] | Prisma.ListEnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExpenseSuggestionStatusFilter<$PrismaModel> | $Enums.ExpenseSuggestionStatus
+}
+
+export type EnumMoneyUnitNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.MoneyUnit | Prisma.EnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.MoneyUnit[] | Prisma.ListEnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.MoneyUnit[] | Prisma.ListEnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumMoneyUnitNullableFilter<$PrismaModel> | $Enums.MoneyUnit | null
+}
+
+export type EnumExpenseSuggestionKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExpenseSuggestionKind | Prisma.EnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExpenseSuggestionKind[] | Prisma.ListEnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExpenseSuggestionKind[] | Prisma.ListEnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExpenseSuggestionKindWithAggregatesFilter<$PrismaModel> | $Enums.ExpenseSuggestionKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExpenseSuggestionKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExpenseSuggestionKindFilter<$PrismaModel>
+}
+
+export type EnumExpenseSuggestionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExpenseSuggestionStatus | Prisma.EnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ExpenseSuggestionStatus[] | Prisma.ListEnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExpenseSuggestionStatus[] | Prisma.ListEnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExpenseSuggestionStatusWithAggregatesFilter<$PrismaModel> | $Enums.ExpenseSuggestionStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExpenseSuggestionStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExpenseSuggestionStatusFilter<$PrismaModel>
+}
+
+export type EnumMoneyUnitNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MoneyUnit | Prisma.EnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.MoneyUnit[] | Prisma.ListEnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.MoneyUnit[] | Prisma.ListEnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumMoneyUnitNullableWithAggregatesFilter<$PrismaModel> | $Enums.MoneyUnit | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMoneyUnitNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMoneyUnitNullableFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1350,6 +1401,57 @@ export type NestedEnumUsdRateTypeNullableWithAggregatesFilter<$PrismaModel = nev
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumUsdRateTypeNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumUsdRateTypeNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumExpenseSuggestionKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExpenseSuggestionKind | Prisma.EnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExpenseSuggestionKind[] | Prisma.ListEnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExpenseSuggestionKind[] | Prisma.ListEnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExpenseSuggestionKindFilter<$PrismaModel> | $Enums.ExpenseSuggestionKind
+}
+
+export type NestedEnumExpenseSuggestionStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExpenseSuggestionStatus | Prisma.EnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ExpenseSuggestionStatus[] | Prisma.ListEnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExpenseSuggestionStatus[] | Prisma.ListEnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExpenseSuggestionStatusFilter<$PrismaModel> | $Enums.ExpenseSuggestionStatus
+}
+
+export type NestedEnumMoneyUnitNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.MoneyUnit | Prisma.EnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.MoneyUnit[] | Prisma.ListEnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.MoneyUnit[] | Prisma.ListEnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumMoneyUnitNullableFilter<$PrismaModel> | $Enums.MoneyUnit | null
+}
+
+export type NestedEnumExpenseSuggestionKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExpenseSuggestionKind | Prisma.EnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  in?: $Enums.ExpenseSuggestionKind[] | Prisma.ListEnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExpenseSuggestionKind[] | Prisma.ListEnumExpenseSuggestionKindFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExpenseSuggestionKindWithAggregatesFilter<$PrismaModel> | $Enums.ExpenseSuggestionKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExpenseSuggestionKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExpenseSuggestionKindFilter<$PrismaModel>
+}
+
+export type NestedEnumExpenseSuggestionStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExpenseSuggestionStatus | Prisma.EnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ExpenseSuggestionStatus[] | Prisma.ListEnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExpenseSuggestionStatus[] | Prisma.ListEnumExpenseSuggestionStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExpenseSuggestionStatusWithAggregatesFilter<$PrismaModel> | $Enums.ExpenseSuggestionStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExpenseSuggestionStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExpenseSuggestionStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumMoneyUnitNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MoneyUnit | Prisma.EnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.MoneyUnit[] | Prisma.ListEnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.MoneyUnit[] | Prisma.ListEnumMoneyUnitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumMoneyUnitNullableWithAggregatesFilter<$PrismaModel> | $Enums.MoneyUnit | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMoneyUnitNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMoneyUnitNullableFilter<$PrismaModel>
 }
 
 
