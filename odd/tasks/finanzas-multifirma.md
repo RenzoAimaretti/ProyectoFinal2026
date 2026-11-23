@@ -66,7 +66,7 @@ Decisión del cliente: `Company` es la firma; cada Company lleva su propia conta
 |----|-------|-------|------|--------|
 | T1 | Modelo Prisma: `Invoice`, `InvoiceItem`, `Payment`, `Cheque`, `Echeq` + enums + migración; FK a `Company`/`Client`/`Task` | S1-S6 | inline | bbd1044 |
 | T2 | Módulo hexagonal `invoice`: dominio (totales, transiciones), puertos, casos de uso, controller `@Roles`, scope por `firmaId` | S1, S6 | inline | — |
-| T3 | Cobros: `Payment` facturado/informal, método, imputación a factura, cotización del día vía `ExchangeRateProviderPort` | S2, S5 | blocked: espera merge de `origin/APIs` a `dev` | — |
+| T3 | Cobros: `Payment` facturado/informal, método, imputación a factura, cotización del día vía el módulo de integraciones | S2, S5 | inline | b598a60 |
 | T4 | Cheques físicos: alta con número/vencimiento/emisor y máquina de estados (en cartera → depositado → cobrado / rechazado / endosado) | S3, S6 | inline | cf2b565 |
 | T5 | eCheqs: registro emitido/recibido, fecha de acreditación/débito, conciliación y bandeja de pendientes | S4, S6 | inline | 1abf645 |
 | T6 | UI Next.js `/dashboard/finanzas`: vistas de facturas, cheques y bandeja de eCheqs con conciliar/rechazar (slice de lectura + acciones) | S1, S3, S4 | inline | 8befb93 |
@@ -124,3 +124,11 @@ Consecuencia: T3 queda bloqueada hasta que el merge aterrice en `dev`; T1, T2, T
 **L12 — T6 dividido.** La UI de `/dashboard/finanzas` entró como slice de lectura más acciones (commit `8befb93`): facturas, cheques con sus transiciones, y la bandeja de eCheqs con conciliar/rechazar. Los formularios de alta van a T6b y la sección de cobros a T6c, que depende de T3. Verificado: build de Next.js verde con `/dashboard/finanzas` prerenderizada y `eslint` limpio en el archivo nuevo; el error de lint en `components/ui/reveal.tsx` es preexistente (último cambio `97c84a9`, diff cero).
 
 **L13 — T6b cerrado (`89478db`).** Formularios de alta de factura y de cheque integrados en la pantalla existente; el total lo calcula el backend y el 409 de cheque duplicado se muestra tal cual. Verificado: build de Next.js verde, `eslint` limpio en ambos archivos, 8/8 del suite de `node --test`. Dos límites conocidos, registrados a propósito: (1) el concepto de factura toma la tarea **por id**, porque este slice no agrega picker — T7; (2) ninguno de los endpoints financieros se ejercitó a nivel HTTP con el backend levantado, así que guards y DTOs están probados solo por unitarios con fakes.
+
+**L14 — `dev` mergeado y T3 cerrado (`b598a60`).** El merge de `origin/dev` trajo `integrations/exchange-rate` y `integrations/grain-price`; el build falló al principio porque faltaba `pnpm install` (dependencia `cheerio` nueva). Módulo `payment` con clasificación facturado/informal, imputación a factura y cotización del día; migración aditiva `usdRate`/`usdRateDate` (20 migraciones, sin drift).
+
+La verificación independiente encontró **dos defectos reales**, ambos corregidos:
+1. **Concurrencia (S2)**: bajo `READ COMMITTED` dos cobros simultáneos agregaban sin verse, los dos quedaban cortos y la factura quedaba `EMITIDA` con el total cubierto. Cerrado con `SELECT ... FOR UPDATE` sobre la fila de la factura dentro de la transacción. **Reproducido y probado contra PostgreSQL**: con lock, dos corridas terminan `COBRADA` con 110 cobrados sobre 100; sin lock (copia del adapter sin la línea), una corrida termina `EMITIDA` con 110 cobrados. Control negativo incluido, no solo el caso feliz.
+2. **Cotización vieja (S5)**: el caché devuelve la cotización previa marcada `stale` cuando el proveedor falla, y el cobro la persistía como si fuera la del día. Ahora `stale` se descarta y queda `null` explícito. Test agregado.
+
+**L15 — Decisión de producto pendiente de confirmación.** Política adoptada ante caída del proveedor de cotización: el cobro se registra igual con `usdRate = null`, en vez de rechazarse. Razón: perder el registro de plata que entró por una API caída es peor que un campo vacío explícito. La alternativa dura (rechazar el cobro) queda a un cambio de una línea si el cliente prefiere lo contrario.
