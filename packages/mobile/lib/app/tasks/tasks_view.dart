@@ -7,6 +7,7 @@ import '../../presentation/components/badges/status_badge.dart';
 import '../../presentation/components/buttons/secondary_button.dart';
 import '../../presentation/components/empty_state.dart';
 import 'tasks_view_model.dart';
+import '../../presentation/components/cards/list_item_tile.dart';
 
 /// Pestaña "Tareas" (CUU08, lista).
 ///
@@ -151,7 +152,7 @@ Future<void> showTaskPickerSheet({
   );
 }
 
-/// Fila de una tarea: estado, lote/labor (ids, sin join) y chevron de acción.
+/// Fila de una tarea: estado, "Labor · Lote" y badge de estado.
 class _TaskTile extends StatelessWidget {
   const _TaskTile({required this.task, required this.onTap});
 
@@ -161,13 +162,7 @@ class _TaskTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = task.status;
-    return ListTile(
-      tileColor: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.outlineVariant),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+    return ListItemTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -185,7 +180,7 @@ class _TaskTile extends StatelessWidget {
         ),
       ),
       subtitle: Text(
-        'Lote ${task.lotId} · Labor ${task.laborTypeId}',
+        task.displayLabel,
         style: const TextStyle(
           fontSize: 12,
           color: AppColors.onSurfaceVariant,

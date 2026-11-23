@@ -25,6 +25,7 @@ import '../reports/daily_reports_view.dart';
 import '../reports/daily_reports_view_model.dart';
 import '../tasks/tasks_view.dart';
 import '../tasks/tasks_view_model.dart';
+import 'logout_button.dart';
 import 'weather_view_model.dart';
 
 /// Dashboard principal post-login: navegación inferior a los 4 módulos
@@ -69,7 +70,7 @@ class DashboardView extends StatefulWidget {
   /// Cantidad de operaciones pendientes de sincronización (`SyncQueue`).
   final Stream<int> pendingSyncCount;
 
-  final VoidCallback onLogout;
+  final Future<void> Function({required bool discardPending}) onLogout;
 
   final TasksViewModel tasksViewModel;
   final DailyReportsViewModel dailyReportsViewModel;
@@ -87,8 +88,11 @@ class DashboardView extends StatefulWidget {
   State<DashboardView> createState() => _DashboardViewState();
 }
 
+/// Pestaña principal (Tareas): la única que muestra la tarjeta de clima.
+const _homeTabIndex = 0;
+
 class _DashboardViewState extends State<DashboardView> {
-  int _selectedIndex = 0;
+  int _selectedIndex = _homeTabIndex;
 
   @override
   void initState() {
@@ -262,18 +266,16 @@ class _DashboardViewState extends State<DashboardView> {
         actions: [
           SyncPendingBadge(pendingCount: widget.pendingSyncCount),
           const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Cerrar sesión',
-            onPressed: widget.onLogout,
-          ),
+          LogoutButton(onLogout: widget.onLogout),
           const SizedBox(width: 4),
         ],
       ),
       body: Column(
         children: [
           _buildFirmSelector(),
-          _buildWeatherCard(),
+          // El clima es contexto de la pantalla principal; en Partes,
+          // Recepciones y Maquinaria solo quitaría espacio a la lista.
+          if (_selectedIndex == _homeTabIndex) _buildWeatherCard(),
           Expanded(
             child: IndexedStack(
               index: _selectedIndex,

@@ -23,9 +23,10 @@ void main() {
   });
 
   test('domain/ no importa data/ ni app/', () {
-    final dataViolations = _findViolations("'../data/");
-    final appViolations = _findViolations("'../app/");
-    final all = [...dataViolations, ...appViolations];
+    // Cualquier profundidad relativa ('../data/', '../../data/', ...) o el
+    // import por paquete (package:mobile/data/...).
+    final layerImport = RegExp(r"""['"](?:(?:\.\./)+|package:mobile/)(?:data|app)/""");
+    final all = _findViolations(layerImport);
     expect(all, isEmpty,
         reason: 'domain/ no debe importar data/ ni app/:\n'
             '${all.join('\n')}');
@@ -34,7 +35,7 @@ void main() {
 
 /// Busca archivos `.dart` en `lib/domain/` que contengan [pattern] en una
 /// sentencia import. Devuelve las violaciones como `file:line`.
-List<String> _findViolations(String pattern) {
+List<String> _findViolations(Pattern pattern) {
   final domainDir = Directory('lib/domain');
   if (!domainDir.existsSync()) {
     fail('lib/domain/ no existe');

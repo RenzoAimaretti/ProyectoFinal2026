@@ -5,6 +5,7 @@ import '../../domain/models/enums.dart';
 import '../../domain/models/machine_history_entry.dart';
 import '../../presentation/components/empty_state.dart';
 import 'machine_activities_view_model.dart';
+import '../../presentation/components/cards/list_item_tile.dart';
 
 /// Historial de actividades de maquinaria (CUU08).
 ///
@@ -62,13 +63,7 @@ class _ActivityTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      tileColor: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.outlineVariant),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+    return ListItemTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(

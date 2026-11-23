@@ -40,7 +40,7 @@ import 'data/repositories/sync_queue_writer.dart';
 import 'data/repositories/token_refresher.dart';
 import 'data/services/app_database.dart';
 import 'data/services/auth_api_service.dart';
-import 'data/services/catalog_seeder.dart';
+import 'data/repositories/drift_local_data_repository.dart';
 import 'data/services/field_catalog_api_service.dart';
 import 'data/services/photo_picker_service.dart';
 import 'data/services/weather_api_service.dart';
@@ -64,6 +64,7 @@ import 'domain/usecases/login_usecase.dart';
 import 'domain/usecases/logout_usecase.dart';
 import 'domain/services/sync_engine.dart';
 import 'domain/usecases/register_machine_activity_usecase.dart';
+import 'domain/services/outbox_sync_trigger.dart';
 import 'domain/usecases/refresh_field_catalog_usecase.dart';
 import 'domain/usecases/register_machine_usage_usecase.dart';
 import 'domain/usecases/restore_session_usecase.dart';
@@ -110,6 +111,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   SyncEngine? _syncEngine;
   late final Connectivity _connectivity;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  StreamSubscription<int>? _outboxTriggerSubscription;
 
   /// Pendientes de sincronización (badge del dashboard).
   late final Stream<int> _pendingSyncCount;
@@ -142,8 +144,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _sessionRepository = sessionRepository;
 
     final loginUseCase = LoginUseCase(authRepository, sessionRepository);
-    final demoLoginUseCase = DemoLoginUseCase(sessionRepository);
-    _logoutUseCase = LogoutUseCase(authRepository, sessionRepository);
+    final demoLoginUseCase = DemoLoginUseCase(
+      sessionRepository,
+      DriftDemoCatalogSeeder(_database),
+    );
+    _logoutUseCase = LogoutUseCase(
+      authRepository,
+      sessionRepository,
+      DriftLocalDataRepository(_database),
+    );
     _loginViewModel = LoginViewModel(
       loginUseCase: loginUseCase,
       demoLoginUseCase: demoLoginUseCase,
@@ -154,23 +163,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _restoreSessionUseCase = RestoreSessionUseCase(sessionRepository);
     unawaited(_restoreSession());
 
-    // Seed de catálogos de desarrollo (idempotente, best-effort).
-    unawaited(_seedCatalogs());
-
     // Badge "pendientes de sincronización": el stream se construye en data
     // (SyncQueueDao) y se inyecta aquí; el badge solo recibe Stream<int>.
     _pendingSyncCount = _database.syncQueueDao.watchPendingCount();
 
+    // Sync al guardar: una fila nueva en el outbox dispara un ciclo (el gate
+    // de `_maybeRunSync` sigue exigiendo token y conectividad).
+    _outboxTriggerSubscription = OutboxSyncTrigger(
+      queuedRows: _database.syncQueueDao.watchQueuedCount(),
+      runSync: _maybeRunSync,
+    ).start();
+
     // Motor de sincronización (Sprint 2): composition root del outbox.
     _setupSyncEngine(authApiService, sessionRepository);
 
-    // Gate/trigger de conectividad: dispara un ciclo al recuperar señal. La
-    // conectividad es heurística de trigger; la sonda real es el intento HTTP.
+    // Gate/trigger de conectividad: al recuperar señal dispara un ciclo de push
+    // y un pull del catálogo. La conectividad es heurística de trigger; la
+    // sonda real es el intento HTTP.
     _connectivity = Connectivity();
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
       (results) {
         if (results.any((r) => r != ConnectivityResult.none)) {
           unawaited(_maybeRunSync());
+          unawaited(_refreshFieldCatalog());
         }
       },
       onError: (Object _) {
@@ -295,9 +310,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
 
     _refreshFieldCatalogUseCase = RefreshFieldCatalogUseCase(
-      apiService: FieldCatalogApiService(),
-      cache: DriftFieldCatalogRepository(_database),
+      source: FieldCatalogApiService(),
+      store: DriftFieldCatalogRepository(_database),
       sessionRepository: sessionRepository,
+      tokenRefresher: TokenRefresher(authApiService, sessionRepository),
     );
   }
 
@@ -396,16 +412,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  /// Siembra las tablas de catálogo vacías. Corre en background y se traga el
-  /// error: el seed no debe impedir el arranque de la app.
-  Future<void> _seedCatalogs() async {
-    try {
-      await CatalogSeeder.seedIfEmpty(_database);
-    } catch (e) {
-      debugPrint('Seed de catálogos falló: $e');
-    }
-  }
-
   /// Restaura la sesión local al arranque (CUU00). Al resolver desactiva
   /// `_restoringSession` para que `build` pase de la pantalla de carga a
   /// login (sin sesión) o al dashboard (con sesión).
@@ -439,6 +445,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _connectivitySubscription?.cancel();
+    _outboxTriggerSubscription?.cancel();
     _loginViewModel.dispose();
     _dailyReportsViewModel.dispose();
     _machineActivitiesViewModel.dispose();
@@ -467,9 +474,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     unawaited(_sessionRepository.save(updated));
   }
 
-  /// Logout: revocación remota best-effort + limpieza de la sesión local.
-  Future<void> _handleLogout() async {
-    await _logoutUseCase.execute();
+  /// Logout (CUU00): con pendientes sin confirmar el use case lanza
+  /// `PendingSyncOnLogoutException`, que `LogoutButton` convierte en el aviso
+  /// "Descartar y salir".
+  Future<void> _handleLogout({required bool discardPending}) async {
+    await _logoutUseCase.execute(discardPending: discardPending);
+    // La tarjeta de clima no debe mostrarle al próximo usuario la lectura del
+    // anterior (el cache local ya lo borró el logout).
+    _weatherViewModel.reset();
     if (mounted) {
       setState(() => _session = null);
     }

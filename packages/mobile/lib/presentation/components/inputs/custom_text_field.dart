@@ -18,6 +18,8 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType,
     this.prefixIcon,
     this.suffixIcon,
+    this.onSuffixTap,
+    this.suffixTooltip,
     this.errorText,
     this.onChanged,
     this.onTap,
@@ -52,6 +54,13 @@ class CustomTextField extends StatelessWidget {
 
   /// Ícono al final del campo.
   final IconData? suffixIcon;
+
+  /// Acción del ícono final (por ejemplo, mostrar u ocultar la contraseña).
+  /// Sin acción, el ícono es solo decorativo.
+  final VoidCallback? onSuffixTap;
+
+  /// Texto accesible del ícono final cuando tiene acción.
+  final String? suffixTooltip;
 
   /// Mensaje de error que aparece debajo del campo.
   final String? errorText;
@@ -109,13 +118,23 @@ class CustomTextField extends StatelessWidget {
             prefixIcon: prefixIcon != null
                 ? Icon(prefixIcon, size: 20, color: AppColors.onSurfaceVariant)
                 : null,
-            suffixIcon: suffixIcon != null
-                ? Icon(suffixIcon, size: 20, color: AppColors.onSurfaceVariant)
-                : null,
+            suffixIcon: _buildSuffix(),
             errorText: errorText,
           ),
         ),
       ],
+    );
+  }
+
+  Widget? _buildSuffix() {
+    final icon = suffixIcon;
+    if (icon == null) return null;
+    final glyph = Icon(icon, size: 20, color: AppColors.onSurfaceVariant);
+    if (onSuffixTap == null) return glyph;
+    return IconButton(
+      icon: glyph,
+      tooltip: suffixTooltip,
+      onPressed: enabled ? onSuffixTap : null,
     );
   }
 }

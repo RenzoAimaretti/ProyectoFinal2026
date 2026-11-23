@@ -8,6 +8,7 @@ import 'package:mobile/domain/models/machine_activity.dart';
 import 'package:mobile/domain/models/machine_usage.dart';
 import 'package:mobile/domain/usecases/list_machine_activities_usecase.dart';
 import 'package:mobile/domain/usecases/list_machine_history_usecase.dart';
+import 'package:mobile/presentation/components/cards/list_item_tile.dart';
 
 import '../../domain/usecases/fakes.dart';
 
@@ -47,5 +48,6 @@ void main() {
     expect(find.textContaining('Reparación'), findsOneWidget);
     expect(find.textContaining('Uso en campo'), findsOneWidget);
     expect(find.text('Tractor'), findsOneWidget);
+    expect(find.byType(ListItemTile), findsWidgets);
   });
 }

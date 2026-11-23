@@ -1,4 +1,5 @@
 import '../../domain/errors.dart';
+import '../../domain/repositories/access_token_refresher.dart';
 import '../../domain/repositories/session_repository.dart';
 import '../services/auth_api_service.dart';
 
@@ -8,13 +9,14 @@ import '../services/auth_api_service.dart';
 /// no hay `refreshToken` o el refresh falla, limpia la sesión y lanza
 /// [SyncPermanentException]: la fila queda `FAILED` y el próximo arranque va a
 /// login (spec C2).
-class TokenRefresher {
+class TokenRefresher implements AccessTokenRefresher {
   TokenRefresher(this._apiService, this._sessionRepository);
 
   final AuthApiService _apiService;
   final SessionRepository _sessionRepository;
 
   /// Devuelve el access token renovado.
+  @override
   Future<String> refreshAccessToken() async {
     final session = await _sessionRepository.current();
     final refreshToken = session?.refreshToken;
