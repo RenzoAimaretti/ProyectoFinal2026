@@ -1,14 +1,19 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { apiPost, type ClientDTO } from "@/api/client";
+import { useEffect, useState, type FormEvent } from "react";
+import { apiGet, apiPost, type ClientDTO } from "@/api/client";
 import { Alert } from "@/components/ui/feedback";
 import { SelectField, TextareaField, TextField } from "@/components/ui/form";
 import { Button, Modal } from "@/components/ui/primitives";
 
 type FormCallbacks = { onClose: () => void; onCreated: () => void; describeError: (error: unknown) => string };
-type LineItem = { key: number; taskId: string; description: string; quantity: string; unitPrice: string };
-const newItem = (key: number): LineItem => ({ key, taskId: "", description: "", quantity: "1", unitPrice: "" });
+type LineItem = { key: number; lotId: string; taskId: string; description: string; quantity: string; unitPrice: string };
+const newItem = (key: number): LineItem => ({ key, lotId: "", taskId: "", description: "", quantity: "1", unitPrice: "" });
+type Farm = { id: string; clientId: string; name: string };
+type Lot = { id: string; farmId: string; name: string };
+type Task = { id: string; lotId: string; laborTypeId: string };
+type LaborType = { id: string; name: string };
+type TaskCatalog = { farms: Farm[]; lots: Lot[]; tasks: Task[]; laborTypes: LaborType[] };
 
 export function CreateInvoiceForm({ clients, onClose, onCreated, describeError }: FormCallbacks & { clients: ClientDTO[] }) {
   const [clientId, setClientId] = useState("");
@@ -20,6 +25,27 @@ export function CreateInvoiceForm({ clients, onClose, onCreated, describeError }
   const [nextKey, setNextKey] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [catalog, setCatalog] = useState<TaskCatalog | null>(null);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([
+      apiGet<Farm[]>("/farms"), apiGet<Lot[]>("/lots"),
+      apiGet<Task[]>("/tasks"), apiGet<LaborType[]>("/labor-types"),
+    ]).then(([farms, lots, tasks, laborTypes]) => {
+      if (alive) { setCatalog({ farms, lots, tasks, laborTypes }); setCatalogLoading(false); }
+    }).catch((failure: unknown) => {
+      if (alive) { setCatalogError(describeError(failure)); setCatalogLoading(false); }
+    });
+    return () => { alive = false; };
+  }, [describeError]);
+
+  const clientFarms = catalog?.farms.filter((farm) => farm.clientId === clientId) ?? [];
+  const farmNames = new Map(clientFarms.map((farm) => [farm.id, farm.name]));
+  const clientLots = catalog?.lots.filter((lot) => farmNames.has(lot.farmId)) ?? [];
+  const laborNames = new Map(catalog?.laborTypes.map((labor) => [labor.id, labor.name]) ?? []);
 
   const updateItem = (key: number, changes: Partial<LineItem>) => {
     setItems((current) => current.map((item) => item.key === key ? { ...item, ...changes } : item));
@@ -39,6 +65,11 @@ export function CreateInvoiceForm({ clients, onClose, onCreated, describeError }
     if (items.some((item) => !item.description.trim() || !Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0 ||
       !Number.isFinite(Number(item.unitPrice)) || Number(item.unitPrice) <= 0)) {
       setError("Cada concepto necesita una descripción, cantidad y precio unitario mayores a cero.");
+      return;
+    }
+    if (items.some((item) => item.taskId && (!clientLots.some((lot) => lot.id === item.lotId) ||
+      !catalog?.tasks.some((task) => task.id === item.taskId && task.lotId === item.lotId)))) {
+      setError("Seleccioná una tarea del lote y cliente de esta factura.");
       return;
     }
     setSaving(true);
@@ -63,7 +94,8 @@ export function CreateInvoiceForm({ clients, onClose, onCreated, describeError }
     <Modal open onClose={saving ? () => undefined : onClose} title="Nueva factura" subtitle="Facturá servicios a un cliente de esta firma." widthClass="max-w-2xl">
       <form onSubmit={(event) => void submit(event)} noValidate className="space-y-4">
         {error && <Alert tone="error" onDismiss={() => setError(null)}>{error}</Alert>}
-        <SelectField label="Cliente" required value={clientId} onChange={(event) => setClientId(event.target.value)}
+        {catalogError && <Alert tone="error" title="No se pudieron cargar los lotes y tareas">{catalogError}</Alert>}
+        <SelectField label="Cliente" required value={clientId} onChange={(event) => { setClientId(event.target.value); setItems((current) => current.map((item) => ({ ...item, lotId: "", taskId: "" }))); }}
           placeholder="Seleccioná un cliente" options={clients.map((client) => ({ value: client.id, label: client.name }))} />
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField label="Número" required value={number} onChange={(event) => setNumber(event.target.value)} />
@@ -81,7 +113,17 @@ export function CreateInvoiceForm({ clients, onClose, onCreated, describeError }
               <span className="text-sm font-semibold text-ink">Concepto {index + 1}</span>
               <Button variant="ghost" onClick={() => setItems((current) => current.filter((entry) => entry.key !== item.key))}>Quitar</Button>
             </div>
-            <TextField label="Tarea (opcional)" hint="ID de una tarea de este cliente" value={item.taskId} onChange={(event) => updateItem(item.key, { taskId: event.target.value })} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <SelectField label="Lote (opcional)" value={item.lotId} disabled={!clientId || !clientLots.length || catalogLoading || !!catalogError}
+                onChange={(event) => updateItem(item.key, { lotId: event.target.value, taskId: "" })}
+                options={[{ value: "", label: catalogLoading ? "Cargando lotes…" : catalogError ? "Lotes no disponibles" : !clientId ? "Seleccioná un cliente" : !clientLots.length ? "Sin lotes" : "Sin lote" },
+                  ...clientLots.map((lot) => ({ value: lot.id, label: `${farmNames.get(lot.farmId)} · ${lot.name}` }))]} />
+              <SelectField label="Tarea (opcional)" value={item.taskId}
+                disabled={!item.lotId || !catalog?.tasks.some((task) => task.lotId === item.lotId) || catalogLoading || !!catalogError}
+                onChange={(event) => updateItem(item.key, { taskId: event.target.value })}
+                options={[{ value: "", label: catalogLoading ? "Cargando tareas…" : catalogError ? "Tareas no disponibles" : !item.lotId ? "Seleccioná un lote" : !catalog?.tasks.some((task) => task.lotId === item.lotId) ? "Sin tareas en este lote" : "Sin tarea" },
+                  ...(catalog?.tasks.filter((task) => task.lotId === item.lotId).map((task) => ({ value: task.id, label: laborNames.get(task.laborTypeId) ?? "Labor no disponible" })) ?? [])]} />
+            </div>
             <TextField label="Descripción" required value={item.description} onChange={(event) => updateItem(item.key, { description: event.target.value })} />
             <div className="grid gap-3 sm:grid-cols-2">
               <TextField label="Cantidad" type="number" min="0.01" step="any" required value={item.quantity} onChange={(event) => updateItem(item.key, { quantity: event.target.value })} />
