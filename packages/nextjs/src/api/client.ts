@@ -187,6 +187,10 @@ export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
   return request<T>("PUT", path, body ?? {});
 }
 
+export async function apiPatch<T>(path: string, body?: unknown): Promise<T> {
+  return request<T>("PATCH", path, body ?? {});
+}
+
 export async function apiDelete<T>(path: string): Promise<T> {
   return request<T>("DELETE", path);
 }
@@ -1386,4 +1390,201 @@ export function deleteTariff(laborTypeId: string): Promise<void> {
 /** Equivalent in kilos of one grain; the grain choice is UI-only (never persisted). */
 export function getTariffKgEquivalents(grain: Grain): Promise<TariffKgEquivalentsDTO> {
   return apiGet<TariffKgEquivalentsDTO>(`/tariffs/kg-equivalents?grain=${encodeURIComponent(grain)}`);
+}
+
+/* ------------------------------------------------------------------ */
+/* Finanzas: gastos, categorías y sugerencias                          */
+/* ------------------------------------------------------------------ */
+
+export type UsdRateType = "OFICIAL_VENTA" | "OFICIAL_COMPRA" | "BNA_PIZARRA";
+
+/** Expense category, shared by every company of the tenant. */
+export type ExpenseCategoryDTO = {
+  id: string;
+  tenantId: string;
+  name: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** Manual expense. Amounts travel as decimal strings, never numbers. */
+export type ExpenseDTO = {
+  id: string;
+  companyId: string;
+  lotId: string;
+  categoryId: string;
+  /** Day of the expense (UTC midnight). */
+  date: string;
+  description: string;
+  amount: string;
+  unit: MoneyUnit;
+  grain: Grain | null;
+  grainArsPerTon: string | null;
+  usdRate: string | null;
+  usdRateType: UsdRateType | null;
+  priceSource: string | null;
+  priceFetchedAt: string | null;
+  /** Valued with an out-of-date cached price (the provider was down). */
+  priceStale: boolean;
+  amountArs: string;
+  valuedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  /** Id of the PENDIENTE suggestion of this expense, if any. */
+  pendingSuggestionId: string | null;
+};
+
+/** Body of `POST /expenses`. The company comes from the token. */
+export type ExpenseInput = {
+  lotId: string;
+  categoryId: string;
+  /** `YYYY-MM-DD`. */
+  date: string;
+  description: string;
+  amount: string;
+  unit: MoneyUnit;
+  /** Only with `KG_CEREAL`. */
+  grain?: Grain | null;
+};
+
+/** Partial edit (`PATCH /expenses/:id`) or proposed values of an edit suggestion. */
+export type ExpenseChangesInput = Partial<ExpenseInput>;
+
+/** Money fields sent to `POST /expenses/preview`. */
+export type ExpensePreviewInput = Pick<ExpenseInput, "amount" | "unit" | "grain">;
+
+/** Valuation of an expense in ARS for the confirmation summary; nothing is stored. */
+export type ExpensePreviewDTO = {
+  amount: string;
+  unit: MoneyUnit;
+  grain: Grain | null;
+  amountArs: string;
+  grainArsPerTon: string | null;
+  usdRate: string | null;
+  usdRateType: UsdRateType | null;
+  priceSource: string | null;
+  priceFetchedAt: string | null;
+  priceStale: boolean;
+  valuedAt: string;
+};
+
+export type ExpenseSuggestionKind = "EDICION" | "BAJA";
+export type ExpenseSuggestionStatus = "PENDIENTE" | "APROBADA" | "RECHAZADA";
+
+export type ExpenseSuggestionDTO = {
+  id: string;
+  expenseId: string;
+  companyId: string;
+  kind: ExpenseSuggestionKind;
+  status: ExpenseSuggestionStatus;
+  /** Only the fields an EDICION proposes are set. */
+  proposed: {
+    lotId: string | null;
+    categoryId: string | null;
+    date: string | null;
+    description: string | null;
+    amount: string | null;
+    unit: MoneyUnit | null;
+    grain: Grain | null;
+  };
+  suggestedBy: string;
+  rejectionReason: string | null;
+  resolvedBy: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  /** Summary of the expense; still present when it was removed by an approved BAJA. */
+  expense: {
+    id: string;
+    lotId: string;
+    categoryId: string;
+    date: string;
+    description: string;
+    amount: string;
+    unit: MoneyUnit;
+    grain: Grain | null;
+    amountArs: string;
+    deleted: boolean;
+  };
+};
+
+export type ExpenseFilters = {
+  lotId?: string;
+  categoryId?: string;
+  from?: string;
+  to?: string;
+};
+
+export function getExpenseCategories(): Promise<ExpenseCategoryDTO[]> {
+  return apiGet<ExpenseCategoryDTO[]>("/expense-categories");
+}
+
+export function createExpenseCategory(name: string): Promise<ExpenseCategoryDTO> {
+  return apiPost<ExpenseCategoryDTO>("/expense-categories", { name });
+}
+
+/** Renames a category or toggles `active`. */
+export function updateExpenseCategory(
+  id: string,
+  body: { name?: string; active?: boolean },
+): Promise<ExpenseCategoryDTO> {
+  return apiPatch<ExpenseCategoryDTO>(`/expense-categories/${encodeURIComponent(id)}`, body);
+}
+
+/** Answers 409 when the category is in use: deactivate it instead. */
+export function deleteExpenseCategory(id: string): Promise<{ message: string }> {
+  return apiDelete<{ message: string }>(`/expense-categories/${encodeURIComponent(id)}`);
+}
+
+export function getExpenses(filters: ExpenseFilters = {}): Promise<ExpenseDTO[]> {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) {
+    if (value) params.set(key, value);
+  }
+  const query = params.toString();
+  return apiGet<ExpenseDTO[]>(`/expenses${query ? `?${query}` : ""}`);
+}
+
+/** Values the expense in ARS for the confirmation summary (D24); stores nothing. */
+export function previewExpense(input: ExpensePreviewInput): Promise<ExpensePreviewDTO> {
+  return apiPost<ExpensePreviewDTO>("/expenses/preview", input);
+}
+
+export function createExpense(input: ExpenseInput): Promise<ExpenseDTO> {
+  return apiPost<ExpenseDTO>("/expenses", input);
+}
+
+/** Direct edit (ADMIN only). */
+export function updateExpense(id: string, changes: ExpenseChangesInput): Promise<ExpenseDTO> {
+  return apiPatch<ExpenseDTO>(`/expenses/${encodeURIComponent(id)}`, changes);
+}
+
+/** Direct removal (ADMIN only): the expense is logically deleted. */
+export function deleteExpense(id: string): Promise<{ message: string }> {
+  return apiDelete<{ message: string }>(`/expenses/${encodeURIComponent(id)}`);
+}
+
+/** The SUPERVISOR proposes an edit or a removal; the ADMIN decides. */
+export function createExpenseSuggestion(
+  expenseId: string,
+  body: { kind: "EDICION"; changes: ExpenseChangesInput } | { kind: "BAJA" },
+): Promise<ExpenseSuggestionDTO> {
+  const payload = body.kind === "EDICION" ? { kind: body.kind, ...body.changes } : { kind: body.kind };
+  return apiPost<ExpenseSuggestionDTO>(`/expenses/${encodeURIComponent(expenseId)}/suggestions`, payload);
+}
+
+/** ADMIN: every suggestion of the company. SUPERVISOR: only their own. */
+export function getExpenseSuggestions(status?: ExpenseSuggestionStatus): Promise<ExpenseSuggestionDTO[]> {
+  const query = status ? `?status=${encodeURIComponent(status)}` : "";
+  return apiGet<ExpenseSuggestionDTO[]>(`/expense-suggestions${query}`);
+}
+
+export function approveExpenseSuggestion(id: string): Promise<ExpenseSuggestionDTO> {
+  return apiPost<ExpenseSuggestionDTO>(`/expense-suggestions/${encodeURIComponent(id)}/approve`);
+}
+
+export function rejectExpenseSuggestion(id: string, reason: string): Promise<ExpenseSuggestionDTO> {
+  return apiPost<ExpenseSuggestionDTO>(`/expense-suggestions/${encodeURIComponent(id)}/reject`, { reason });
 }

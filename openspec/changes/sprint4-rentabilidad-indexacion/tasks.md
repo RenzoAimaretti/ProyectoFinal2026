@@ -89,40 +89,40 @@
 
 ### 3.A Esquema
 
-- [ ] 3.1 `prisma/schema.prisma`: enums `ExpenseSuggestionKind` y `ExpenseSuggestionStatus`; modelos `ExpenseCategory`, `Expense` y `ExpenseSuggestion`; relaciones inversas en `Tenant`, `Company` y `Lot` (design §2.3).
-- [ ] 3.2 Migración manual propia `prisma/migrations/20261123110000_add_expenses/migration.sql`: tablas, `@@unique(tenantId,name)`, FKs (sugerencias sin cascada), columnas `deletedAt`/`deletedBy` de `Expense` (baja lógica), `CHECK`s de grano/monto y el **índice único parcial** `"ExpenseSuggestion_one_pending_per_expense" ... WHERE "status" = 'PENDIENTE'` (design §2.3/§2.9).
+- [x] 3.1 `prisma/schema.prisma`: enums `ExpenseSuggestionKind` y `ExpenseSuggestionStatus`; modelos `ExpenseCategory`, `Expense` y `ExpenseSuggestion`; relaciones inversas en `Tenant`, `Company` y `Lot` (design §2.3).
+- [x] 3.2 Migración manual propia `prisma/migrations/20261123110000_add_expenses/migration.sql`: tablas, `@@unique(tenantId,name)`, FKs (sugerencias sin cascada), columnas `deletedAt`/`deletedBy` de `Expense` (baja lógica), `CHECK`s de grano/monto y el **índice único parcial** `"ExpenseSuggestion_one_pending_per_expense" ... WHERE "status" = 'PENDIENTE'` (design §2.3/§2.9).
 
 ### 3.B Categorías de gasto
 
-- [ ] 3.3 `src/entities/expense-category/**` copiando `input-category`: dominio (`CategoryInUseError`), puertos, `Create/Update/Delete/Find` use cases, `PrismaExpenseCategoryRepository`, controller `@Roles('ADMIN','SUPERVISOR')` (409 por nombre duplicado y por borrado en uso; PATCH de `active`), `expense-category.module.ts` (spec R-FIN-09).
+- [x] 3.3 `src/entities/expense-category/**` copiando `input-category`: dominio (`CategoryInUseError`), puertos, `Create/Update/Delete/Find` use cases, `PrismaExpenseCategoryRepository`, controller `@Roles('ADMIN','SUPERVISOR')` (409 por nombre duplicado y por borrado en uso; PATCH de `active`), `expense-category.module.ts` (spec R-FIN-09).
 
 ### 3.C Gastos
 
-- [ ] 3.4 `src/entities/expense/domain/`: validación del gasto con `Money`, `requiresRevaluation(current, next)` (monto, moneda o grano), `errors.ts` (design §2.9).
-- [ ] 3.5 `src/entities/expense/application/ports/`: `ExpenseRepositoryPort`, `ExpenseSuggestionRepositoryPort`, `LotReaderPort` (lote del **tenant**), `ExpenseCategoryReaderPort` (del tenant y `active`), `MoneyValuationPort`, `ClockPort`.
-- [ ] 3.6 Casos de uso: `PreviewExpenseUseCase` (valúa sin persistir), `CreateExpenseUseCase` (guarda `createdBy`/`updatedBy`; gasto USD/kg sin precio → `MarketUnavailableError` con aviso "reintentar o cargar en ARS", D25), `UpdateExpenseUseCase` y `DeleteExpenseUseCase` (ADMIN; 409 con sugerencia pendiente; revalúa solo si `requiresRevaluation`; el borrado es baja lógica), `FindExpensesUseCase` (excluye gastos dados de baja) (spec R-FIN-10/11).
-- [ ] 3.7 Adapters Prisma de `expense`: repositorios con transacciones `Serializable` en edición/baja directa, creación y resolución de sugerencias; traducción `P2002` → `DuplicateEntityError` (409) y `P2034` → 409 "reintente"; `PrismaLotReader` tenant-scoped (lote de otro tenant → 404).
+- [x] 3.4 `src/entities/expense/domain/`: validación del gasto con `Money`, `requiresRevaluation(current, next)` (monto, moneda o grano), `errors.ts` (design §2.9).
+- [x] 3.5 `src/entities/expense/application/ports/`: `ExpenseRepositoryPort`, `ExpenseSuggestionRepositoryPort`, `LotReaderPort` (lote del **tenant**), `ExpenseCategoryReaderPort` (del tenant y `active`), `MoneyValuationPort`, `ClockPort`.
+- [x] 3.6 Casos de uso: `PreviewExpenseUseCase` (valúa sin persistir), `CreateExpenseUseCase` (guarda `createdBy`/`updatedBy`; gasto USD/kg sin precio → `MarketUnavailableError` con aviso "reintentar o cargar en ARS", D25), `UpdateExpenseUseCase` y `DeleteExpenseUseCase` (ADMIN; 409 con sugerencia pendiente; revalúa solo si `requiresRevaluation`; el borrado es baja lógica), `FindExpensesUseCase` (excluye gastos dados de baja) (spec R-FIN-10/11).
+- [x] 3.7 Adapters Prisma de `expense`: repositorios con transacciones `Serializable` en edición/baja directa, creación y resolución de sugerencias; traducción `P2002` → `DuplicateEntityError` (409) y `P2034` → 409 "reintente"; `PrismaLotReader` tenant-scoped (lote de otro tenant → 404).
 
 ### 3.D Sugerencias
 
-- [ ] 3.8 `domain`: `assertPendingSuggestion` (copia de `assertPendingApproval`, `daily-report.rules.ts:43`) y regla de motivo obligatorio al rechazar (copia de `reject-daily-report.use-case.ts:25`).
-- [ ] 3.9 Casos de uso: `CreateExpenseSuggestionUseCase` (`EDICION` con valores propuestos o `BAJA`; una pendiente por gasto), `FindExpenseSuggestionsUseCase` (ADMIN: todas de la firma; SUPERVISOR: solo `suggestedBy = userId`, con estado y motivo), `ApproveExpenseSuggestionUseCase` (aplica la edición/baja y marca `APROBADA` en una transacción; revalúa solo si corresponde) y `RejectExpenseSuggestionUseCase` (motivo obligatorio, estado final) (spec R-FIN-11).
-- [ ] 3.10 Controllers `expense` y `expense-suggestion`: rutas y `@Roles` de design §2.11 (`PATCH`/`DELETE /expenses/:id` solo ADMIN; `POST /expenses/:id/suggestions` solo SUPERVISOR; approve/reject solo ADMIN); `expense.module.ts` y registro de `ExpenseCategoryModule` y `ExpenseModule` en `app.module.ts`.
+- [x] 3.8 `domain`: `assertPendingSuggestion` (copia de `assertPendingApproval`, `daily-report.rules.ts:43`) y regla de motivo obligatorio al rechazar (copia de `reject-daily-report.use-case.ts:25`).
+- [x] 3.9 Casos de uso: `CreateExpenseSuggestionUseCase` (`EDICION` con valores propuestos o `BAJA`; una pendiente por gasto), `FindExpenseSuggestionsUseCase` (ADMIN: todas de la firma; SUPERVISOR: solo `suggestedBy = userId`, con estado y motivo), `ApproveExpenseSuggestionUseCase` (aplica la edición/baja y marca `APROBADA` en una transacción; revalúa solo si corresponde) y `RejectExpenseSuggestionUseCase` (motivo obligatorio, estado final) (spec R-FIN-11).
+- [x] 3.10 Controllers `expense` y `expense-suggestion`: rutas y `@Roles` de design §2.11 (`PATCH`/`DELETE /expenses/:id` solo ADMIN; `POST /expenses/:id/suggestions` solo SUPERVISOR; approve/reject solo ADMIN); `expense.module.ts` y registro de `ExpenseCategoryModule` y `ExpenseModule` en `app.module.ts`.
 
 ### 3.E Web: Gastos, Categorías, Sugerencias
 
-- [ ] 3.11 `src/api/client.ts`: funciones de categorías, gastos (`previewExpense`, `createExpense`, `updateExpense`, `deleteExpense`) y sugerencias (`createExpenseSuggestion`, `getExpenseSuggestions`, `approveExpenseSuggestion`, `rejectExpenseSuggestion`).
-- [ ] 3.12 `categorias-tab.tsx` (ADMIN y SUPERVISOR; botón de borrar maneja el 409 y ofrece inactivar) y `gastos-tab.tsx` (listado por lote/fecha/categoría; formulario con moneda ARS/USD/kg+grano; **resumen de confirmación con la valorización en ARS** antes de guardar vía `previewExpense`; acciones directas solo para ADMIN y "Sugerir edición/baja" para SUPERVISOR) (spec R-FIN-10/16, D24).
-- [ ] 3.13 `sugerencias-tab.tsx`: bandeja del ADMIN (aprobar / rechazar con motivo) y vista del SUPERVISOR con el estado y el motivo de rechazo de **sus** sugerencias; el gasto con sugerencia pendiente muestra la marca y deshabilita la edición directa del ADMIN.
-- [ ] 3.14 Gating por pestaña: SUPERVISOR ve Gastos, Categorías y sus sugerencias; no ve Tarifario ni Calculadora (`access.ts`) (spec R-FIN-15/16).
+- [x] 3.11 `src/api/client.ts`: funciones de categorías, gastos (`previewExpense`, `createExpense`, `updateExpense`, `deleteExpense`) y sugerencias (`createExpenseSuggestion`, `getExpenseSuggestions`, `approveExpenseSuggestion`, `rejectExpenseSuggestion`).
+- [x] 3.12 `categorias-tab.tsx` (ADMIN y SUPERVISOR; botón de borrar maneja el 409 y ofrece inactivar) y `gastos-tab.tsx` (listado por lote/fecha/categoría; formulario con moneda ARS/USD/kg+grano; **resumen de confirmación con la valorización en ARS** antes de guardar vía `previewExpense`; acciones directas solo para ADMIN y "Sugerir edición/baja" para SUPERVISOR) (spec R-FIN-10/16, D24).
+- [x] 3.13 `sugerencias-tab.tsx`: bandeja del ADMIN (aprobar / rechazar con motivo) y vista del SUPERVISOR con el estado y el motivo de rechazo de **sus** sugerencias; el gasto con sugerencia pendiente muestra la marca y deshabilita la edición directa del ADMIN.
+- [x] 3.14 Gating por pestaña: SUPERVISOR ve Gastos, Categorías y sus sugerencias; no ve Tarifario ni Calculadora (`access.ts`) (spec R-FIN-15/16).
 
 ### 3.F Tests y documentación de la unidad
 
-- [ ] 3.15 Jest dominio y aplicación con fakes: valuación de gasto en ARS/USD/kg, `requiresRevaluation` (solo monto/moneda/grano), una pendiente por gasto (409), ADMIN con pendiente (409), rechazo sin motivo (400), resolución final (409), visibilidad por rol, lote de otro tenant (404), categoría inactiva rechazada.
-- [ ] 3.16 Jest controller: matriz de roles de cada endpoint (SUPERVISOR 403 en edición/borrado directo y approve/reject; ADMIN 403 en `POST /expenses/:id/suggestions` si corresponde; OPERARIO 403), `companyId` ignorado del body (spec R-FIN-15).
-- [ ] 3.17 Jest adapter: traducción `P2002`/`P2034`, transacción atómica de la aprobación de una `EDICION`, `BAJA` da de baja lógica el gasto y la sugerencia queda `APROBADA` y visible; los gastos dados de baja no aparecen en listados ni en la calculadora.
-- [ ] 3.18 Web: ampliar `test/finance-access.test.mjs` (pestañas por rol, acciones por rol) y `test/finance-format.test.mjs` (resumen de confirmación).
-- [ ] 3.19 Documentación: reglas de sugerencias y decisión de baja lógica en el log del change; `Risk: item 1, 2, 4`.
+- [x] 3.15 Jest dominio y aplicación con fakes: valuación de gasto en ARS/USD/kg, `requiresRevaluation` (solo monto/moneda/grano), una pendiente por gasto (409), ADMIN con pendiente (409), rechazo sin motivo (400), resolución final (409), visibilidad por rol, lote de otro tenant (404), categoría inactiva rechazada.
+- [x] 3.16 Jest controller: matriz de roles de cada endpoint (SUPERVISOR 403 en edición/borrado directo y approve/reject; ADMIN 403 en `POST /expenses/:id/suggestions` si corresponde; OPERARIO 403), `companyId` ignorado del body (spec R-FIN-15).
+- [x] 3.17 Jest adapter: traducción `P2002`/`P2034`, transacción atómica de la aprobación de una `EDICION`, `BAJA` da de baja lógica el gasto y la sugerencia queda `APROBADA` y visible; los gastos dados de baja no aparecen en listados ni en la calculadora.
+- [x] 3.18 Web: ampliar `test/finance-access.test.mjs` (pestañas por rol, acciones por rol) y `test/finance-format.test.mjs` (resumen de confirmación).
+- [x] 3.19 Documentación: reglas de sugerencias y decisión de baja lógica en el log del change; `Risk: item 1, 2, 4`.
 
 ## 4. Unidad 4 — Calculadora (R032, R033, CUU05)
 

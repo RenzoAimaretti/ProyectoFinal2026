@@ -4,11 +4,19 @@ import {
   BASIS_LABELS,
   GRAINS,
   GRAIN_LABELS,
+  SUGGESTION_KIND_LABELS,
+  SUGGESTION_STATUS_LABELS,
+  USD_RATE_LABELS,
+  buildExpenseConfirmation,
+  describeProposedChanges,
   formatArs,
+  formatDay,
   formatDecimal,
   formatKg,
   formatKgPerBasis,
+  formatMoney,
   formatTariffComponent,
+  formatValuedAt,
 } from '../src/app/dashboard/finanzas/format.ts';
 import {
   emptyTariffForm,
@@ -174,4 +182,193 @@ test('the empty form starts in ARS per hectare with no amounts', () => {
   assert.equal(form.price.unit, 'ARS');
   assert.equal(form.price.basis, 'POR_HECTAREA');
   assert.equal(validateTariffForm(form).ok, false);
+});
+
+test('money reads in its own unit: pesos, dollars or kilos of a grain', () => {
+  assert.equal(formatMoney('90000.0000', 'ARS', null), '$ 90.000,00');
+  assert.equal(formatMoney('10', 'USD', null), 'US$ 10,00');
+  assert.equal(formatMoney('300.0000', 'KG_CEREAL', 'MAIZ'), '300 kg de maíz');
+  assert.equal(formatMoney(null, 'ARS', null), '—');
+});
+
+test('days come from the stored UTC day and never shift with the local zone', () => {
+  assert.equal(formatDay('2026-11-20T00:00:00.000Z'), '20/11/2026');
+  assert.equal(formatDay('2026-11-20'), '20/11/2026');
+  assert.equal(formatDay(null), '—');
+  assert.equal(formatDay('basura'), '—');
+});
+
+test('the valuation moment is shown in Argentina time', () => {
+  assert.equal(formatValuedAt('2026-11-23T12:00:00.000Z'), '23/11/2026 09:00');
+  assert.equal(formatValuedAt('2026-11-23T02:30:00.000Z'), '22/11/2026 23:30');
+  assert.equal(formatValuedAt(undefined), '—');
+});
+
+const preview = (patch = {}) => ({
+  amount: '300',
+  unit: 'KG_CEREAL',
+  grain: 'MAIZ',
+  amountArs: '58500.00',
+  grainArsPerTon: '195000',
+  usdRate: null,
+  usdRateType: null,
+  priceSource: 'cac.bcr.com.ar',
+  priceFetchedAt: '2026-11-23T11:55:00.000Z',
+  priceStale: false,
+  valuedAt: '2026-11-23T12:00:00.000Z',
+  ...patch,
+});
+
+const typed = {
+  lotId: 'lot-1',
+  categoryId: 'cat-1',
+  date: '2026-11-20',
+  description: 'Flete',
+  amount: '300',
+  unit: 'KG_CEREAL',
+  grain: 'MAIZ',
+};
+
+test('the confirmation summary shows 300 kg of maiz valued at 58.500 ARS with price, source and date', () => {
+  const summary = buildExpenseConfirmation({
+    lotName: 'Lote N°1',
+    categoryName: 'Flete',
+    input: typed,
+    preview: preview(),
+  });
+
+  assert.deepEqual(summary.rows, [
+    { label: 'Lote', value: 'Lote N°1' },
+    { label: 'Categoría', value: 'Flete' },
+    { label: 'Fecha del gasto', value: '20/11/2026' },
+    { label: 'Descripción', value: 'Flete' },
+    { label: 'Monto cargado', value: '300 kg de maíz' },
+    { label: 'Valor en pesos', value: '$ 58.500,00' },
+    { label: 'Precio utilizado', value: '$ 195.000,00 por tonelada de maíz' },
+    { label: 'Fuente', value: 'cac.bcr.com.ar' },
+    { label: 'Valorizado el', value: '23/11/2026 09:00' },
+  ]);
+  assert.equal(summary.stale, false);
+});
+
+test('a USD expense names the rate and its type; an ARS expense has no price rows', () => {
+  const usd = buildExpenseConfirmation({
+    lotName: 'L',
+    categoryName: 'C',
+    input: { ...typed, amount: '10', unit: 'USD', grain: undefined },
+    preview: preview({
+      amount: '10',
+      unit: 'USD',
+      grain: null,
+      amountArs: '10000.00',
+      grainArsPerTon: null,
+      usdRate: '1000',
+      usdRateType: 'OFICIAL_VENTA',
+      priceSource: 'dolarapi.com',
+    }),
+  });
+  const labels = usd.rows.map((row) => row.label);
+  assert.deepEqual(usd.rows.find((row) => row.label === 'Monto cargado'), {
+    label: 'Monto cargado',
+    value: 'US$ 10,00',
+  });
+  assert.deepEqual(usd.rows.find((row) => row.label === 'Precio utilizado'), {
+    label: 'Precio utilizado',
+    value: '$ 1.000,00 por dólar (oficial venta)',
+  });
+  assert.ok(labels.includes('Fuente'));
+
+  const ars = buildExpenseConfirmation({
+    lotName: 'L',
+    categoryName: 'C',
+    input: { ...typed, amount: '90000', unit: 'ARS', grain: undefined },
+    preview: preview({
+      amount: '90000',
+      unit: 'ARS',
+      grain: null,
+      amountArs: '90000.00',
+      grainArsPerTon: null,
+      priceSource: null,
+    }),
+  });
+  const arsLabels = ars.rows.map((row) => row.label);
+  assert.equal(arsLabels.includes('Precio utilizado'), false);
+  assert.equal(arsLabels.includes('Fuente'), false);
+  assert.deepEqual(ars.rows.find((row) => row.label === 'Valor en pesos'), {
+    label: 'Valor en pesos',
+    value: '$ 90.000,00',
+  });
+});
+
+test('a stale price is flagged so the user can decide before saving', () => {
+  const summary = buildExpenseConfirmation({
+    lotName: 'L',
+    categoryName: 'C',
+    input: typed,
+    preview: preview({ priceStale: true }),
+  });
+
+  assert.equal(summary.stale, true);
+});
+
+const names = {
+  lot: (id) => `Lote ${id}`,
+  category: (id) => `Cat ${id}`,
+};
+const suggestionOf = (kind, proposed = {}) => ({
+  kind,
+  proposed: {
+    lotId: null,
+    categoryId: null,
+    date: null,
+    description: null,
+    amount: null,
+    unit: null,
+    grain: null,
+    ...proposed,
+  },
+  expense: {
+    amount: '300.0000',
+    unit: 'KG_CEREAL',
+    grain: 'MAIZ',
+  },
+});
+
+test('a removal suggestion reads as a single line', () => {
+  assert.deepEqual(describeProposedChanges(suggestionOf('BAJA'), names), [
+    { label: 'Propuesta', value: 'Dar de baja el gasto' },
+  ]);
+});
+
+test('an edition lists only the proposed fields', () => {
+  const rows = describeProposedChanges(
+    suggestionOf('EDICION', { categoryId: 'c2', description: 'Otro', date: '2026-11-21T00:00:00.000Z' }),
+    names,
+  );
+
+  assert.deepEqual(rows, [
+    { label: 'Categoría', value: 'Cat c2' },
+    { label: 'Fecha', value: '21/11/2026' },
+    { label: 'Descripción', value: 'Otro' },
+  ]);
+});
+
+test('a proposed amount borrows the unit and grain of the expense when they are not proposed', () => {
+  const amountOnly = describeProposedChanges(suggestionOf('EDICION', { amount: '500.0000' }), names);
+  assert.deepEqual(amountOnly, [{ label: 'Monto', value: '500 kg de maíz' }]);
+
+  const toArs = describeProposedChanges(suggestionOf('EDICION', { unit: 'ARS' }), names);
+  assert.deepEqual(toArs, [{ label: 'Monto', value: '$ 300,00' }]);
+
+  const grain = describeProposedChanges(suggestionOf('EDICION', { grain: 'SOJA' }), names);
+  assert.deepEqual(grain, [{ label: 'Monto', value: '300 kg de soja' }]);
+});
+
+test('suggestions and rates have Spanish labels', () => {
+  assert.equal(SUGGESTION_KIND_LABELS.EDICION, 'Edición');
+  assert.equal(SUGGESTION_KIND_LABELS.BAJA, 'Baja');
+  assert.equal(SUGGESTION_STATUS_LABELS.PENDIENTE, 'Pendiente');
+  assert.equal(SUGGESTION_STATUS_LABELS.APROBADA, 'Aprobada');
+  assert.equal(SUGGESTION_STATUS_LABELS.RECHAZADA, 'Rechazada');
+  assert.equal(USD_RATE_LABELS.OFICIAL_VENTA, 'oficial venta');
 });

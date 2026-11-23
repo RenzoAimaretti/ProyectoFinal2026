@@ -30,6 +30,8 @@ import { ExchangeRateModule } from './integrations/exchange-rate/exchange-rate.m
 import { GrainPriceModule } from './integrations/grain-price/grain-price.module';
 import { ValuationModule } from './entities/valuation/valuation.module';
 import { TariffModule } from './entities/tariff/tariff.module';
+import { ExpenseCategoryModule } from './entities/expense-category/expense-category.module';
+import { ExpenseModule } from './entities/expense/expense.module';
 
 @Module({
   imports: [
@@ -66,6 +68,8 @@ import { TariffModule } from './entities/tariff/tariff.module';
     FieldCatalogModule,
     ValuationModule,
     TariffModule,
+    ExpenseCategoryModule,
+    ExpenseModule,
   ],
   controllers: [],
   providers: [],

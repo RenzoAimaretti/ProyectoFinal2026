@@ -7,10 +7,16 @@ import { FinanceIcon } from "@/components/ui/icons";
 import { navItems } from "@/components/ui/nav";
 import { getStoredUser } from "@/api/client";
 import { defaultFinanceTab, visibleFinanceTabs, type FinanceTabId } from "./access";
+import { CategoriasTab } from "./categorias-tab";
+import { GastosTab } from "./gastos-tab";
+import { SugerenciasTab } from "./sugerencias-tab";
 import { TarifarioTab } from "./tarifario-tab";
 
 const TAB_LABELS: Record<FinanceTabId, string> = {
   tarifario: "Tarifario",
+  gastos: "Gastos",
+  categorias: "Categorías",
+  sugerencias: "Sugerencias",
 };
 
 export default function FinanzasPage() {
@@ -42,7 +48,8 @@ export default function FinanzasPage() {
           <p className="op-label">Administración y facturación</p>
           <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Finanzas</h2>
           <p className="mt-1 max-w-2xl text-sm text-ink-soft">
-            Tarifario por tipo de labor, con importes en pesos, dólares o kilos de cereal.
+            Tarifario por tipo de labor, gastos manuales por lote y sugerencias, con importes en pesos, dólares o
+            kilos de cereal.
           </p>
         </div>
       </section>
@@ -58,13 +65,16 @@ export default function FinanzasPage() {
       )}
 
       {active === "tarifario" && <TarifarioTab />}
+      {active === "gastos" && <GastosTab role={role} />}
+      {active === "categorias" && <CategoriasTab />}
+      {active === "sugerencias" && <SugerenciasTab role={role} />}
 
       {role !== undefined && active === null && (
         <Card>
           <EmptyState
             icon={<FinanceIcon />}
             title="Todavía no hay secciones disponibles para tu rol"
-            subtitle="Por ahora el Tarifario es exclusivo del administrador. Los gastos y las categorías se habilitarán en próximas versiones."
+            subtitle="El Tarifario es exclusivo del administrador. Los gastos, las categorías y las sugerencias están disponibles para administradores y supervisores."
           />
         </Card>
       )}

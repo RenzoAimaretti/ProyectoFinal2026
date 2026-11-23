@@ -1,4 +1,15 @@
-import type { Grain, MoneyUnit, TariffBasis, TariffComponentDTO } from "@/api/client";
+import type {
+  ExpenseInput,
+  ExpensePreviewDTO,
+  ExpenseSuggestionDTO,
+  ExpenseSuggestionKind,
+  ExpenseSuggestionStatus,
+  Grain,
+  MoneyUnit,
+  TariffBasis,
+  TariffComponentDTO,
+  UsdRateType,
+} from "@/api/client";
 
 /**
  * Pure formatting helpers for the Finanzas section. Amounts arrive from the
@@ -112,4 +123,151 @@ export function formatTariffComponent(component: TariffComponentDTO): string {
 export function formatKgPerBasis(value: string | null | undefined, basis: TariffBasis): string {
   const text = formatKg(value);
   return text === DASH ? DASH : `${text} ${BASIS_SUFFIX[basis]}`;
+}
+
+export const SUGGESTION_KIND_LABELS: Record<ExpenseSuggestionKind, string> = {
+  EDICION: "Edición",
+  BAJA: "Baja",
+};
+
+export const SUGGESTION_STATUS_LABELS: Record<ExpenseSuggestionStatus, string> = {
+  PENDIENTE: "Pendiente",
+  APROBADA: "Aprobada",
+  RECHAZADA: "Rechazada",
+};
+
+/** Lower-case so the label reads inside a sentence: "por dólar (oficial venta)". */
+export const USD_RATE_LABELS: Record<UsdRateType, string> = {
+  OFICIAL_VENTA: "oficial venta",
+  OFICIAL_COMPRA: "oficial compra",
+  BNA_PIZARRA: "pizarra BNA",
+};
+
+/** An amount in its own unit: `$ 90.000,00`, `US$ 10,00` or `300 kg de maíz`. */
+export function formatMoney(
+  amount: string | null | undefined,
+  unit: MoneyUnit,
+  grain: Grain | null | undefined,
+): string {
+  if (unit === "KG_CEREAL") {
+    const kg = formatDecimal(amount, 0, 4);
+    if (kg === DASH) return DASH;
+    return `${kg} kg${grain ? ` de ${GRAIN_LABELS[grain].toLowerCase()}` : ""}`;
+  }
+  return unit === "USD" ? formatUsd(amount) : formatArs(amount);
+}
+
+/** `dd/mm/aaaa` from the stored UTC day (`2026-11-20T00:00:00.000Z`); never shifted by the local zone. */
+export function formatDay(value: string | null | undefined): string {
+  if (typeof value !== "string") return DASH;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : DASH;
+}
+
+const BUSINESS_TIME_ZONE = "America/Argentina/Buenos_Aires";
+
+/** `dd/mm/aaaa hh:mm` of an instant, in Argentina time. */
+export function formatValuedAt(
+  value: string | null | undefined,
+  timeZone: string = BUSINESS_TIME_ZONE,
+): string {
+  if (typeof value !== "string") return DASH;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return DASH;
+
+  const parts = new Intl.DateTimeFormat("es-AR", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${part("day")}/${part("month")}/${part("year")} ${part("hour")}:${part("minute")}`;
+}
+
+export type ConfirmationRow = { label: string; value: string };
+
+export type ExpenseConfirmation = {
+  rows: ConfirmationRow[];
+  /** The price comes from an out-of-date cache: the UI warns before saving. */
+  stale: boolean;
+};
+
+/**
+ * Rows of the confirmation summary shown before an expense is saved (D24): what
+ * was typed, its value in ARS and the price or rate behind that value. Nothing
+ * is persisted until the user confirms.
+ */
+export function buildExpenseConfirmation(args: {
+  lotName: string;
+  categoryName: string;
+  input: Pick<ExpenseInput, "date" | "description" | "amount" | "unit" | "grain">;
+  preview: ExpensePreviewDTO;
+}): ExpenseConfirmation {
+  const { lotName, categoryName, input, preview } = args;
+
+  const rows: ConfirmationRow[] = [
+    { label: "Lote", value: lotName },
+    { label: "Categoría", value: categoryName },
+    { label: "Fecha del gasto", value: formatDay(input.date) },
+    { label: "Descripción", value: input.description },
+    { label: "Monto cargado", value: formatMoney(preview.amount, preview.unit, preview.grain) },
+    { label: "Valor en pesos", value: formatArs(preview.amountArs) },
+  ];
+
+  if (preview.unit === "KG_CEREAL" && preview.grainArsPerTon !== null) {
+    const grain = preview.grain ? ` de ${GRAIN_LABELS[preview.grain].toLowerCase()}` : "";
+    rows.push({
+      label: "Precio utilizado",
+      value: `${formatArs(preview.grainArsPerTon)} por tonelada${grain}`,
+    });
+  } else if (preview.unit === "USD" && preview.usdRate !== null) {
+    const type = preview.usdRateType ? ` (${USD_RATE_LABELS[preview.usdRateType]})` : "";
+    rows.push({
+      label: "Precio utilizado",
+      value: `${formatArs(preview.usdRate)} por dólar${type}`,
+    });
+  }
+
+  if (preview.priceSource) rows.push({ label: "Fuente", value: preview.priceSource });
+  rows.push({ label: "Valorizado el", value: formatValuedAt(preview.valuedAt) });
+
+  return { rows, stale: preview.priceStale };
+}
+
+/**
+ * Human-readable lines of what a suggestion proposes. Only the proposed fields
+ * are listed; a proposed amount, unit or grain is shown as one "Monto" line that
+ * borrows whatever part was not proposed from the expense itself.
+ */
+export function describeProposedChanges(
+  suggestion: Pick<ExpenseSuggestionDTO, "kind" | "proposed" | "expense">,
+  names: { lot: (id: string) => string; category: (id: string) => string },
+): ConfirmationRow[] {
+  if (suggestion.kind === "BAJA") {
+    return [{ label: "Propuesta", value: "Dar de baja el gasto" }];
+  }
+
+  const { proposed, expense } = suggestion;
+  const rows: ConfirmationRow[] = [];
+
+  if (proposed.lotId !== null) rows.push({ label: "Lote", value: names.lot(proposed.lotId) });
+  if (proposed.categoryId !== null) {
+    rows.push({ label: "Categoría", value: names.category(proposed.categoryId) });
+  }
+  if (proposed.date !== null) rows.push({ label: "Fecha", value: formatDay(proposed.date) });
+  if (proposed.description !== null) {
+    rows.push({ label: "Descripción", value: proposed.description });
+  }
+
+  if (proposed.amount !== null || proposed.unit !== null || proposed.grain !== null) {
+    const unit = proposed.unit ?? expense.unit;
+    const grain = proposed.grain ?? (unit === "KG_CEREAL" ? expense.grain : null);
+    rows.push({ label: "Monto", value: formatMoney(proposed.amount ?? expense.amount, unit, grain) });
+  }
+
+  return rows;
 }

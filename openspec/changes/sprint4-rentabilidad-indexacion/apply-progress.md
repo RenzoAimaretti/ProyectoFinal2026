@@ -8,8 +8,8 @@
 | # | Unidad | Tareas | Commit | Estado |
 |---|--------|--------|--------|--------|
 | 1 | Tarifario + indexación | 1.1–1.23 | `4569c53` | ✅ Implementada y verificada |
-| 2 | Valorización de partes | 2.1–2.18 | pendiente de aprobación del usuario | ✅ Implementada y verificada |
-| 3 | Gastos manuales | 3.x | — | Pendiente |
+| 2 | Valorización de partes | 2.1–2.18 | `ce89efc` | ✅ Implementada y verificada |
+| 3 | Gastos manuales | 3.1–3.19 | pendiente de aprobación del usuario | ✅ Implementada y verificada |
 | 4 | Calculadora | 4.x | — | Pendiente |
 
 ---
@@ -81,9 +81,54 @@
 
 **Risk:** item 1 (migración nueva `DailyReportValuation`, solo aditiva), item 3 (cambio del caso de uso compartido `approve`, con el contrato R017 intacto) e item 4 (reintentos concurrentes idempotentes por índice único).
 
+**Revisión nativa:** la evaluación del commit, escalada por el item 3, dio `high` con revisión debida y el usuario la aceptó, pero el revisor la rechazó por tamaño (`lens_context_budget_exceeded`): el cliente Prisma generado solo suma 3235 líneas. Sin registro de revisión. El usuario decidió dejar el commit sin revisión nativa en lugar de dividirlo.
+
 ### Notas
 
 - RED observado antes de GREEN en cada regla, salvo dos specs de adapters escritos junto con su adapter (gancho de aprobación y reintento desde tarifas); su comportamiento de orden quedó cubierto por el RED del caso de uso.
 - El ARS se calcula desde el monto nativo redondeado a 4 decimales, así que el snapshot y el "valor a hoy" coinciden a igual precio. `priceFetchedAt` es el más antiguo de los componentes usados y `priceStale` es verdadero solo si se usó un componente desactualizado.
 - **Para la Unidad 4:** el reintento de toda la firma (sin labor) toma los 200 partes pendientes más antiguos; si esos no tienen tarifa, bloquean a los que sí podrían valorizarse. El disparador de tarifas filtra por labor y no se ve afectado. Conviene resolverlo cuando se agregue el disparador de la calculadora.
 - **Latencia:** el gancho se espera dentro de la aprobación y el reintento desde tarifas valoriza hasta 200 partes de a uno; un proveedor lento demora la respuesta. El diseño lo acepta como best-effort (ver design §6).
+
+---
+
+## Unidad 3 — Gastos manuales
+
+### Qué se construyó
+
+- **Esquema y migración:** enums `ExpenseSuggestionKind` y `ExpenseSuggestionStatus`; modelos `ExpenseCategory` (por tenant, nombre único, flag `active`), `Expense` (un lote, una firma, monto en ARS/USD/kg con su valorización, `createdBy`/`updatedBy` y baja lógica con `deletedAt`/`deletedBy`) y `ExpenseSuggestion` (`EDICION` o `BAJA`, valores propuestos, quién propuso y quién resolvió). Migración propia y aditiva `packages/backend/prisma/migrations/20261123110000_add_expenses/migration.sql`: tablas, índices, FKs `RESTRICT` (las sugerencias no se borran en cascada, así conservan su historial), el **índice único parcial** `ExpenseSuggestion_one_pending_per_expense` (`WHERE "status" = 'PENDIENTE'`) y cuatro `CHECK` (grano si y solo si la unidad es `KG_CEREAL`, montos `>= 0`, monto propuesto `>= 0` y una `BAJA` sin valores propuestos). Cliente Prisma regenerado.
+- **Categorías de gasto** (`src/entities/expense-category/`), copiando `input-category`: nombre duplicado → 409, borrado en uso → 409 (cuenta también gastos dados de baja) con la opción de inactivar, categoría de otro tenant → 404, inactiva → 400 al crear un gasto. Rutas `GET/POST /expense-categories` y `PATCH/DELETE /expense-categories/:id` para ADMIN y SUPERVISOR.
+- **Gastos y sugerencias** (`src/entities/expense/`): vista previa sin persistir (D24), alta con valorización del día y rechazo 503 si un gasto en USD o kg no tiene precio, con el aviso "reintentá en unos minutos o cargá el gasto en ARS" (D25), edición y baja directas solo para ADMIN (409 si hay una sugerencia pendiente; revaloriza solo si cambian monto, moneda o grano), listados sin los gastos dados de baja, sugerencias del SUPERVISOR (una pendiente por gasto), aprobación y rechazo solo para ADMIN (rechazo con motivo obligatorio, sugerencia resuelta es final), y visibilidad: ADMIN ve todas las de la firma, SUPERVISOR solo las suyas, incluida una `BAJA` aprobada.
+- **Concurrencia:** edición y baja directas, alta de sugerencia, aprobación y rechazo corren en transacciones `Serializable` que vuelven a verificar el estado adentro. `P2002` del índice parcial → 409; fallo de serialización (`P2034`) → 409 "reintente"; además hay un control optimista por `updatedAt`.
+- **Aislamiento:** firma, tenant y usuario salen solo del token; el lote se valida por lote → campo → cliente → tenant (404 si es de otro); toda consulta de gastos y sugerencias filtra por `companyId` y las categorías por `tenantId`.
+- **Web** (`packages/nextjs/`): pestañas Gastos (listado, formulario ARS/USD/kg con grano, resumen de confirmación vía `previewExpense`, acciones directas solo para ADMIN y "Sugerir edición/baja" para SUPERVISOR), Categorías (el 409 de borrado ofrece inactivar) y Sugerencias (bandeja del ADMIN; vista del SUPERVISOR con estado y motivo). ADMIN ve Tarifario, Gastos, Categorías y Sugerencias; SUPERVISOR ve Gastos, Categorías y sus Sugerencias; los demás roles ven el estado vacío informativo.
+- **Seed:** el reseteo borra sugerencias, gastos y categorías de gasto antes que los lotes. La carga de categorías y tarifas de ejemplo es la tarea 4.11 (Unidad 4).
+
+### Evidencia observada
+
+| Verificación | Resultado |
+|---|---|
+| `pnpm --filter backend exec prisma validate` | válido |
+| `prisma migrate diff --from-schema <esquema de ce89efc> --to-schema prisma/schema.prisma --script` | igual al SQL escrito a mano, menos el índice parcial y los 4 `CHECK` |
+| `pnpm --filter backend exec tsc --noEmit -p tsconfig.json` (incluye `prisma/seed.ts`) | sin errores |
+| `pnpm --filter backend test -- src/entities/expense src/entities/expense-category` (control del orquestador) | 14 suites, 215 tests, todo verde |
+| `node --test packages/nextjs/test/*.test.mjs` (control del orquestador) | 61/61 |
+| `pnpm --filter nextjs exec tsc --noEmit` | sin errores |
+| Test agregado tras la verificación: `expense.routes.spec.ts` fija verbo y ruta de cada handler de gastos y sugerencias | 11 tests, todo verde |
+| `pnpm --filter backend test` (suite completa, candidato final) | 183 suites, 1782 tests, todo verde |
+| eslint backend y `pnpm --filter nextjs lint` | 0 errores nuevos (2 warnings previos en la web) |
+| Verificador independiente (migración, matriz de roles, concurrencia, aislamiento, web) | sin bloqueantes; R-FIN-09, 10, 11 y las partes de gastos de 15, 16 y 17: PASS |
+| `pnpm --filter backend exec prisma migrate status` sobre la base de desarrollo (Postgres local) | 20 migraciones, "Database schema is up to date!": `add_expenses` (con el índice parcial y los `CHECK`) aplicada sin errores |
+| `pnpm --filter backend test:e2e` (corrido por el usuario sobre la base de desarrollo) | todos pasaron, según informó el usuario (no hay un e2e de finanzas; confirman que el resto del backend sigue funcionando) |
+
+**No verificado:** un e2e de finanzas (`test/finance.e2e-spec.ts` de design §2.13 queda pendiente), que los `CHECK` y el índice parcial rechacen filas inválidas en la base real, el comportamiento real de las transacciones `Serializable` con dos sugerencias simultáneas, la ejecución del seed y una prueba visual de las tres pestañas nuevas.
+
+**Risk:** item 1 (migración nueva con índice único parcial, solo aditiva), item 2 (matriz de permisos ADMIN/SUPERVISOR) e item 4 (una sugerencia pendiente por gasto con transacciones `Serializable`).
+
+### Notas
+
+- **Sugerencias:** copian las reglas del parte diario (`PENDIENTE`, `APROBADA`, `RECHAZADA`; rechazo con motivo; resolución final). La aprobación de una `EDICION` aplica los valores y marca la sugerencia en una sola transacción; la de una `BAJA` da de baja lógica el gasto y marca la sugerencia en la misma transacción.
+- **Baja lógica:** se eligió para que una `BAJA` aprobada siga visible para el supervisor que la propuso; los listados excluyen los gastos con `deletedAt`, y la calculadora de la Unidad 4 debe hacer lo mismo.
+- Desvíos aceptados del diseño: `PATCH` para categorías (como dice design §2.11, aunque `input-category` usa `PUT`), `apiPatch` agregado al cliente web, `ConcurrentModificationError` extra, fechas de gasto guardadas a medianoche UTC, y campos extra en las respuestas (`pendingSuggestionId` en el gasto y un resumen del gasto con marca `deleted` en la sugerencia).
+- RED observado antes de GREEN en cada regla, salvo `expense.module.spec`, el cableado del módulo de categorías y dos tests de regresión (`client.ts` y reseteo del seed) que pasaron de entrada.
+- El índice parcial y los `CHECK` no se expresan en `schema.prisma`; un `prisma migrate dev` futuro podría reportar diferencias, como ya pasa con las Unidades 1 y 2.
