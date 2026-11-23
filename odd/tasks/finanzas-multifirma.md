@@ -82,6 +82,48 @@ Decisión del cliente: `Company` es la firma; cada Company lleva su propia conta
 - Co-firma criptográfica de varias personas: no está en ningún requisito del spec ni en CUU09.
 - Retenciones impositivas: no aparecen en el spec.
 
+## PR
+
+Título: `Módulo Multi-Firma, Facturación & Control de Cheques / eCheqs`, contra `dev`. El cuerpo está acá para no crear un archivo suelto: uno sin trackear cambia el inventario del candidato de RDD. Se pasa con `gh pr create --body-file -`.
+
+```markdown
+## Qué resuelve
+
+Sprint 4 / Fase 4: módulo de finanzas multi-firma. Cada `Company` (razón social) lleva su propia contabilidad: toda operación financiera nace con el `firmaId` del JWT y toda lectura se filtra por él.
+
+| Req | Entrega |
+|---|---|
+| R026 | Facturas ligadas a las tareas del cliente, total calculado en el dominio |
+| R027 | Cobros clasificados en facturados e informales, con imputación a factura |
+| R028 | Cheques físicos con máquina de estados (terminales reales) |
+| R029 | eCheqs con conciliación: acreditado si entra, debitado si sale |
+| R030 | Cotización del dólar del día persistida en la operación |
+| R033 | Aislamiento por firma; cross-firma responde 404, nunca 403 |
+
+## Cómo se verificó
+
+- Backend: 155 suites / 1442 tests
+- 21 migraciones aplicadas sobre base limpia, sin drift entre base y schema
+- Next.js: build verde, `/dashboard/finanzas` prerenderizada
+- Aislamiento probado contra PostgreSQL real: factura y cheque de la firma A invisibles para la B, por id y por listado
+- Concurrencia probada con control negativo: dos cobros simultáneos sobre la misma factura dejaban `EMITIDA` con el total cubierto; con `SELECT ... FOR UPDATE` ambas corridas liquidan. Sin el lock, el bug se reproduce.
+
+## Por dónde revisar
+
+92 archivos, pero la mayor parte es el cliente Prisma regenerado. El núcleo son cuatro módulos hexagonales (`invoice`, `payment`, `cheque`, `echeq`), tres migraciones y la pantalla de finanzas.
+
+Dos defectos los encontró el review independiente y están cerrados: un `paymentId` que permitía cruzar firmas, y la carrera de liquidación. El detalle completo está en `odd/tasks/finanzas-multifirma.md`.
+
+## Fuera de alcance
+
+R031 y R032 (tarea hermana de rentabilidad), R034 (formato de exportación sin definir), co-firma criptográfica y retenciones.
+
+## Límites conocidos
+
+- Ningún endpoint financiero se ejercitó por HTTP con el backend levantado; guards y DTOs están cubiertos por unitarios y los repositorios por smoke real.
+- Si `dolarapi` está caído, el cobro se registra con `usdRate = null` en vez de rechazarse. Decisión explícita, pendiente de confirmación de producto.
+```
+
 ## Log
 
 **L1 — Pedido original del usuario (verbatim).**
