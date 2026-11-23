@@ -105,6 +105,48 @@ export function formatKg(value: string | null | undefined): string {
   return text === DASH ? DASH : `${text} kg`;
 }
 
+/**
+ * Margin in pesos with an explicit sign when negative: `-$ 8.000,00`. A missing
+ * value is a dash, never 0.
+ */
+export function formatMarginArs(value: string | null | undefined): string {
+  const text = formatDecimal(value, 2, 4);
+  if (text === DASH) return DASH;
+  return text.startsWith("-") ? `-$ ${text.slice(1)}` : `$ ${text}`;
+}
+
+/**
+ * A profitability ratio (`2.0000` = 200 %) as a percentage with one decimal at
+ * most. `null` means the cost is 0 and the ratio is undefined: it shows a dash.
+ */
+export function formatProfitability(ratio: string | null | undefined): string {
+  if (typeof ratio !== "string") return DASH;
+  const match = DECIMAL_PATTERN.exec(ratio.trim());
+  if (!match) return DASH;
+
+  const [, sign, integer, fraction = ""] = match;
+  // ratio x 100 by string arithmetic: no digit goes through a binary float.
+  const units = (BigInt(integer + fraction) * BigInt(100)).toString().padStart(fraction.length + 1, "0");
+  const percent = `${sign ?? ""}${units.slice(0, units.length - fraction.length)}${
+    fraction ? "." + units.slice(units.length - fraction.length) : ""
+  }`;
+  const text = formatDecimal(percent, 0, 1);
+  return text === DASH ? DASH : `${text} %`;
+}
+
+/**
+ * Banner of the approved reports that still have no value (no tariff yet), or
+ * `null` when there are none.
+ */
+export function describePendingBanner(pending: { reports: number; hectares: string }): string | null {
+  if (pending.reports <= 0) return null;
+  const hectares = formatDecimal(pending.hectares, 0, 4);
+  const area = hectares === DASH ? "" : ` (${hectares} ha)`;
+  return pending.reports === 1
+    ? `1 parte aprobado sin valorizar${area}. Se valoriza cuando exista una tarifa para su labor.`
+    : `${pending.reports} partes aprobados sin valorizar${area}. Se valorizan cuando exista una tarifa para su labor.`;
+}
+
 /** One side of a tariff, e.g. `12 kg de soja / ha` or `$ 8.000,00 / h`. */
 export function formatTariffComponent(component: TariffComponentDTO): string {
   const suffix = BASIS_SUFFIX[component.basis];

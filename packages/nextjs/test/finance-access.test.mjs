@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  canSeeCalculator,
   canManageExpenses,
   canResolveSuggestions,
   canSeeSuggestions,
@@ -20,7 +21,7 @@ test('only ADMIN sees the Tarifario tab', () => {
 });
 
 test('ADMIN sees every tab and lands on the Tarifario', () => {
-  assert.deepEqual(visibleFinanceTabs('ADMIN'), ['tarifario', 'gastos', 'categorias', 'sugerencias']);
+  assert.deepEqual(visibleFinanceTabs('ADMIN'), ['tarifario', 'gastos', 'categorias', 'sugerencias', 'calculadora']);
   assert.equal(defaultFinanceTab('ADMIN'), 'tarifario');
 });
 
@@ -90,4 +91,18 @@ test('other roles get no expense action at all', () => {
       suggestRemove: false,
     });
   }
+});
+
+test('only ADMIN sees the Calculadora tab; SUPERVISOR and every other role never do', () => {
+  assert.equal(canSeeCalculator('ADMIN'), true);
+  for (const role of ['SUPERVISOR', ...OTHER_ROLES, 'ROOT']) {
+    assert.equal(canSeeCalculator(role), false, String(role));
+    assert.equal(visibleFinanceTabs(role).includes('calculadora'), false, String(role));
+  }
+});
+
+test('adding the Calculadora keeps the SUPERVISOR tabs and the ADMIN landing tab unchanged', () => {
+  assert.deepEqual(visibleFinanceTabs('SUPERVISOR'), ['gastos', 'categorias', 'sugerencias']);
+  assert.equal(defaultFinanceTab('SUPERVISOR'), 'gastos');
+  assert.equal(defaultFinanceTab('ADMIN'), 'tarifario');
 });

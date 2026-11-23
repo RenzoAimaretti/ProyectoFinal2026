@@ -19,8 +19,8 @@ The full specification is the openspec change (proposal D1-D28, spec R-FIN-01..1
 | T0 | change docs | inline | done | `cf11f83` docs(openspec) |
 | T1 | S1 | delegated writer (sonnet) | done | `4569c53` feat(finance); RED → GREEN per rule; backend 159 suites / 1488 tests + 3 regression pins (tariff 8 suites / 58); web 28/28; verifier: no blockers; native review: declined by the user |
 | T2 | S2 | delegated writer (sonnet) | done | `ce89efc` feat(finance); RED → GREEN per rule (2 adapter specs written with their adapters); backend 168 suites / 1556 tests; scoped 33 / 302; verifier: no blockers; e2e passed (user); native review: granted but refused for size (`lens_context_budget_exceeded`); user kept it without native review |
-| T3 | S3 | delegated writer (sonnet) | done, uncommitted (awaiting user OK) | RED → GREEN per rule (module wiring and 2 regression pins without separate RED); backend 183 suites / 1782 tests; web 61/61; verifier: no blockers |
-| T4 | S4 | tbd | pending | — |
+| T3 | S3 | delegated writer (sonnet) | done | `b3b0401` schema + `e1f1752` logic; RED → GREEN per rule (module wiring and 2 regression pins without separate RED); backend 183 suites / 1782 tests; web 61/61; verifier: no blockers; e2e passed (user); native review: granted but refused for size; user kept it without native review |
+| T4 | S4 | delegated writer (sonnet) | done, uncommitted (awaiting user OK) | RED → GREEN per rule (e2e, module, seed pin, 2 adapter specs and `canSeeCalculator` without separate RED); backend 193 suites / 1908 tests; finance e2e 42; web 92/92; verifier: no blockers |
 
 Route evidence: T1 is delegated through the long-session context backstop (the planning conversation already exceeds ~150k tokens); units are sequential (U2 depends on U1's core and `Tariff`), so there is no parallel-writer reason. Risk T1: item 1 (new migration `Tariff` + enums) and item 2 (new ADMIN-only endpoints) → independent verifier (sonnet) after the writer's own checks. RDD reads `on (decided by global)`.
 
@@ -63,4 +63,75 @@ Route evidence: T1 is delegated through the long-session context backstop (the p
 - **L16 (2026-11-23) — T3 writer result:** tasks 3.1-3.18 implemented (3.19 docs left to the parent). Writer checks: prisma validate OK; prisma generate OK (real diffs in 11 generated files + new `models/Expense.ts`, `ExpenseCategory.ts`, `ExpenseSuggestion.ts`); `prisma migrate diff` equals the hand-written SQL except the partial unique index `ExpenseSuggestion_one_pending_per_expense` and 4 CHECKs (`Expense_grain_check`, `Expense_amounts_non_negative_check`, `ExpenseSuggestion_proposed_amount_check`, `ExpenseSuggestion_baja_without_values_check`); backend tsc clean (covers the seed); scoped jest 37 suites / 379 tests; full jest 182 suites / 1771 tests (baseline 168 / 1556); web `node --test` 61/61 (baseline 28); web tsc clean; lint no new errors. RED per rule, except `expense.module.spec`, the category module wiring, and the `client.ts`/`seed-reset` regression pins. Writer deviations: categories use PATCH as in design §2.11 (`input-category` uses PUT); additive `apiPatch` in the web client; extra `ConcurrentModificationError` (409) with an optimistic `updatedAt` guard; category in-use check counts soft-deleted expenses; category outside the tenant → 404, inactive → 400; dates stored as UTC midnight; the expense valuation port propagates `MarketUnavailableError` (503 with the D25 notice); extra DTO fields `pendingSuggestionId` and an `expense` summary with a `deleted` flag; `finance-access` tests rewritten for the new tabs (ADMIN lands on Tarifario, SUPERVISOR on Gastos). Not covered: e2e (`test/finance.e2e-spec.ts` in design §2.13, outside this unit's surface) and a visual run of the tabs. Parent spot check: diff inside the declared surface; seed reset order correct (`expenseSuggestion`, `expense`, `expenseCategory` before `lot`); expense jest re-run 14 suites / 215 tests; web 61/61. Writer scratch removed by the parent. Risk: items 1, 2, 4 → independent verifier (sonnet) launched.
 - **L17 (2026-11-23) — T3 verification:** independent verifier (sonnet), read-only: no blockers; R-FIN-09, 10, 11 and the expense parts of 15, 16, 17 PASS (additive migration matching the schema plus the partial index and 4 CHECKs; `RolesGuard` uses `getAllAndOverride`, so method-level `@Roles` wins; role specs drive the real guard over 7 roles; every write path in `runSerializable` with in-transaction re-checks; adapter-pg 7.8 maps 23505 → P2002 and 40001 → P2034, both mapped to 409; `companyId`/`tenantId`/`userId` only from `req.user`; lot checked through the tenant chain). Non-blocking notes: real Postgres behaviour (partial index, CHECKs, SSI) unverified; route verb/path not pinned → the verifier's probe was added by the parent as `expense.routes.spec.ts` (11 tests, passed first run, no production change); `firmaId` undefined would drop the filter (defensive gap, same as Units 1-2, JWT always carries it); any P2002 in `runSerializable` reads as "pending suggestion" (accurate today); partial index and CHECKs are not in `schema.prisma` (possible `migrate dev` drift, as in Units 1-2). Final candidate: full jest 183 suites / 1782 tests. Verifier scratch removed by the parent. Change docs: tasks 3.1-3.19 checked; Unit 3 entry added to `apply-progress.md`. Still unverified: e2e (no finance e2e exists yet), migration on a real DB, real concurrency, seed run, visual check of the new tabs.
 - **L18 (2026-11-23) — e2e:** offered "¿Commiteo la Unidad 3 en dos commits?"; user: "Primero corro e2e". Parent suggested `prisma migrate deploy` then `test:e2e`, noting there is no finance e2e yet. User: "Pasaron todos". Parent read-only check `prisma migrate status`: 20 migrations, "Database schema is up to date!" (`add_expenses` with its partial index and CHECKs applied on the local Postgres dev DB without errors).
-- **Next:** ask the user before the U3 commits, as two commits (L15): (1) schema + migration + generated client + seed reset, (2) expense-category and expense modules + `app.module.ts` + web + docs (including the L13/L14 edits); `.atl/` excluded. After them, assess the logic commit with `--base-ref <commit 1> --committed-only`, naming items 2 and 4, and the schema commit if wanted. No push or PR without the user's OK; PRs target `dev`. Still optional for the user: `pnpm --filter backend test:e2e` and applying the migrations on a disposable Postgres. No push or PR without the user's OK; PRs target `dev`.
+- **L19 (2026-11-23) — T3 commits and native review:** user: "Sí, commiteá". Committed `b3b0401` feat(finance): add expense, expense category and suggestion schema (17 files: schema, migration, generated client, seed reset) and `e1f1752` feat(finance): add manual lot expenses with supervisor suggestions (74 files: modules, `app.module.ts`, web, docs including the L13/L14 edits); `.atl/` excluded; no attribution trailer. Assessment on the logic commit (`--base-ref b3b0401 --committed-only --escalate-item 2`, item 4 in the reason): `high`, `review_due: true`. Consent relayed with a parent note that the U2 commit (6018 lines) had exceeded the reviewer budget and this one has 8899; user chose "Revisar este cambio" (granted). START refused at preflight again: `lens_context_budget_exceeded` (no authority created). Logic commit size by area: web code 1842, expense domain+app tests 1726, expense domain+app 1389, expense adapters tests 1026, web tests 568, expense adapters 581, expense controllers tests 549, category code 442, category tests 420, expense controllers 253, docs 99. The reviewer budget itself is not reported, so whether a ~2400-line slice fits is unknown.
+- **Superseded plan (L15/L18), kept for history:** ask the user before the U3 commits, as two commits (L15): (1) schema + migration + generated client + seed reset, (2) expense-category and expense modules + `app.module.ts` + web + docs (including the L13/L14 edits); `.atl/` excluded. After them, assess the logic commit with `--base-ref <commit 1> --committed-only`, naming items 2 and 4, and the schema commit if wanted. No push or PR without the user's OK; PRs target `dev`.
+- **L20 (2026-11-23):** offered splitting `e1f1752` to review the adapters + controllers slice (fit unknown), with the parent recommending to keep it as is; user: "Dejalo sin revisión". `b3b0401` and `e1f1752` stay without native review (evidence: independent verifier with no blockers on permissions, concurrency and isolation; jest 183 / 1782; e2e passed). Reviewed boundary stays `cf11f83`.
+- **L21 (2026-11-23) — T4 start:** user: "Sí, Unidad 4". Route: one delegated writer (sonnet) through the long-session context backstop; backend calculator, web calculator, seed and the finance e2e are one unit (the web consumes the new endpoints), so there is no parallel-writer reason. Risk T4 (declared in tasks.md §4): item 2 (ADMIN-only endpoints exposing the firma's financial data; R033 isolation) → independent verifier. Scope: tasks 4.1-4.16 (4.17 docs is the parent's); the finance e2e is task 4.15 (no database, `machine-report.e2e-spec.ts` pattern). A2 from L11 is addressed here: the company-wide retry must not starve on reports whose labor type has no tariff. Native review: every unit commit so far exceeded the reviewer budget (L13, L19); the commit plan is decided at commit time with the user.
+- **L22 (2026-11-23) — T4 writer result:**
+  - **Scope:** tasks 4.1-4.16 implemented (4.17 docs left to the parent). No schema or migration change.
+  - **Writer checks:**
+    - backend tsc clean (covers the seed);
+    - scoped jest (profitability, valuation, tariff, expense): 48 suites / 516 tests;
+    - full jest 193 suites / 1908 tests (baseline 183 / 1782);
+    - `finance.e2e-spec.ts` without a database: 42 tests;
+    - web `node --test` 92/92 (baseline 61); web tsc clean;
+    - lint: no new errors;
+    - boundary grep over the five modules' `domain`/`application`: no hits.
+  - **Test-first:** RED per rule, except the e2e (black box over existing code), the module spec, the seed pin, two outbound adapter specs and the `canSeeCalculator` tests.
+  - **Starvation fix (A2):** in `findApprovedWithoutValuation`, the company-wide branch now adds `laborType: { tariffs: { some: { companyId } } }`. The tariff-save branch is unchanged, and `summarizePendingValuation` still counts everything. The old test that pinned the company-wide `where` was replaced by the starvation test, plus a pin that the tariff-save query has no `laborType` filter.
+  - **Seed:** 6 expense categories; 6 example tariffs. Price/cost (basis per ha for the first three, per hour for the rest):
+    - Pulverización: 12 kg SOJA / 8000 ARS
+    - Fertilización: 9 USD / 6000 ARS
+    - Siembra: 30 kg SOJA / 10000 ARS
+    - Arranque de equipo: 25000 ARS / 12000 ARS
+    - Traslado: 0 ARS / 5 USD
+    - Pesaje: 15000 ARS / 0 ARS
+  - **Writer deviations:**
+    - the pending summary of the calculator is range-bound;
+    - the reader returns one row per component and the use case sums per lot;
+    - with no filter, the default is the current campaign and `AL_APROBAR`; conflicting filters give 400;
+    - fixed UTC-3 offset (no reusable Sprint 3 timezone helper);
+    - 404 on the detail for a lot outside the tenant;
+    - USD and kg are converted per row and then summed;
+    - totals come from the API, not summed by the client;
+    - Calculadora is the last tab, and the ADMIN still lands on Tarifario.
+  - **Not verified:** query shapes on a real database, the seed run, a visual check of the tab and the drawer.
+  - **Parent spot check:**
+    - the diff stays inside the declared surface;
+    - `packages/mobile` and `packages/web` are untouched;
+    - the reader diff was read and matches the report;
+    - profitability + valuation jest re-run: 24 suites / 226 tests;
+    - finance e2e re-run: 42 tests;
+    - web 92/92.
+  - **Cleanup and risk:** the parent removed the writer's scratch. Risk: item 2 → independent verifier (sonnet) launched.
+- **L23 (2026-11-23) — T4 verification and global checks:**
+  - **Verifier:** independent verifier (sonnet), read-only, found no blockers.
+  - **Requirements that pass:** R-FIN-12, R-FIN-13, R-FIN-14, the calculator parts of R-FIN-15, R-FIN-16 and R-FIN-17, R-FIN-07(b) and the R-FIN-08 mode. What it confirmed:
+    - Real `RolesGuard` with `@Roles('ADMIN')`. The e2e overrides only `JwtAuthGuard`, so roles and routing are real.
+    - Every numeric query filters by the session `companyId`. The lot lookup goes through the tenant chain and returns only names and area, which is tenant data.
+    - The starvation fix runs `EXISTS` scoped to the same company. The tariff-save branch is unchanged, and the reader has no other caller.
+    - The Prisma query shapes are valid against the generated types.
+    - The wire contract matches design §2.11.
+    - The web sort is stable with nulls last, and the totals row is in a fixed `<tfoot>`.
+  - **Non-blocking notes:**
+    - Residual starvation from reports that have a tariff but no price.
+    - Each row is rounded and then summed.
+    - The banner counts all unvalued reports.
+    - Neither the seed nor a real database was exercised.
+    - Its optional "costo sin ingreso" probe was already covered by `get-lot-profitability-list.use-case.spec.ts:142`, so nothing was added.
+  - **Global checks run by the parent:**
+    - 5.1: full jest, 193 suites / 1908 tests.
+    - 5.3: web `node --test`, 92/92.
+    - 5.4: `nextjs lint`, 0 errors and 2 pre-existing warnings.
+    - 5.5: the boundary grep over `domain`/`application` of the five modules has no hits.
+    - 5.10: `git diff --stat origin/dev -- packages/mobile packages/web` is empty.
+    - 5.9 was done per unit (one independent verifier per unit).
+  - **Still open:**
+    - 5.2: full `test:e2e`, which now includes `finance.e2e-spec.ts`; the user runs it.
+    - 5.6: migration on a clean database.
+    - 5.7 and 5.8: manual checks with backend and web running.
+  - **Change docs:**
+    - Tasks 4.1-4.17 and 5.1/5.3/5.4/5.5/5.9/5.10 checked.
+    - Unit 4 entry added to `apply-progress.md`. It includes the R032 closure with accrued income (D1) and collections pending (4.17).
+- **L24 (2026-11-23) — e2e and U4 commit OK:** offered "¿Commiteo la Unidad 4 en dos commits?"; user: "Primero corro e2e". Parent suggested only `test:e2e` (no new migrations; not the seed, because it wipes the dev demo data). User: "Pasaron todos, commitia". Global check 5.2 checked (full `test:e2e` including `finance.e2e-spec.ts`, user-reported). Commits as planned: (1) backend calculator + starvation fix + seed + finance e2e, (2) web calculator + docs (including L17-L24); `.atl/` excluded.
+- **Next:** after the U4 commits, run the native assessment on them and record the outcome. Open global checks: 5.6 (migration on a clean database), 5.7 and 5.8 (manual checks with backend and web running). No push or PR without the user's OK; PRs target `dev`. The L17-L20 doc edits are uncommitted and ride with them. No push or PR without the user's OK; PRs target `dev`. Still optional for the user: `pnpm --filter backend test:e2e` and applying the migrations on a disposable Postgres. No push or PR without the user's OK; PRs target `dev`.

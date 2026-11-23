@@ -5,10 +5,15 @@
  * `node --test` can load it (the role helpers in `nav.ts` pull in JSX).
  */
 
-export type FinanceTabId = "tarifario" | "gastos" | "categorias" | "sugerencias";
+export type FinanceTabId = "tarifario" | "gastos" | "categorias" | "sugerencias" | "calculadora";
 
 /** Tarifario (tariffs) is ADMIN-only. SUPERVISOR never sees it. */
 export function canSeeTariffs(role?: string | null): boolean {
+  return role === "ADMIN";
+}
+
+/** Calculadora (lot profitability) exposes the firm's financial data: ADMIN-only. */
+export function canSeeCalculator(role?: string | null): boolean {
   return role === "ADMIN";
 }
 
@@ -36,6 +41,7 @@ export function visibleFinanceTabs(role?: string | null): FinanceTabId[] {
   if (canSeeTariffs(role)) tabs.push("tarifario");
   if (canManageExpenses(role)) tabs.push("gastos", "categorias");
   if (canSeeSuggestions(role)) tabs.push("sugerencias");
+  if (canSeeCalculator(role)) tabs.push("calculadora");
   return tabs;
 }
 

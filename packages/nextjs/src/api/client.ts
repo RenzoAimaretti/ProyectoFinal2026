@@ -1588,3 +1588,141 @@ export function approveExpenseSuggestion(id: string): Promise<ExpenseSuggestionD
 export function rejectExpenseSuggestion(id: string, reason: string): Promise<ExpenseSuggestionDTO> {
   return apiPost<ExpenseSuggestionDTO>(`/expense-suggestions/${encodeURIComponent(id)}/reject`, { reason });
 }
+
+/* ------------------------------------------------------------------ */
+/* Finanzas: calculadora de rentabilidad por lote (ADMIN)              */
+/* ------------------------------------------------------------------ */
+
+export type ValuationMode = "AL_APROBAR" | "A_VALOR_HOY";
+
+/** The range the API resolved; `campaign` is null for a custom range. */
+export type ProfitabilityRangeDTO = {
+  campaign: string | null;
+  from: string;
+  to: string;
+};
+
+/** The filter of the calculator: a campaign, or a from/to range, never both. */
+export type ProfitabilityFilter = { campaign: string } | { from: string; to: string };
+
+/** Amounts are decimal strings (ARS with 2 decimals); ratios have 4 decimals. */
+export type LotMetricsDTO = {
+  areaHa: string;
+  incomeArs: string;
+  standardCostArs: string;
+  expensesArs: string;
+  costArs: string;
+  marginArs: string;
+  marginPerHaArs: string | null;
+  /** `null` when the cost is 0: shown as "—". */
+  profitability: string | null;
+};
+
+export type LotProfitabilityRowDTO = LotMetricsDTO & {
+  lotId: string;
+  lotName: string;
+  farmName: string;
+  clientName: string;
+};
+
+export type ProfitabilityTotalsDTO = {
+  areaHa: string;
+  incomeArs: string;
+  costArs: string;
+  marginArs: string;
+  marginPerHaArs: string | null;
+  profitability: string | null;
+};
+
+export type PendingValuationDTO = {
+  reports: number;
+  hectares: string;
+};
+
+export type ProfitabilityValuationDTO = {
+  usdRateType: UsdRateType | null;
+  priceDate: string | null;
+};
+
+export type LotProfitabilityListDTO = {
+  mode: ValuationMode;
+  range: ProfitabilityRangeDTO;
+  lots: LotProfitabilityRowDTO[];
+  totals: ProfitabilityTotalsDTO;
+  pending: PendingValuationDTO;
+  valuation: ProfitabilityValuationDTO;
+};
+
+export type ProfitabilityReportDTO = {
+  reportId: string;
+  date: string;
+  laborName: string;
+  quantity: string;
+  hectares: string;
+  hours: string;
+  price: TariffComponentDTO;
+  cost: TariffComponentDTO;
+  incomeNative: string;
+  incomeArs: string;
+  standardCostNative: string;
+  standardCostArs: string;
+};
+
+export type ProfitabilityExpenseDTO = {
+  expenseId: string;
+  date: string;
+  description: string;
+  amount: string;
+  unit: MoneyUnit;
+  grain: Grain | null;
+  amountArs: string;
+};
+
+export type ProfitabilityExpenseGroupDTO = {
+  categoryId: string;
+  categoryName: string;
+  subtotalArs: string;
+  expenses: ProfitabilityExpenseDTO[];
+};
+
+export type LotProfitabilityDetailDTO = {
+  mode: ValuationMode;
+  range: ProfitabilityRangeDTO;
+  lot: { lotId: string; lotName: string; farmName: string; clientName: string; areaHa: string };
+  summary: LotMetricsDTO;
+  reports: ProfitabilityReportDTO[];
+  expensesByCategory: ProfitabilityExpenseGroupDTO[];
+  pending: PendingValuationDTO;
+  valuation: ProfitabilityValuationDTO;
+};
+
+function profitabilityQuery(filter: ProfitabilityFilter, mode: ValuationMode): string {
+  const params = new URLSearchParams();
+  if ("campaign" in filter) {
+    params.set("campaign", filter.campaign);
+  } else {
+    params.set("from", filter.from);
+    params.set("to", filter.to);
+  }
+  params.set("mode", mode);
+  return params.toString();
+}
+
+/** Profitability by lot of the session company (ADMIN only; the firm comes from the token). */
+export function getLotProfitability(
+  filter: ProfitabilityFilter,
+  mode: ValuationMode,
+): Promise<LotProfitabilityListDTO> {
+  return apiGet<LotProfitabilityListDTO>(`/profitability/lots?${profitabilityQuery(filter, mode)}`);
+}
+
+/** Detail of one lot for the same range and mode as the list. */
+export function getLotProfitabilityDetail(
+  lotId: string,
+  filter: ProfitabilityFilter,
+  mode: ValuationMode,
+): Promise<LotProfitabilityDetailDTO> {
+  return apiGet<LotProfitabilityDetailDTO>(
+    `/profitability/lots/${encodeURIComponent(lotId)}?${profitabilityQuery(filter, mode)}`,
+  );
+}

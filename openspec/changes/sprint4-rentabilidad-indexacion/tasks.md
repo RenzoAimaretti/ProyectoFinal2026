@@ -130,48 +130,48 @@
 
 ### 4.A Dominio de lectura
 
-- [ ] 4.1 `src/entities/profitability/domain/campaign.ts`: `resolveCampaignRange('AAAA/AA')` (1 jul – 30 jun inclusive, sufijo = año+1), `campaignOf(date)`, `recentCampaigns(now, n)`, validación de rango personalizado (`from <= to`) (spec R-FIN-12, D17).
-- [ ] 4.2 `src/entities/profitability/domain/profitability.metrics.ts`: `margin`, `marginPerHa` (sobre `Lot.area`; `null` si área <= 0) y `profitability` (`null` si costo = 0); agregación de la fila de totales **sobre sumas** (spec R-FIN-13, D20).
+- [x] 4.1 `src/entities/profitability/domain/campaign.ts`: `resolveCampaignRange('AAAA/AA')` (1 jul – 30 jun inclusive, sufijo = año+1), `campaignOf(date)`, `recentCampaigns(now, n)`, validación de rango personalizado (`from <= to`) (spec R-FIN-12, D17).
+- [x] 4.2 `src/entities/profitability/domain/profitability.metrics.ts`: `margin`, `marginPerHa` (sobre `Lot.area`; `null` si área <= 0) y `profitability` (`null` si costo = 0); agregación de la fila de totales **sobre sumas** (spec R-FIN-13, D20).
 
 ### 4.B Aplicación y adapters
 
-- [ ] 4.3 Puertos: `ProfitabilityReaderPort` (agregados por lote del rango, detalle, resumen de pendientes), `PendingValuationRetryPort`, `MarketSnapshotPort`, `ClockPort`; adapters sobre `RetryPendingValuationsUseCase` y `GetMarketSnapshotUseCase` (design §2.10).
-- [ ] 4.4 `GetLotProfitabilityListUseCase`: reintenta pendientes (best-effort) → agrega por lote la firma de sesión → en `A_VALOR_HOY` pide **un** snapshot de mercado y revaloriza ingreso, costo estándar y gastos (503 si falta un dato requerido) → métricas + totales + pendientes (spec R-FIN-08/13).
-- [ ] 4.5 `GetLotProfitabilityDetailUseCase`: partes valorizados (labor, fecha, cantidad, tarifa aplicada, ingreso, costo estándar), gastos agrupados por categoría con subtotal y partes pendientes (spec R-FIN-14).
-- [ ] 4.6 `PrismaProfitabilityReader`: consultas filtradas por `companyId` de sesión y rango `[from 00:00, to+1d 00:00)` en hora de `America/Argentina/Cordoba`; excluye gastos dados de baja; incluye lotes con partes valorizados, gastos o pendientes; nunca datos de otra firma (R033).
-- [ ] 4.7 `profitability.controller.ts`: `GET /profitability/lots` y `GET /profitability/lots/:lotId` con `@Roles('ADMIN')`; `campaign` o `from`+`to` y `mode` (`AL_APROBAR` | `A_VALOR_HOY`); 400 ante campaña inválida o rango invertido; `profitability.module.ts` y registro en `app.module.ts`.
+- [x] 4.3 Puertos: `ProfitabilityReaderPort` (agregados por lote del rango, detalle, resumen de pendientes), `PendingValuationRetryPort`, `MarketSnapshotPort`, `ClockPort`; adapters sobre `RetryPendingValuationsUseCase` y `GetMarketSnapshotUseCase` (design §2.10).
+- [x] 4.4 `GetLotProfitabilityListUseCase`: reintenta pendientes (best-effort) → agrega por lote la firma de sesión → en `A_VALOR_HOY` pide **un** snapshot de mercado y revaloriza ingreso, costo estándar y gastos (503 si falta un dato requerido) → métricas + totales + pendientes (spec R-FIN-08/13).
+- [x] 4.5 `GetLotProfitabilityDetailUseCase`: partes valorizados (labor, fecha, cantidad, tarifa aplicada, ingreso, costo estándar), gastos agrupados por categoría con subtotal y partes pendientes (spec R-FIN-14).
+- [x] 4.6 `PrismaProfitabilityReader`: consultas filtradas por `companyId` de sesión y rango `[from 00:00, to+1d 00:00)` en hora de `America/Argentina/Cordoba`; excluye gastos dados de baja; incluye lotes con partes valorizados, gastos o pendientes; nunca datos de otra firma (R033).
+- [x] 4.7 `profitability.controller.ts`: `GET /profitability/lots` y `GET /profitability/lots/:lotId` con `@Roles('ADMIN')`; `campaign` o `from`+`to` y `mode` (`AL_APROBAR` | `A_VALOR_HOY`); 400 ante campaña inválida o rango invertido; `profitability.module.ts` y registro en `app.module.ts`.
 
 ### 4.C Web: Calculadora
 
-- [ ] 4.8 `src/app/dashboard/finanzas/campaign.ts` y `metrics.ts` (puras): opciones de campaña, rango personalizado, ordenamiento de la tabla (por cualquier columna, estable, nulos al final), formato de "—" y signo de márgenes negativos (spec R-FIN-12/16).
-- [ ] 4.9 `calculadora-tab.tsx`: filtro de campaña + rango personalizado, **toggle "Al aprobar / A valor de hoy"** (sin columnas duplicadas), tabla ordenable (campo, cliente, superficie, ingreso, costo, margen bruto, margen/ha, rentabilidad) con fila de totales fija, banner de partes y hectáreas sin valorizar y manejo del 503 del modo "a valor de hoy" (spec R-FIN-13/16, D21).
-- [ ] 4.10 `lot-detail-drawer.tsx` (`Drawer`): partes valorizados, gastos por categoría y pendientes (spec R-FIN-14).
+- [x] 4.8 `src/app/dashboard/finanzas/campaign.ts` y `metrics.ts` (puras): opciones de campaña, rango personalizado, ordenamiento de la tabla (por cualquier columna, estable, nulos al final), formato de "—" y signo de márgenes negativos (spec R-FIN-12/16).
+- [x] 4.9 `calculadora-tab.tsx`: filtro de campaña + rango personalizado, **toggle "Al aprobar / A valor de hoy"** (sin columnas duplicadas), tabla ordenable (campo, cliente, superficie, ingreso, costo, margen bruto, margen/ha, rentabilidad) con fila de totales fija, banner de partes y hectáreas sin valorizar y manejo del 503 del modo "a valor de hoy" (spec R-FIN-13/16, D21).
+- [x] 4.10 `lot-detail-drawer.tsx` (`Drawer`): partes valorizados, gastos por categoría y pendientes (spec R-FIN-14).
 
 ### 4.D Seed y demo
 
-- [ ] 4.11 `prisma/seed.ts`: cargar las categorías Combustible, Reparación, Mantenimiento, Flete, Mano de obra y Otros, y **tarifas de ejemplo** para Pulverización, Fertilización, Siembra, Arranque de equipo, Traslado y Pesaje (mezcla de ARS, USD y kg de soja; Traslado con precio 0) de la firma del seed (T8, spec R-FIN-17).
+- [x] 4.11 `prisma/seed.ts`: cargar las categorías Combustible, Reparación, Mantenimiento, Flete, Mano de obra y Otros, y **tarifas de ejemplo** para Pulverización, Fertilización, Siembra, Arranque de equipo, Traslado y Pesaje (mezcla de ARS, USD y kg de soja; Traslado con precio 0) de la firma del seed (T8, spec R-FIN-17).
 
 ### 4.E Tests y documentación de la unidad
 
-- [ ] 4.12 Jest dominio: `campaign.spec.ts` (2025/26 → 2025-07-01..2026-06-30, `2025/28` → inválida, rango invertido) y `profitability.metrics.spec.ts` (ejemplo del spec: 600000/150000/50000 → margen 400000, 4000 por ha, rentabilidad 2; costo 0 → `null`; costo sin ingreso → margen negativo; totales sobre sumas).
-- [ ] 4.13 Jest aplicación con fakes: modo `AL_APROBAR` vs `A_VALOR_HOY` (ARS iguales, kg revalorizados), 503 con mercado caído solo en `A_VALOR_HOY`, reintento previo, pendientes informados, aislamiento por firma.
-- [ ] 4.14 Jest controller: SUPERVISOR/OPERARIO → 403, 401 sin token, `companyId` del query ignorado, 400 de campaña/rango inválidos.
-- [ ] 4.15 `test/finance.e2e-spec.ts` **sin BD** (patrón `machine-report.e2e-spec.ts`: sobrescribe `PrismaService` y `JwtAuthGuard`): rutas, roles y traducción de errores de tarifas, gastos, sugerencias y calculadora.
-- [ ] 4.16 Web: `test/finance-campaign.test.mjs` y `test/finance-metrics.test.mjs` con `node:test`.
-- [ ] 4.17 Documentación: describir en el log del change el cierre de R032 con ingreso **devengado** (desviación D1) y el pendiente de cobranzas.
+- [x] 4.12 Jest dominio: `campaign.spec.ts` (2025/26 → 2025-07-01..2026-06-30, `2025/28` → inválida, rango invertido) y `profitability.metrics.spec.ts` (ejemplo del spec: 600000/150000/50000 → margen 400000, 4000 por ha, rentabilidad 2; costo 0 → `null`; costo sin ingreso → margen negativo; totales sobre sumas).
+- [x] 4.13 Jest aplicación con fakes: modo `AL_APROBAR` vs `A_VALOR_HOY` (ARS iguales, kg revalorizados), 503 con mercado caído solo en `A_VALOR_HOY`, reintento previo, pendientes informados, aislamiento por firma.
+- [x] 4.14 Jest controller: SUPERVISOR/OPERARIO → 403, 401 sin token, `companyId` del query ignorado, 400 de campaña/rango inválidos.
+- [x] 4.15 `test/finance.e2e-spec.ts` **sin BD** (patrón `machine-report.e2e-spec.ts`: sobrescribe `PrismaService` y `JwtAuthGuard`): rutas, roles y traducción de errores de tarifas, gastos, sugerencias y calculadora.
+- [x] 4.16 Web: `test/finance-campaign.test.mjs` y `test/finance-metrics.test.mjs` con `node:test`.
+- [x] 4.17 Documentación: describir en el log del change el cierre de R032 con ingreso **devengado** (desviación D1) y el pendiente de cobranzas.
 
 ## 5. Verificación global
 
-- [ ] 5.1 `npm test` verde en `packages/backend` (suites de `valuation`, `tariff`, `expense-category`, `expense`, `profitability` y regresión de `daily-report`).
-- [ ] 5.2 `npm run test:e2e` verde en `packages/backend` (incluye `finance.e2e-spec.ts` sin base de datos).
-- [ ] 5.3 `node --test test/finance-*.test.mjs` verde en `packages/nextjs`.
-- [ ] 5.4 `npm run lint` en `packages/nextjs` sin errores nuevos.
-- [ ] 5.5 Boundary check: ningún `import` de Prisma ni de `@nestjs/common` HTTP fuera de `adapters/outbound/**`, `adapters/inbound/**` y `src/prisma` en los cinco módulos nuevos; `docs/hexagonal-conventions.md` §Acceptance Checklist.
+- [x] 5.1 `npm test` verde en `packages/backend` (suites de `valuation`, `tariff`, `expense-category`, `expense`, `profitability` y regresión de `daily-report`).
+- [x] 5.2 `npm run test:e2e` verde en `packages/backend` (incluye `finance.e2e-spec.ts` sin base de datos).
+- [x] 5.3 `node --test test/finance-*.test.mjs` verde en `packages/nextjs`.
+- [x] 5.4 `npm run lint` en `packages/nextjs` sin errores nuevos.
+- [x] 5.5 Boundary check: ningún `import` de Prisma ni de `@nestjs/common` HTTP fuera de `adapters/outbound/**`, `adapters/inbound/**` y `src/prisma` en los cinco módulos nuevos; `docs/hexagonal-conventions.md` §Acceptance Checklist.
 - [ ] 5.6 `prisma migrate diff` (o equivalente) muestra únicamente los objetos nuevos; la migración aplica sobre una base limpia y sobre una con datos existentes sin alterar tablas previas.
 - [ ] 5.7 E2E manual con backend y web levantados: guardar tarifa → aprobar un parte → la calculadora muestra ingreso/costo/margen; aprobar un parte sin tarifa → "sin valorizar" y la aprobación **no falla**; guardar la tarifa → el pendiente se valoriza; modo "a valor de hoy" con mercado disponible.
 - [ ] 5.8 Verificación de roles manual: SUPERVISOR no ve Tarifario ni Calculadora y recibe 403 al invocar sus endpoints; ADMIN con sugerencia pendiente no puede editar directo; sugerencia rechazada muestra el motivo al SUPERVISOR.
-- [ ] 5.9 Revisión independiente de las unidades con riesgo alto nombrado (migración, permisos, concurrencia, cambio del `approve`): la decisión de verificador/revisión nativa la toma el orquestador según la evaluación de riesgo.
-- [ ] 5.10 Confirmar que `packages/mobile` y `packages/web` no tienen cambios (`git diff --stat`).
+- [x] 5.9 Revisión independiente de las unidades con riesgo alto nombrado (migración, permisos, concurrencia, cambio del `approve`): la decisión de verificador/revisión nativa la toma el orquestador según la evaluación de riesgo.
+- [x] 5.10 Confirmar que `packages/mobile` y `packages/web` no tienen cambios (`git diff --stat`).
 
 ## Explicit Non-Goals
 

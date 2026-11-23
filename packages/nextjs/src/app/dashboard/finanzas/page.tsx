@@ -7,6 +7,7 @@ import { FinanceIcon } from "@/components/ui/icons";
 import { navItems } from "@/components/ui/nav";
 import { getStoredUser } from "@/api/client";
 import { defaultFinanceTab, visibleFinanceTabs, type FinanceTabId } from "./access";
+import { CalculadoraTab } from "./calculadora-tab";
 import { CategoriasTab } from "./categorias-tab";
 import { GastosTab } from "./gastos-tab";
 import { SugerenciasTab } from "./sugerencias-tab";
@@ -17,6 +18,7 @@ const TAB_LABELS: Record<FinanceTabId, string> = {
   gastos: "Gastos",
   categorias: "Categorías",
   sugerencias: "Sugerencias",
+  calculadora: "Calculadora",
 };
 
 export default function FinanzasPage() {
@@ -48,8 +50,8 @@ export default function FinanzasPage() {
           <p className="op-label">Administración y facturación</p>
           <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">Finanzas</h2>
           <p className="mt-1 max-w-2xl text-sm text-ink-soft">
-            Tarifario por tipo de labor, gastos manuales por lote y sugerencias, con importes en pesos, dólares o
-            kilos de cereal.
+            Tarifario por tipo de labor, gastos manuales por lote, sugerencias y rentabilidad por lote, con importes en
+            pesos, dólares o kilos de cereal.
           </p>
         </div>
       </section>
@@ -68,6 +70,7 @@ export default function FinanzasPage() {
       {active === "gastos" && <GastosTab role={role} />}
       {active === "categorias" && <CategoriasTab />}
       {active === "sugerencias" && <SugerenciasTab role={role} />}
+      {active === "calculadora" && <CalculadoraTab />}
 
       {role !== undefined && active === null && (
         <Card>
