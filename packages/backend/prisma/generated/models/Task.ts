@@ -278,6 +278,7 @@ export type TaskWhereInput = {
   machineLogs?: Prisma.MachineUsageListRelationFilter
   dailyReports?: Prisma.DailyReportListRelationFilter
   recipe?: Prisma.XOR<Prisma.RecipeNullableScalarRelationFilter, Prisma.RecipeWhereInput> | null
+  invoiceItems?: Prisma.InvoiceItemListRelationFilter
 }
 
 export type TaskOrderByWithRelationInput = {
@@ -299,6 +300,7 @@ export type TaskOrderByWithRelationInput = {
   machineLogs?: Prisma.MachineUsageOrderByRelationAggregateInput
   dailyReports?: Prisma.DailyReportOrderByRelationAggregateInput
   recipe?: Prisma.RecipeOrderByWithRelationInput
+  invoiceItems?: Prisma.InvoiceItemOrderByRelationAggregateInput
 }
 
 export type TaskWhereUniqueInput = Prisma.AtLeast<{
@@ -323,6 +325,7 @@ export type TaskWhereUniqueInput = Prisma.AtLeast<{
   machineLogs?: Prisma.MachineUsageListRelationFilter
   dailyReports?: Prisma.DailyReportListRelationFilter
   recipe?: Prisma.XOR<Prisma.RecipeNullableScalarRelationFilter, Prisma.RecipeWhereInput> | null
+  invoiceItems?: Prisma.InvoiceItemListRelationFilter
 }, "id">
 
 export type TaskOrderByWithAggregationInput = {
@@ -380,6 +383,7 @@ export type TaskCreateInput = {
   machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateInput = {
@@ -399,6 +403,7 @@ export type TaskUncheckedCreateInput = {
   machineLogs?: Prisma.MachineUsageUncheckedCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeUncheckedCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUpdateInput = {
@@ -418,6 +423,7 @@ export type TaskUpdateInput = {
   machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateInput = {
@@ -437,6 +443,7 @@ export type TaskUncheckedUpdateInput = {
   machineLogs?: Prisma.MachineUsageUncheckedUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUncheckedUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskCreateManyInput = {
@@ -729,6 +736,22 @@ export type TaskUpdateOneRequiredWithoutMachineLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TaskUpdateToOneWithWhereWithoutMachineLogsInput, Prisma.TaskUpdateWithoutMachineLogsInput>, Prisma.TaskUncheckedUpdateWithoutMachineLogsInput>
 }
 
+export type TaskCreateNestedOneWithoutInvoiceItemsInput = {
+  create?: Prisma.XOR<Prisma.TaskCreateWithoutInvoiceItemsInput, Prisma.TaskUncheckedCreateWithoutInvoiceItemsInput>
+  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutInvoiceItemsInput
+  connect?: Prisma.TaskWhereUniqueInput
+}
+
+export type TaskUpdateOneWithoutInvoiceItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.TaskCreateWithoutInvoiceItemsInput, Prisma.TaskUncheckedCreateWithoutInvoiceItemsInput>
+  connectOrCreate?: Prisma.TaskCreateOrConnectWithoutInvoiceItemsInput
+  upsert?: Prisma.TaskUpsertWithoutInvoiceItemsInput
+  disconnect?: Prisma.TaskWhereInput | boolean
+  delete?: Prisma.TaskWhereInput | boolean
+  connect?: Prisma.TaskWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TaskUpdateToOneWithWhereWithoutInvoiceItemsInput, Prisma.TaskUpdateWithoutInvoiceItemsInput>, Prisma.TaskUncheckedUpdateWithoutInvoiceItemsInput>
+}
+
 export type TaskCreateWithoutOperatorsInput = {
   id?: string
   status?: $Enums.TaskStatus
@@ -745,6 +768,7 @@ export type TaskCreateWithoutOperatorsInput = {
   machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutOperatorsInput = {
@@ -763,6 +787,7 @@ export type TaskUncheckedCreateWithoutOperatorsInput = {
   machineLogs?: Prisma.MachineUsageUncheckedCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeUncheckedCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutOperatorsInput = {
@@ -820,6 +845,7 @@ export type TaskCreateWithoutLaborTypeInput = {
   machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutLaborTypeInput = {
@@ -838,6 +864,7 @@ export type TaskUncheckedCreateWithoutLaborTypeInput = {
   machineLogs?: Prisma.MachineUsageUncheckedCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeUncheckedCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutLaborTypeInput = {
@@ -882,6 +909,7 @@ export type TaskCreateWithoutLotInput = {
   machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutLotInput = {
@@ -900,6 +928,7 @@ export type TaskUncheckedCreateWithoutLotInput = {
   machineLogs?: Prisma.MachineUsageUncheckedCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeUncheckedCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutLotInput = {
@@ -944,6 +973,7 @@ export type TaskCreateWithoutRecipeInput = {
   operators?: Prisma.UserCreateNestedManyWithoutTasksInput
   machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutRecipeInput = {
@@ -962,6 +992,7 @@ export type TaskUncheckedCreateWithoutRecipeInput = {
   operators?: Prisma.UserUncheckedCreateNestedManyWithoutTasksInput
   machineLogs?: Prisma.MachineUsageUncheckedCreateNestedManyWithoutTaskInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutRecipeInput = {
@@ -996,6 +1027,7 @@ export type TaskUpdateWithoutRecipeInput = {
   operators?: Prisma.UserUpdateManyWithoutTasksNestedInput
   machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutRecipeInput = {
@@ -1014,6 +1046,7 @@ export type TaskUncheckedUpdateWithoutRecipeInput = {
   operators?: Prisma.UserUncheckedUpdateManyWithoutTasksNestedInput
   machineLogs?: Prisma.MachineUsageUncheckedUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskCreateWithoutDailyReportsInput = {
@@ -1032,6 +1065,7 @@ export type TaskCreateWithoutDailyReportsInput = {
   operators?: Prisma.UserCreateNestedManyWithoutTasksInput
   machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutDailyReportsInput = {
@@ -1050,6 +1084,7 @@ export type TaskUncheckedCreateWithoutDailyReportsInput = {
   operators?: Prisma.UserUncheckedCreateNestedManyWithoutTasksInput
   machineLogs?: Prisma.MachineUsageUncheckedCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeUncheckedCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutDailyReportsInput = {
@@ -1084,6 +1119,7 @@ export type TaskUpdateWithoutDailyReportsInput = {
   operators?: Prisma.UserUpdateManyWithoutTasksNestedInput
   machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutDailyReportsInput = {
@@ -1102,6 +1138,7 @@ export type TaskUncheckedUpdateWithoutDailyReportsInput = {
   operators?: Prisma.UserUncheckedUpdateManyWithoutTasksNestedInput
   machineLogs?: Prisma.MachineUsageUncheckedUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUncheckedUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskCreateWithoutMachineLogsInput = {
@@ -1120,6 +1157,7 @@ export type TaskCreateWithoutMachineLogsInput = {
   operators?: Prisma.UserCreateNestedManyWithoutTasksInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemCreateNestedManyWithoutTaskInput
 }
 
 export type TaskUncheckedCreateWithoutMachineLogsInput = {
@@ -1138,6 +1176,7 @@ export type TaskUncheckedCreateWithoutMachineLogsInput = {
   operators?: Prisma.UserUncheckedCreateNestedManyWithoutTasksInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutTaskInput
   recipe?: Prisma.RecipeUncheckedCreateNestedOneWithoutTaskInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedCreateNestedManyWithoutTaskInput
 }
 
 export type TaskCreateOrConnectWithoutMachineLogsInput = {
@@ -1172,6 +1211,7 @@ export type TaskUpdateWithoutMachineLogsInput = {
   operators?: Prisma.UserUpdateManyWithoutTasksNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutMachineLogsInput = {
@@ -1188,6 +1228,99 @@ export type TaskUncheckedUpdateWithoutMachineLogsInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   operators?: Prisma.UserUncheckedUpdateManyWithoutTasksNestedInput
+  dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutTaskNestedInput
+  recipe?: Prisma.RecipeUncheckedUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedUpdateManyWithoutTaskNestedInput
+}
+
+export type TaskCreateWithoutInvoiceItemsInput = {
+  id?: string
+  status?: $Enums.TaskStatus
+  prescriptionStatus?: $Enums.PrescriptionStatus
+  startedAt?: Date | string | null
+  finishedAt?: Date | string | null
+  updatedTaskAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  lot: Prisma.LotCreateNestedOneWithoutTasksInput
+  laborType: Prisma.LaborTypeCreateNestedOneWithoutTasksInput
+  operators?: Prisma.UserCreateNestedManyWithoutTasksInput
+  machineLogs?: Prisma.MachineUsageCreateNestedManyWithoutTaskInput
+  dailyReports?: Prisma.DailyReportCreateNestedManyWithoutTaskInput
+  recipe?: Prisma.RecipeCreateNestedOneWithoutTaskInput
+}
+
+export type TaskUncheckedCreateWithoutInvoiceItemsInput = {
+  id?: string
+  lotId: string
+  laborTypeId: string
+  status?: $Enums.TaskStatus
+  prescriptionStatus?: $Enums.PrescriptionStatus
+  startedAt?: Date | string | null
+  finishedAt?: Date | string | null
+  updatedTaskAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  operators?: Prisma.UserUncheckedCreateNestedManyWithoutTasksInput
+  machineLogs?: Prisma.MachineUsageUncheckedCreateNestedManyWithoutTaskInput
+  dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutTaskInput
+  recipe?: Prisma.RecipeUncheckedCreateNestedOneWithoutTaskInput
+}
+
+export type TaskCreateOrConnectWithoutInvoiceItemsInput = {
+  where: Prisma.TaskWhereUniqueInput
+  create: Prisma.XOR<Prisma.TaskCreateWithoutInvoiceItemsInput, Prisma.TaskUncheckedCreateWithoutInvoiceItemsInput>
+}
+
+export type TaskUpsertWithoutInvoiceItemsInput = {
+  update: Prisma.XOR<Prisma.TaskUpdateWithoutInvoiceItemsInput, Prisma.TaskUncheckedUpdateWithoutInvoiceItemsInput>
+  create: Prisma.XOR<Prisma.TaskCreateWithoutInvoiceItemsInput, Prisma.TaskUncheckedCreateWithoutInvoiceItemsInput>
+  where?: Prisma.TaskWhereInput
+}
+
+export type TaskUpdateToOneWithWhereWithoutInvoiceItemsInput = {
+  where?: Prisma.TaskWhereInput
+  data: Prisma.XOR<Prisma.TaskUpdateWithoutInvoiceItemsInput, Prisma.TaskUncheckedUpdateWithoutInvoiceItemsInput>
+}
+
+export type TaskUpdateWithoutInvoiceItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
+  prescriptionStatus?: Prisma.EnumPrescriptionStatusFieldUpdateOperationsInput | $Enums.PrescriptionStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedTaskAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lot?: Prisma.LotUpdateOneRequiredWithoutTasksNestedInput
+  laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutTasksNestedInput
+  operators?: Prisma.UserUpdateManyWithoutTasksNestedInput
+  machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
+  dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
+  recipe?: Prisma.RecipeUpdateOneWithoutTaskNestedInput
+}
+
+export type TaskUncheckedUpdateWithoutInvoiceItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  lotId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
+  prescriptionStatus?: Prisma.EnumPrescriptionStatusFieldUpdateOperationsInput | $Enums.PrescriptionStatus
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updatedTaskAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  operators?: Prisma.UserUncheckedUpdateManyWithoutTasksNestedInput
+  machineLogs?: Prisma.MachineUsageUncheckedUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUncheckedUpdateOneWithoutTaskNestedInput
 }
@@ -1208,6 +1341,7 @@ export type TaskUpdateWithoutOperatorsInput = {
   machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutOperatorsInput = {
@@ -1226,6 +1360,7 @@ export type TaskUncheckedUpdateWithoutOperatorsInput = {
   machineLogs?: Prisma.MachineUsageUncheckedUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUncheckedUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateManyWithoutOperatorsInput = {
@@ -1273,6 +1408,7 @@ export type TaskUpdateWithoutLaborTypeInput = {
   machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutLaborTypeInput = {
@@ -1291,6 +1427,7 @@ export type TaskUncheckedUpdateWithoutLaborTypeInput = {
   machineLogs?: Prisma.MachineUsageUncheckedUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUncheckedUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateManyWithoutLaborTypeInput = {
@@ -1337,6 +1474,7 @@ export type TaskUpdateWithoutLotInput = {
   machineLogs?: Prisma.MachineUsageUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateWithoutLotInput = {
@@ -1355,6 +1493,7 @@ export type TaskUncheckedUpdateWithoutLotInput = {
   machineLogs?: Prisma.MachineUsageUncheckedUpdateManyWithoutTaskNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutTaskNestedInput
   recipe?: Prisma.RecipeUncheckedUpdateOneWithoutTaskNestedInput
+  invoiceItems?: Prisma.InvoiceItemUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type TaskUncheckedUpdateManyWithoutLotInput = {
@@ -1380,12 +1519,14 @@ export type TaskCountOutputType = {
   operators: number
   machineLogs: number
   dailyReports: number
+  invoiceItems: number
 }
 
 export type TaskCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   operators?: boolean | TaskCountOutputTypeCountOperatorsArgs
   machineLogs?: boolean | TaskCountOutputTypeCountMachineLogsArgs
   dailyReports?: boolean | TaskCountOutputTypeCountDailyReportsArgs
+  invoiceItems?: boolean | TaskCountOutputTypeCountInvoiceItemsArgs
 }
 
 /**
@@ -1419,6 +1560,13 @@ export type TaskCountOutputTypeCountDailyReportsArgs<ExtArgs extends runtime.Typ
   where?: Prisma.DailyReportWhereInput
 }
 
+/**
+ * TaskCountOutputType without action
+ */
+export type TaskCountOutputTypeCountInvoiceItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.InvoiceItemWhereInput
+}
+
 
 export type TaskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1439,6 +1587,7 @@ export type TaskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   machineLogs?: boolean | Prisma.Task$machineLogsArgs<ExtArgs>
   dailyReports?: boolean | Prisma.Task$dailyReportsArgs<ExtArgs>
   recipe?: boolean | Prisma.Task$recipeArgs<ExtArgs>
+  invoiceItems?: boolean | Prisma.Task$invoiceItemsArgs<ExtArgs>
   _count?: boolean | Prisma.TaskCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["task"]>
 
@@ -1499,6 +1648,7 @@ export type TaskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   machineLogs?: boolean | Prisma.Task$machineLogsArgs<ExtArgs>
   dailyReports?: boolean | Prisma.Task$dailyReportsArgs<ExtArgs>
   recipe?: boolean | Prisma.Task$recipeArgs<ExtArgs>
+  invoiceItems?: boolean | Prisma.Task$invoiceItemsArgs<ExtArgs>
   _count?: boolean | Prisma.TaskCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TaskIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1519,6 +1669,7 @@ export type $TaskPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     machineLogs: Prisma.$MachineUsagePayload<ExtArgs>[]
     dailyReports: Prisma.$DailyReportPayload<ExtArgs>[]
     recipe: Prisma.$RecipePayload<ExtArgs> | null
+    invoiceItems: Prisma.$InvoiceItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1933,6 +2084,7 @@ export interface Prisma__TaskClient<T, Null = never, ExtArgs extends runtime.Typ
   machineLogs<T extends Prisma.Task$machineLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$machineLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MachineUsagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dailyReports<T extends Prisma.Task$dailyReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$dailyReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   recipe<T extends Prisma.Task$recipeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$recipeArgs<ExtArgs>>): Prisma.Prisma__RecipeClient<runtime.Types.Result.GetResult<Prisma.$RecipePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  invoiceItems<T extends Prisma.Task$invoiceItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Task$invoiceItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvoiceItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2463,6 +2615,30 @@ export type Task$recipeArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    */
   include?: Prisma.RecipeInclude<ExtArgs> | null
   where?: Prisma.RecipeWhereInput
+}
+
+/**
+ * Task.invoiceItems
+ */
+export type Task$invoiceItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the InvoiceItem
+   */
+  select?: Prisma.InvoiceItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the InvoiceItem
+   */
+  omit?: Prisma.InvoiceItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.InvoiceItemInclude<ExtArgs> | null
+  where?: Prisma.InvoiceItemWhereInput
+  orderBy?: Prisma.InvoiceItemOrderByWithRelationInput | Prisma.InvoiceItemOrderByWithRelationInput[]
+  cursor?: Prisma.InvoiceItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.InvoiceItemScalarFieldEnum | Prisma.InvoiceItemScalarFieldEnum[]
 }
 
 /**
