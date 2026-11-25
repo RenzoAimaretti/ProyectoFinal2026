@@ -71,6 +71,10 @@ const VALUATION_DETAIL_SELECT = {
   incomeArs: true,
   costNative: true,
   costArs: true,
+  priceStale: true,
+  priceFetchedAt: true,
+  valuedAt: true,
+  origin: true,
   dailyReport: {
     select: { date: true, laborType: { select: { name: true } } },
   },
@@ -86,6 +90,9 @@ const EXPENSE_DETAIL_SELECT = {
   grain: true,
   amount: true,
   amountArs: true,
+  priceStale: true,
+  priceFetchedAt: true,
+  valuedAt: true,
 } satisfies Prisma.ExpenseSelect;
 
 /**
@@ -253,6 +260,10 @@ export class PrismaProfitabilityReader implements ProfitabilityReaderPort {
           incomeAtApproval: decimal(row.incomeArs),
           standardCost: money(row.costNative, row.costUnit, row.costGrain),
           standardCostAtApproval: decimal(row.costArs),
+          priceStale: row.priceStale,
+          priceFetchedAt: row.priceFetchedAt,
+          valuedAt: row.valuedAt,
+          lateValuation: row.origin === 'REINTENTO',
         }),
       ),
       expenses: expenses.map(
@@ -264,6 +275,9 @@ export class PrismaProfitabilityReader implements ProfitabilityReaderPort {
           categoryName: row.category.name,
           native: money(row.amount, row.unit, row.grain),
           arsAtApproval: decimal(row.amountArs),
+          priceStale: row.priceStale,
+          priceFetchedAt: row.priceFetchedAt,
+          valuedAt: row.valuedAt,
         }),
       ),
       pending: {

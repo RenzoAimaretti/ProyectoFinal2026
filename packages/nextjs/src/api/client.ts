@@ -1666,6 +1666,11 @@ export type ProfitabilityReportDTO = {
   incomeArs: string;
   standardCostNative: string;
   standardCostArs: string;
+  /** About the valuation at approval time, whatever the mode. */
+  priceStale: boolean;
+  priceFetchedAt: string | null;
+  valuedAt: string;
+  lateValuation: boolean;
 };
 
 export type ProfitabilityExpenseDTO = {
@@ -1676,6 +1681,10 @@ export type ProfitabilityExpenseDTO = {
   unit: MoneyUnit;
   grain: Grain | null;
   amountArs: string;
+  /** About the valuation at load time, whatever the mode. */
+  priceStale: boolean;
+  priceFetchedAt: string | null;
+  valuedAt: string;
 };
 
 export type ProfitabilityExpenseGroupDTO = {

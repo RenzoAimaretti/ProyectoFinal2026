@@ -9,6 +9,7 @@ import {
   USD_RATE_LABELS,
   buildExpenseConfirmation,
   describeProposedChanges,
+  describeValuation,
   formatArs,
   formatDay,
   formatDecimal,
@@ -202,6 +203,41 @@ test('the valuation moment is shown in Argentina time', () => {
   assert.equal(formatValuedAt('2026-11-23T12:00:00.000Z'), '23/11/2026 09:00');
   assert.equal(formatValuedAt('2026-11-23T02:30:00.000Z'), '22/11/2026 23:30');
   assert.equal(formatValuedAt(undefined), '—');
+});
+
+const valuation = (patch = {}) => ({
+  priceStale: false,
+  priceFetchedAt: null,
+  valuedAt: '2026-11-25T15:00:00.000Z',
+  ...patch,
+});
+
+test('a stale price shows the quote date and time in Argentina time', () => {
+  const labels = describeValuation(
+    valuation({ priceStale: true, priceFetchedAt: '2026-11-20T17:05:00.000Z' }),
+  );
+  assert.deepEqual(labels, [
+    'Precio desactualizado (cotización del 20/11/2026 14:05)',
+    'Valorizado el 25/11/2026',
+  ]);
+});
+
+test('a stale price without a fetch date omits the date from the label', () => {
+  const labels = describeValuation(valuation({ priceStale: true }));
+  assert.deepEqual(labels, ['Precio desactualizado', 'Valorizado el 25/11/2026']);
+});
+
+test('a late valuation is flagged and a fresh one carries only its date', () => {
+  assert.deepEqual(describeValuation(valuation({ lateValuation: true })), [
+    'Valorización tardía',
+    'Valorizado el 25/11/2026',
+  ]);
+  assert.deepEqual(describeValuation(valuation()), ['Valorizado el 25/11/2026']);
+});
+
+test('the valuation date is the Argentine day, not the UTC one', () => {
+  const labels = describeValuation(valuation({ valuedAt: '2026-11-26T01:30:00.000Z' }));
+  assert.deepEqual(labels, ['Valorizado el 25/11/2026']);
 });
 
 const preview = (patch = {}) => ({

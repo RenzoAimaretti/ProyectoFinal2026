@@ -168,8 +168,8 @@
 - [x] 5.4 `npm run lint` en `packages/nextjs` sin errores nuevos.
 - [x] 5.5 Boundary check: ningún `import` de Prisma ni de `@nestjs/common` HTTP fuera de `adapters/outbound/**`, `adapters/inbound/**` y `src/prisma` en los cinco módulos nuevos; `docs/hexagonal-conventions.md` §Acceptance Checklist.
 - [ ] 5.6 `prisma migrate diff` (o equivalente) muestra únicamente los objetos nuevos; la migración aplica sobre una base limpia y sobre una con datos existentes sin alterar tablas previas.
-- [ ] 5.7 E2E manual con backend y web levantados: guardar tarifa → aprobar un parte → la calculadora muestra ingreso/costo/margen; aprobar un parte sin tarifa → "sin valorizar" y la aprobación **no falla**; guardar la tarifa → el pendiente se valoriza; modo "a valor de hoy" con mercado disponible.
-- [ ] 5.8 Verificación de roles manual: SUPERVISOR no ve Tarifario ni Calculadora y recibe 403 al invocar sus endpoints; ADMIN con sugerencia pendiente no puede editar directo; sugerencia rechazada muestra el motivo al SUPERVISOR.
+- [x] 5.7 E2E manual con backend y web levantados: guardar tarifa → aprobar un parte → la calculadora muestra ingreso/costo/margen; aprobar un parte sin tarifa → "sin valorizar" y la aprobación **no falla**; guardar la tarifa → el pendiente se valoriza; modo "a valor de hoy" con mercado disponible.
+- [x] 5.8 Verificación de roles manual: SUPERVISOR no ve Tarifario ni Calculadora y recibe 403 al invocar sus endpoints; ADMIN con sugerencia pendiente no puede editar directo; sugerencia rechazada muestra el motivo al SUPERVISOR.
 - [x] 5.9 Revisión independiente de las unidades con riesgo alto nombrado (migración, permisos, concurrencia, cambio del `approve`): la decisión de verificador/revisión nativa la toma el orquestador según la evaluación de riesgo.
 - [x] 5.10 Confirmar que `packages/mobile` y `packages/web` no tienen cambios (`git diff --stat`).
 

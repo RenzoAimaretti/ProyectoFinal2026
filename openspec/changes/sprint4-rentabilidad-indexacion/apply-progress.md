@@ -10,7 +10,7 @@
 | 1 | Tarifario + indexación | 1.1–1.23 | `4569c53` | ✅ Implementada y verificada |
 | 2 | Valorización de partes | 2.1–2.18 | `ce89efc` | ✅ Implementada y verificada |
 | 3 | Gastos manuales | 3.1–3.19 | `b3b0401` (esquema) y `e1f1752` (lógica) | ✅ Implementada y verificada |
-| 4 | Calculadora | 4.1–4.17 | pendiente de aprobación del usuario | ✅ Implementada y verificada |
+| 4 | Calculadora | 4.1–4.17 | `b80e91c` (backend) y `72471e1` (web y docs) | ✅ Implementada y verificada |
 
 ---
 
@@ -174,8 +174,14 @@
 | `git diff --stat origin/dev -- packages/mobile packages/web` (5.10) | sin cambios |
 | Verificador independiente (permisos, aislamiento entre firmas, cuentas, consultas Prisma, web) | sin bloqueantes; R-FIN-12, 13, 14, las partes de la calculadora de 15, 16 y 17, R-FIN-07 (b) y el modo de R-FIN-08: PASS |
 | `pnpm --filter backend test:e2e` (5.2, corrido por el usuario; incluye `finance.e2e-spec.ts`) | todos pasaron, según informó el usuario |
+| Prueba manual 5.7 en Chrome sobre la base de desarrollo recién sembrada (ADMIN) | pasó: Pulverización Lote N°1 (96 ha, 6,5 h) aprobada → ingreso $ 656.640 (12 kg × 96 ha × 570 $/kg) y costo $ 52.000; con la tarifa de Fertilización quitada, el parte de Lote N°2 se aprobó sin error y la calculadora avisó "1 parte aprobado sin valorizar (124 ha)"; al volver a cargar la tarifa (9 USD/ha, 6000 ARS/h) se valorizó solo: $ 1.819.080 (1116 USD × 1630) y $ 24.000; orden por "Margen / ha" con totales fijos; "A valor de hoy" con mercado disponible (mismos importes porque las cotizaciones eran del mismo momento); panel de detalle del lote |
+| Prueba manual 5.8 en Chrome (SUPERVISOR de prueba creado desde Personal, ADMIN) | pasó: el SUPERVISOR ve solo Gastos, Categorías y Sugerencias, con "Sugerir edición/baja" como únicas acciones; por API recibe 403 en tarifas, equivalentes, lista y detalle de la calculadora, y en editar/borrar un gasto directo; su sugerencia de edición queda `PENDIENTE` sin cambiar el gasto y una segunda da 409; el ADMIN ve la marca "Sugerencia pendiente" con Editar/Eliminar deshabilitados; rechazar sin motivo no se envía y con motivo queda "Rechazada"; el SUPERVISOR ve el estado y el motivo. El resumen de confirmación del gasto (300 kg de maíz → $ 81.734,40 a $ 272.448/t, fuente BCR) apareció antes de guardar |
 
-**No verificado:** las consultas del lector contra una base Postgres real (solo se probaron con un Prisma falso y con los tipos generados), la ejecución del seed, la migración sobre una base limpia (5.6) y las pruebas manuales 5.7 y 5.8 con backend y web levantados (incluye mirar la pestaña y el panel de detalle).
+**No verificado:** la migración sobre una base limpia (5.6) y las consultas del lector bajo carga real; el caso de precio desactualizado (ver hallazgo abajo).
+
+**Hallazgo de la prueba manual (corregido):** el detalle de un lote no recibía ni mostraba si un parte se valorizó con un precio desactualizado ni la fecha de valorización, y tampoco marcaba la valorización tardía. El escenario "Precio desactualizado de la cache (D26)" de R-FIN-05 pide que el detalle de la calculadora lo muestre con su fecha; el verificador de la unidad no lo detectó. Corrección: el detalle agrega `priceStale`, `priceFetchedAt`, `valuedAt` y `lateValuation` en cada parte, y `priceStale`, `priceFetchedAt` y `valuedAt` en cada gasto (campos nuevos, la lista no cambia); el panel muestra "Precio desactualizado (cotización del …)", "Valorización tardía" y "Valorizado el …", y en "A valor de hoy" aclara que esas marcas describen la valorización original. Evidencia: `pnpm --filter backend test` 193 suites / 1911 tests, e2e de finanzas 42, `node --test` 96/96, tsc limpio en backend y web. No se probó en el navegador.
+
+**Datos de prueba que quedaron en la base de desarrollo:** el usuario `supervisor.prueba@agrolify.local` (rol SUPERVISOR), el gasto "Flete a Rosario (prueba manual)" en Lote N°3, una sugerencia rechazada, los partes de Pulverización (Lote N°1) y Fertilización (Lote N°2) aprobados, y la tarifa de Fertilización vuelta a crear con los mismos valores. El seed borra el gasto, la sugerencia, los partes y las tarifas, pero conserva los usuarios.
 
 **Risk:** item 2 (endpoints solo ADMIN con los datos financieros de la firma; aislamiento R033).
 

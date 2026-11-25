@@ -80,6 +80,12 @@ export interface DetailReport {
   incomeAtApproval: Dec;
   standardCost: Money;
   standardCostAtApproval: Dec;
+  /** The price came from an out-of-date cache when it was valued. */
+  priceStale: boolean;
+  priceFetchedAt: Date | null;
+  valuedAt: Date;
+  /** Valued by a retry after the approval, not when it was approved. */
+  lateValuation: boolean;
 }
 
 export interface DetailExpense {
@@ -91,6 +97,9 @@ export interface DetailExpense {
   categoryName: string;
   native: Money;
   arsAtApproval: Dec;
+  priceStale: boolean;
+  priceFetchedAt: Date | null;
+  valuedAt: Date;
 }
 
 export interface LotDetailData {

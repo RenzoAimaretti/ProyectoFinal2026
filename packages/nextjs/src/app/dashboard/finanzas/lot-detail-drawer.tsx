@@ -14,6 +14,7 @@ import {
 } from "@/api/client";
 import {
   describePendingBanner,
+  describeValuation,
   formatArs,
   formatDay,
   formatDecimal,
@@ -43,6 +44,27 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
       <dt className="text-xs font-semibold text-ink-faint">{label}</dt>
       <dd className="mt-0.5 font-semibold text-ink">{value}</dd>
     </div>
+  );
+}
+
+/** Original valuation of a report or expense: warnings as badges, then the valuation date. */
+function ValuationNotes({ flags }: { flags: Parameters<typeof describeValuation>[0] }) {
+  const labels = describeValuation(flags);
+  const warnings = labels.slice(0, -1);
+  const valued = labels[labels.length - 1];
+  return (
+    <span className="mt-1 block space-y-1">
+      {warnings.length > 0 && (
+        <span className="flex flex-wrap gap-1">
+          {warnings.map((label) => (
+            <Badge key={label} tone="wheat">
+              {label}
+            </Badge>
+          ))}
+        </span>
+      )}
+      <span className="block text-xs text-ink-faint">{valued}</span>
+    </span>
   );
 }
 
@@ -113,6 +135,13 @@ export function LotDetailDrawer({ lot, filter, mode, onClose }: Props) {
 
             {pendingText && <Alert tone="warning">{pendingText}</Alert>}
 
+            {detail.mode === "A_VALOR_HOY" && (
+              <p className="text-xs text-ink-soft">
+                Los importes están a valor de hoy. Las marcas de precio desactualizado, valorización tardía y
+                fecha de valorización describen la valorización original, al aprobar el parte o cargar el gasto.
+              </p>
+            )}
+
             <section>
               <h4 className="mb-2 text-sm font-semibold text-ink">Partes valorizados</h4>
               {detail.reports.length === 0 ? (
@@ -132,7 +161,10 @@ export function LotDetailDrawer({ lot, filter, mode, onClose }: Props) {
                   <tbody className="divide-y divide-agro-border">
                     {detail.reports.map((report) => (
                       <tr key={report.reportId}>
-                        <Td className="font-medium text-ink">{report.laborName}</Td>
+                        <Td className="font-medium text-ink">
+                          {report.laborName}
+                          <ValuationNotes flags={report} />
+                        </Td>
                         <Td>{formatDay(report.date)}</Td>
                         <Td align="right">
                           {formatDecimal(report.quantity, 0, 2)}{" "}
@@ -170,7 +202,10 @@ export function LotDetailDrawer({ lot, filter, mode, onClose }: Props) {
                           {group.expenses.map((expense) => (
                             <tr key={expense.expenseId}>
                               <Td>{formatDay(expense.date)}</Td>
-                              <Td className="text-ink">{expense.description}</Td>
+                              <Td className="text-ink">
+                                {expense.description}
+                                <ValuationNotes flags={expense} />
+                              </Td>
                               <Td align="right" className="text-ink-soft">
                                 {formatMoney(expense.amount, expense.unit, expense.grain)}
                               </Td>

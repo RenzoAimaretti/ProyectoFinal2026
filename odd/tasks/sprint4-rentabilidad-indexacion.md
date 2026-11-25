@@ -20,7 +20,8 @@ The full specification is the openspec change (proposal D1-D28, spec R-FIN-01..1
 | T1 | S1 | delegated writer (sonnet) | done | `4569c53` feat(finance); RED → GREEN per rule; backend 159 suites / 1488 tests + 3 regression pins (tariff 8 suites / 58); web 28/28; verifier: no blockers; native review: declined by the user |
 | T2 | S2 | delegated writer (sonnet) | done | `ce89efc` feat(finance); RED → GREEN per rule (2 adapter specs written with their adapters); backend 168 suites / 1556 tests; scoped 33 / 302; verifier: no blockers; e2e passed (user); native review: granted but refused for size (`lens_context_budget_exceeded`); user kept it without native review |
 | T3 | S3 | delegated writer (sonnet) | done | `b3b0401` schema + `e1f1752` logic; RED → GREEN per rule (module wiring and 2 regression pins without separate RED); backend 183 suites / 1782 tests; web 61/61; verifier: no blockers; e2e passed (user); native review: granted but refused for size; user kept it without native review |
-| T4 | S4 | delegated writer (sonnet) | done, uncommitted (awaiting user OK) | RED → GREEN per rule (e2e, module, seed pin, 2 adapter specs and `canSeeCalculator` without separate RED); backend 193 suites / 1908 tests; finance e2e 42; web 92/92; verifier: no blockers |
+| T5 | S4 (R-FIN-05 D26 in the calculator detail) | delegated writer (sonnet) | done, uncommitted (awaiting user OK) | RED → GREEN per rule (use-case RED by removing the mapping); profitability 10 suites / 128 tests; full jest 193 / 1911; finance e2e 42; web 96/96 |
+| T4 | S4 | delegated writer (sonnet) | done | `b80e91c` backend + `72471e1` web and docs; RED → GREEN per rule (e2e, module, seed pin, 2 adapter specs and `canSeeCalculator` without separate RED); backend 193 suites / 1908 tests; finance e2e 42; web 92/92; verifier: no blockers; full e2e passed (user); native review declined by the user |
 
 Route evidence: T1 is delegated through the long-session context backstop (the planning conversation already exceeds ~150k tokens); units are sequential (U2 depends on U1's core and `Tariff`), so there is no parallel-writer reason. Risk T1: item 1 (new migration `Tariff` + enums) and item 2 (new ADMIN-only endpoints) → independent verifier (sonnet) after the writer's own checks. RDD reads `on (decided by global)`.
 
@@ -134,4 +135,31 @@ Route evidence: T1 is delegated through the long-session context backstop (the p
     - Tasks 4.1-4.17 and 5.1/5.3/5.4/5.5/5.9/5.10 checked.
     - Unit 4 entry added to `apply-progress.md`. It includes the R032 closure with accrued income (D1) and collections pending (4.17).
 - **L24 (2026-11-23) — e2e and U4 commit OK:** offered "¿Commiteo la Unidad 4 en dos commits?"; user: "Primero corro e2e". Parent suggested only `test:e2e` (no new migrations; not the seed, because it wipes the dev demo data). User: "Pasaron todos, commitia". Global check 5.2 checked (full `test:e2e` including `finance.e2e-spec.ts`, user-reported). Commits as planned: (1) backend calculator + starvation fix + seed + finance e2e, (2) web calculator + docs (including L17-L24); `.atl/` excluded.
-- **Next:** after the U4 commits, run the native assessment on them and record the outcome. Open global checks: 5.6 (migration on a clean database), 5.7 and 5.8 (manual checks with backend and web running). No push or PR without the user's OK; PRs target `dev`. The L17-L20 doc edits are uncommitted and ride with them. No push or PR without the user's OK; PRs target `dev`. Still optional for the user: `pnpm --filter backend test:e2e` and applying the migrations on a disposable Postgres. No push or PR without the user's OK; PRs target `dev`.
+- **L25 (2026-11-23) — T4 commits and native review:** committed `b80e91c` feat(finance): add lot profitability calculator API (36 files) and `72471e1` feat(finance): add profitability calculator tab (14 files, includes the docs up to L24); `.atl/` excluded; no attribution trailer. Assessment over both (`--base-ref e1f1752 --committed-only --escalate-item 2`): `high`, `review_due: true`. Consent relayed with a parent note that Units 2 and 3 exceeded the reviewer budget; user chose "Omitir esta vez" → `declined_this_candidate`. Reviewed boundary stays `cf11f83`. All four units are committed on the local branch; nothing is pushed.
+- **L26 (2026-11-25) — manual checks:** user hit two environment issues while starting the stack (a stale Turbopack cache reporting an invalid `packages/nextjs/package.json` that is valid on disk; the seed failing with ECONNREFUSED because Docker Desktop was not running), then asked: "No entiendo realmente como hacer el test, el sistema ya esta levantado, probalo vos con mi chrome". The parent ran 5.7 and 5.8 in the user's Chrome against the seeded dev database. Both passed (details and figures in `apply-progress.md`, Unit 4). A test user `supervisor.prueba@agrolify.local` (SUPERVISOR) was created from Personal; its generated password lives only in the session scratchpad, not in the repo or the chat. The ADMIN session was signed out to check the SUPERVISOR screens. **Finding:** the lot detail does not carry or show the stale-price flag, its fetch date, the valuation date or the late-valuation mark (`ProfitabilityReportDTO` lacks `priceStale`, `priceFetchedAt`, `valuedAt`, `origin`), while R-FIN-05's D26 scenario requires the calculator detail to show a stale price with its date; the T4 verifier missed it. Checks 5.7 and 5.8 checked; 5.6 still open.
+- **L27 (2026-11-25) — T5 start:** user, verbatim: "Corregi eso del precio desactualizado y de paso pasame las credenciales del supervisor para entrar y probar yo". The credentials stay out of the chat (testing rule): the parent points the user to the scratchpad file that holds them. T5 scope: the lot detail of the calculator carries and shows, for each valued report, the stale-price flag with its price fetch date, the valuation date and the late-valuation mark (`origin = REINTENTO`), and for each expense the stale-price flag with its fetch date and valuation date (R-FIN-05 scenario "Precio desactualizado de la cache (D26)"; R-FIN-07 "marcada como valorización tardía"). Route: delegated writer (sonnet) through the long-session context backstop. Risk: none (additive fields on an endpoint added in this sprint whose only consumer is the drawer changed in the same task; read-only) → focused tests and the suite, no independent verifier.
+- **Next (superseded by L27):** fix the finding (backend detail DTO + drawer badge, with tests) only with the user's go-ahead, then ask before its commit.
+- **L28 (2026-11-25) — T5 result:**
+  - **Backend:** the detail gains `priceStale`, `priceFetchedAt`, `valuedAt` and `lateValuation` for each report, and `priceStale`, `priceFetchedAt` and `valuedAt` for each expense. The reader adds them only to the detail selects; its `companyId` filters are unchanged. The list rows are unchanged, which `get-lot-profitability-list.use-case.spec.ts:77` pins with `toEqual`.
+  - **Web:** a new `describeValuation` in `format.ts` produces the labels, and the drawer shows them:
+    - "Precio desactualizado (cotización del …)" as a badge;
+    - "Valorización tardía" as a badge;
+    - "Valorizado el …" as secondary text;
+    - in "A valor de hoy", a note that the marks describe the original valuation.
+  - **Writer checks, all green:**
+    - backend tsc;
+    - profitability tests, 10 suites / 128;
+    - full jest, 193 / 1911;
+    - finance e2e, 42;
+    - web, 96/96;
+    - web tsc;
+    - lint, no new errors.
+  - **Parent spot check:**
+    - the diff stays inside the declared surface (10 files, +270/−2);
+    - the reader diff is selects and mapping only;
+    - profitability 128/128 and web 96/96 re-run;
+    - web tsc clean;
+    - the writer's scratch was removed.
+  - **Not checked in the browser:** the ADMIN session is signed out, and the user is checking it.
+  - **Risk:** none.
+- **Next:** ask the user before the T5 commit (the fix plus the docs L25-L28; `.atl/` excluded). 5.6 is still open. Push and a PR against `dev` happen only with the user's OK. 5.6 (migration on a clean database) is still open. Push and a PR against `dev` only with the user's OK. L25-L26 entries are uncommitted. The L17-L20 doc edits are uncommitted and ride with them. No push or PR without the user's OK; PRs target `dev`. Still optional for the user: `pnpm --filter backend test:e2e` and applying the migrations on a disposable Postgres. No push or PR without the user's OK; PRs target `dev`.

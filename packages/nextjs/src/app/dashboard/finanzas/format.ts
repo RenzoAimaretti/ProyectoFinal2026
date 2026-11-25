@@ -230,6 +230,36 @@ export function formatValuedAt(
   return `${part("day")}/${part("month")}/${part("year")} ${part("hour")}:${part("minute")}`;
 }
 
+/** What the calculator detail knows about how a report or an expense was valued. */
+export type ValuationFlags = {
+  priceStale: boolean;
+  priceFetchedAt: string | null;
+  valuedAt: string;
+  /** Only reports can be valued late; expenses are valued when loaded. */
+  lateValuation?: boolean;
+};
+
+/**
+ * Labels of the original valuation (at approval or load time), whatever the
+ * mode of the amounts. The warnings come first and the valuation date is
+ * always the last one.
+ */
+export function describeValuation(flags: ValuationFlags): string[] {
+  const labels: string[] = [];
+  if (flags.priceStale) {
+    const quoted = flags.priceFetchedAt ? formatValuedAt(flags.priceFetchedAt) : DASH;
+    labels.push(
+      quoted === DASH
+        ? "Precio desactualizado"
+        : `Precio desactualizado (cotización del ${quoted})`,
+    );
+  }
+  if (flags.lateValuation) labels.push("Valorización tardía");
+  const valued = formatValuedAt(flags.valuedAt);
+  labels.push(`Valorizado el ${valued === DASH ? DASH : valued.slice(0, 10)}`);
+  return labels;
+}
+
 export type ConfirmationRow = { label: string; value: string };
 
 export type ExpenseConfirmation = {

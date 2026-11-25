@@ -227,6 +227,10 @@ describe('PrismaProfitabilityReader.findLotDetail', () => {
         incomeArs: D('186000'),
         costNative: D('7680'),
         costArs: D('7680'),
+        priceStale: false,
+        priceFetchedAt: new Date('2026-03-10T15:00:00Z'),
+        valuedAt: new Date('2026-03-10T15:05:00Z'),
+        origin: 'APROBACION',
         // 2026-03-11 01:00Z is the evening of the 10th in Argentina.
         dailyReport: {
           date: new Date('2026-03-11T01:00:00Z'),
@@ -245,6 +249,9 @@ describe('PrismaProfitabilityReader.findLotDetail', () => {
         grain: null,
         amount: D('30000'),
         amountArs: D('30000'),
+        priceStale: false,
+        priceFetchedAt: null,
+        valuedAt: new Date('2026-03-12T13:00:00Z'),
       },
     ]);
   }
@@ -339,6 +346,57 @@ describe('PrismaProfitabilityReader.findLotDetail', () => {
     expect(expense.arsAtApproval.toString()).toBe('30000.0000');
     expect(detail?.pending.reports).toBe(2);
     expect(detail?.pending.hectares.toString()).toBe('40.5000');
+  });
+
+  it('maps the stale-price, fetch date, valuation date and late-valuation mark of reports and expenses', async () => {
+    const { reader, prisma } = build();
+    withDetailRows(prisma);
+    const [base] = (await prisma.dailyReportValuation.findMany()) as object[];
+    prisma.dailyReportValuation.findMany.mockResolvedValue([
+      {
+        ...base,
+        priceStale: true,
+        priceFetchedAt: new Date('2026-03-09T10:00:00Z'),
+        valuedAt: new Date('2026-03-15T18:30:00Z'),
+        origin: 'REINTENTO',
+      },
+    ]);
+    const [expenseBase] = (await prisma.expense.findMany()) as object[];
+    prisma.expense.findMany.mockResolvedValue([
+      {
+        ...expenseBase,
+        priceStale: true,
+        priceFetchedAt: new Date('2026-03-11T09:00:00Z'),
+        valuedAt: new Date('2026-03-12T13:00:00Z'),
+      },
+    ]);
+
+    const detail = await reader.findLotDetail(detailQuery);
+
+    const [report] = detail?.reports ?? [];
+    expect(report.priceStale).toBe(true);
+    expect(report.priceFetchedAt).toEqual(new Date('2026-03-09T10:00:00Z'));
+    expect(report.valuedAt).toEqual(new Date('2026-03-15T18:30:00Z'));
+    expect(report.lateValuation).toBe(true);
+    const [expense] = detail?.expenses ?? [];
+    expect(expense.priceStale).toBe(true);
+    expect(expense.priceFetchedAt).toEqual(new Date('2026-03-11T09:00:00Z'));
+    expect(expense.valuedAt).toEqual(new Date('2026-03-12T13:00:00Z'));
+  });
+
+  it('marks an approval-time valuation with a fresh price as neither stale nor late', async () => {
+    const { reader, prisma } = build();
+    withDetailRows(prisma);
+
+    const detail = await reader.findLotDetail(detailQuery);
+
+    const [report] = detail?.reports ?? [];
+    expect(report.priceStale).toBe(false);
+    expect(report.lateValuation).toBe(false);
+    expect(report.priceFetchedAt).toEqual(new Date('2026-03-10T15:00:00Z'));
+    const [expense] = detail?.expenses ?? [];
+    expect(expense.priceStale).toBe(false);
+    expect(expense.priceFetchedAt).toBeNull();
   });
 
   it('has zero pending hectares when nothing is pending', async () => {

@@ -79,6 +79,11 @@ export interface DetailReportOutput {
   incomeArs: string;
   standardCostNative: string;
   standardCostArs: string;
+  /** About the valuation at approval time, whatever the mode. */
+  priceStale: boolean;
+  priceFetchedAt: string | null;
+  valuedAt: string;
+  lateValuation: boolean;
 }
 
 export interface DetailExpenseOutput {
@@ -89,6 +94,10 @@ export interface DetailExpenseOutput {
   unit: MoneyUnit;
   grain: Grain | null;
   amountArs: string;
+  /** About the valuation at load time, whatever the mode. */
+  priceStale: boolean;
+  priceFetchedAt: string | null;
+  valuedAt: string;
 }
 
 export interface ExpenseCategoryGroupOutput {

@@ -48,6 +48,10 @@ function report(
     incomeAtApproval: Dec.parse('186000'),
     standardCost: ars('7680'),
     standardCostAtApproval: Dec.parse('7680'),
+    priceStale: false,
+    priceFetchedAt: new Date('2026-03-10T15:00:00Z'),
+    valuedAt: new Date('2026-03-10T15:05:00Z'),
+    lateValuation: false,
     ...overrides,
   };
 }
@@ -64,6 +68,9 @@ function expenseRow(
     categoryName: 'Combustible',
     native: ars('30000'),
     arsAtApproval: Dec.parse('30000'),
+    priceStale: false,
+    priceFetchedAt: null,
+    valuedAt: new Date('2026-03-12T13:00:00Z'),
     ...overrides,
   };
 }
@@ -139,6 +146,10 @@ describe('GetLotProfitabilityDetailUseCase', () => {
         incomeArs: '186000.00',
         standardCostNative: '7680.0000',
         standardCostArs: '7680.00',
+        priceStale: false,
+        priceFetchedAt: '2026-03-10T15:00:00.000Z',
+        valuedAt: '2026-03-10T15:05:00.000Z',
+        lateValuation: false,
       },
     ]);
   });
@@ -203,6 +214,56 @@ describe('GetLotProfitabilityDetailUseCase', () => {
       unit: 'USD',
       grain: null,
       amountArs: '153000.00',
+      priceStale: false,
+      priceFetchedAt: null,
+      valuedAt: '2026-03-12T13:00:00.000Z',
+    });
+  });
+
+  it('carries the stale price and the late valuation of reports and the stale price of expenses', async () => {
+    const { useCase } = build({
+      'company-1': company({
+        reports: [
+          report({
+            reportId: 'stale-report',
+            priceStale: true,
+            priceFetchedAt: new Date('2026-03-09T10:00:00Z'),
+          }),
+          report({
+            reportId: 'late-report',
+            lateValuation: true,
+            valuedAt: new Date('2026-03-15T18:30:00Z'),
+          }),
+        ],
+        expenses: [
+          expenseRow({
+            expenseId: 'stale-expense',
+            priceStale: true,
+            priceFetchedAt: new Date('2026-03-11T09:00:00Z'),
+          }),
+        ],
+      }),
+    });
+
+    const result = await useCase.execute(session);
+
+    const [stale, late] = result.reports;
+    expect(stale).toMatchObject({
+      priceStale: true,
+      priceFetchedAt: '2026-03-09T10:00:00.000Z',
+      valuedAt: '2026-03-10T15:05:00.000Z',
+      lateValuation: false,
+    });
+    expect(late).toMatchObject({
+      priceStale: false,
+      lateValuation: true,
+      valuedAt: '2026-03-15T18:30:00.000Z',
+    });
+    expect(result.expensesByCategory[0].expenses[0]).toMatchObject({
+      expenseId: 'stale-expense',
+      priceStale: true,
+      priceFetchedAt: '2026-03-11T09:00:00.000Z',
+      valuedAt: '2026-03-12T13:00:00.000Z',
     });
   });
 

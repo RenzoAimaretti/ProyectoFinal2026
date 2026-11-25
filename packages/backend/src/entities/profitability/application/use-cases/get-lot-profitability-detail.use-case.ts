@@ -104,6 +104,10 @@ export class GetLotProfitabilityDetailUseCase {
           incomeArs: arsText(valued.ars[index * 2]),
           standardCostNative: moneyAmountText(report.standardCost),
           standardCostArs: arsText(valued.ars[index * 2 + 1]),
+          priceStale: report.priceStale,
+          priceFetchedAt: report.priceFetchedAt?.toISOString() ?? null,
+          valuedAt: report.valuedAt.toISOString(),
+          lateValuation: report.lateValuation,
         };
       },
     );
@@ -132,6 +136,9 @@ export class GetLotProfitabilityDetailUseCase {
           unit: expense.native.unit,
           grain: expense.native.grain,
           amountArs: arsText(expenseArs[index]),
+          priceStale: expense.priceStale,
+          priceFetchedAt: expense.priceFetchedAt?.toISOString() ?? null,
+          valuedAt: expense.valuedAt.toISOString(),
         },
       });
       groups.set(expense.categoryId, group);
