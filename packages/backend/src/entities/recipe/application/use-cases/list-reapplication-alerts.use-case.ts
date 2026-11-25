@@ -42,6 +42,8 @@ export class ListReapplicationAlertsUseCase {
       alerts.push({
         recipeId: recipe.id,
         taskId: recipe.taskId,
+        laborTypeId: recipe.laborTypeId ?? null,
+        laborTypeName: recipe.laborTypeName ?? null,
         lotId: recipe.lotId,
         lotName: recipe.lotName,
         farmName: recipe.farmName,

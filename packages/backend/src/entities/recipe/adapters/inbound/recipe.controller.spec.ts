@@ -113,9 +113,9 @@ describe('RecipeController', () => {
     }
   });
 
-  it('restricts the writes to INGENIERO and ADMIN', () => {
-    expect(rolesOf('create')).toEqual(['INGENIERO', 'ADMIN']);
-    expect(rolesOf('update')).toEqual(['INGENIERO', 'ADMIN']);
+  it('restricts the writes to INGENIERO only', () => {
+    expect(rolesOf('create')).toEqual(['INGENIERO']);
+    expect(rolesOf('update')).toEqual(['INGENIERO']);
   });
 
   it('opens the reads to the agronomist and the field roles', () => {

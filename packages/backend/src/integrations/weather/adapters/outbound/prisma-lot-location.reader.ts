@@ -24,6 +24,7 @@ export class PrismaLotLocationReader implements LotLocationReaderPort {
       where: { id: lotId, farm: { client: { tenantId } } },
       select: {
         coords: true,
+        polygon: true,
         farmId: true,
         farm: { select: { location: true } },
       },
@@ -34,7 +35,7 @@ export class PrismaLotLocationReader implements LotLocationReaderPort {
     }
 
     return {
-      coords: lot.coords,
+      coords: this.resolveRawGeometry(lot.polygon, lot.coords),
       farmId: lot.farmId,
       farmLocation: lot.farm.location,
     };
@@ -46,11 +47,13 @@ export class PrismaLotLocationReader implements LotLocationReaderPort {
   ): Promise<Coordinates | null> {
     const lots = await this.prisma.lot.findMany({
       where: { farmId, farm: { client: { tenantId } } },
-      select: { coords: true },
+      select: { coords: true, polygon: true },
     });
 
     const centroids = lots
-      .map((lot) => this.tryCentroid(lot.coords))
+      .map((lot) =>
+        this.tryCentroid(this.resolveRawGeometry(lot.polygon, lot.coords)),
+      )
       .filter((centroid): centroid is Coordinates => centroid !== null);
 
     if (centroids.length === 0) {
@@ -69,6 +72,17 @@ export class PrismaLotLocationReader implements LotLocationReaderPort {
       lat: total.lat / centroids.length,
       lon: total.lon / centroids.length,
     };
+  }
+
+  private resolveRawGeometry(
+    polygon: unknown,
+    coords: string | null,
+  ): string | null {
+    if (polygon !== null && polygon !== undefined) {
+      return JSON.stringify(polygon);
+    }
+
+    return coords;
   }
 
   private tryCentroid(coords: string | null): Coordinates | null {

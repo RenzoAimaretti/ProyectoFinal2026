@@ -82,6 +82,8 @@ describe('PrismaReapplicationAlertReader', () => {
         clientName: 'Cliente Agro',
         taskId: 'task-1',
         taskStatus: 'EN_PROGRESO',
+        laborTypeId: null,
+        laborTypeName: null,
         date: rawDate,
         pest: 'Oruga',
         crop: 'Soja',

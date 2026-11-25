@@ -11,6 +11,7 @@ import {
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../auth/guards/roles.guard';
 import { FindStockBalanceUseCase } from '../../application/use-cases/find-stock-balance.use-case';
+import { FindStockBalanceSummaryUseCase } from '../../application/use-cases/find-stock-balance-summary.use-case';
 import { FindStockByClientUseCase } from '../../application/use-cases/find-stock-by-client.use-case';
 import { InvalidInputError } from '../../domain/errors';
 import {
@@ -38,6 +39,7 @@ export class StockController {
   constructor(
     private readonly findStockByClient: FindStockByClientUseCase,
     private readonly findStockBalance: FindStockBalanceUseCase,
+    private readonly findStockBalanceSummary: FindStockBalanceSummaryUseCase,
     @Inject(CLIENT_USER_READER)
     private readonly clientUserReader: ClientUserReaderPort,
   ) {}
@@ -68,6 +70,21 @@ export class StockController {
 
     try {
       return await this.findStockBalance.execute(scope, inputId as string);
+    } catch (error) {
+      this.translate(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('summary')
+  async findSummary(
+    @Req() req: RequestWithUser,
+    @Query('clientId') clientId?: string,
+  ) {
+    const scope = await this.resolveScope(req, clientId);
+
+    try {
+      return await this.findStockBalanceSummary.execute(scope);
     } catch (error) {
       this.translate(error);
     }

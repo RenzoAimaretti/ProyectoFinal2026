@@ -4,6 +4,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../auth/guards/roles.guard';
 import { FindStockBalanceUseCase } from '../../application/use-cases/find-stock-balance.use-case';
+import { FindStockBalanceSummaryUseCase } from '../../application/use-cases/find-stock-balance-summary.use-case';
 import { FindStockByClientUseCase } from '../../application/use-cases/find-stock-by-client.use-case';
 import { InvalidInputError } from '../../domain/errors';
 import { StockController } from './stock.controller';
@@ -25,22 +26,25 @@ describe('StockController', () => {
   let controller: StockController;
   let findStockByClient: jest.Mocked<FindStockByClientUseCase>;
   let findStockBalance: jest.Mocked<FindStockBalanceUseCase>;
+  let findStockBalanceSummary: jest.Mocked<FindStockBalanceSummaryUseCase>;
   let clientUserReader: { findClientIdByUserId: jest.Mock };
 
   beforeEach(() => {
     findStockByClient = { execute: jest.fn() } as unknown as jest.Mocked<FindStockByClientUseCase>;
     findStockBalance = { execute: jest.fn() } as unknown as jest.Mocked<FindStockBalanceUseCase>;
+    findStockBalanceSummary = { execute: jest.fn() } as unknown as jest.Mocked<FindStockBalanceSummaryUseCase>;
     clientUserReader = { findClientIdByUserId: jest.fn() };
 
     controller = new StockController(
       findStockByClient,
       findStockBalance,
+      findStockBalanceSummary,
       clientUserReader as never,
     );
   });
 
   it('protects every route with JwtAuthGuard and RolesGuard', () => {
-    for (const method of ['findAll', 'findBalance'] as const) {
+    for (const method of ['findAll', 'findBalance', 'findSummary'] as const) {
       const guards = Reflect.getMetadata(
         GUARDS_METADATA,
         StockController.prototype[method],
@@ -120,5 +124,17 @@ describe('StockController', () => {
     await expect(controller.findBalance(adminReq, 'client-1', '')).rejects.toThrow(
       BadRequestException,
     );
+  });
+
+  it('forces a productor to their own client on findSummary', async () => {
+    clientUserReader.findClientIdByUserId.mockResolvedValue('client-own');
+    findStockBalanceSummary.execute.mockResolvedValue([]);
+
+    await expect(
+      controller.findSummary(producerReq, 'client-other'),
+    ).resolves.toEqual([]);
+
+    expect(clientUserReader.findClientIdByUserId).toHaveBeenCalledWith('user-2');
+    expect(findStockBalanceSummary.execute).toHaveBeenCalledWith('client-own');
   });
 });
