@@ -37,18 +37,20 @@ import {
   listInputs,
   listReceptionPhotos,
   listReceptions,
-  listStock,
+  listStockSummary,
   rejectReception,
   uploadReceptionPhoto,
   validateReception,
   RECEPTION_STATUS_LABELS,
+  STOCK_STATUS_LABELS,
   type ClientDTO,
   type InputDTO,
   type ReceptionDTO,
   type ReceptionItemDTO,
   type ReceptionPhotoDTO,
   type ReceptionStatus,
-  type StockDTO,
+  type StockBalanceSummaryItemDTO,
+  type StockStatus,
 } from "@/api/client";
 
 /* ------------------------------------------------------------------ */
@@ -73,6 +75,14 @@ const RECEPTION_BADGE: StatusMap<ReceptionStatus> = {
   VALIDADA: { label: RECEPTION_STATUS_LABELS.VALIDADA, tone: "green" },
   RECHAZADA: { label: RECEPTION_STATUS_LABELS.RECHAZADA, tone: "earth" },
 };
+
+const STOCK_BALANCE_BADGE: StatusMap<StockStatus> = {
+  FALTANTE: { label: STOCK_STATUS_LABELS.FALTANTE, tone: "earth" },
+  OK: { label: STOCK_STATUS_LABELS.OK, tone: "green" },
+  SOBRANTE: { label: STOCK_STATUS_LABELS.SOBRANTE, tone: "wheat" },
+};
+
+const MAX_RECEPTION_PHOTOS = 5;
 
 /** Semantic text tone for a shortage (negative) / surplus (positive) variance. */
 function varianceTone(variance: number): string {
@@ -207,7 +217,7 @@ export default function InsumosPage() {
   const [myClient, setMyClient] = useState<{ id: string; name: string } | null>(null);
   const [inputs, setInputs] = useState<InputDTO[]>([]);
   const [receptions, setReceptions] = useState<ReceptionDTO[]>([]);
-  const [stock, setStock] = useState<StockDTO[]>([]);
+  const [stockSummary, setStockSummary] = useState<StockBalanceSummaryItemDTO[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -242,8 +252,8 @@ export default function InsumosPage() {
   const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
   const [createError, setCreateError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const [createPhoto, setCreatePhoto] = useState<{ dataUrl: string; name: string } | null>(
-    null,
+  const [createPhotos, setCreatePhotos] = useState<{ id: string; dataUrl: string; name: string }[]>(
+    [],
   );
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [preparingPhoto, setPreparingPhoto] = useState(false);
@@ -298,15 +308,17 @@ export default function InsumosPage() {
     };
   }, [version, ready, isClient]);
 
-  /* ----- Stock for the selected client (auto-scoped for a PRODUCTOR) ----- */
+  /* ----- Stock balance for the selected client (auto-scoped for a PRODUCTOR) ----- */
   useEffect(() => {
     if (!ready) return;
     if (!isClient && !selectedClientId) return;
     let alive = true;
-    const request = isClient ? listStock() : listStock(selectedClientId);
+    const request = isClient
+      ? listStockSummary()
+      : listStockSummary(selectedClientId);
     request
       .then((data) => {
-        if (alive) setStock(data);
+        if (alive) setStockSummary(data);
       })
       .catch((err) => {
         if (alive) setStockError(describeError(err));
@@ -456,30 +468,58 @@ export default function InsumosPage() {
       { key: nextKey(), inputId: inputs[0]?.id ?? "", quantity: "" },
     ]);
     setCreateError(null);
-    setCreatePhoto(null);
+    setCreatePhotos([]);
     setPhotoError(null);
     setCreateOpen(true);
   }, [isAdmin, selectedClientId, clients, inputs, myClient]);
 
-  const handlePhotoChange = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    // Reset the input so removing and re-selecting the same file works.
-    event.target.value = "";
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setPhotoError("El archivo debe ser una imagen.");
-      return;
-    }
-    setPreparingPhoto(true);
+  const handlePhotoChange = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(event.target.files ?? []);
+      // Reset the input so removing and re-selecting the same file works.
+      event.target.value = "";
+      if (files.length === 0) return;
+
+      const remaining = MAX_RECEPTION_PHOTOS - createPhotos.length;
+      if (remaining <= 0) {
+        setPhotoError(`Podés adjuntar hasta ${MAX_RECEPTION_PHOTOS} fotos por ingreso.`);
+        return;
+      }
+
+      const invalid = files.some((file) => !file.type.startsWith("image/"));
+      if (invalid) {
+        setPhotoError("Todos los archivos deben ser imágenes.");
+        return;
+      }
+
+      const batch = files.slice(0, remaining);
+      setPreparingPhoto(true);
+      setPhotoError(
+        files.length > remaining
+          ? `Se adjuntaron las primeras ${remaining} fotos (máximo ${MAX_RECEPTION_PHOTOS}).`
+          : null,
+      );
+      try {
+        const processed = await Promise.all(
+          batch.map(async (file) => ({
+            id: nextKey(),
+            dataUrl: await downscaleImage(file),
+            name: file.name,
+          })),
+        );
+        setCreatePhotos((prev) => [...prev, ...processed].slice(0, MAX_RECEPTION_PHOTOS));
+      } catch {
+        setPhotoError("No se pudo procesar alguna imagen. Probá con otro archivo.");
+      } finally {
+        setPreparingPhoto(false);
+      }
+    },
+    [createPhotos.length],
+  );
+
+  const removeCreatePhoto = useCallback((id: string) => {
+    setCreatePhotos((prev) => prev.filter((photo) => photo.id !== id));
     setPhotoError(null);
-    try {
-      const dataUrl = await downscaleImage(file);
-      setCreatePhoto({ dataUrl, name: file.name });
-    } catch {
-      setPhotoError("No se pudo procesar la imagen. Probá con otro archivo.");
-    } finally {
-      setPreparingPhoto(false);
-    }
   }, []);
 
   const updateDraftItem = (key: string, patch: Partial<DraftItem>) => {
@@ -545,12 +585,18 @@ export default function InsumosPage() {
 
       // The reception is already created at this point: a failed photo upload
       // must warn without discarding it.
-      if (createPhoto) {
-        try {
-          await uploadReceptionPhoto(created.id, createPhoto.dataUrl);
-        } catch (photoErr) {
+      if (createPhotos.length > 0) {
+        let failedPhotos = 0;
+        for (let index = 0; index < createPhotos.length; index += 1) {
+          try {
+            await uploadReceptionPhoto(created.id, createPhotos[index].dataUrl, index);
+          } catch {
+            failedPhotos += 1;
+          }
+        }
+        if (failedPhotos > 0) {
           toast.error(
-            `El ingreso quedó registrado, pero no se pudo adjuntar la foto: ${describeError(photoErr)}`,
+            `El ingreso quedó registrado, pero no se pudieron adjuntar ${failedPhotos} foto(s).`,
           );
         }
       }
@@ -568,7 +614,7 @@ export default function InsumosPage() {
       }
       setCreateOpen(false);
       setDraftItems([]);
-      setCreatePhoto(null);
+      setCreatePhotos([]);
       setPhotoError(null);
       refresh();
     } catch (err) {
@@ -578,24 +624,71 @@ export default function InsumosPage() {
     } finally {
       setCreating(false);
     }
-  }, [creating, createClientId, createDate, draftItems, createPhoto, toast, refresh, isAdmin]);
+  }, [creating, createClientId, createDate, draftItems, createPhotos, toast, refresh, isAdmin]);
 
   /* ----- Tables ----- */
-  const stockColumns: DataTableColumn<StockDTO>[] = [
+  const balanceColumns: DataTableColumn<StockBalanceSummaryItemDTO>[] = [
     {
       key: "input",
       header: "Insumo",
       render: (row) => <span className="font-medium text-ink">{row.inputName}</span>,
     },
     {
-      key: "quantity",
+      key: "received",
+      header: "Ingresado",
+      align: "right",
+      render: (row) => (
+        <span className="op-num text-ink-soft">
+          {numberFmt.format(row.receivedQuantity)}
+          <span className="ml-1 text-xs text-ink-faint">{row.unit}</span>
+        </span>
+      ),
+    },
+    {
+      key: "consumed",
+      header: "Consumido",
+      align: "right",
+      render: (row) => (
+        <span className="op-num text-ink-soft">
+          {numberFmt.format(row.consumedQuantity)}
+          <span className="ml-1 text-xs text-ink-faint">{row.unit}</span>
+        </span>
+      ),
+    },
+    {
+      key: "available",
       header: "Disponible",
       align: "right",
       render: (row) => (
         <span className="op-num font-semibold text-ink">
-          {numberFmt.format(row.quantity)}
+          {numberFmt.format(row.availableQuantity)}
           <span className="ml-1 text-xs font-medium text-ink-faint">{row.unit}</span>
         </span>
+      ),
+    },
+    {
+      key: "planned",
+      header: "Planificado (recetas)",
+      align: "right",
+      render: (row) => (
+        <span className="op-num text-ink-soft">
+          {numberFmt.format(row.plannedQuantity)}
+          <span className="ml-1 text-xs text-ink-faint">{row.unit}</span>
+        </span>
+      ),
+    },
+    {
+      key: "balance",
+      header: "Balance vs. recetas",
+      align: "right",
+      render: (row) => (
+        <div className="inline-flex items-center justify-end gap-2">
+          <span className={`op-num text-xs font-semibold ${varianceTone(row.netVsPlanned)}`}>
+            {row.netVsPlanned > 0 ? "+" : ""}
+            {numberFmt.format(row.netVsPlanned)} {row.unit}
+          </span>
+          <StatusBadge status={row.status} map={STOCK_BALANCE_BADGE} />
+        </div>
       ),
     },
   ];
@@ -729,12 +822,10 @@ export default function InsumosPage() {
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-agro-border px-5 py-4">
           <div>
             <h3 className="font-semibold text-ink">
-              {isAdmin ? "Stock por cliente" : "Mi stock"}
+              {isAdmin ? "Balance de insumos por cliente" : "Mi balance de insumos"}
             </h3>
             <p className="text-sm text-ink-soft">
-              {isAdmin
-                ? "Disponible según recepciones validadas."
-                : "Disponible según ingresos validados."}
+              Ingresado validado, consumido en partes diarios, disponible y comparación contra recetas activas.
             </p>
           </div>
           {isAdmin ? (
@@ -758,24 +849,24 @@ export default function InsumosPage() {
         </div>
 
         {stockError ? (
-          <Alert tone="error" title="No se pudo cargar el stock" className="m-5">
+          <Alert tone="error" title="No se pudo cargar el balance" className="m-5">
             {stockError}
           </Alert>
         ) : (
           <DataTable
-            columns={stockColumns}
-            data={stock}
-            rowKey={(row) => row.id}
+            columns={balanceColumns}
+            data={stockSummary}
+            rowKey={(row) => row.inputId}
             loading={stockLoading}
             skeletonRows={4}
             emptyState={
               <EmptyState
                 icon={<InputsIcon />}
-                title="Sin stock para este cliente"
+                title="Sin movimientos de insumos para este cliente"
                 subtitle={
                   scopeClientName
-                    ? `No hay insumos disponibles para ${scopeClientName}.`
-                    : "Seleccioná un cliente para ver su stock."
+                    ? `No hay ingresos, consumos ni recetas activas para ${scopeClientName}.`
+                    : "Seleccioná un cliente para ver su balance."
                 }
               />
             }
@@ -1175,43 +1266,50 @@ export default function InsumosPage() {
 
           <div>
             <span className="mb-1.5 block text-xs font-semibold text-ink-faint">
-              Foto del remito (opcional)
+              Fotos del remito (opcional · hasta {MAX_RECEPTION_PHOTOS})
             </span>
-            {createPhoto ? (
-              <div className="flex items-start gap-3 rounded-lg border border-agro-border bg-base-subtle/40 p-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={createPhoto.dataUrl}
-                  alt="Vista previa de la foto adjunta"
-                  className="h-24 w-32 shrink-0 rounded-lg border border-agro-border object-cover"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-ink">{createPhoto.name}</p>
-                  <p className="mt-0.5 text-xs text-ink-soft">
-                    Se subirá comprimida al registrar el ingreso.
-                  </p>
-                  <div className="mt-2">
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        setCreatePhoto(null);
-                        setPhotoError(null);
-                      }}
+            {createPhotos.length > 0 && (
+              <ul className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {createPhotos.map((photo, index) => (
+                  <li
+                    key={photo.id}
+                    className="flex items-center gap-3 rounded-lg border border-agro-border bg-base-subtle/40 p-2.5"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo.dataUrl}
+                      alt={`Vista previa ${index + 1}`}
+                      className="h-16 w-20 shrink-0 rounded-md border border-agro-border object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-ink">{photo.name}</p>
+                      <p className="mt-0.5 text-[11px] text-ink-soft">Foto {index + 1}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeCreatePhoto(photo.id)}
                       disabled={creating || preparingPhoto}
+                      title="Quitar foto"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-agro-border text-ink-soft transition-colors hover:bg-base-subtle hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <XIcon className="h-4 w-4" />
-                      Quitar foto
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-agro-border bg-base-subtle/30 px-4 py-5 text-sm font-medium text-ink-soft transition-colors hover:border-agro-border-strong hover:text-ink">
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {createPhotos.length < MAX_RECEPTION_PHOTOS && (
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-agro-border bg-base-subtle/30 px-4 py-4 text-sm font-medium text-ink-soft transition-colors hover:border-agro-border-strong hover:text-ink">
                 <CameraIcon className="h-5 w-5" />
-                {preparingPhoto ? "Procesando imagen…" : "Adjuntar foto"}
+                {preparingPhoto
+                  ? "Procesando imágenes…"
+                  : createPhotos.length === 0
+                    ? "Adjuntar fotos"
+                    : `Agregar más fotos (${createPhotos.length}/${MAX_RECEPTION_PHOTOS})`}
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   className="hidden"
                   onChange={(event) => void handlePhotoChange(event)}
                   disabled={creating || preparingPhoto}

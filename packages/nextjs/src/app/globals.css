@@ -1002,6 +1002,18 @@ body {
   background: color-mix(in srgb, var(--op-signal) 7%, transparent);
 }
 
+.op-timeline-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--op-line-strong) transparent;
+}
+.op-timeline-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.op-timeline-scroll::-webkit-scrollbar-thumb {
+  background: var(--op-line-strong);
+  border-radius: 999px;
+}
+
 /* --- Shared dashboard components, re-skinned inside the world --- */
 .operate-world .card-surface {
   background-image: none;

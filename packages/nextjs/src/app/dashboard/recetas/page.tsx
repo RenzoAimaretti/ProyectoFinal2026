@@ -2,22 +2,28 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/ui/layout";
-import { Badge, Card, EmptyState } from "@/components/ui/primitives";
+import { Badge, Button, Card, EmptyState } from "@/components/ui/primitives";
 import { Alert } from "@/components/ui/feedback";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertIcon, ClipboardIcon, RefreshIcon } from "@/components/ui/icons";
+import { AlertIcon, ClipboardIcon, PlusIcon, RefreshIcon } from "@/components/ui/icons";
+import { useAuth } from "@/components/ui/auth";
 import { navItems, notifyPrescriptionInboxChanged } from "@/components/ui/nav";
+import { CreateTaskFromAlertModal } from "@/components/recetas/create-task-from-alert-modal";
 import {
   PrescriptionEditor,
   type EditorContext,
 } from "@/components/recetas/prescription-editor";
 import {
   ApiError,
+  listLaborTypes,
   listPendingPrescriptions,
   listReapplicationAlerts,
+  listUsers,
+  type LaborTypeDTO,
   type PendingPrescriptionTaskDTO,
   type ReapplicationAlertDTO,
   type TaskDTO,
+  type UserDTO,
 } from "@/api/client";
 
 /* ------------------------------------------------------------------ */
@@ -99,12 +105,18 @@ function describeError(err: unknown): string {
 /* ------------------------------------------------------------------ */
 
 export default function RecetasPage() {
+  const { user } = useAuth();
+  const canWritePrescription = user?.role === "INGENIERO";
+  const canCreateTask = user?.role === "ADMIN" || user?.role === "SUPERVISOR";
   const [tasks, setTasks] = useState<PendingPrescriptionTaskDTO[]>([]);
   const [alerts, setAlerts] = useState<ReapplicationAlertDTO[]>([]);
+  const [laborTypes, setLaborTypes] = useState<LaborTypeDTO[]>([]);
+  const [users, setUsers] = useState<UserDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
   const [editorContext, setEditorContext] = useState<EditorContext | null>(null);
+  const [taskAlert, setTaskAlert] = useState<ReapplicationAlertDTO | null>(null);
 
   const refresh = useCallback(() => {
     setLoading(true);
@@ -134,11 +146,18 @@ export default function RecetasPage() {
 
   useEffect(() => {
     let alive = true;
-    Promise.all([listPendingPrescriptions(), listReapplicationAlerts()])
-      .then(([taskList, alertList]) => {
+    Promise.all([
+      listPendingPrescriptions(),
+      listReapplicationAlerts(),
+      canCreateTask ? listLaborTypes() : Promise.resolve([]),
+      canCreateTask ? listUsers().catch(() => []) : Promise.resolve([]),
+    ])
+      .then(([taskList, alertList, laborList, userList]) => {
         if (alive) {
           setTasks(Array.isArray(taskList) ? taskList : []);
           setAlerts(Array.isArray(alertList) ? alertList : []);
+          setLaborTypes(Array.isArray(laborList) ? laborList : []);
+          setUsers(Array.isArray(userList) ? userList : []);
         }
       })
       .catch((err) => {
@@ -150,7 +169,7 @@ export default function RecetasPage() {
     return () => {
       alive = false;
     };
-  }, [version]);
+  }, [version, canCreateTask]);
 
   /** Oldest start first; rows without a start go last. */
   const rows = useMemo(
@@ -305,8 +324,17 @@ export default function RecetasPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between border-t border-agro-border pt-2 text-xs text-ink-soft">
-                    <span>Cliente: {alert.clientName}</span>
+                  <div className="mt-3 flex items-center justify-between gap-2 border-t border-agro-border pt-2 text-xs text-ink-soft">
+                    <span className="truncate">Cliente: {alert.clientName}</span>
+                    {canCreateTask && (
+                      <Button
+                        variant="secondary"
+                        onClick={() => setTaskAlert(alert)}
+                      >
+                        <PlusIcon className="h-3.5 w-3.5" />
+                        Crear tarea
+                      </Button>
+                    )}
                   </div>
                 </Card>
               );
@@ -358,13 +386,15 @@ export default function RecetasPage() {
 
                     <div className="flex shrink-0 flex-col items-end gap-2">
                       <Badge tone="wheat">Sin receta</Badge>
-                      <button
-                        type="button"
-                        className="op-btn op-btn--primary"
-                        onClick={() => openEditor(task)}
-                      >
-                        Escribir receta
-                      </button>
+                      {canWritePrescription && (
+                        <button
+                          type="button"
+                          className="op-btn op-btn--primary"
+                          onClick={() => openEditor(task)}
+                        >
+                          Escribir receta
+                        </button>
+                      )}
                     </div>
                   </div>
                 </li>
@@ -374,7 +404,7 @@ export default function RecetasPage() {
         </Card>
       )}
 
-      {editorContext && (
+      {canWritePrescription && editorContext && (
         <PrescriptionEditor
           key={editorContext.taskId}
           mode="create"
@@ -383,6 +413,14 @@ export default function RecetasPage() {
           onSaved={handleSaved}
         />
       )}
+
+      <CreateTaskFromAlertModal
+        alert={taskAlert}
+        laborTypes={laborTypes}
+        users={users}
+        onClose={() => setTaskAlert(null)}
+        onCreated={refresh}
+      />
     </DashboardLayout>
   );
 }

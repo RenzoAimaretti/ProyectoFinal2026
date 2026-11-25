@@ -7,15 +7,13 @@ import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/ui/layout";
 import {
   Badge,
+  Button,
   Card,
   CardHeader,
   EmptyState,
-  ProgressBar,
-  StatRow,
   type KpiDeltaDirection,
 } from "@/components/ui/primitives";
 import { Alert, useToast } from "@/components/ui/feedback";
-import { DataTable, type DataTableColumn } from "@/components/ui/table";
 import { isApproverRole, isClientRole, navItems } from "@/components/ui/nav";
 import { useAuth } from "@/components/ui/auth";
 import { Spinner } from "@/components/ui/spinner";
@@ -25,15 +23,19 @@ import {
   FieldIcon,
   InboxIcon,
   InputsIcon,
+  PlusIcon,
   RefreshIcon,
 } from "@/components/ui/icons";
 import {
-  BarChart,
-  Donut,
   TrendChart,
   type ChartSeries,
-  type Segment,
 } from "@/components/ui/charts";
+import {
+  DailyTasksTimeline,
+  hasFollowUpTaskForAlert,
+} from "@/components/dashboard/daily-tasks-timeline";
+import { FieldTelemetryStrip } from "@/components/dashboard/field-telemetry-strip";
+import { CreateTaskFromAlertModal } from "@/components/recetas/create-task-from-alert-modal";
 import {
   ApiError,
   approveDailyReport,
@@ -41,21 +43,24 @@ import {
   getLotWeather,
   getStoredUser,
   getUsdOfficial,
-  listClients,
   listDailyReports,
+  listLaborTypes,
   listLots,
+  listReapplicationAlerts,
   listReceptions,
-  listStock,
+  listTasks,
+  listUsers,
   rejectDailyReport,
   rejectReception,
   validateReception,
-  RECEPTION_STATUS_LABELS,
-  type ClientDTO,
   type DailyReportDTO,
   type GrainPricesResponse,
+  type LaborTypeDTO,
+  type ReapplicationAlertDTO,
   type ReceptionDTO,
-  type StockDTO,
+  type TaskDTO,
   type UsdRateResponse,
+  type UserDTO,
   type WeatherResponse,
 } from "@/api/client";
 import {
@@ -176,117 +181,51 @@ function describeError(err: unknown, subject: string): ActionFeedback {
   return { message: "Ocurrió un error inesperado. Intentá nuevamente.", refresh: false };
 }
 
-/* ------------------------------------------------------------------ */
-/* Signature move: lot / parcel plan model                             */
-/* ------------------------------------------------------------------ */
-
-type PlanStatus = "pendiente" | "aprobado" | "rechazado" | "vacio";
-
-type LotPlanEntry = {
-  id: string;
-  lotName: string;
-  farmName: string;
-  status: PlanStatus;
-  count: number;
-};
-
-type ClientPlanEntry = {
-  id: string;
-  name: string;
-  status: PlanStatus;
-  count: number;
-};
-
-const PLAN_LEGEND: { status: PlanStatus; label: string }[] = [
-  { status: "pendiente", label: "Pendiente" },
-  { status: "aprobado", label: "Resuelto" },
-  { status: "rechazado", label: "Rechazado" },
-  { status: "vacio", label: "Sin registros" },
-];
-
-function dominantStatus(pending: number, resolved: number, rejected: number): PlanStatus {
-  if (pending > 0) return "pendiente";
-  if (resolved > 0) return "aprobado";
-  if (rejected > 0) return "rechazado";
-  return "vacio";
-}
-
 const DELTA_TONE: Record<KpiDeltaDirection, string> = {
   up: "op-field-text",
   down: "op-signal-text",
   flat: "text-ink-soft",
 };
 
-type StockRow = {
-  id: string;
-  clientName: string;
-  inputName: string;
-  unit: string;
-  quantity: number;
+const ALERT_URGENCY_META = {
+  OVERDUE: { label: "Vencida", tone: "earth" as const },
+  DUE_TODAY: { label: "Vence hoy", tone: "wheat" as const },
+  UPCOMING: { label: "Por vencer", tone: "green" as const },
 };
 
 /* ------------------------------------------------------------------ */
 /* Small console building blocks                                       */
 /* ------------------------------------------------------------------ */
 
-function KpiTile({
+function WeeklyPulseTile({
   label,
   value,
-  hint,
   delta,
-  href,
   loading,
-  signal = false,
   icon,
 }: {
   label: string;
   value: string;
-  hint?: string;
-  delta?: { text: string; direction: KpiDeltaDirection };
-  href?: string;
+  delta: { text: string; direction: KpiDeltaDirection };
   loading: boolean;
-  signal?: boolean;
   icon?: React.ReactNode;
 }) {
-  const body = (
-    <>
+  return (
+    <div className="op-plate flex flex-1 flex-col justify-between p-4" aria-busy={loading}>
       <div className="flex items-start justify-between gap-2">
         <p className="op-label">{label}</p>
         {icon && <span className="text-ink-faint">{icon}</span>}
       </div>
       {loading ? (
-        <div className="skeleton mt-2.5 h-8 w-24" aria-hidden="true" />
+        <div className="skeleton mt-3 h-8 w-24" aria-hidden="true" />
       ) : (
-        <p className={`op-num mt-2 text-3xl font-bold leading-none ${signal ? "op-signal-text" : "text-ink"}`}>
-          {value}
-        </p>
+        <>
+          <p className="op-num mt-2 text-3xl font-bold leading-none text-ink">{value}</p>
+          <p className={`mt-2 text-xs font-medium ${DELTA_TONE[delta.direction]}`}>
+            {delta.text}
+          </p>
+        </>
       )}
-      {!loading &&
-        (delta ? (
-          <p className={`mt-1.5 text-xs font-medium ${DELTA_TONE[delta.direction]}`}>{delta.text}</p>
-        ) : hint ? (
-          <p className="mt-1.5 text-xs text-ink-faint">{hint}</p>
-        ) : null)}
-    </>
-  );
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        aria-busy={loading}
-        className="op-plate group block p-4 transition-colors hover:bg-base-subtle"
-      >
-        {body}
-        <span className="op-label mt-2 flex items-center gap-1 group-hover:text-ink">
-          Ver cola <ArrowRightIcon className="h-3.5 w-3.5" />
-        </span>
-      </Link>
-    );
-  }
-  return (
-    <div className="op-plate p-4" aria-busy={loading}>
-      {body}
     </div>
   );
 }
@@ -304,16 +243,6 @@ function QueueSkeleton() {
   );
 }
 
-function PlanSkeleton() {
-  return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-hidden="true">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="skeleton h-16" />
-      ))}
-    </div>
-  );
-}
-
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
@@ -323,14 +252,22 @@ export default function Dashboard() {
   const router = useRouter();
   const toast = useToast();
 
+  const effectiveRole = user?.role ?? getStoredUser()?.role;
+  const isApprover = isApproverRole(effectiveRole);
+  const canCreateTask =
+    effectiveRole === "ADMIN" || effectiveRole === "SUPERVISOR";
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
 
   const [reports, setReports] = useState<DailyReportDTO[]>([]);
   const [receptions, setReceptions] = useState<ReceptionDTO[]>([]);
-  const [clients, setClients] = useState<ClientDTO[]>([]);
-  const [stockRows, setStockRows] = useState<StockRow[]>([]);
+  const [tasks, setTasks] = useState<TaskDTO[]>([]);
+  const [alerts, setAlerts] = useState<ReapplicationAlertDTO[]>([]);
+  const [laborTypes, setLaborTypes] = useState<LaborTypeDTO[]>([]);
+  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [taskAlert, setTaskAlert] = useState<ReapplicationAlertDTO | null>(null);
 
   // External integrations block (weather, radar, USD, grain board).
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
@@ -343,7 +280,6 @@ export default function Dashboard() {
   const [weatherError, setWeatherError] = useState<string | null>(null);
   const [weatherVersion, setWeatherVersion] = useState(0);
 
-  const [focused, setFocused] = useState<string | null>(null);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [rejectingKey, setRejectingKey] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
@@ -356,6 +292,19 @@ export default function Dashboard() {
     setWeatherLoading(true);
     setWeatherError(null);
     setWeatherVersion((v) => v + 1);
+  }, []);
+
+  const reloadTasksAndAlerts = useCallback(async () => {
+    try {
+      const [taskList, alertList] = await Promise.all([
+        listTasks(),
+        listReapplicationAlerts(),
+      ]);
+      setTasks(Array.isArray(taskList) ? taskList : []);
+      setAlerts(Array.isArray(alertList) ? alertList : []);
+    } catch {
+      /* keep current state */
+    }
   }, []);
 
   // Loading is flagged here, in the event handler, so the weather effect below
@@ -378,47 +327,39 @@ export default function Dashboard() {
       }
 
       try {
-        const [reportsRes, receptionsRes, clientsRes] = await Promise.allSettled([
+        const [
+          reportsRes,
+          receptionsRes,
+          tasksRes,
+          alertsRes,
+          laborTypesRes,
+          usersRes,
+        ] = await Promise.allSettled([
           listDailyReports(),
           listReceptions(),
-          listClients(),
+          listTasks(),
+          listReapplicationAlerts(),
+          canCreateTask ? listLaborTypes() : Promise.resolve([]),
+          canCreateTask ? listUsers().catch(() => []) : Promise.resolve([]),
         ]);
         if (!alive) return;
 
         if (reportsRes.status === "fulfilled") setReports(reportsRes.value);
         if (receptionsRes.status === "fulfilled") setReceptions(receptionsRes.value);
+        if (tasksRes.status === "fulfilled") {
+          setTasks(Array.isArray(tasksRes.value) ? tasksRes.value : []);
+        }
+        if (alertsRes.status === "fulfilled") {
+          setAlerts(Array.isArray(alertsRes.value) ? alertsRes.value : []);
+        }
+        if (laborTypesRes.status === "fulfilled") {
+          setLaborTypes(Array.isArray(laborTypesRes.value) ? laborTypesRes.value : []);
+        }
+        if (usersRes.status === "fulfilled") {
+          setUsers(Array.isArray(usersRes.value) ? usersRes.value : []);
+        }
 
-        const clientList: ClientDTO[] =
-          clientsRes.status === "fulfilled" ? clientsRes.value : [];
-        setClients(clientList);
-
-        const stockResults = await Promise.allSettled(
-          clientList.map((client) => listStock(client.id)),
-        );
-        if (!alive) return;
-
-        const rows: StockRow[] = [];
-        stockResults.forEach((result, index) => {
-          if (result.status !== "fulfilled") return;
-          const client = clientList[index];
-          result.value.forEach((entry: StockDTO) => {
-            rows.push({
-              id: entry.id,
-              clientName: client.name,
-              inputName: entry.inputName,
-              unit: entry.unit,
-              quantity: entry.quantity,
-            });
-          });
-        });
-        rows.sort(
-          (a, b) =>
-            a.clientName.localeCompare(b.clientName) ||
-            a.inputName.localeCompare(b.inputName),
-        );
-        setStockRows(rows);
-
-        const failed = [reportsRes, receptionsRes, clientsRes].some(
+        const failed = [reportsRes, receptionsRes, tasksRes].some(
           (r) => r.status === "rejected",
         );
         if (failed) {
@@ -437,14 +378,10 @@ export default function Dashboard() {
     return () => {
       alive = false;
     };
-  }, [version, router]);
+  }, [version, router, canCreateTask]);
 
   // Integrations block. USD and grain prices are global market data; the
-  // weather is resolved server-side from a lot with a polygon, because the
-  // backend refuses to invent a location (spec A4) and so do we. Only lots with
-  // coordinates are offered; the first one is the default and the user's pick
-  // survives a refresh while that lot still exists. State is only written after
-  // the awaits, mirroring the effect above.
+  // weather is resolved server-side from a lot with a polygon or coordinates.
   useEffect(() => {
     if (isClientRole(user?.role)) return;
     let alive = true;
@@ -471,14 +408,14 @@ export default function Dashboard() {
       }
 
       const options: WeatherLotOption[] = lotsRes.value
-        .filter((l) => Boolean(l.coords && l.coords.trim()))
+        .filter((l) => Boolean(l.polygon || (l.coords && l.coords.trim())))
         .map((l) => ({ id: l.id, name: l.name }));
       setWeatherLots(options);
 
       if (options.length === 0) {
         setSelectedLotId(null);
         setWeather(null);
-        setWeatherError("Cargá coordenadas en algún lote para ver el clima de tu zona.");
+        setWeatherError("Delimitá un lote en Mi Campo para ver clima, viento y radar.");
         setWeatherLoading(false);
         return;
       }
@@ -522,7 +459,7 @@ export default function Dashboard() {
   const weatherLocationName =
     weatherLots.find((lot) => lot.id === selectedLotId)?.name ?? null;
 
-  /* ----- Queues (the actionable work leads) ----- */
+  /* ----- Queues (the actionable work) ----- */
   const pendingReports = useMemo(
     () => reports.filter((r) => r.status === "PENDIENTE_APROBACION"),
     [reports],
@@ -533,70 +470,11 @@ export default function Dashboard() {
   );
   const decisionCount = pendingReports.length + pendingReceptions.length;
 
-  /* ----- Signature move: lot / client plan keyed to the queues ----- */
-  const lotPlan = useMemo<LotPlanEntry[]>(() => {
-    const map = new Map<
-      string,
-      { lotName: string; farmName: string; pending: number; approved: number; rejected: number; count: number }
-    >();
-    reports.forEach((r) => {
-      const entry =
-        map.get(r.lotId) ?? {
-          lotName: r.lotName,
-          farmName: r.farmName,
-          pending: 0,
-          approved: 0,
-          rejected: 0,
-          count: 0,
-        };
-      entry.count += 1;
-      if (r.status === "PENDIENTE_APROBACION") entry.pending += 1;
-      else if (r.status === "APROBADO") entry.approved += 1;
-      else entry.rejected += 1;
-      map.set(r.lotId, entry);
-    });
-    return [...map.entries()]
-      .map(([id, e]) => ({
-        id,
-        lotName: e.lotName,
-        farmName: e.farmName,
-        count: e.count,
-        status: dominantStatus(e.pending, e.approved, e.rejected),
-      }))
-      .sort(
-        (a, b) => a.farmName.localeCompare(b.farmName) || a.lotName.localeCompare(b.lotName),
-      );
-  }, [reports]);
-
-  const clientPlan = useMemo<ClientPlanEntry[]>(() => {
-    const map = new Map<
-      string,
-      { name: string; pending: number; validated: number; rejected: number; count: number }
-    >();
-    receptions.forEach((r) => {
-      const entry =
-        map.get(r.clientId) ?? {
-          name: r.clientName,
-          pending: 0,
-          validated: 0,
-          rejected: 0,
-          count: 0,
-        };
-      entry.count += 1;
-      if (r.status === "PENDIENTE_VALIDACION") entry.pending += 1;
-      else if (r.status === "VALIDADA") entry.validated += 1;
-      else entry.rejected += 1;
-      map.set(r.clientId, entry);
-    });
-    return [...map.entries()]
-      .map(([id, e]) => ({
-        id,
-        name: e.name,
-        count: e.count,
-        status: dominantStatus(e.pending, e.validated, e.rejected),
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [receptions]);
+  /* ----- Due double-hit alerts without a follow-up task ----- */
+  const unassignedDueAlerts = useMemo(
+    () => alerts.filter((alert) => !hasFollowUpTaskForAlert(alert, tasks)),
+    [alerts, tasks],
+  );
 
   /* ----- Weekly hectares/hours with a real week-over-week delta ----- */
   const weekStart = startOfWeek();
@@ -628,20 +506,7 @@ export default function Dashboard() {
     };
   }, [reports, weekStart, weekEnd, prevWeekStart]);
 
-  const approvedPct =
-    reports.length === 0
-      ? 0
-      : Math.round(
-          (reports.filter((r) => r.status === "APROBADO").length / reports.length) * 100,
-        );
-  const validatedPct =
-    receptions.length === 0
-      ? 0
-      : Math.round(
-          (receptions.filter((r) => r.status === "VALIDADA").length / receptions.length) * 100,
-        );
-
-  /* ----- Designed charts from real data ----- */
+  /* ----- Daily activity chart (14 days) ----- */
   const activity = useMemo(() => {
     const days = lastNDays(14);
     const reportCounts = new Map<string, number>();
@@ -673,57 +538,6 @@ export default function Dashboard() {
     };
   }, [reports, receptions]);
 
-  const weeklyReceptions = useMemo(() => {
-    const days = lastNDays(7);
-    const total = new Map<string, number>();
-    const validated = new Map<string, number>();
-    receptions.forEach((r) => {
-      const k = toDayKey(r.date);
-      if (k) total.set(k, (total.get(k) ?? 0) + 1);
-      if (r.status === "VALIDADA") {
-        const vk = toDayKey(r.validatedAt ?? r.date);
-        if (vk) validated.set(vk, (validated.get(vk) ?? 0) + 1);
-      }
-    });
-    return {
-      labels: days.map((d) => d.label),
-      series: [
-        {
-          key: "ingresos",
-          label: "Ingresos",
-          color: "var(--op-ink)",
-          values: days.map((d) => total.get(d.key) ?? 0),
-        },
-        {
-          key: "validadas",
-          label: "Validadas",
-          color: "var(--op-field)",
-          values: days.map((d) => validated.get(d.key) ?? 0),
-        },
-      ] satisfies ChartSeries[],
-    };
-  }, [receptions]);
-
-  const receptionStatus = useMemo(
-    () => ({
-      validated: receptions.filter((r) => r.status === "VALIDADA").length,
-      pending: pendingReceptions.length,
-      rejected: receptions.filter((r) => r.status === "RECHAZADA").length,
-    }),
-    [receptions, pendingReceptions],
-  );
-
-  const donutSegments: Segment[] = useMemo(
-    () => [
-      { label: RECEPTION_STATUS_LABELS.VALIDADA, value: receptionStatus.validated, color: "var(--op-field)" },
-      { label: RECEPTION_STATUS_LABELS.PENDIENTE_VALIDACION, value: receptionStatus.pending, color: "var(--op-signal)" },
-      { label: RECEPTION_STATUS_LABELS.RECHAZADA, value: receptionStatus.rejected, color: "var(--op-clay)" },
-    ],
-    [receptionStatus],
-  );
-
-  const isApprover = isApproverRole(user?.role);
-
   /* ----- Mutations (optimistic + reconcile) ----- */
   const reloadReports = useCallback(async () => {
     try {
@@ -740,34 +554,6 @@ export default function Dashboard() {
       /* keep current list */
     }
   }, []);
-
-  const reloadStock = useCallback(async () => {
-    if (clients.length === 0) return;
-    try {
-      const results = await Promise.allSettled(clients.map((c) => listStock(c.id)));
-      const rows: StockRow[] = [];
-      results.forEach((result, index) => {
-        if (result.status !== "fulfilled") return;
-        const client = clients[index];
-        result.value.forEach((entry: StockDTO) => {
-          rows.push({
-            id: entry.id,
-            clientName: client.name,
-            inputName: entry.inputName,
-            unit: entry.unit,
-            quantity: entry.quantity,
-          });
-        });
-      });
-      rows.sort(
-        (a, b) =>
-          a.clientName.localeCompare(b.clientName) || a.inputName.localeCompare(b.inputName),
-      );
-      setStockRows(rows);
-    } catch {
-      /* keep current stock */
-    }
-  }, [clients]);
 
   const resolveReport = useCallback(
     async (report: DailyReportDTO, action: "approve" | "reject") => {
@@ -834,7 +620,6 @@ export default function Dashboard() {
         setRejectingKey(null);
         setRejectReason("");
         await reloadReceptions();
-        if (action === "validate") await reloadStock();
       } catch (err) {
         const feedback = describeError(err, "recepción");
         setReceptions(previous);
@@ -844,7 +629,7 @@ export default function Dashboard() {
         setPendingKey(null);
       }
     },
-    [pendingKey, receptions, rejectReason, reloadReceptions, reloadStock, toast],
+    [pendingKey, receptions, rejectReason, reloadReceptions, toast],
   );
 
   const startReject = useCallback((key: string) => {
@@ -893,30 +678,6 @@ export default function Dashboard() {
     [cancelReject],
   );
 
-  const stockColumns: DataTableColumn<StockRow>[] = [
-    {
-      key: "client",
-      header: "Cliente",
-      render: (row) => <span className="font-medium text-ink">{row.clientName}</span>,
-    },
-    {
-      key: "input",
-      header: "Insumo",
-      render: (row) => <span className="text-ink-soft">{row.inputName}</span>,
-    },
-    {
-      key: "quantity",
-      header: "Stock",
-      align: "right",
-      render: (row) => (
-        <span className="op-num font-semibold text-ink">
-          {numberFmt.format(row.quantity)}
-          <span className="ml-1 text-xs font-medium text-ink-faint">{row.unit}</span>
-        </span>
-      ),
-    },
-  ];
-
   const marketError = marketLoading
     ? null
     : "No se pudo cargar la información de mercado. Reintentá en unos minutos.";
@@ -934,51 +695,21 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout title="Vista general" sidebarItems={navItems} breadcrumb="Panel principal">
-      {/* Top widget block (Visión §5.1): local weather, wind, rain radar, USD
-          and the grain board. Fed only by the backend API. */}
-      <section className="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
-        <WeatherWidget
-          data={weather}
-          loading={weatherLoading}
-          error={weatherError}
-          locationName={weatherLocationName ?? undefined}
-          lots={weatherLots}
-          selectedLotId={selectedLotId}
-          onLotChange={handleWeatherLotChange}
-        />
-        <WindWidget data={weather} loading={weatherLoading} error={weatherError} />
-        <UsdWidget data={usdRate} loading={marketLoading} error={usdRate ? null : marketError} />
-      </section>
-
-      <section className="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-        <RadarWidget
-          data={weather}
-          loading={weatherLoading}
-          error={weatherError}
-          map={weather ? <LeafletMap weather={weather} className="h-72 w-full" /> : null}
-        />
-        <GrainPricesWidget
-          data={grainPrices}
-          loading={marketLoading}
-          error={grainPrices ? null : marketError}
-        />
-      </section>
-
-      {/* Command header */}
-      <section className="op-plate mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
+      {/* 1. Command header + Integrated telemetry strip */}
+      <section className="op-plate mb-4 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
         <div className="min-w-0">
           <p className="op-label">Mesa de decisiones</p>
           <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink">
-            {isApprover ? "Lo que espera tu decisión" : "La campaña, en foco"}
+            Centro de operaciones
           </h2>
           <p className="mt-1 max-w-2xl text-sm text-ink-soft">
             {isApprover
-              ? "Aprobá los partes y validá las recepciones sin salir de la página; el plano se actualiza con cada decisión."
-              : "Resumen de la operación según los partes y las recepciones cargados."}
+              ? "Seguí la jornada en campo, las alertas por vencer y las aprobaciones pendientes."
+              : "Seguí la jornada en campo y el resumen de partes y recepciones."}
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="mr-1 text-right">
             {loading ? (
               <div className="skeleton ml-auto h-8 w-14" aria-hidden="true" />
             ) : (
@@ -996,8 +727,26 @@ export default function Dashboard() {
             <RefreshIcon className="h-4 w-4" />
             {loading ? "Actualizando…" : "Actualizar"}
           </button>
+          {canCreateTask && (
+            <Link href="/dashboard/produccion" className="op-btn op-btn--primary">
+              <PlusIcon className="h-4 w-4" />
+              Nueva tarea
+            </Link>
+          )}
         </div>
       </section>
+
+      <FieldTelemetryStrip
+        weather={weather}
+        weatherLoading={weatherLoading}
+        weatherError={weatherError}
+        lots={weatherLots}
+        selectedLotId={selectedLotId}
+        onLotChange={handleWeatherLotChange}
+        usdRate={usdRate}
+        grainPrices={grainPrices}
+        marketLoading={marketLoading}
+      />
 
       {error && (
         <Alert tone="warning" title="Datos incompletos" className="mb-5" onDismiss={() => setError(null)}>
@@ -1005,394 +754,306 @@ export default function Dashboard() {
         </Alert>
       )}
 
-      {/* Actionable queues + signature plan */}
-      <section className="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-        <div className="flex flex-col gap-5">
-          {/* Partes por aprobar */}
-          <Card className="overflow-hidden">
-            <CardHeader
-              title="Partes por aprobar"
-              subtitle={
-                loading
-                  ? "Cargando…"
-                  : `${pendingReports.length} ${
-                      pendingReports.length === 1 ? "parte" : "partes"
-                    } esperando decisión`
-              }
-              action={
-                <Link href="/dashboard/bandeja-aprobacion" className="op-btn op-btn--quiet">
-                  Ver bandeja <ArrowRightIcon className="h-4 w-4" />
-                </Link>
-              }
-            />
-            {loading ? (
-              <QueueSkeleton />
-            ) : pendingReports.length === 0 ? (
-              <EmptyState
-                icon={<InboxIcon />}
-                title="Nada pendiente"
-                subtitle="No hay partes esperando aprobación."
-              />
-            ) : (
-              <ul>
-                {pendingReports.slice(0, 6).map((report) => {
-                  const key = `report:${report.id}`;
-                  const focusKey = `lot:${report.lotId}`;
-                  const busy = pendingKey === key;
-                  const isRejecting = rejectingKey === key;
-                  return (
-                    <li
-                      key={report.id}
-                      className="op-queue-row px-4 py-3"
-                      data-active={focused === focusKey}
-                      onMouseEnter={() => setFocused(focusKey)}
-                      onMouseLeave={() => setFocused(null)}
-                      onFocus={() => setFocused(focusKey)}
-                      onBlur={(e) => {
-                        if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(null);
-                      }}
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-ink">
-                            {report.laborTypeName}
-                          </p>
-                          <p className="truncate text-xs text-ink-soft">{report.operatorName}</p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="op-caption">{fmtDate(report.date)}</span>
-                          {isApprover ? (
-                            <>
-                              <button
-                                type="button"
-                                className="op-btn op-btn--reject"
-                                disabled={busy}
-                                onClick={() => startReject(key)}
-                              >
-                                Rechazar
-                              </button>
-                              <button
-                                type="button"
-                                className="op-btn op-btn--primary"
-                                disabled={busy}
-                                onClick={() => void resolveReport(report, "approve")}
-                              >
-                                {busy ? "Aprobando…" : "Aprobar"}
-                              </button>
-                            </>
-                          ) : (
-                            <Badge tone="wheat">Pendiente</Badge>
-                          )}
-                        </div>
-                      </div>
-                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-soft">
-                        <span className="flex items-center gap-1.5">
-                          <span className="op-swatch" data-status="pendiente" aria-hidden="true" />
-                          <span className="font-medium text-ink">{report.lotName}</span>
-                        </span>
-                        <span>{report.farmName}</span>
-                        <span className="op-num">
-                          {numberFmt.format(report.hectares)} ha · {numberFmt.format(report.hours)} hs
-                        </span>
-                        <span>{report.clientName}</span>
-                      </div>
-
-                      {isRejecting && (
-                        <div className="mt-3 flex flex-wrap items-end gap-2">
-                          <label className="min-w-[14rem] flex-1">
-                            <span className="op-caption">Motivo del rechazo</span>
-                            <input
-                              autoFocus
-                              type="text"
-                              value={rejectReason}
-                              onChange={(e) => setRejectReason(e.target.value)}
-                              onKeyDown={onReasonKeyDown(() => confirmRejectReport(report))}
-                              placeholder="Ej: las hectáreas no coinciden con la orden de trabajo"
-                              disabled={busy}
-                              className="op-input mt-1 w-full"
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            className="op-btn op-btn--reject"
-                            disabled={busy || !rejectReason.trim()}
-                            onClick={() => confirmRejectReport(report)}
-                          >
-                            {busy ? "Rechazando…" : "Confirmar rechazo"}
-                          </button>
-                          <button
-                            type="button"
-                            className="op-btn op-btn--quiet"
-                            disabled={busy}
-                            onClick={cancelReject}
-                          >
-                            Cancelar
-                          </button>
-                        </div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </Card>
-
-          {/* Recepciones por validar */}
-          <Card className="overflow-hidden">
-            <CardHeader
-              title="Recepciones por validar"
-              subtitle={
-                loading
-                  ? "Cargando…"
-                  : `${pendingReceptions.length} ${
-                      pendingReceptions.length === 1 ? "recepción" : "recepciones"
-                    } esperando validación`
-              }
-              action={
-                <Link href="/dashboard/insumos" className="op-btn op-btn--quiet">
-                  Ver recepciones <ArrowRightIcon className="h-4 w-4" />
-                </Link>
-              }
-            />
-            {loading ? (
-              <QueueSkeleton />
-            ) : pendingReceptions.length === 0 ? (
-              <EmptyState
-                icon={<InputsIcon />}
-                title="Nada pendiente"
-                subtitle="No hay recepciones esperando validación."
-              />
-            ) : (
-              <ul>
-                {pendingReceptions.slice(0, 6).map((reception) => {
-                  const key = `reception:${reception.id}`;
-                  const focusKey = `client:${reception.clientId}`;
-                  const busy = pendingKey === key;
-                  const isRejecting = rejectingKey === key;
-                  const units = reception.items.reduce((acc, item) => acc + item.quantity, 0);
-                  return (
-                    <li
-                      key={reception.id}
-                      className="op-queue-row px-4 py-3"
-                      data-active={focused === focusKey}
-                      onMouseEnter={() => setFocused(focusKey)}
-                      onMouseLeave={() => setFocused(null)}
-                      onFocus={() => setFocused(focusKey)}
-                      onBlur={(e) => {
-                        if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(null);
-                      }}
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-ink">
-                            {reception.clientName}
-                          </p>
-                          <p className="op-num truncate text-xs text-ink-soft">
-                            {fmtDate(reception.date)} · {reception.items.length}{" "}
-                            {reception.items.length === 1 ? "insumo" : "insumos"} ·{" "}
-                            {numberFmt.format(units)} u.
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          {isApprover ? (
-                            <>
-                              <button
-                                type="button"
-                                className="op-btn op-btn--reject"
-                                disabled={busy}
-                                onClick={() => startReject(key)}
-                              >
-                                Rechazar
-                              </button>
-                              <button
-                                type="button"
-                                className="op-btn op-btn--primary"
-                                disabled={busy}
-                                title="Valida las cantidades declaradas"
-                                onClick={() => void resolveReception(reception, "validate")}
-                              >
-                                {busy ? "Validando…" : "Validar"}
-                              </button>
-                            </>
-                          ) : (
-                            <Badge tone="earth">Pendiente</Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      {isRejecting && (
-                        <div className="mt-3 flex flex-wrap items-end gap-2">
-                          <label className="min-w-[14rem] flex-1">
-                            <span className="op-caption">Motivo del rechazo</span>
-                            <input
-                              autoFocus
-                              type="text"
-                              value={rejectReason}
-                              onChange={(e) => setRejectReason(e.target.value)}
-                              onKeyDown={onReasonKeyDown(() => confirmRejectReception(reception))}
-                              placeholder="Ej: la cantidad declarada no coincide con el remito"
-                              disabled={busy}
-                              className="op-input mt-1 w-full"
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            className="op-btn op-btn--reject"
-                            disabled={busy || !rejectReason.trim()}
-                            onClick={() => confirmRejectReception(reception)}
-                          >
-                            {busy ? "Rechazando…" : "Confirmar rechazo"}
-                          </button>
-                          <button
-                            type="button"
-                            className="op-btn op-btn--quiet"
-                            disabled={busy}
-                            onClick={cancelReject}
-                          >
-                            Cancelar
-                          </button>
-                        </div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            {!loading && pendingReceptions.length > 0 && (
-              <p className="border-t border-agro-border px-4 py-2.5 text-xs text-ink-faint">
-                La validación acepta las cantidades declaradas. El ajuste fino del stock se hace en
-                Insumos.
-              </p>
-            )}
-          </Card>
-        </div>
-
-        {/* Signature move: the parcel plan with a status legend */}
-        <Card className="overflow-hidden self-start xl:sticky xl:top-20">
+      {/* 2. Due double-hit alerts without a follow-up task */}
+      {!loading && unassignedDueAlerts.length > 0 && (
+        <Card className="mb-6 overflow-hidden border-l-4 border-l-agro-earth">
           <CardHeader
-            title="Plano de lotes"
-            subtitle="Cada fila de la cola se referencia a su lote."
+            title="Alertas de doble golpe por vencer"
+            subtitle="Recetas próximas a re-aplicación que todavía no tienen una nueva tarea asignada."
+            action={
+              <Link href="/dashboard/recetas" className="op-btn op-btn--quiet">
+                Ver todas en Recetas <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            }
           />
-          <div className="op-plan p-3">
-            {loading ? (
-              <PlanSkeleton />
-            ) : lotPlan.length === 0 ? (
-              <EmptyState
-                icon={<FieldIcon />}
-                title="Sin lotes con partes"
-                subtitle="Cuando se carguen partes, sus lotes aparecerán en el plano."
-              />
-            ) : (
-              <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {lotPlan.map((lot) => (
-                  <li key={lot.id}>
-                    <button
-                      type="button"
-                      data-status={lot.status}
-                      data-active={focused === `lot:${lot.id}`}
-                      aria-label={`Lote ${lot.lotName}, ${lot.farmName}: ${lot.count} ${
-                        lot.count === 1 ? "parte" : "partes"
-                      }`}
-                      className="op-parcel flex w-full flex-col gap-1 px-2.5 py-2 text-left"
-                      onMouseEnter={() => setFocused(`lot:${lot.id}`)}
-                      onMouseLeave={() => setFocused(null)}
-                      onFocus={() => setFocused(`lot:${lot.id}`)}
-                      onBlur={() => setFocused(null)}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <span className="op-swatch" data-status={lot.status} aria-hidden="true" />
-                        <span className="truncate text-xs font-semibold">{lot.lotName}</span>
+          <ul className="divide-y divide-agro-border">
+            {unassignedDueAlerts.map((alert) => {
+              const urgency = ALERT_URGENCY_META[alert.urgency];
+              return (
+                <li
+                  key={alert.recipeId}
+                  className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge tone={urgency.tone}>{urgency.label}</Badge>
+                      <p className="text-sm font-semibold text-ink">
+                        {alert.farmName} · {alert.lotName}
+                      </p>
+                      <span className="text-xs text-ink-soft">
+                        ({alert.clientName})
                       </span>
-                      <span className="op-caption truncate">{lot.farmName}</span>
-                      <span className="op-num text-xs text-ink-soft">
-                        {lot.count} {lot.count === 1 ? "parte" : "partes"}
+                    </div>
+                    <p className="mt-1 text-xs text-ink-soft">
+                      <span className="font-medium text-ink">
+                        {alert.crop ?? "Cultivo s/d"} · {alert.pest ?? "Control fitosanitario"}
                       </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                      {" · "}
+                      Re-aplicación: <span className="op-num font-medium">{fmtDate(alert.targetDate)}</span>
+                      {alert.daysRemaining < 0
+                        ? ` (${Math.abs(alert.daysRemaining)} d vencida)`
+                        : alert.daysRemaining === 0
+                          ? " (¡Hoy!)"
+                          : ` (en ${alert.daysRemaining} d)`}
+                    </p>
+                  </div>
 
-          <div className="border-t border-agro-border px-4 py-3">
-            <p className="op-label mb-2">Referencias</p>
-            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4 xl:grid-cols-2">
-              {PLAN_LEGEND.map((item) => (
-                <li key={item.status} className="flex items-center gap-2 text-xs text-ink-soft">
-                  <span className="op-swatch" data-status={item.status} aria-hidden="true" />
-                  {item.label}
+                  {canCreateTask && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => setTaskAlert(alert)}
+                    >
+                      <PlusIcon className="h-3.5 w-3.5" />
+                      Crear tarea
+                    </Button>
+                  )}
                 </li>
-              ))}
-            </ul>
-          </div>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
 
-          {clientPlan.length > 0 && (
-            <div className="border-t border-agro-border px-4 py-3">
-              <p className="op-label mb-2">Recepciones por cliente</p>
-              <ul className="flex flex-wrap gap-2">
-                {clientPlan.map((client) => (
-                  <li key={client.id}>
-                    <button
-                      type="button"
-                      data-status={client.status}
-                      data-active={focused === `client:${client.id}`}
-                      aria-label={`Cliente ${client.name}: ${client.count} ${
-                        client.count === 1 ? "recepción" : "recepciones"
-                      }`}
-                      className="op-parcel flex items-center gap-2 px-2.5 py-1.5 text-xs"
-                      onMouseEnter={() => setFocused(`client:${client.id}`)}
-                      onMouseLeave={() => setFocused(null)}
-                      onFocus={() => setFocused(`client:${client.id}`)}
-                      onBlur={() => setFocused(null)}
-                    >
-                      <span className="op-swatch" data-status={client.status} aria-hidden="true" />
-                      <span className="font-medium">{client.name}</span>
-                      <span className="op-num text-ink-faint">{client.count}</span>
-                    </button>
+      {/* 3. Horizontal timeline of today's tasks */}
+      <DailyTasksTimeline tasks={tasks} loading={loading} />
+
+      {/* 4. Actionable decision queues (2 balanced columns) */}
+      <section className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {/* Partes por aprobar */}
+        <Card className="overflow-hidden">
+          <CardHeader
+            title="Partes por aprobar"
+            subtitle={
+              loading
+                ? "Cargando…"
+                : `${pendingReports.length} ${
+                    pendingReports.length === 1 ? "parte" : "partes"
+                  } esperando decisión`
+            }
+            action={
+              <Link href="/dashboard/bandeja-aprobacion" className="op-btn op-btn--quiet">
+                Ver bandeja <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            }
+          />
+          {loading ? (
+            <QueueSkeleton />
+          ) : pendingReports.length === 0 ? (
+            <EmptyState
+              icon={<InboxIcon />}
+              title="Nada pendiente"
+              subtitle="No hay partes esperando aprobación."
+            />
+          ) : (
+            <ul>
+              {pendingReports.slice(0, 6).map((report) => {
+                const key = `report:${report.id}`;
+                const busy = pendingKey === key;
+                const isRejecting = rejectingKey === key;
+                return (
+                  <li key={report.id} className="op-queue-row px-4 py-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-ink">
+                          {report.laborTypeName}
+                        </p>
+                        <p className="truncate text-xs text-ink-soft">{report.operatorName}</p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="op-caption">{fmtDate(report.date)}</span>
+                        {isApprover ? (
+                          <>
+                            <button
+                              type="button"
+                              className="op-btn op-btn--reject"
+                              disabled={busy}
+                              onClick={() => startReject(key)}
+                            >
+                              Rechazar
+                            </button>
+                            <button
+                              type="button"
+                              className="op-btn op-btn--primary"
+                              disabled={busy}
+                              onClick={() => void resolveReport(report, "approve")}
+                            >
+                              {busy ? "Aprobando…" : "Aprobar"}
+                            </button>
+                          </>
+                        ) : (
+                          <Badge tone="wheat">Pendiente</Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-soft">
+                      <span className="font-medium text-ink">{report.lotName}</span>
+                      <span>{report.farmName}</span>
+                      <span className="op-num">
+                        {numberFmt.format(report.hectares)} ha · {numberFmt.format(report.hours)} hs
+                      </span>
+                      <span>{report.clientName}</span>
+                    </div>
+
+                    {isRejecting && (
+                      <div className="mt-3 flex flex-wrap items-end gap-2">
+                        <label className="min-w-[14rem] flex-1">
+                          <span className="op-caption">Motivo del rechazo</span>
+                          <input
+                            autoFocus
+                            type="text"
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            onKeyDown={onReasonKeyDown(() => confirmRejectReport(report))}
+                            placeholder="Ej: las hectáreas no coinciden con la orden de trabajo"
+                            disabled={busy}
+                            className="op-input mt-1 w-full"
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          className="op-btn op-btn--reject"
+                          disabled={busy || !rejectReason.trim()}
+                          onClick={() => confirmRejectReport(report)}
+                        >
+                          {busy ? "Rechazando…" : "Confirmar rechazo"}
+                        </button>
+                        <button
+                          type="button"
+                          className="op-btn op-btn--quiet"
+                          disabled={busy}
+                          onClick={cancelReject}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
                   </li>
-                ))}
-              </ul>
-            </div>
+                );
+              })}
+            </ul>
+          )}
+        </Card>
+
+        {/* Recepciones por validar */}
+        <Card className="overflow-hidden">
+          <CardHeader
+            title="Recepciones por validar"
+            subtitle={
+              loading
+                ? "Cargando…"
+                : `${pendingReceptions.length} ${
+                    pendingReceptions.length === 1 ? "recepción" : "recepciones"
+                  } esperando validación`
+            }
+            action={
+              <Link href="/dashboard/insumos" className="op-btn op-btn--quiet">
+                Ver recepciones <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            }
+          />
+          {loading ? (
+            <QueueSkeleton />
+          ) : pendingReceptions.length === 0 ? (
+            <EmptyState
+              icon={<InputsIcon />}
+              title="Nada pendiente"
+              subtitle="No hay recepciones esperando validación."
+            />
+          ) : (
+            <ul>
+              {pendingReceptions.slice(0, 6).map((reception) => {
+                const key = `reception:${reception.id}`;
+                const busy = pendingKey === key;
+                const isRejecting = rejectingKey === key;
+                const units = reception.items.reduce((acc, item) => acc + item.quantity, 0);
+                return (
+                  <li key={reception.id} className="op-queue-row px-4 py-3">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-ink">
+                          {reception.clientName}
+                        </p>
+                        <p className="op-num truncate text-xs text-ink-soft">
+                          {fmtDate(reception.date)} · {reception.items.length}{" "}
+                          {reception.items.length === 1 ? "insumo" : "insumos"} ·{" "}
+                          {numberFmt.format(units)} u.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {isApprover ? (
+                          <>
+                            <button
+                              type="button"
+                              className="op-btn op-btn--reject"
+                              disabled={busy}
+                              onClick={() => startReject(key)}
+                            >
+                              Rechazar
+                            </button>
+                            <button
+                              type="button"
+                              className="op-btn op-btn--primary"
+                              disabled={busy}
+                              title="Valida las cantidades declaradas"
+                              onClick={() => void resolveReception(reception, "validate")}
+                            >
+                              {busy ? "Validando…" : "Validar"}
+                            </button>
+                          </>
+                        ) : (
+                          <Badge tone="earth">Pendiente</Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {isRejecting && (
+                      <div className="mt-3 flex flex-wrap items-end gap-2">
+                        <label className="min-w-[14rem] flex-1">
+                          <span className="op-caption">Motivo del rechazo</span>
+                          <input
+                            autoFocus
+                            type="text"
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            onKeyDown={onReasonKeyDown(() => confirmRejectReception(reception))}
+                            placeholder="Ej: la cantidad declarada no coincide con el remito"
+                            disabled={busy}
+                            className="op-input mt-1 w-full"
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          className="op-btn op-btn--reject"
+                          disabled={busy || !rejectReason.trim()}
+                          onClick={() => confirmRejectReception(reception)}
+                        >
+                          {busy ? "Rechazando…" : "Confirmar rechazo"}
+                        </button>
+                        <button
+                          type="button"
+                          className="op-btn op-btn--quiet"
+                          disabled={busy}
+                          onClick={cancelReject}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {!loading && pendingReceptions.length > 0 && (
+            <p className="border-t border-agro-border px-4 py-2.5 text-xs text-ink-faint">
+              La validación acepta las cantidades declaradas. El ajuste fino del stock se hace en
+              Insumos.
+            </p>
           )}
         </Card>
       </section>
 
-      {/* The four KPIs that matter; the two backlogs deep-link into their queues */}
-      <section className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <KpiTile
-          label="Partes por aprobar"
-          value={String(pendingReports.length)}
-          hint={`de ${reports.length} partes`}
-          href="/dashboard/bandeja-aprobacion"
-          loading={loading}
-          signal
-          icon={<InboxIcon className="h-4 w-4" />}
-        />
-        <KpiTile
-          label="Recepciones por validar"
-          value={String(pendingReceptions.length)}
-          hint={`de ${receptions.length} registradas`}
-          href="/dashboard/insumos"
-          loading={loading}
-          signal
-          icon={<InputsIcon className="h-4 w-4" />}
-        />
-        <KpiTile
-          label="Hectáreas esta semana"
-          value={`${numberFmt.format(weekHectares)} ha`}
-          delta={hectareDelta}
-          loading={loading}
-          icon={<FieldIcon className="h-4 w-4" />}
-        />
-        <KpiTile
-          label="Horas esta semana"
-          value={`${numberFmt.format(weekHours)} hs`}
-          delta={hourDelta}
-          loading={loading}
-        />
-      </section>
-
-      {/* Real charts, below the actionable work */}
+      {/* Weekly pulse + 14-day activity chart (non-redundant) */}
       <section className="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
         <Card className="overflow-hidden xl:col-span-2">
           <CardHeader
@@ -1404,7 +1065,7 @@ export default function Dashboard() {
             <TrendChart
               labels={activity.labels}
               series={activity.series}
-              height={260}
+              height={240}
               loading={loading}
               ariaLabel="Partes de trabajo y recepciones por día"
               emptyMessage="Todavía no hay partes ni recepciones en los últimos 14 días."
@@ -1412,169 +1073,54 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        <Card className="overflow-hidden">
-          <CardHeader
-            title="Estado de recepciones"
-            subtitle={
-              loading
-                ? "Cargando…"
-                : `${receptions.length} ${
-                    receptions.length === 1 ? "recepción" : "recepciones"
-                  } en total`
-            }
-          />
-          {loading ? (
-            <div className="flex flex-col items-center gap-5 px-5 py-6" aria-hidden="true">
-              <div className="skeleton h-40 w-40 rounded-full" />
-              <div className="skeleton h-4 w-40" />
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-5 px-5 py-6">
-              <Donut
-                segments={donutSegments}
-                size={156}
-                thickness={18}
-                ariaLabel="Distribución de recepciones por estado"
-                center={
-                  <div className="text-center">
-                    <p className="op-num font-display text-kpi text-ink">{validatedPct}%</p>
-                    <p className="op-label">validadas</p>
-                  </div>
-                }
-              />
-              <ul className="w-full space-y-2">
-                {donutSegments.map((seg) => (
-                  <li key={seg.label} className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-2 text-sm text-ink-soft">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full ring-1 ring-inset ring-black/5"
-                        style={{ backgroundColor: seg.color }}
-                      />
-                      {seg.label}
-                    </span>
-                    <span className="op-num text-sm font-semibold text-ink">{seg.value}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </Card>
-      </section>
-
-      <section className="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-3">
-        <Card className="overflow-hidden xl:col-span-2">
-          <CardHeader
-            title="Recepciones vs validadas"
-            subtitle="Ingresos declarados y efectivamente validados, últimos 7 días"
-            action={<Badge tone="slate">7 días</Badge>}
-          />
-          <div className="px-4 pb-4 pt-5">
-            <BarChart
-              labels={weeklyReceptions.labels}
-              series={weeklyReceptions.series}
-              height={230}
-              loading={loading}
-              ariaLabel="Ingresos y recepciones validadas por día"
-              emptyMessage="No hay recepciones registradas en los últimos 7 días."
-            />
-          </div>
-        </Card>
-
-        <Card className="overflow-hidden">
-          <CardHeader title="Resumen operativo" subtitle="Avance sobre el total cargado" />
-          <div className="space-y-5 px-5 py-6">
-            <div>
-              <div className="flex items-end justify-between">
-                <span className="text-sm text-ink-soft">Aprobación de partes</span>
-                {loading ? (
-                  <div className="skeleton h-5 w-12" aria-hidden="true" />
-                ) : (
-                  <span className="op-num font-display text-title font-semibold text-ink">
-                    {approvedPct}%
-                  </span>
-                )}
-              </div>
-              {loading ? (
-                <div className="skeleton mt-2 h-2 w-full" aria-hidden="true" />
-              ) : (
-                <ProgressBar
-                  className="mt-2"
-                  value={approvedPct}
-                  label="Aprobación de partes"
-                  tone={approvedPct >= 70 ? "green" : approvedPct >= 40 ? "wheat" : "earth"}
-                />
-              )}
-              {!loading && (
-                <p className="mt-1.5 text-xs text-ink-faint">
-                  {reports.filter((r) => r.status === "APROBADO").length} de {reports.length}{" "}
-                  aprobados
-                </p>
-              )}
-            </div>
-
-            <div>
-              <div className="flex items-end justify-between">
-                <span className="text-sm text-ink-soft">Validación de recepciones</span>
-                {loading ? (
-                  <div className="skeleton h-5 w-12" aria-hidden="true" />
-                ) : (
-                  <span className="op-num font-display text-title font-semibold text-ink">
-                    {validatedPct}%
-                  </span>
-                )}
-              </div>
-              {loading ? (
-                <div className="skeleton mt-2 h-2 w-full" aria-hidden="true" />
-              ) : (
-                <ProgressBar
-                  className="mt-2"
-                  value={validatedPct}
-                  label="Validación de recepciones"
-                  tone={validatedPct >= 70 ? "green" : validatedPct >= 40 ? "wheat" : "earth"}
-                />
-              )}
-              {!loading && (
-                <p className="mt-1.5 text-xs text-ink-faint">
-                  {receptionStatus.validated} de {receptions.length} validadas
-                </p>
-              )}
-            </div>
-
-            <div className="border-t border-agro-border pt-4">
-              <StatRow label="Clientes" value={loading ? "…" : String(clients.length)} />
-            </div>
-          </div>
-        </Card>
-      </section>
-
-      {/* Real product content: stock por cliente */}
-      <section className="mb-6">
-        <Card className="overflow-hidden">
-          <CardHeader
-            title="Estado de insumos"
-            subtitle="Stock disponible por cliente según recepciones validadas"
-            action={
-              <Link href="/dashboard/insumos" className="op-btn op-btn--quiet">
-                Gestionar insumos <ArrowRightIcon className="h-4 w-4" />
-              </Link>
-            }
-          />
-          <DataTable
-            columns={stockColumns}
-            data={stockRows}
-            rowKey={(row) => row.id}
+        <div className="flex flex-col gap-5">
+          <WeeklyPulseTile
+            label="Hectáreas esta semana"
+            value={`${numberFmt.format(weekHectares)} ha`}
+            delta={hectareDelta}
             loading={loading}
-            skeletonRows={4}
-            caption="Stock disponible por cliente e insumo"
-            emptyState={
-              <EmptyState
-                icon={<InputsIcon />}
-                title="Sin stock registrado"
-                subtitle="Cuando se validen recepciones, el stock por cliente aparecerá acá."
-              />
-            }
+            icon={<FieldIcon className="h-4 w-4" />}
           />
-        </Card>
+          <WeeklyPulseTile
+            label="Horas esta semana"
+            value={`${numberFmt.format(weekHours)} hs`}
+            delta={hourDelta}
+            loading={loading}
+          />
+        </div>
+      </section>
+
+      {/* 5. Field conditions & market details (anchored from telemetry strip) */}
+      <section id="condiciones-campo" className="mb-6 scroll-mt-20">
+        <p className="op-label mb-3">Condiciones de campo y mercado</p>
+
+        <div className="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
+          <RadarWidget
+            data={weather}
+            loading={weatherLoading}
+            error={weatherError}
+            map={weather ? <LeafletMap weather={weather} className="h-72 w-full" /> : null}
+          />
+          <GrainPricesWidget
+            data={grainPrices}
+            loading={marketLoading}
+            error={grainPrices ? null : marketError}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          <WeatherWidget
+            data={weather}
+            loading={weatherLoading}
+            error={weatherError}
+            locationName={weatherLocationName ?? undefined}
+            lots={weatherLots}
+            selectedLotId={selectedLotId}
+            onLotChange={handleWeatherLotChange}
+          />
+          <WindWidget data={weather} loading={weatherLoading} error={weatherError} />
+          <UsdWidget data={usdRate} loading={marketLoading} error={usdRate ? null : marketError} />
+        </div>
       </section>
 
       {!loading && (pendingReports.length > 6 || pendingReceptions.length > 6) && (
@@ -1583,6 +1129,14 @@ export default function Dashboard() {
           Hay más pendientes que los mostrados. Abrí la bandeja o Insumos para ver el total.
         </p>
       )}
+
+      <CreateTaskFromAlertModal
+        alert={taskAlert}
+        laborTypes={laborTypes}
+        users={users}
+        onClose={() => setTaskAlert(null)}
+        onCreated={() => void reloadTasksAndAlerts()}
+      />
     </DashboardLayout>
   );
 }

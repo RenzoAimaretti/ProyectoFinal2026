@@ -266,8 +266,8 @@ export default function ProduccionPage() {
   const toast = useToast();
   const { user } = useAuth();
   const isAdmin = isAdminRole(user?.role);
-  // Only the roles the backend allows may write a prescription (INGENIERO, ADMIN).
-  const canEditPrescription = user?.role === "INGENIERO" || user?.role === "ADMIN";
+  // Only INGENIERO may write or edit a prescription.
+  const canEditPrescription = user?.role === "INGENIERO";
 
   const [tasks, setTasks] = useState<TaskDTO[]>([]);
   const [lots, setLots] = useState<LotDTO[]>([]);
