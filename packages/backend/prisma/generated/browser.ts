@@ -143,6 +143,31 @@ export type MachineUsage = Prisma.MachineUsageModel
  */
 export type MachineActivity = Prisma.MachineActivityModel
 /**
+ * Model Invoice
+ * 
+ */
+export type Invoice = Prisma.InvoiceModel
+/**
+ * Model InvoiceItem
+ * 
+ */
+export type InvoiceItem = Prisma.InvoiceItemModel
+/**
+ * Model Payment
+ * 
+ */
+export type Payment = Prisma.PaymentModel
+/**
+ * Model Cheque
+ * 
+ */
+export type Cheque = Prisma.ChequeModel
+/**
+ * Model Echeq
+ * 
+ */
+export type Echeq = Prisma.EcheqModel
+/**
  * Model Photo
  * 
  */

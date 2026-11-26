@@ -20,7 +20,8 @@ The full specification is the openspec change (proposal D1-D28, spec R-FIN-01..1
 | T1 | S1 | delegated writer (sonnet) | done | `4569c53` feat(finance); RED → GREEN per rule; backend 159 suites / 1488 tests + 3 regression pins (tariff 8 suites / 58); web 28/28; verifier: no blockers; native review: declined by the user |
 | T2 | S2 | delegated writer (sonnet) | done | `ce89efc` feat(finance); RED → GREEN per rule (2 adapter specs written with their adapters); backend 168 suites / 1556 tests; scoped 33 / 302; verifier: no blockers; e2e passed (user); native review: granted but refused for size (`lens_context_budget_exceeded`); user kept it without native review |
 | T3 | S3 | delegated writer (sonnet) | done | `b3b0401` schema + `e1f1752` logic; RED → GREEN per rule (module wiring and 2 regression pins without separate RED); backend 183 suites / 1782 tests; web 61/61; verifier: no blockers; e2e passed (user); native review: granted but refused for size; user kept it without native review |
-| T5 | S4 (R-FIN-05 D26 in the calculator detail) | delegated writer (sonnet) | done, uncommitted (awaiting user OK) | RED → GREEN per rule (use-case RED by removing the mapping); profitability 10 suites / 128 tests; full jest 193 / 1911; finance e2e 42; web 96/96 |
+| T5 | S4 (R-FIN-05 D26 in the calculator detail) | delegated writer (sonnet) | done | `378f748` fix(finance); native assess `medium`, `review_due: false` (`under_budget`); | RED → GREEN per rule (use-case RED by removing the mapping); profitability 10 suites / 128 tests; full jest 193 / 1911; finance e2e 42; web 96/96 |
+| T6 | integrate `origin/dev` (L31) | parent (git, schema, generated) + delegated writer (sonnet, Finanzas page + seed) | done, merge uncommitted (awaiting user OK) | backend 205 suites / 1977 tests; finance e2e 42; web 97/97; tsc and lint clean; native review declined by the user |
 | T4 | S4 | delegated writer (sonnet) | done | `b80e91c` backend + `72471e1` web and docs; RED → GREEN per rule (e2e, module, seed pin, 2 adapter specs and `canSeeCalculator` without separate RED); backend 193 suites / 1908 tests; finance e2e 42; web 92/92; verifier: no blockers; full e2e passed (user); native review declined by the user |
 
 Route evidence: T1 is delegated through the long-session context backstop (the planning conversation already exceeds ~150k tokens); units are sequential (U2 depends on U1's core and `Tariff`), so there is no parallel-writer reason. Risk T1: item 1 (new migration `Tariff` + enums) and item 2 (new ADMIN-only endpoints) → independent verifier (sonnet) after the writer's own checks. RDD reads `on (decided by global)`.
@@ -162,4 +163,55 @@ Route evidence: T1 is delegated through the long-session context backstop (the p
     - the writer's scratch was removed.
   - **Not checked in the browser:** the ADMIN session is signed out, and the user is checking it.
   - **Risk:** none.
-- **Next:** ask the user before the T5 commit (the fix plus the docs L25-L28; `.atl/` excluded). 5.6 is still open. Push and a PR against `dev` happen only with the user's OK. 5.6 (migration on a clean database) is still open. Push and a PR against `dev` only with the user's OK. L25-L26 entries are uncommitted. The L17-L20 doc edits are uncommitted and ride with them. No push or PR without the user's OK; PRs target `dev`. Still optional for the user: `pnpm --filter backend test:e2e` and applying the migrations on a disposable Postgres. No push or PR without the user's OK; PRs target `dev`.
+- **L29 (2026-11-25) — T5 commit:** user: "Sí, commiteá". Committed `378f748` fix(finance): show stale prices and late valuations in the lot detail (13 files: the fix plus docs L25-L28); `.atl/` excluded; no attribution trailer. Native assessment `--base-ref 72471e1 --committed-only`: `medium`, `review_due: false` (`under_budget`); no high-risk item applies, so no escalation and no review. This L29 entry is uncommitted.
+- **L30 (2026-11-25) — push, no PR:**
+  - **Push:** user said "Sí, pusheá". Pushed `feat/sprint4-rentabilidad-indexacion` to origin, which created the remote branch tracking origin. The L29 entry and this one stay uncommitted, so they are not in the push.
+  - **No PR:** mid-turn the user said, verbatim, "la pr todavia no la hagas, deja el ´ppush nada mas". The PR is not opened.
+  - **Dev moved:** `origin/dev` is 23 commits ahead of the branch point `8be5060`.
+    - It merged PR #28 `feat/finanzas-multifirma`, which adds `Invoice`, `InvoiceItem`, `Payment`, `Cheque`, `Echeq`, five enums, the `invoice`, `payment`, `cheque` and `echeq` modules, and its own Finanzas page (facturas, cobros, cheques).
+    - It also merged PR #29 `PortalCliente`.
+    - New migrations on dev: `20261117120000_add_finanzas_multifirma`, `20261118120000_add_echeq_debitado` and `20261119120000_add_payment_usd_rate`. They sort before ours.
+  - **Dry-run merge** (`git merge-tree --write-tree origin/dev HEAD`) shows content conflicts in:
+    - `packages/backend/prisma/schema.prisma`;
+    - the generated client (`enums.ts`, `internal/class.ts`, `internal/prismaNamespace.ts`, `models/Company.ts`), which is regenerable;
+    - `packages/nextjs/src/app/dashboard/finanzas/page.tsx`, where both branches rewrote the Finanzas page.
+  - No enum or model names collide.
+  - **Product note:** dev now models collections (`Payment`), so D1 (accrued income, no collections) can be revisited for R032 "ingresos cobrados".
+- **Next (superseded by L31):** before the PR, integrate `origin/dev` into the branch and resolve the conflicts. That includes merging the two Finanzas pages into one tabbed page and regenerating the Prisma client. Do it only with the user's OK. Open the PR against `dev` only when the user asks. 5.6 is still open.
+- **L31 (2026-11-26) — integrating dev (T6):**
+  - **Request.** User asked "esta mergeado este sprint en dev?" and the parent answered no: 0 of the 8 sprint commits are in `origin/dev`, and there is no PR. The user then said, verbatim: "Entonces mergea este sprint al dev resolvciendo los conflictos sin romper nada".
+  - **Route.** Repository rule (AGENTS.md): task work lands in `dev` only through a PR. So `origin/dev` is merged into the branch first, with `git merge --no-commit --no-ff origin/dev`, uncommitted.
+  - **Resolved by the parent:**
+    - `schema.prisma`: both conflicts were pure additions, so both sides were kept. A shared closing `}` that git had merged was restored, so `ExpenseSuggestion` closes before dev's enums. `prisma validate` passes.
+    - The 4 generated client files were taken from ours and then regenerated with `prisma generate`. No conflict markers remain.
+  - **Remaining.** `finanzas/page.tsx` was reset to ours. Dev's page, which is ADMIN and SUPERVISOR via `isApproverRole` and matches its `@Roles('ADMIN','SUPERVISOR')` endpoints, becomes a first tab "Facturación y cobros". That keeps Finanzas opening on facturas, as on dev.
+  - **Found.** `prisma/seed.ts` resets no dev table (`Invoice`, `Payment`, `Cheque`, `Echeq`), so a re-seed with invoices present would fail on their FKs to `Client`. This was pre-existing on dev and is fixed in the same pass.
+  - **Route for the remaining work.** One delegated writer (sonnet), through the context backstop.
+- **L32 (2026-11-26) — T6 result:**
+  - **Finanzas page (writer).**
+    - `facturacion-tab.tsx` holds dev's Finanzas page unchanged. The only things removed are the `DashboardLayout`/`PageHeader` wrapper and its imports; the parent read the diff against dev's original. It keeps dev's `isApproverRole` guard.
+    - `access.ts` adds `canSeeBilling` (ADMIN, SUPERVISOR) and puts the `facturacion` tab first. ADMIN sees: facturacion, tarifario, gastos, categorias, sugerencias, calculadora. SUPERVISOR sees: facturacion, gastos, categorias, sugerencias. Other roles still see nothing (fail closed). The default tab is `facturacion`, so Finanzas opens on facturas as on dev.
+    - `page.tsx` gains the "Facturación y cobros" tab and a subtitle that covers both areas.
+  - **Seed (writer).** The reset now deletes `cheque`, `echeq`, `payment`, `invoiceItem` and `invoice` first. `seed-reset.spec.ts` pins the order: all of them before `client`, `invoiceItem` before `task`. RED was observed by removing the lines.
+  - **Parent checks.**
+    - No conflict markers anywhere, and nothing is left unmerged.
+    - Backend tsc is clean.
+    - Full jest: 205 suites / 1977 tests (dev's and ours).
+    - Finance e2e without a database: 42.
+    - Web `node --test`: 97/97.
+    - Web tsc is clean. Web lint: 0 errors, 2 pre-existing warnings.
+    - The resolved files are staged. The merge is not committed.
+  - **Native review.**
+    - A stop hook asked for the preflight mid-merge. It returned `collect` / `intended_untracked_selection_required`, and the parent deferred it until the candidate was complete.
+    - On the complete candidate, the assessment returned `high` (`hot_path` in dev's `list-payments.use-case.ts`), 128 files / 20522 lines, `review_due: true`.
+    - The consent was relayed with a parent note that the candidate includes all of dev's code. The user chose "Omitir esta vez", giving `declined_this_candidate`.
+  - **Still unverified.**
+    - Dev's three migrations (`20261117…`, `20261118…`, `20261119…`) are not applied on the user's dev database, which already has ours (`20261123…`). They sort earlier, and `prisma migrate deploy` applies pending ones.
+    - A clean-database run (5.6) has not been done.
+- **L33 (2026-11-26) — delivery:**
+  - **Review consent, second time.** The stop hook asked again for the candidate that only differed by the L32 note. The consent was relayed, and the user chose "Omitir esta vez" again, so the result is `declined_this_candidate`.
+  - **Size question.** The user asked: "como es que se agregaron 70 mil lineas, que hiciste?". Measured answer:
+    - 69,053 lines come from comparing against `main`, which still lacks everything already on `dev`.
+    - The PR against `dev` adds 37,098 lines.
+    - The 8 sprint commits add 36,748. By area: generated client 13,021, tests 11,097, code 10,659, docs 1,753, migrations 237.
+  - **Go-ahead.** User, verbatim: "bueno hace el commit y hace el merge a dev, main no toques". This authorizes the merge commit on the branch, the push, a PR against `dev` (the repository rule is that `dev` only takes PRs) and merging that PR. `main` is not touched. 5.6 (migration on a clean database) is still open. Push and a PR against `dev` only with the user's OK. L25-L26 entries are uncommitted. The L17-L20 doc edits are uncommitted and ride with them. No push or PR without the user's OK; PRs target `dev`. Still optional for the user: `pnpm --filter backend test:e2e` and applying the migrations on a disposable Postgres. No push or PR without the user's OK; PRs target `dev`.

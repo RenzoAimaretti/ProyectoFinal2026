@@ -39,6 +39,18 @@ describe('seed reset order', () => {
     expect(at('farm')).toBeLessThan(at('client'));
   });
 
+  it('deletes cheques and eCheqs, then payments, then invoice items, then invoices, all before the clients and tasks they reference', () => {
+    for (const model of ['cheque', 'echeq', 'payment', 'invoiceItem', 'invoice']) {
+      expect(at(model)).toBeGreaterThanOrEqual(0);
+      expect(at(model)).toBeLessThan(at('client'));
+    }
+    expect(at('cheque')).toBeLessThan(at('payment'));
+    expect(at('echeq')).toBeLessThan(at('payment'));
+    expect(at('payment')).toBeLessThan(at('invoice'));
+    expect(at('invoiceItem')).toBeLessThan(at('invoice'));
+    expect(at('invoiceItem')).toBeLessThan(at('task'));
+  });
+
   it('never wipes the tenant bootstrap rows', () => {
     for (const model of ['tenant', 'company', 'user', 'userCompany']) {
       expect(order).not.toContain(model);

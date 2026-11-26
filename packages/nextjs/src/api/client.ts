@@ -338,6 +338,7 @@ export type LaborTypeDTO = {
   id: string;
   name: string;
   description: string | null;
+  requiresPrescription?: boolean;
   /**
    * Always present: the column is NOT NULL with a default, so a missing value
    * here is a wiring bug and is typed as one instead of a silent fallback.
@@ -754,6 +755,25 @@ export function listStock(clientId?: string): Promise<StockDTO[]> {
   return apiGet<StockDTO[]>(`/stock${query}`);
 }
 
+export type StockBalanceSummaryItemDTO = {
+  inputId: string;
+  inputName: string;
+  unit: string;
+  receivedQuantity: number;
+  consumedQuantity: number;
+  availableQuantity: number;
+  plannedQuantity: number;
+  netVsPlanned: number;
+  status: StockStatus;
+};
+
+export function listStockSummary(
+  clientId?: string,
+): Promise<StockBalanceSummaryItemDTO[]> {
+  const query = clientId ? `?clientId=${encodeURIComponent(clientId)}` : "";
+  return apiGet<StockBalanceSummaryItemDTO[]>(`/stock/summary${query}`);
+}
+
 /* ------------------------------------------------------------------ */
 /* Recipes (recetas / órdenes de aplicación)                           */
 /* ------------------------------------------------------------------ */
@@ -929,6 +949,8 @@ export type ReapplicationAlertUrgency = "OVERDUE" | "DUE_TODAY" | "UPCOMING";
 export type ReapplicationAlertDTO = {
   recipeId: string;
   taskId: string | null;
+  laborTypeId: string | null;
+  laborTypeName: string | null;
   lotId: string;
   lotName: string;
   farmName: string;

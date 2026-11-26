@@ -76,6 +76,11 @@ export const ModelName = {
   MaintenanceThreshold: 'MaintenanceThreshold',
   MachineUsage: 'MachineUsage',
   MachineActivity: 'MachineActivity',
+  Invoice: 'Invoice',
+  InvoiceItem: 'InvoiceItem',
+  Payment: 'Payment',
+  Cheque: 'Cheque',
+  Echeq: 'Echeq',
   Photo: 'Photo',
   Livestock: 'Livestock',
   LivestockEvent: 'LivestockEvent',
@@ -485,6 +490,97 @@ export const MachineActivityScalarFieldEnum = {
 } as const
 
 export type MachineActivityScalarFieldEnum = (typeof MachineActivityScalarFieldEnum)[keyof typeof MachineActivityScalarFieldEnum]
+
+
+export const InvoiceScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  clientId: 'clientId',
+  number: 'number',
+  issueDate: 'issueDate',
+  dueDate: 'dueDate',
+  status: 'status',
+  usdRate: 'usdRate',
+  usdRateDate: 'usdRateDate',
+  totalAmount: 'totalAmount',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  version: 'version',
+  deleted: 'deleted'
+} as const
+
+export type InvoiceScalarFieldEnum = (typeof InvoiceScalarFieldEnum)[keyof typeof InvoiceScalarFieldEnum]
+
+
+export const InvoiceItemScalarFieldEnum = {
+  id: 'id',
+  invoiceId: 'invoiceId',
+  taskId: 'taskId',
+  description: 'description',
+  quantity: 'quantity',
+  unitPrice: 'unitPrice',
+  amount: 'amount'
+} as const
+
+export type InvoiceItemScalarFieldEnum = (typeof InvoiceItemScalarFieldEnum)[keyof typeof InvoiceItemScalarFieldEnum]
+
+
+export const PaymentScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  clientId: 'clientId',
+  invoiceId: 'invoiceId',
+  kind: 'kind',
+  method: 'method',
+  amount: 'amount',
+  date: 'date',
+  usdRate: 'usdRate',
+  usdRateDate: 'usdRateDate',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
+
+
+export const ChequeScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  paymentId: 'paymentId',
+  number: 'number',
+  issuer: 'issuer',
+  bank: 'bank',
+  amount: 'amount',
+  dueDate: 'dueDate',
+  status: 'status',
+  receivedAt: 'receivedAt',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ChequeScalarFieldEnum = (typeof ChequeScalarFieldEnum)[keyof typeof ChequeScalarFieldEnum]
+
+
+export const EcheqScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  paymentId: 'paymentId',
+  code: 'code',
+  issuer: 'issuer',
+  amount: 'amount',
+  direction: 'direction',
+  dueDate: 'dueDate',
+  status: 'status',
+  settlementDate: 'settlementDate',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EcheqScalarFieldEnum = (typeof EcheqScalarFieldEnum)[keyof typeof EcheqScalarFieldEnum]
 
 
 export const PhotoScalarFieldEnum = {

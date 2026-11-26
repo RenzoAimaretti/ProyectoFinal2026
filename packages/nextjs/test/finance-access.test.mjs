@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  canSeeBilling,
   canSeeCalculator,
   canManageExpenses,
   canResolveSuggestions,
@@ -20,14 +21,14 @@ test('only ADMIN sees the Tarifario tab', () => {
   }
 });
 
-test('ADMIN sees every tab and lands on the Tarifario', () => {
-  assert.deepEqual(visibleFinanceTabs('ADMIN'), ['tarifario', 'gastos', 'categorias', 'sugerencias', 'calculadora']);
-  assert.equal(defaultFinanceTab('ADMIN'), 'tarifario');
+test('ADMIN sees every tab and lands on Facturacion', () => {
+  assert.deepEqual(visibleFinanceTabs('ADMIN'), ['facturacion', 'tarifario', 'gastos', 'categorias', 'sugerencias', 'calculadora']);
+  assert.equal(defaultFinanceTab('ADMIN'), 'facturacion');
 });
 
-test('SUPERVISOR sees Gastos, Categorias and Sugerencias but never the Tarifario', () => {
-  assert.deepEqual(visibleFinanceTabs('SUPERVISOR'), ['gastos', 'categorias', 'sugerencias']);
-  assert.equal(defaultFinanceTab('SUPERVISOR'), 'gastos');
+test('SUPERVISOR sees Facturacion, Gastos, Categorias and Sugerencias but never the Tarifario', () => {
+  assert.deepEqual(visibleFinanceTabs('SUPERVISOR'), ['facturacion', 'gastos', 'categorias', 'sugerencias']);
+  assert.equal(defaultFinanceTab('SUPERVISOR'), 'facturacion');
   assert.equal(visibleFinanceTabs('SUPERVISOR').includes('tarifario'), false);
 });
 
@@ -101,8 +102,18 @@ test('only ADMIN sees the Calculadora tab; SUPERVISOR and every other role never
   }
 });
 
-test('adding the Calculadora keeps the SUPERVISOR tabs and the ADMIN landing tab unchanged', () => {
-  assert.deepEqual(visibleFinanceTabs('SUPERVISOR'), ['gastos', 'categorias', 'sugerencias']);
-  assert.equal(defaultFinanceTab('SUPERVISOR'), 'gastos');
-  assert.equal(defaultFinanceTab('ADMIN'), 'tarifario');
+test('adding the Calculadora keeps the SUPERVISOR tabs unchanged and Facturacion first', () => {
+  assert.deepEqual(visibleFinanceTabs('SUPERVISOR'), ['facturacion', 'gastos', 'categorias', 'sugerencias']);
+  assert.equal(defaultFinanceTab('SUPERVISOR'), 'facturacion');
+  assert.equal(defaultFinanceTab('ADMIN'), 'facturacion');
+});
+
+test('only ADMIN and SUPERVISOR see the Facturacion tab', () => {
+  for (const role of ['ADMIN', 'SUPERVISOR']) {
+    assert.equal(canSeeBilling(role), true, role);
+  }
+  for (const role of [...OTHER_ROLES, 'ROOT']) {
+    assert.equal(canSeeBilling(role), false, String(role));
+    assert.equal(visibleFinanceTabs(role).includes('facturacion'), false, String(role));
+  }
 });

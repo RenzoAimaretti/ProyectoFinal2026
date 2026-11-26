@@ -293,6 +293,8 @@ export type ClientWhereInput = {
   farms?: Prisma.FarmListRelationFilter
   receptions?: Prisma.ReceptionListRelationFilter
   stocks?: Prisma.StockListRelationFilter
+  invoices?: Prisma.InvoiceListRelationFilter
+  payments?: Prisma.PaymentListRelationFilter
 }
 
 export type ClientOrderByWithRelationInput = {
@@ -315,6 +317,8 @@ export type ClientOrderByWithRelationInput = {
   farms?: Prisma.FarmOrderByRelationAggregateInput
   receptions?: Prisma.ReceptionOrderByRelationAggregateInput
   stocks?: Prisma.StockOrderByRelationAggregateInput
+  invoices?: Prisma.InvoiceOrderByRelationAggregateInput
+  payments?: Prisma.PaymentOrderByRelationAggregateInput
 }
 
 export type ClientWhereUniqueInput = Prisma.AtLeast<{
@@ -340,6 +344,8 @@ export type ClientWhereUniqueInput = Prisma.AtLeast<{
   farms?: Prisma.FarmListRelationFilter
   receptions?: Prisma.ReceptionListRelationFilter
   stocks?: Prisma.StockListRelationFilter
+  invoices?: Prisma.InvoiceListRelationFilter
+  payments?: Prisma.PaymentListRelationFilter
 }, "id" | "userId">
 
 export type ClientOrderByWithAggregationInput = {
@@ -402,6 +408,8 @@ export type ClientCreateInput = {
   farms?: Prisma.FarmCreateNestedManyWithoutClientInput
   receptions?: Prisma.ReceptionCreateNestedManyWithoutClientInput
   stocks?: Prisma.StockCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateInput = {
@@ -422,6 +430,8 @@ export type ClientUncheckedCreateInput = {
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutClientInput
   receptions?: Prisma.ReceptionUncheckedCreateNestedManyWithoutClientInput
   stocks?: Prisma.StockUncheckedCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientUpdateInput = {
@@ -442,6 +452,8 @@ export type ClientUpdateInput = {
   farms?: Prisma.FarmUpdateManyWithoutClientNestedInput
   receptions?: Prisma.ReceptionUpdateManyWithoutClientNestedInput
   stocks?: Prisma.StockUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateInput = {
@@ -462,6 +474,8 @@ export type ClientUncheckedUpdateInput = {
   farms?: Prisma.FarmUncheckedUpdateManyWithoutClientNestedInput
   receptions?: Prisma.ReceptionUncheckedUpdateManyWithoutClientNestedInput
   stocks?: Prisma.StockUncheckedUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateManyInput = {
@@ -708,6 +722,34 @@ export type ClientUpdateOneRequiredWithoutStocksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClientUpdateToOneWithWhereWithoutStocksInput, Prisma.ClientUpdateWithoutStocksInput>, Prisma.ClientUncheckedUpdateWithoutStocksInput>
 }
 
+export type ClientCreateNestedOneWithoutInvoicesInput = {
+  create?: Prisma.XOR<Prisma.ClientCreateWithoutInvoicesInput, Prisma.ClientUncheckedCreateWithoutInvoicesInput>
+  connectOrCreate?: Prisma.ClientCreateOrConnectWithoutInvoicesInput
+  connect?: Prisma.ClientWhereUniqueInput
+}
+
+export type ClientUpdateOneRequiredWithoutInvoicesNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientCreateWithoutInvoicesInput, Prisma.ClientUncheckedCreateWithoutInvoicesInput>
+  connectOrCreate?: Prisma.ClientCreateOrConnectWithoutInvoicesInput
+  upsert?: Prisma.ClientUpsertWithoutInvoicesInput
+  connect?: Prisma.ClientWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClientUpdateToOneWithWhereWithoutInvoicesInput, Prisma.ClientUpdateWithoutInvoicesInput>, Prisma.ClientUncheckedUpdateWithoutInvoicesInput>
+}
+
+export type ClientCreateNestedOneWithoutPaymentsInput = {
+  create?: Prisma.XOR<Prisma.ClientCreateWithoutPaymentsInput, Prisma.ClientUncheckedCreateWithoutPaymentsInput>
+  connectOrCreate?: Prisma.ClientCreateOrConnectWithoutPaymentsInput
+  connect?: Prisma.ClientWhereUniqueInput
+}
+
+export type ClientUpdateOneRequiredWithoutPaymentsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientCreateWithoutPaymentsInput, Prisma.ClientUncheckedCreateWithoutPaymentsInput>
+  connectOrCreate?: Prisma.ClientCreateOrConnectWithoutPaymentsInput
+  upsert?: Prisma.ClientUpsertWithoutPaymentsInput
+  connect?: Prisma.ClientWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClientUpdateToOneWithWhereWithoutPaymentsInput, Prisma.ClientUpdateWithoutPaymentsInput>, Prisma.ClientUncheckedUpdateWithoutPaymentsInput>
+}
+
 export type ClientCreateWithoutTenantInput = {
   id?: string
   name: string
@@ -725,6 +767,8 @@ export type ClientCreateWithoutTenantInput = {
   farms?: Prisma.FarmCreateNestedManyWithoutClientInput
   receptions?: Prisma.ReceptionCreateNestedManyWithoutClientInput
   stocks?: Prisma.StockCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutTenantInput = {
@@ -744,6 +788,8 @@ export type ClientUncheckedCreateWithoutTenantInput = {
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutClientInput
   receptions?: Prisma.ReceptionUncheckedCreateNestedManyWithoutClientInput
   stocks?: Prisma.StockUncheckedCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutTenantInput = {
@@ -809,6 +855,8 @@ export type ClientCreateWithoutUserInput = {
   farms?: Prisma.FarmCreateNestedManyWithoutClientInput
   receptions?: Prisma.ReceptionCreateNestedManyWithoutClientInput
   stocks?: Prisma.StockCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutUserInput = {
@@ -828,6 +876,8 @@ export type ClientUncheckedCreateWithoutUserInput = {
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutClientInput
   receptions?: Prisma.ReceptionUncheckedCreateNestedManyWithoutClientInput
   stocks?: Prisma.StockUncheckedCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutUserInput = {
@@ -863,6 +913,8 @@ export type ClientUpdateWithoutUserInput = {
   farms?: Prisma.FarmUpdateManyWithoutClientNestedInput
   receptions?: Prisma.ReceptionUpdateManyWithoutClientNestedInput
   stocks?: Prisma.StockUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutUserInput = {
@@ -882,6 +934,8 @@ export type ClientUncheckedUpdateWithoutUserInput = {
   farms?: Prisma.FarmUncheckedUpdateManyWithoutClientNestedInput
   receptions?: Prisma.ReceptionUncheckedUpdateManyWithoutClientNestedInput
   stocks?: Prisma.StockUncheckedUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateWithoutFarmsInput = {
@@ -901,6 +955,8 @@ export type ClientCreateWithoutFarmsInput = {
   user?: Prisma.UserCreateNestedOneWithoutClientInput
   receptions?: Prisma.ReceptionCreateNestedManyWithoutClientInput
   stocks?: Prisma.StockCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutFarmsInput = {
@@ -920,6 +976,8 @@ export type ClientUncheckedCreateWithoutFarmsInput = {
   deleted?: boolean
   receptions?: Prisma.ReceptionUncheckedCreateNestedManyWithoutClientInput
   stocks?: Prisma.StockUncheckedCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutFarmsInput = {
@@ -955,6 +1013,8 @@ export type ClientUpdateWithoutFarmsInput = {
   user?: Prisma.UserUpdateOneWithoutClientNestedInput
   receptions?: Prisma.ReceptionUpdateManyWithoutClientNestedInput
   stocks?: Prisma.StockUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutFarmsInput = {
@@ -974,6 +1034,8 @@ export type ClientUncheckedUpdateWithoutFarmsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receptions?: Prisma.ReceptionUncheckedUpdateManyWithoutClientNestedInput
   stocks?: Prisma.StockUncheckedUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateWithoutReceptionsInput = {
@@ -993,6 +1055,8 @@ export type ClientCreateWithoutReceptionsInput = {
   user?: Prisma.UserCreateNestedOneWithoutClientInput
   farms?: Prisma.FarmCreateNestedManyWithoutClientInput
   stocks?: Prisma.StockCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutReceptionsInput = {
@@ -1012,6 +1076,8 @@ export type ClientUncheckedCreateWithoutReceptionsInput = {
   deleted?: boolean
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutClientInput
   stocks?: Prisma.StockUncheckedCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutReceptionsInput = {
@@ -1047,6 +1113,8 @@ export type ClientUpdateWithoutReceptionsInput = {
   user?: Prisma.UserUpdateOneWithoutClientNestedInput
   farms?: Prisma.FarmUpdateManyWithoutClientNestedInput
   stocks?: Prisma.StockUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutReceptionsInput = {
@@ -1066,6 +1134,8 @@ export type ClientUncheckedUpdateWithoutReceptionsInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   farms?: Prisma.FarmUncheckedUpdateManyWithoutClientNestedInput
   stocks?: Prisma.StockUncheckedUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateWithoutStocksInput = {
@@ -1085,6 +1155,8 @@ export type ClientCreateWithoutStocksInput = {
   user?: Prisma.UserCreateNestedOneWithoutClientInput
   farms?: Prisma.FarmCreateNestedManyWithoutClientInput
   receptions?: Prisma.ReceptionCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutClientInput
 }
 
 export type ClientUncheckedCreateWithoutStocksInput = {
@@ -1104,6 +1176,8 @@ export type ClientUncheckedCreateWithoutStocksInput = {
   deleted?: boolean
   farms?: Prisma.FarmUncheckedCreateNestedManyWithoutClientInput
   receptions?: Prisma.ReceptionUncheckedCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutClientInput
 }
 
 export type ClientCreateOrConnectWithoutStocksInput = {
@@ -1139,6 +1213,8 @@ export type ClientUpdateWithoutStocksInput = {
   user?: Prisma.UserUpdateOneWithoutClientNestedInput
   farms?: Prisma.FarmUpdateManyWithoutClientNestedInput
   receptions?: Prisma.ReceptionUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutStocksInput = {
@@ -1158,6 +1234,208 @@ export type ClientUncheckedUpdateWithoutStocksInput = {
   deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   farms?: Prisma.FarmUncheckedUpdateManyWithoutClientNestedInput
   receptions?: Prisma.ReceptionUncheckedUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutClientNestedInput
+}
+
+export type ClientCreateWithoutInvoicesInput = {
+  id?: string
+  name: string
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
+  address?: string | null
+  cuit?: string | null
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  tenant: Prisma.TenantCreateNestedOneWithoutClientsInput
+  user?: Prisma.UserCreateNestedOneWithoutClientInput
+  farms?: Prisma.FarmCreateNestedManyWithoutClientInput
+  receptions?: Prisma.ReceptionCreateNestedManyWithoutClientInput
+  stocks?: Prisma.StockCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutClientInput
+}
+
+export type ClientUncheckedCreateWithoutInvoicesInput = {
+  id?: string
+  tenantId: string
+  name: string
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
+  address?: string | null
+  userId?: string | null
+  cuit?: string | null
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  farms?: Prisma.FarmUncheckedCreateNestedManyWithoutClientInput
+  receptions?: Prisma.ReceptionUncheckedCreateNestedManyWithoutClientInput
+  stocks?: Prisma.StockUncheckedCreateNestedManyWithoutClientInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutClientInput
+}
+
+export type ClientCreateOrConnectWithoutInvoicesInput = {
+  where: Prisma.ClientWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientCreateWithoutInvoicesInput, Prisma.ClientUncheckedCreateWithoutInvoicesInput>
+}
+
+export type ClientUpsertWithoutInvoicesInput = {
+  update: Prisma.XOR<Prisma.ClientUpdateWithoutInvoicesInput, Prisma.ClientUncheckedUpdateWithoutInvoicesInput>
+  create: Prisma.XOR<Prisma.ClientCreateWithoutInvoicesInput, Prisma.ClientUncheckedCreateWithoutInvoicesInput>
+  where?: Prisma.ClientWhereInput
+}
+
+export type ClientUpdateToOneWithWhereWithoutInvoicesInput = {
+  where?: Prisma.ClientWhereInput
+  data: Prisma.XOR<Prisma.ClientUpdateWithoutInvoicesInput, Prisma.ClientUncheckedUpdateWithoutInvoicesInput>
+}
+
+export type ClientUpdateWithoutInvoicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cuit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutClientsNestedInput
+  user?: Prisma.UserUpdateOneWithoutClientNestedInput
+  farms?: Prisma.FarmUpdateManyWithoutClientNestedInput
+  receptions?: Prisma.ReceptionUpdateManyWithoutClientNestedInput
+  stocks?: Prisma.StockUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutClientNestedInput
+}
+
+export type ClientUncheckedUpdateWithoutInvoicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cuit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  farms?: Prisma.FarmUncheckedUpdateManyWithoutClientNestedInput
+  receptions?: Prisma.ReceptionUncheckedUpdateManyWithoutClientNestedInput
+  stocks?: Prisma.StockUncheckedUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutClientNestedInput
+}
+
+export type ClientCreateWithoutPaymentsInput = {
+  id?: string
+  name: string
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
+  address?: string | null
+  cuit?: string | null
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  tenant: Prisma.TenantCreateNestedOneWithoutClientsInput
+  user?: Prisma.UserCreateNestedOneWithoutClientInput
+  farms?: Prisma.FarmCreateNestedManyWithoutClientInput
+  receptions?: Prisma.ReceptionCreateNestedManyWithoutClientInput
+  stocks?: Prisma.StockCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutClientInput
+}
+
+export type ClientUncheckedCreateWithoutPaymentsInput = {
+  id?: string
+  tenantId: string
+  name: string
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
+  address?: string | null
+  userId?: string | null
+  cuit?: string | null
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  farms?: Prisma.FarmUncheckedCreateNestedManyWithoutClientInput
+  receptions?: Prisma.ReceptionUncheckedCreateNestedManyWithoutClientInput
+  stocks?: Prisma.StockUncheckedCreateNestedManyWithoutClientInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutClientInput
+}
+
+export type ClientCreateOrConnectWithoutPaymentsInput = {
+  where: Prisma.ClientWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientCreateWithoutPaymentsInput, Prisma.ClientUncheckedCreateWithoutPaymentsInput>
+}
+
+export type ClientUpsertWithoutPaymentsInput = {
+  update: Prisma.XOR<Prisma.ClientUpdateWithoutPaymentsInput, Prisma.ClientUncheckedUpdateWithoutPaymentsInput>
+  create: Prisma.XOR<Prisma.ClientCreateWithoutPaymentsInput, Prisma.ClientUncheckedCreateWithoutPaymentsInput>
+  where?: Prisma.ClientWhereInput
+}
+
+export type ClientUpdateToOneWithWhereWithoutPaymentsInput = {
+  where?: Prisma.ClientWhereInput
+  data: Prisma.XOR<Prisma.ClientUpdateWithoutPaymentsInput, Prisma.ClientUncheckedUpdateWithoutPaymentsInput>
+}
+
+export type ClientUpdateWithoutPaymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cuit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutClientsNestedInput
+  user?: Prisma.UserUpdateOneWithoutClientNestedInput
+  farms?: Prisma.FarmUpdateManyWithoutClientNestedInput
+  receptions?: Prisma.ReceptionUpdateManyWithoutClientNestedInput
+  stocks?: Prisma.StockUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutClientNestedInput
+}
+
+export type ClientUncheckedUpdateWithoutPaymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cuit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  farms?: Prisma.FarmUncheckedUpdateManyWithoutClientNestedInput
+  receptions?: Prisma.ReceptionUncheckedUpdateManyWithoutClientNestedInput
+  stocks?: Prisma.StockUncheckedUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientCreateManyTenantInput = {
@@ -1193,6 +1471,8 @@ export type ClientUpdateWithoutTenantInput = {
   farms?: Prisma.FarmUpdateManyWithoutClientNestedInput
   receptions?: Prisma.ReceptionUpdateManyWithoutClientNestedInput
   stocks?: Prisma.StockUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateWithoutTenantInput = {
@@ -1212,6 +1492,8 @@ export type ClientUncheckedUpdateWithoutTenantInput = {
   farms?: Prisma.FarmUncheckedUpdateManyWithoutClientNestedInput
   receptions?: Prisma.ReceptionUncheckedUpdateManyWithoutClientNestedInput
   stocks?: Prisma.StockUncheckedUpdateManyWithoutClientNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutClientNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutClientNestedInput
 }
 
 export type ClientUncheckedUpdateManyWithoutTenantInput = {
@@ -1239,12 +1521,16 @@ export type ClientCountOutputType = {
   farms: number
   receptions: number
   stocks: number
+  invoices: number
+  payments: number
 }
 
 export type ClientCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   farms?: boolean | ClientCountOutputTypeCountFarmsArgs
   receptions?: boolean | ClientCountOutputTypeCountReceptionsArgs
   stocks?: boolean | ClientCountOutputTypeCountStocksArgs
+  invoices?: boolean | ClientCountOutputTypeCountInvoicesArgs
+  payments?: boolean | ClientCountOutputTypeCountPaymentsArgs
 }
 
 /**
@@ -1278,6 +1564,20 @@ export type ClientCountOutputTypeCountStocksArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.StockWhereInput
 }
 
+/**
+ * ClientCountOutputType without action
+ */
+export type ClientCountOutputTypeCountInvoicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.InvoiceWhereInput
+}
+
+/**
+ * ClientCountOutputType without action
+ */
+export type ClientCountOutputTypeCountPaymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PaymentWhereInput
+}
+
 
 export type ClientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1299,6 +1599,8 @@ export type ClientSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   farms?: boolean | Prisma.Client$farmsArgs<ExtArgs>
   receptions?: boolean | Prisma.Client$receptionsArgs<ExtArgs>
   stocks?: boolean | Prisma.Client$stocksArgs<ExtArgs>
+  invoices?: boolean | Prisma.Client$invoicesArgs<ExtArgs>
+  payments?: boolean | Prisma.Client$paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.ClientCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["client"]>
 
@@ -1364,6 +1666,8 @@ export type ClientInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   farms?: boolean | Prisma.Client$farmsArgs<ExtArgs>
   receptions?: boolean | Prisma.Client$receptionsArgs<ExtArgs>
   stocks?: boolean | Prisma.Client$stocksArgs<ExtArgs>
+  invoices?: boolean | Prisma.Client$invoicesArgs<ExtArgs>
+  payments?: boolean | Prisma.Client$paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.ClientCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClientIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1383,6 +1687,8 @@ export type $ClientPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     farms: Prisma.$FarmPayload<ExtArgs>[]
     receptions: Prisma.$ReceptionPayload<ExtArgs>[]
     stocks: Prisma.$StockPayload<ExtArgs>[]
+    invoices: Prisma.$InvoicePayload<ExtArgs>[]
+    payments: Prisma.$PaymentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1798,6 +2104,8 @@ export interface Prisma__ClientClient<T, Null = never, ExtArgs extends runtime.T
   farms<T extends Prisma.Client$farmsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$farmsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FarmPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   receptions<T extends Prisma.Client$receptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$receptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReceptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   stocks<T extends Prisma.Client$stocksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$stocksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StockPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  invoices<T extends Prisma.Client$invoicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$invoicesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvoicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  payments<T extends Prisma.Client$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Client$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2330,6 +2638,54 @@ export type Client$stocksArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.StockScalarFieldEnum | Prisma.StockScalarFieldEnum[]
+}
+
+/**
+ * Client.invoices
+ */
+export type Client$invoicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Invoice
+   */
+  select?: Prisma.InvoiceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Invoice
+   */
+  omit?: Prisma.InvoiceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.InvoiceInclude<ExtArgs> | null
+  where?: Prisma.InvoiceWhereInput
+  orderBy?: Prisma.InvoiceOrderByWithRelationInput | Prisma.InvoiceOrderByWithRelationInput[]
+  cursor?: Prisma.InvoiceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.InvoiceScalarFieldEnum | Prisma.InvoiceScalarFieldEnum[]
+}
+
+/**
+ * Client.payments
+ */
+export type Client$paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Payment
+   */
+  select?: Prisma.PaymentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Payment
+   */
+  omit?: Prisma.PaymentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentInclude<ExtArgs> | null
+  where?: Prisma.PaymentWhereInput
+  orderBy?: Prisma.PaymentOrderByWithRelationInput | Prisma.PaymentOrderByWithRelationInput[]
+  cursor?: Prisma.PaymentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
 }
 
 /**

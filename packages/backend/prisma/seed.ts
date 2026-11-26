@@ -97,6 +97,11 @@ async function main(): Promise<void> {
     // Wipe demo data in reverse-FK order. The tenant bootstrap rows (Tenant,
     // Company, User, UserCompany) are preserved and upserted right after.
     await prisma.$transaction([
+      prisma.cheque.deleteMany(),
+      prisma.echeq.deleteMany(),
+      prisma.payment.deleteMany(),
+      prisma.invoiceItem.deleteMany(),
+      prisma.invoice.deleteMany(),
       prisma.photo.deleteMany(),
       prisma.dailyReportItem.deleteMany(),
       prisma.dailyReportValuation.deleteMany(),

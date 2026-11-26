@@ -91,7 +91,7 @@ export class RecipeController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('INGENIERO', 'ADMIN')
+  @Roles('INGENIERO')
   @Post()
   async create(@Req() req: RequestWithUser, @Body() body: CreateRecipeInput) {
     try {
@@ -102,7 +102,7 @@ export class RecipeController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('INGENIERO', 'ADMIN')
+  @Roles('INGENIERO')
   @Put(':id')
   async update(
     @Param('id') id: string,

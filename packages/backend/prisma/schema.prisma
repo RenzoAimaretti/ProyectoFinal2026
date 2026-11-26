@@ -63,6 +63,10 @@ model Company {
   modules           Module[]
   tariffs           Tariff[]
   expenses          Expense[]
+  invoices          Invoice[]
+  payments          Payment[]
+  cheques           Cheque[]
+  echeqs            Echeq[]
 
   @@index([tenantId])
 }
@@ -160,6 +164,8 @@ model Client {
   farms      Farm[]
   receptions Reception[]
   stocks     Stock[]
+  invoices   Invoice[]
+  payments   Payment[]
 
   @@index([tenantId])
 }
@@ -316,6 +322,7 @@ model Task {
   machineLogs  MachineUsage[]
   dailyReports DailyReport[]
   recipe       Recipe?
+  invoiceItems InvoiceItem[]
 
   @@index([lotId])
   @@index([laborTypeId])
@@ -563,6 +570,146 @@ model MachineActivity {
   @@index([machineId, date])
   @@index([companyId])
   @@index([type, date])
+}
+
+// ============================================================================
+// Finanzas (CUU09) — R026, R027, R028, R029, R030, R033
+//
+// `Company` es la FIRMA: toda operacion financiera pertenece a UNA sola firma
+// y se consulta filtrando por companyId (R033, contabilidades aisladas).
+// "Firma" aca NO es una firma criptografica ni una co-aprobacion entre varias
+// personas: es la razon social que lleva su propia contabilidad.
+//
+// El dinero se persiste como Float, igual que el resto del esquema (Module.price,
+// MachineActivity.cost, Task/Recipe cantidades).
+// ============================================================================
+
+model Invoice {
+  id          String        @id @default(uuid())
+  companyId   String
+  clientId    String
+  number      String
+  issueDate   DateTime
+  dueDate     DateTime?
+  status      InvoiceStatus @default(EMITIDA)
+  // R030: cotizacion del dolar (BNA) aplicada al emitir. Se persiste el valor
+  // usado para que la factura no cambie cuando la cotizacion del dia avanza.
+  usdRate     Float?
+  usdRateDate DateTime?
+  totalAmount Float
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  version     Int           @default(1)
+  deleted     Boolean       @default(false)
+
+  company  Company       @relation(fields: [companyId], references: [id])
+  client   Client        @relation(fields: [clientId], references: [id])
+  items    InvoiceItem[]
+  payments Payment[]
+
+  @@unique([companyId, number])
+  @@index([companyId, issueDate])
+  @@index([clientId])
+  @@index([status])
+}
+
+model InvoiceItem {
+  id          String  @id @default(uuid())
+  invoiceId   String
+  // R026: la factura se vincula a las tareas del cliente. Una linea puede
+  // facturar una tarea; taskId es opcional porque tambien se facturan
+  // conceptos sueltos (fletes, ajustes) sin tarea asociada.
+  taskId      String?
+  description String
+  quantity    Float
+  unitPrice   Float
+  amount      Float
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  task    Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+  @@index([taskId])
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  companyId String
+  clientId  String
+  invoiceId String?
+  // R027: facturado vs informal. Un cobro informal no imputa a una factura.
+  kind      PaymentKind
+  method    PaymentMethod
+  amount    Float
+  date      DateTime
+  usdRate     Float?
+  usdRateDate DateTime?
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  company Company  @relation(fields: [companyId], references: [id])
+  client  Client   @relation(fields: [clientId], references: [id])
+  invoice Invoice? @relation(fields: [invoiceId], references: [id])
+  cheques Cheque[]
+  echeqs  Echeq[]
+
+  @@index([companyId, date])
+  @@index([clientId])
+  @@index([invoiceId])
+  @@index([kind])
+}
+
+// R028: cheque fisico. El flujo de estados vive en el dominio del modulo;
+// aca solo se persiste el estado actual.
+model Cheque {
+  id         String       @id @default(uuid())
+  companyId  String
+  paymentId  String?
+  number     String
+  issuer     String
+  bank       String?
+  amount     Float
+  dueDate    DateTime
+  status     ChequeStatus @default(EN_CARTERA)
+  receivedAt DateTime     @default(now())
+  notes      String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  company Company  @relation(fields: [companyId], references: [id])
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  @@unique([companyId, number, issuer])
+  @@index([companyId, dueDate])
+  @@index([status, dueDate])
+}
+
+// R029: eCheq emitido o recibido. `settlementDate` es la fecha real de
+// acreditacion (recibido) o debito (emitido); su ausencia con status PENDIENTE
+// es lo que alimenta la bandeja de conciliacion pendiente.
+model Echeq {
+  id             String         @id @default(uuid())
+  companyId      String
+  paymentId      String?
+  code           String
+  issuer         String
+  amount         Float
+  direction      EcheqDirection
+  dueDate        DateTime
+  status         EcheqStatus    @default(PENDIENTE)
+  settlementDate DateTime?
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  company Company  @relation(fields: [companyId], references: [id])
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  @@unique([companyId, code])
+  @@index([companyId, dueDate])
+  @@index([status, settlementDate])
 }
 
 // ============================================================================
@@ -959,4 +1106,43 @@ model ExpenseSuggestion {
   @@index([companyId, status])
   @@index([suggestedBy])
   @@index([expenseId])
+}
+
+enum InvoiceStatus {
+  EMITIDA
+  COBRADA
+  ANULADA
+}
+
+// R027: clasificacion del cobro.
+enum PaymentKind {
+  FACTURADO
+  INFORMAL
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  TRANSFERENCIA
+  CHEQUE
+  ECHEQ
+}
+
+enum ChequeStatus {
+  EN_CARTERA
+  DEPOSITADO
+  COBRADO
+  RECHAZADO
+  ENDOSADO
+}
+
+enum EcheqDirection {
+  EMITIDO
+  RECIBIDO
+}
+
+enum EcheqStatus {
+  PENDIENTE
+  ACREDITADO
+  DEBITADO
+  RECHAZADO
 }

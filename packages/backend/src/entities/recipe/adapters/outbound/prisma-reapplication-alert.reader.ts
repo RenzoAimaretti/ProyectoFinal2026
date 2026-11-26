@@ -36,6 +36,12 @@ export class PrismaReapplicationAlertReader
         task: {
           select: {
             status: true,
+            laborTypeId: true,
+            laborType: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
         lot: {
@@ -66,6 +72,8 @@ export class PrismaReapplicationAlertReader
         clientName: row.lot.farm.client.name,
         taskId: row.taskId,
         taskStatus: row.task?.status ?? null,
+        laborTypeId: row.task?.laborTypeId ?? null,
+        laborTypeName: row.task?.laborType?.name ?? null,
         date: row.date,
         pest: row.pest,
         crop: row.crop,

@@ -17,6 +17,8 @@ export type RecipeForReapplicationAlert = {
   clientName: string;
   taskId: string | null;
   taskStatus: string | null;
+  laborTypeId?: string | null;
+  laborTypeName?: string | null;
   date: Date;
   pest: string | null;
   crop: string | null;
@@ -30,6 +32,8 @@ export type RecipeForReapplicationAlert = {
 export type ReapplicationAlert = {
   recipeId: string;
   taskId: string | null;
+  laborTypeId: string | null;
+  laborTypeName: string | null;
   lotId: string;
   lotName: string;
   farmName: string;

@@ -9,11 +9,13 @@ import { getStoredUser } from "@/api/client";
 import { defaultFinanceTab, visibleFinanceTabs, type FinanceTabId } from "./access";
 import { CalculadoraTab } from "./calculadora-tab";
 import { CategoriasTab } from "./categorias-tab";
+import { FacturacionTab } from "./facturacion-tab";
 import { GastosTab } from "./gastos-tab";
 import { SugerenciasTab } from "./sugerencias-tab";
 import { TarifarioTab } from "./tarifario-tab";
 
 const TAB_LABELS: Record<FinanceTabId, string> = {
+  facturacion: "Facturación y cobros",
   tarifario: "Tarifario",
   gastos: "Gastos",
   categorias: "Categorías",
@@ -66,6 +68,7 @@ export default function FinanzasPage() {
         </div>
       )}
 
+      {active === "facturacion" && <FacturacionTab />}
       {active === "tarifario" && <TarifarioTab />}
       {active === "gastos" && <GastosTab role={role} />}
       {active === "categorias" && <CategoriasTab />}

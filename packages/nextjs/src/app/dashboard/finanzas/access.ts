@@ -5,7 +5,15 @@
  * `node --test` can load it (the role helpers in `nav.ts` pull in JSX).
  */
 
-export type FinanceTabId = "tarifario" | "gastos" | "categorias" | "sugerencias" | "calculadora";
+export type FinanceTabId = "facturacion" | "tarifario" | "gastos" | "categorias" | "sugerencias" | "calculadora";
+
+/**
+ * Facturación y cobros (invoices, payments, cheques, eCheqs): ADMIN and
+ * SUPERVISOR, matching the backend `@Roles('ADMIN', 'SUPERVISOR')`.
+ */
+export function canSeeBilling(role?: string | null): boolean {
+  return role === "ADMIN" || role === "SUPERVISOR";
+}
 
 /** Tarifario (tariffs) is ADMIN-only. SUPERVISOR never sees it. */
 export function canSeeTariffs(role?: string | null): boolean {
@@ -38,6 +46,7 @@ export function canResolveSuggestions(role?: string | null): boolean {
 /** Tabs the role may see, in display order. Unknown roles see none (fail closed). */
 export function visibleFinanceTabs(role?: string | null): FinanceTabId[] {
   const tabs: FinanceTabId[] = [];
+  if (canSeeBilling(role)) tabs.push("facturacion");
   if (canSeeTariffs(role)) tabs.push("tarifario");
   if (canManageExpenses(role)) tabs.push("gastos", "categorias");
   if (canSeeSuggestions(role)) tabs.push("sugerencias");

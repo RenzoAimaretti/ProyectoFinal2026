@@ -31,9 +31,38 @@ describe('PrismaLotLocationReader', () => {
         where: { id: 'lot-1', farm: { client: { tenantId: 'tenant-1' } } },
         select: {
           coords: true,
+          polygon: true,
           farmId: true,
           farm: { select: { location: true } },
         },
+      });
+    });
+
+    it('resolves geometry from lot.polygon when coords is null', async () => {
+      const polygon = {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [-64.4, -33.1],
+            [-64.3, -33.1],
+            [-64.3, -33.2],
+            [-64.4, -33.1],
+          ],
+        ],
+      };
+      prisma.lot.findFirst.mockResolvedValue({
+        coords: null,
+        polygon,
+        farmId: 'farm-1',
+        farm: { location: 'Córdoba' },
+      });
+
+      await expect(
+        reader.findByLotAndTenant('lot-1', 'tenant-1'),
+      ).resolves.toEqual({
+        coords: JSON.stringify(polygon),
+        farmId: 'farm-1',
+        farmLocation: 'Córdoba',
       });
     });
 
@@ -67,8 +96,36 @@ describe('PrismaLotLocationReader', () => {
 
       expect(prisma.lot.findMany).toHaveBeenCalledWith({
         where: { farmId: 'farm-1', farm: { client: { tenantId: 'tenant-1' } } },
-        select: { coords: true },
+        select: { coords: true, polygon: true },
       });
+    });
+
+    it('resolves farm centroid from lot.polygon when coords is null', async () => {
+      prisma.lot.findMany.mockResolvedValue([
+        {
+          coords: null,
+          polygon: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [-64.4, -33.1],
+                [-64.3, -33.1],
+                [-64.3, -33.2],
+                [-64.4, -33.1],
+              ],
+            ],
+          },
+        },
+      ]);
+
+      const centroid = await reader.centroidByFarmAndTenant(
+        'farm-1',
+        'tenant-1',
+      );
+
+      expect(centroid).not.toBeNull();
+      expect(centroid?.lat).toBeCloseTo((-33.1 - 33.1 - 33.2) / 3, 6);
+      expect(centroid?.lon).toBeCloseTo((-64.4 - 64.3 - 64.3) / 3, 6);
     });
 
     it('returns null when no lot of the farm has a usable polygon', async () => {
