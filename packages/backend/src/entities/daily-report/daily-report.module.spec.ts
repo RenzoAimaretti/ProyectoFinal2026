@@ -8,6 +8,7 @@ import {
   DAILY_REPORT_INPUT_READER,
   DAILY_REPORT_REPOSITORY,
   DAILY_REPORT_TASK_READER,
+  DAILY_REPORT_VALUATION_HOOK,
 } from './application/daily-report.ports';
 import { ApproveDailyReportUseCase } from './application/use-cases/approve-daily-report.use-case';
 import { CreateDailyReportUseCase } from './application/use-cases/create-daily-report.use-case';
@@ -59,6 +60,9 @@ describe('DailyReportModule', () => {
         .mockResolvedValue({ id: 'report-1', status: 'APROBADO', items: [] }),
     };
     const clock = { now: jest.fn().mockReturnValue(new Date()) };
+    const valuationHook = {
+      onApproved: jest.fn().mockResolvedValue(undefined),
+    };
 
     const moduleRef = await Test.createTestingModule({
       imports: [DailyReportModule],
@@ -79,6 +83,8 @@ describe('DailyReportModule', () => {
       .useValue(approval)
       .overrideProvider(DAILY_REPORT_CLOCK)
       .useValue(clock)
+      .overrideProvider(DAILY_REPORT_VALUATION_HOOK)
+      .useValue(valuationHook)
       .compile();
 
     expect(moduleRef.get(FindDailyReportsByCompanyUseCase)).toBeInstanceOf(
@@ -113,6 +119,11 @@ describe('DailyReportModule', () => {
       clientId: 'client-1',
       approvedBy: 'user-1',
       approvedAt: expect.any(Date),
+    });
+    expect(valuationHook.onApproved).toHaveBeenCalledWith({
+      companyId: 'company-1',
+      reportId: 'report-1',
+      approvedAt: expect.any(Date) as Date,
     });
 
     await expect(

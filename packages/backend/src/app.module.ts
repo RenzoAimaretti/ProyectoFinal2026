@@ -32,6 +32,11 @@ import { RbacModule } from './auth/rbac.module';
 import { WeatherModule } from './integrations/weather/weather.module';
 import { ExchangeRateModule } from './integrations/exchange-rate/exchange-rate.module';
 import { GrainPriceModule } from './integrations/grain-price/grain-price.module';
+import { ValuationModule } from './entities/valuation/valuation.module';
+import { TariffModule } from './entities/tariff/tariff.module';
+import { ExpenseCategoryModule } from './entities/expense-category/expense-category.module';
+import { ExpenseModule } from './entities/expense/expense.module';
+import { ProfitabilityModule } from './entities/profitability/profitability.module';
 
 @Module({
   imports: [
@@ -70,6 +75,11 @@ import { GrainPriceModule } from './integrations/grain-price/grain-price.module'
     GrainPriceModule,
     MachineReportModule,
     FieldCatalogModule,
+    ValuationModule,
+    TariffModule,
+    ExpenseCategoryModule,
+    ExpenseModule,
+    ProfitabilityModule,
   ],
   controllers: [],
   providers: [],

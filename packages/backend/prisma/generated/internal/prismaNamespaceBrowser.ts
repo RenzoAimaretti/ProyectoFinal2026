@@ -85,7 +85,12 @@ export const ModelName = {
   Livestock: 'Livestock',
   LivestockEvent: 'LivestockEvent',
   WeightRecord: 'WeightRecord',
-  LivestockMovement: 'LivestockMovement'
+  LivestockMovement: 'LivestockMovement',
+  Tariff: 'Tariff',
+  DailyReportValuation: 'DailyReportValuation',
+  ExpenseCategory: 'ExpenseCategory',
+  Expense: 'Expense',
+  ExpenseSuggestion: 'ExpenseSuggestion'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -647,6 +652,126 @@ export const LivestockMovementScalarFieldEnum = {
 } as const
 
 export type LivestockMovementScalarFieldEnum = (typeof LivestockMovementScalarFieldEnum)[keyof typeof LivestockMovementScalarFieldEnum]
+
+
+export const TariffScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  laborTypeId: 'laborTypeId',
+  priceAmount: 'priceAmount',
+  priceUnit: 'priceUnit',
+  priceGrain: 'priceGrain',
+  priceBasis: 'priceBasis',
+  costAmount: 'costAmount',
+  costUnit: 'costUnit',
+  costGrain: 'costGrain',
+  costBasis: 'costBasis',
+  updatedBy: 'updatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TariffScalarFieldEnum = (typeof TariffScalarFieldEnum)[keyof typeof TariffScalarFieldEnum]
+
+
+export const DailyReportValuationScalarFieldEnum = {
+  id: 'id',
+  dailyReportId: 'dailyReportId',
+  companyId: 'companyId',
+  lotId: 'lotId',
+  tariffId: 'tariffId',
+  origin: 'origin',
+  priceAmount: 'priceAmount',
+  priceUnit: 'priceUnit',
+  priceGrain: 'priceGrain',
+  priceBasis: 'priceBasis',
+  costAmount: 'costAmount',
+  costUnit: 'costUnit',
+  costGrain: 'costGrain',
+  costBasis: 'costBasis',
+  hectares: 'hectares',
+  hours: 'hours',
+  incomeNative: 'incomeNative',
+  costNative: 'costNative',
+  incomeGrainArsPerTon: 'incomeGrainArsPerTon',
+  costGrainArsPerTon: 'costGrainArsPerTon',
+  usdRate: 'usdRate',
+  usdRateType: 'usdRateType',
+  grainSource: 'grainSource',
+  usdSource: 'usdSource',
+  priceFetchedAt: 'priceFetchedAt',
+  priceStale: 'priceStale',
+  incomeArs: 'incomeArs',
+  costArs: 'costArs',
+  valuedAt: 'valuedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type DailyReportValuationScalarFieldEnum = (typeof DailyReportValuationScalarFieldEnum)[keyof typeof DailyReportValuationScalarFieldEnum]
+
+
+export const ExpenseCategoryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ExpenseCategoryScalarFieldEnum = (typeof ExpenseCategoryScalarFieldEnum)[keyof typeof ExpenseCategoryScalarFieldEnum]
+
+
+export const ExpenseScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  lotId: 'lotId',
+  categoryId: 'categoryId',
+  date: 'date',
+  description: 'description',
+  amount: 'amount',
+  unit: 'unit',
+  grain: 'grain',
+  grainArsPerTon: 'grainArsPerTon',
+  usdRate: 'usdRate',
+  usdRateType: 'usdRateType',
+  priceSource: 'priceSource',
+  priceFetchedAt: 'priceFetchedAt',
+  priceStale: 'priceStale',
+  amountArs: 'amountArs',
+  valuedAt: 'valuedAt',
+  createdBy: 'createdBy',
+  updatedBy: 'updatedBy',
+  deletedAt: 'deletedAt',
+  deletedBy: 'deletedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
+
+
+export const ExpenseSuggestionScalarFieldEnum = {
+  id: 'id',
+  expenseId: 'expenseId',
+  companyId: 'companyId',
+  kind: 'kind',
+  status: 'status',
+  proposedLotId: 'proposedLotId',
+  proposedCategoryId: 'proposedCategoryId',
+  proposedDate: 'proposedDate',
+  proposedDescription: 'proposedDescription',
+  proposedAmount: 'proposedAmount',
+  proposedUnit: 'proposedUnit',
+  proposedGrain: 'proposedGrain',
+  suggestedBy: 'suggestedBy',
+  rejectionReason: 'rejectionReason',
+  resolvedBy: 'resolvedBy',
+  resolvedAt: 'resolvedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ExpenseSuggestionScalarFieldEnum = (typeof ExpenseSuggestionScalarFieldEnum)[keyof typeof ExpenseSuggestionScalarFieldEnum]
 
 
 export const SortOrder = {

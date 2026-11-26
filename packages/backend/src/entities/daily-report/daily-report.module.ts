@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { PhotoModule } from '../photo/photo.module';
+import { ValuateDailyReportUseCase } from '../valuation/application/use-cases/valuate-daily-report.use-case';
+import { ValuationModule } from '../valuation/valuation.module';
 import { DailyReportController } from './adapters/inbound/daily-report.controller';
 import {
   DAILY_REPORT_APPROVAL,
@@ -10,6 +12,7 @@ import {
   DAILY_REPORT_INPUT_READER,
   DAILY_REPORT_REPOSITORY,
   DAILY_REPORT_TASK_READER,
+  DAILY_REPORT_VALUATION_HOOK,
   ClockPort,
   DailyReportApprovalPort,
   DailyReportClientReaderPort,
@@ -17,6 +20,7 @@ import {
   DailyReportInputReaderPort,
   DailyReportRepositoryPort,
   DailyReportTaskReaderPort,
+  DailyReportValuationHookPort,
 } from './application/daily-report.ports';
 import { ApproveDailyReportUseCase } from './application/use-cases/approve-daily-report.use-case';
 import { CreateDailyReportUseCase } from './application/use-cases/create-daily-report.use-case';
@@ -30,9 +34,10 @@ import { PrismaDailyReportInputReader } from './adapters/outbound/prisma-daily-r
 import { PrismaDailyReportRepository } from './adapters/outbound/prisma-daily-report.repository';
 import { PrismaDailyReportTaskReader } from './adapters/outbound/prisma-task.reader';
 import { DailyReportSystemClock } from './adapters/outbound/system-clock';
+import { ValuationDailyReportHookAdapter } from './adapters/outbound/valuation-daily-report-hook.adapter';
 
 @Module({
-  imports: [PrismaModule, PhotoModule],
+  imports: [PrismaModule, PhotoModule, ValuationModule],
   controllers: [DailyReportController],
   providers: [
     PrismaDailyReportRepository,
@@ -61,6 +66,12 @@ import { DailyReportSystemClock } from './adapters/outbound/system-clock';
       useExisting: PrismaDailyReportApprovalAdapter,
     },
     { provide: DAILY_REPORT_CLOCK, useExisting: DailyReportSystemClock },
+    {
+      provide: DAILY_REPORT_VALUATION_HOOK,
+      useFactory: (valuate: ValuateDailyReportUseCase) =>
+        new ValuationDailyReportHookAdapter(valuate),
+      inject: [ValuateDailyReportUseCase],
+    },
     {
       provide: FindDailyReportsByCompanyUseCase,
       useFactory: (repository: DailyReportRepositoryPort) =>
@@ -101,18 +112,21 @@ import { DailyReportSystemClock } from './adapters/outbound/system-clock';
         clientReader: DailyReportClientReaderPort,
         approval: DailyReportApprovalPort,
         clock: ClockPort,
+        valuationHook: DailyReportValuationHookPort,
       ) =>
         new ApproveDailyReportUseCase(
           repository,
           clientReader,
           approval,
           clock,
+          valuationHook,
         ),
       inject: [
         DAILY_REPORT_REPOSITORY,
         DAILY_REPORT_CLIENT_READER,
         DAILY_REPORT_APPROVAL,
         DAILY_REPORT_CLOCK,
+        DAILY_REPORT_VALUATION_HOOK,
       ],
     },
     {

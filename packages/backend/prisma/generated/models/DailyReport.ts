@@ -307,6 +307,7 @@ export type DailyReportWhereInput = {
   lot?: Prisma.XOR<Prisma.LotScalarRelationFilter, Prisma.LotWhereInput>
   laborType?: Prisma.XOR<Prisma.LaborTypeScalarRelationFilter, Prisma.LaborTypeWhereInput>
   items?: Prisma.DailyReportItemListRelationFilter
+  valuation?: Prisma.XOR<Prisma.DailyReportValuationNullableScalarRelationFilter, Prisma.DailyReportValuationWhereInput> | null
 }
 
 export type DailyReportOrderByWithRelationInput = {
@@ -332,6 +333,7 @@ export type DailyReportOrderByWithRelationInput = {
   lot?: Prisma.LotOrderByWithRelationInput
   laborType?: Prisma.LaborTypeOrderByWithRelationInput
   items?: Prisma.DailyReportItemOrderByRelationAggregateInput
+  valuation?: Prisma.DailyReportValuationOrderByWithRelationInput
 }
 
 export type DailyReportWhereUniqueInput = Prisma.AtLeast<{
@@ -360,6 +362,7 @@ export type DailyReportWhereUniqueInput = Prisma.AtLeast<{
   lot?: Prisma.XOR<Prisma.LotScalarRelationFilter, Prisma.LotWhereInput>
   laborType?: Prisma.XOR<Prisma.LaborTypeScalarRelationFilter, Prisma.LaborTypeWhereInput>
   items?: Prisma.DailyReportItemListRelationFilter
+  valuation?: Prisma.XOR<Prisma.DailyReportValuationNullableScalarRelationFilter, Prisma.DailyReportValuationWhereInput> | null
 }, "id">
 
 export type DailyReportOrderByWithAggregationInput = {
@@ -423,6 +426,7 @@ export type DailyReportCreateInput = {
   lot: Prisma.LotCreateNestedOneWithoutDailyReportsInput
   laborType: Prisma.LaborTypeCreateNestedOneWithoutDailyReportsInput
   items?: Prisma.DailyReportItemCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportUncheckedCreateInput = {
@@ -442,6 +446,7 @@ export type DailyReportUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.DailyReportItemUncheckedCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationUncheckedCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportUpdateInput = {
@@ -461,6 +466,7 @@ export type DailyReportUpdateInput = {
   lot?: Prisma.LotUpdateOneRequiredWithoutDailyReportsNestedInput
   laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutDailyReportsNestedInput
   items?: Prisma.DailyReportItemUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateInput = {
@@ -480,6 +486,7 @@ export type DailyReportUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.DailyReportItemUncheckedUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUncheckedUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportCreateManyInput = {
@@ -879,6 +886,20 @@ export type DailyReportUpdateOneRequiredWithoutItemsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.DailyReportUpdateToOneWithWhereWithoutItemsInput, Prisma.DailyReportUpdateWithoutItemsInput>, Prisma.DailyReportUncheckedUpdateWithoutItemsInput>
 }
 
+export type DailyReportCreateNestedOneWithoutValuationInput = {
+  create?: Prisma.XOR<Prisma.DailyReportCreateWithoutValuationInput, Prisma.DailyReportUncheckedCreateWithoutValuationInput>
+  connectOrCreate?: Prisma.DailyReportCreateOrConnectWithoutValuationInput
+  connect?: Prisma.DailyReportWhereUniqueInput
+}
+
+export type DailyReportUpdateOneRequiredWithoutValuationNestedInput = {
+  create?: Prisma.XOR<Prisma.DailyReportCreateWithoutValuationInput, Prisma.DailyReportUncheckedCreateWithoutValuationInput>
+  connectOrCreate?: Prisma.DailyReportCreateOrConnectWithoutValuationInput
+  upsert?: Prisma.DailyReportUpsertWithoutValuationInput
+  connect?: Prisma.DailyReportWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.DailyReportUpdateToOneWithWhereWithoutValuationInput, Prisma.DailyReportUpdateWithoutValuationInput>, Prisma.DailyReportUncheckedUpdateWithoutValuationInput>
+}
+
 export type DailyReportCreateWithoutCompanyInput = {
   id?: string
   date: Date | string
@@ -895,6 +916,7 @@ export type DailyReportCreateWithoutCompanyInput = {
   lot: Prisma.LotCreateNestedOneWithoutDailyReportsInput
   laborType: Prisma.LaborTypeCreateNestedOneWithoutDailyReportsInput
   items?: Prisma.DailyReportItemCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportUncheckedCreateWithoutCompanyInput = {
@@ -913,6 +935,7 @@ export type DailyReportUncheckedCreateWithoutCompanyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.DailyReportItemUncheckedCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationUncheckedCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportCreateOrConnectWithoutCompanyInput = {
@@ -978,6 +1001,7 @@ export type DailyReportCreateWithoutOperatorInput = {
   lot: Prisma.LotCreateNestedOneWithoutDailyReportsInput
   laborType: Prisma.LaborTypeCreateNestedOneWithoutDailyReportsInput
   items?: Prisma.DailyReportItemCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportUncheckedCreateWithoutOperatorInput = {
@@ -996,6 +1020,7 @@ export type DailyReportUncheckedCreateWithoutOperatorInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.DailyReportItemUncheckedCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationUncheckedCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportCreateOrConnectWithoutOperatorInput = {
@@ -1024,6 +1049,7 @@ export type DailyReportCreateWithoutApproverInput = {
   lot: Prisma.LotCreateNestedOneWithoutDailyReportsInput
   laborType: Prisma.LaborTypeCreateNestedOneWithoutDailyReportsInput
   items?: Prisma.DailyReportItemCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportUncheckedCreateWithoutApproverInput = {
@@ -1042,6 +1068,7 @@ export type DailyReportUncheckedCreateWithoutApproverInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.DailyReportItemUncheckedCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationUncheckedCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportCreateOrConnectWithoutApproverInput = {
@@ -1102,6 +1129,7 @@ export type DailyReportCreateWithoutLaborTypeInput = {
   task: Prisma.TaskCreateNestedOneWithoutDailyReportsInput
   lot: Prisma.LotCreateNestedOneWithoutDailyReportsInput
   items?: Prisma.DailyReportItemCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportUncheckedCreateWithoutLaborTypeInput = {
@@ -1120,6 +1148,7 @@ export type DailyReportUncheckedCreateWithoutLaborTypeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.DailyReportItemUncheckedCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationUncheckedCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportCreateOrConnectWithoutLaborTypeInput = {
@@ -1164,6 +1193,7 @@ export type DailyReportCreateWithoutLotInput = {
   task: Prisma.TaskCreateNestedOneWithoutDailyReportsInput
   laborType: Prisma.LaborTypeCreateNestedOneWithoutDailyReportsInput
   items?: Prisma.DailyReportItemCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportUncheckedCreateWithoutLotInput = {
@@ -1182,6 +1212,7 @@ export type DailyReportUncheckedCreateWithoutLotInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.DailyReportItemUncheckedCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationUncheckedCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportCreateOrConnectWithoutLotInput = {
@@ -1226,6 +1257,7 @@ export type DailyReportCreateWithoutTaskInput = {
   lot: Prisma.LotCreateNestedOneWithoutDailyReportsInput
   laborType: Prisma.LaborTypeCreateNestedOneWithoutDailyReportsInput
   items?: Prisma.DailyReportItemCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportUncheckedCreateWithoutTaskInput = {
@@ -1244,6 +1276,7 @@ export type DailyReportUncheckedCreateWithoutTaskInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.DailyReportItemUncheckedCreateNestedManyWithoutDailyReportInput
+  valuation?: Prisma.DailyReportValuationUncheckedCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportCreateOrConnectWithoutTaskInput = {
@@ -1288,6 +1321,7 @@ export type DailyReportCreateWithoutItemsInput = {
   task: Prisma.TaskCreateNestedOneWithoutDailyReportsInput
   lot: Prisma.LotCreateNestedOneWithoutDailyReportsInput
   laborType: Prisma.LaborTypeCreateNestedOneWithoutDailyReportsInput
+  valuation?: Prisma.DailyReportValuationCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportUncheckedCreateWithoutItemsInput = {
@@ -1306,6 +1340,7 @@ export type DailyReportUncheckedCreateWithoutItemsInput = {
   approvedBy?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  valuation?: Prisma.DailyReportValuationUncheckedCreateNestedOneWithoutDailyReportInput
 }
 
 export type DailyReportCreateOrConnectWithoutItemsInput = {
@@ -1340,6 +1375,7 @@ export type DailyReportUpdateWithoutItemsInput = {
   task?: Prisma.TaskUpdateOneRequiredWithoutDailyReportsNestedInput
   lot?: Prisma.LotUpdateOneRequiredWithoutDailyReportsNestedInput
   laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutDailyReportsNestedInput
+  valuation?: Prisma.DailyReportValuationUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateWithoutItemsInput = {
@@ -1358,6 +1394,99 @@ export type DailyReportUncheckedUpdateWithoutItemsInput = {
   approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  valuation?: Prisma.DailyReportValuationUncheckedUpdateOneWithoutDailyReportNestedInput
+}
+
+export type DailyReportCreateWithoutValuationInput = {
+  id?: string
+  date: Date | string
+  hectares: number
+  hours: number
+  status?: $Enums.DailyReportStatus
+  rejectionReason?: string | null
+  approvedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  operator: Prisma.UserCreateNestedOneWithoutDailyReportsInput
+  approver?: Prisma.UserCreateNestedOneWithoutApprovedReportsInput
+  company: Prisma.CompanyCreateNestedOneWithoutDailyReportsInput
+  task: Prisma.TaskCreateNestedOneWithoutDailyReportsInput
+  lot: Prisma.LotCreateNestedOneWithoutDailyReportsInput
+  laborType: Prisma.LaborTypeCreateNestedOneWithoutDailyReportsInput
+  items?: Prisma.DailyReportItemCreateNestedManyWithoutDailyReportInput
+}
+
+export type DailyReportUncheckedCreateWithoutValuationInput = {
+  id?: string
+  operatorId: string
+  companyId: string
+  taskId: string
+  lotId: string
+  laborTypeId: string
+  date: Date | string
+  hectares: number
+  hours: number
+  status?: $Enums.DailyReportStatus
+  rejectionReason?: string | null
+  approvedAt?: Date | string | null
+  approvedBy?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.DailyReportItemUncheckedCreateNestedManyWithoutDailyReportInput
+}
+
+export type DailyReportCreateOrConnectWithoutValuationInput = {
+  where: Prisma.DailyReportWhereUniqueInput
+  create: Prisma.XOR<Prisma.DailyReportCreateWithoutValuationInput, Prisma.DailyReportUncheckedCreateWithoutValuationInput>
+}
+
+export type DailyReportUpsertWithoutValuationInput = {
+  update: Prisma.XOR<Prisma.DailyReportUpdateWithoutValuationInput, Prisma.DailyReportUncheckedUpdateWithoutValuationInput>
+  create: Prisma.XOR<Prisma.DailyReportCreateWithoutValuationInput, Prisma.DailyReportUncheckedCreateWithoutValuationInput>
+  where?: Prisma.DailyReportWhereInput
+}
+
+export type DailyReportUpdateToOneWithWhereWithoutValuationInput = {
+  where?: Prisma.DailyReportWhereInput
+  data: Prisma.XOR<Prisma.DailyReportUpdateWithoutValuationInput, Prisma.DailyReportUncheckedUpdateWithoutValuationInput>
+}
+
+export type DailyReportUpdateWithoutValuationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hectares?: Prisma.FloatFieldUpdateOperationsInput | number
+  hours?: Prisma.FloatFieldUpdateOperationsInput | number
+  status?: Prisma.EnumDailyReportStatusFieldUpdateOperationsInput | $Enums.DailyReportStatus
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  operator?: Prisma.UserUpdateOneRequiredWithoutDailyReportsNestedInput
+  approver?: Prisma.UserUpdateOneWithoutApprovedReportsNestedInput
+  company?: Prisma.CompanyUpdateOneRequiredWithoutDailyReportsNestedInput
+  task?: Prisma.TaskUpdateOneRequiredWithoutDailyReportsNestedInput
+  lot?: Prisma.LotUpdateOneRequiredWithoutDailyReportsNestedInput
+  laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutDailyReportsNestedInput
+  items?: Prisma.DailyReportItemUpdateManyWithoutDailyReportNestedInput
+}
+
+export type DailyReportUncheckedUpdateWithoutValuationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  operatorId?: Prisma.StringFieldUpdateOperationsInput | string
+  companyId?: Prisma.StringFieldUpdateOperationsInput | string
+  taskId?: Prisma.StringFieldUpdateOperationsInput | string
+  lotId?: Prisma.StringFieldUpdateOperationsInput | string
+  laborTypeId?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hectares?: Prisma.FloatFieldUpdateOperationsInput | number
+  hours?: Prisma.FloatFieldUpdateOperationsInput | number
+  status?: Prisma.EnumDailyReportStatusFieldUpdateOperationsInput | $Enums.DailyReportStatus
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.DailyReportItemUncheckedUpdateManyWithoutDailyReportNestedInput
 }
 
 export type DailyReportCreateManyCompanyInput = {
@@ -1393,6 +1522,7 @@ export type DailyReportUpdateWithoutCompanyInput = {
   lot?: Prisma.LotUpdateOneRequiredWithoutDailyReportsNestedInput
   laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutDailyReportsNestedInput
   items?: Prisma.DailyReportItemUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateWithoutCompanyInput = {
@@ -1411,6 +1541,7 @@ export type DailyReportUncheckedUpdateWithoutCompanyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.DailyReportItemUncheckedUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUncheckedUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateManyWithoutCompanyInput = {
@@ -1480,6 +1611,7 @@ export type DailyReportUpdateWithoutOperatorInput = {
   lot?: Prisma.LotUpdateOneRequiredWithoutDailyReportsNestedInput
   laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutDailyReportsNestedInput
   items?: Prisma.DailyReportItemUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateWithoutOperatorInput = {
@@ -1498,6 +1630,7 @@ export type DailyReportUncheckedUpdateWithoutOperatorInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.DailyReportItemUncheckedUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUncheckedUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateManyWithoutOperatorInput = {
@@ -1533,6 +1666,7 @@ export type DailyReportUpdateWithoutApproverInput = {
   lot?: Prisma.LotUpdateOneRequiredWithoutDailyReportsNestedInput
   laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutDailyReportsNestedInput
   items?: Prisma.DailyReportItemUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateWithoutApproverInput = {
@@ -1551,6 +1685,7 @@ export type DailyReportUncheckedUpdateWithoutApproverInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.DailyReportItemUncheckedUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUncheckedUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateManyWithoutApproverInput = {
@@ -1603,6 +1738,7 @@ export type DailyReportUpdateWithoutLaborTypeInput = {
   task?: Prisma.TaskUpdateOneRequiredWithoutDailyReportsNestedInput
   lot?: Prisma.LotUpdateOneRequiredWithoutDailyReportsNestedInput
   items?: Prisma.DailyReportItemUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateWithoutLaborTypeInput = {
@@ -1621,6 +1757,7 @@ export type DailyReportUncheckedUpdateWithoutLaborTypeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.DailyReportItemUncheckedUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUncheckedUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateManyWithoutLaborTypeInput = {
@@ -1673,6 +1810,7 @@ export type DailyReportUpdateWithoutLotInput = {
   task?: Prisma.TaskUpdateOneRequiredWithoutDailyReportsNestedInput
   laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutDailyReportsNestedInput
   items?: Prisma.DailyReportItemUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateWithoutLotInput = {
@@ -1691,6 +1829,7 @@ export type DailyReportUncheckedUpdateWithoutLotInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.DailyReportItemUncheckedUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUncheckedUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateManyWithoutLotInput = {
@@ -1743,6 +1882,7 @@ export type DailyReportUpdateWithoutTaskInput = {
   lot?: Prisma.LotUpdateOneRequiredWithoutDailyReportsNestedInput
   laborType?: Prisma.LaborTypeUpdateOneRequiredWithoutDailyReportsNestedInput
   items?: Prisma.DailyReportItemUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateWithoutTaskInput = {
@@ -1761,6 +1901,7 @@ export type DailyReportUncheckedUpdateWithoutTaskInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.DailyReportItemUncheckedUpdateManyWithoutDailyReportNestedInput
+  valuation?: Prisma.DailyReportValuationUncheckedUpdateOneWithoutDailyReportNestedInput
 }
 
 export type DailyReportUncheckedUpdateManyWithoutTaskInput = {
@@ -1834,6 +1975,7 @@ export type DailyReportSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
   laborType?: boolean | Prisma.LaborTypeDefaultArgs<ExtArgs>
   items?: boolean | Prisma.DailyReport$itemsArgs<ExtArgs>
+  valuation?: boolean | Prisma.DailyReport$valuationArgs<ExtArgs>
   _count?: boolean | Prisma.DailyReportCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["dailyReport"]>
 
@@ -1912,6 +2054,7 @@ export type DailyReportInclude<ExtArgs extends runtime.Types.Extensions.Internal
   lot?: boolean | Prisma.LotDefaultArgs<ExtArgs>
   laborType?: boolean | Prisma.LaborTypeDefaultArgs<ExtArgs>
   items?: boolean | Prisma.DailyReport$itemsArgs<ExtArgs>
+  valuation?: boolean | Prisma.DailyReport$valuationArgs<ExtArgs>
   _count?: boolean | Prisma.DailyReportCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type DailyReportIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1941,6 +2084,7 @@ export type $DailyReportPayload<ExtArgs extends runtime.Types.Extensions.Interna
     lot: Prisma.$LotPayload<ExtArgs>
     laborType: Prisma.$LaborTypePayload<ExtArgs>
     items: Prisma.$DailyReportItemPayload<ExtArgs>[]
+    valuation: Prisma.$DailyReportValuationPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2359,6 +2503,7 @@ export interface Prisma__DailyReportClient<T, Null = never, ExtArgs extends runt
   lot<T extends Prisma.LotDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LotDefaultArgs<ExtArgs>>): Prisma.Prisma__LotClient<runtime.Types.Result.GetResult<Prisma.$LotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   laborType<T extends Prisma.LaborTypeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LaborTypeDefaultArgs<ExtArgs>>): Prisma.Prisma__LaborTypeClient<runtime.Types.Result.GetResult<Prisma.$LaborTypePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   items<T extends Prisma.DailyReport$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DailyReport$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyReportItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  valuation<T extends Prisma.DailyReport$valuationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DailyReport$valuationArgs<ExtArgs>>): Prisma.Prisma__DailyReportValuationClient<runtime.Types.Result.GetResult<Prisma.$DailyReportValuationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2844,6 +2989,25 @@ export type DailyReport$itemsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.DailyReportItemScalarFieldEnum | Prisma.DailyReportItemScalarFieldEnum[]
+}
+
+/**
+ * DailyReport.valuation
+ */
+export type DailyReport$valuationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DailyReportValuation
+   */
+  select?: Prisma.DailyReportValuationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DailyReportValuation
+   */
+  omit?: Prisma.DailyReportValuationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DailyReportValuationInclude<ExtArgs> | null
+  where?: Prisma.DailyReportValuationWhereInput
 }
 
 /**

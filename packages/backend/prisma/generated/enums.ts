@@ -153,6 +153,68 @@ export const LaborKind = {
 export type LaborKind = (typeof LaborKind)[keyof typeof LaborKind]
 
 
+export const MoneyUnit = {
+  ARS: 'ARS',
+  USD: 'USD',
+  KG_CEREAL: 'KG_CEREAL'
+} as const
+
+export type MoneyUnit = (typeof MoneyUnit)[keyof typeof MoneyUnit]
+
+
+export const Grain = {
+  TRIGO: 'TRIGO',
+  MAIZ: 'MAIZ',
+  GIRASOL: 'GIRASOL',
+  SOJA: 'SOJA',
+  SORGO: 'SORGO'
+} as const
+
+export type Grain = (typeof Grain)[keyof typeof Grain]
+
+
+export const TariffBasis = {
+  POR_HECTAREA: 'POR_HECTAREA',
+  POR_HORA: 'POR_HORA'
+} as const
+
+export type TariffBasis = (typeof TariffBasis)[keyof typeof TariffBasis]
+
+
+export const UsdRateType = {
+  OFICIAL_VENTA: 'OFICIAL_VENTA',
+  OFICIAL_COMPRA: 'OFICIAL_COMPRA',
+  BNA_PIZARRA: 'BNA_PIZARRA'
+} as const
+
+export type UsdRateType = (typeof UsdRateType)[keyof typeof UsdRateType]
+
+
+export const ValuationOrigin = {
+  APROBACION: 'APROBACION',
+  REINTENTO: 'REINTENTO'
+} as const
+
+export type ValuationOrigin = (typeof ValuationOrigin)[keyof typeof ValuationOrigin]
+
+
+export const ExpenseSuggestionKind = {
+  EDICION: 'EDICION',
+  BAJA: 'BAJA'
+} as const
+
+export type ExpenseSuggestionKind = (typeof ExpenseSuggestionKind)[keyof typeof ExpenseSuggestionKind]
+
+
+export const ExpenseSuggestionStatus = {
+  PENDIENTE: 'PENDIENTE',
+  APROBADA: 'APROBADA',
+  RECHAZADA: 'RECHAZADA'
+} as const
+
+export type ExpenseSuggestionStatus = (typeof ExpenseSuggestionStatus)[keyof typeof ExpenseSuggestionStatus]
+
+
 export const InvoiceStatus = {
   EMITIDA: 'EMITIDA',
   COBRADA: 'COBRADA',

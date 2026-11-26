@@ -214,3 +214,28 @@ export type WeightRecord = Prisma.WeightRecordModel
  * 
  */
 export type LivestockMovement = Prisma.LivestockMovementModel
+/**
+ * Model Tariff
+ * 
+ */
+export type Tariff = Prisma.TariffModel
+/**
+ * Model DailyReportValuation
+ * 
+ */
+export type DailyReportValuation = Prisma.DailyReportValuationModel
+/**
+ * Model ExpenseCategory
+ * 
+ */
+export type ExpenseCategory = Prisma.ExpenseCategoryModel
+/**
+ * Model Expense
+ * 
+ */
+export type Expense = Prisma.ExpenseModel
+/**
+ * Model ExpenseSuggestion
+ * 
+ */
+export type ExpenseSuggestion = Prisma.ExpenseSuggestionModel

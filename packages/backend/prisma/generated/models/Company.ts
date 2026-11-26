@@ -256,6 +256,8 @@ export type CompanyWhereInput = {
   dailyReports?: Prisma.DailyReportListRelationFilter
   livestock?: Prisma.LivestockListRelationFilter
   modules?: Prisma.ModuleListRelationFilter
+  tariffs?: Prisma.TariffListRelationFilter
+  expenses?: Prisma.ExpenseListRelationFilter
   invoices?: Prisma.InvoiceListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
   cheques?: Prisma.ChequeListRelationFilter
@@ -280,6 +282,8 @@ export type CompanyOrderByWithRelationInput = {
   dailyReports?: Prisma.DailyReportOrderByRelationAggregateInput
   livestock?: Prisma.LivestockOrderByRelationAggregateInput
   modules?: Prisma.ModuleOrderByRelationAggregateInput
+  tariffs?: Prisma.TariffOrderByRelationAggregateInput
+  expenses?: Prisma.ExpenseOrderByRelationAggregateInput
   invoices?: Prisma.InvoiceOrderByRelationAggregateInput
   payments?: Prisma.PaymentOrderByRelationAggregateInput
   cheques?: Prisma.ChequeOrderByRelationAggregateInput
@@ -307,6 +311,8 @@ export type CompanyWhereUniqueInput = Prisma.AtLeast<{
   dailyReports?: Prisma.DailyReportListRelationFilter
   livestock?: Prisma.LivestockListRelationFilter
   modules?: Prisma.ModuleListRelationFilter
+  tariffs?: Prisma.TariffListRelationFilter
+  expenses?: Prisma.ExpenseListRelationFilter
   invoices?: Prisma.InvoiceListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
   cheques?: Prisma.ChequeListRelationFilter
@@ -362,6 +368,8 @@ export type CompanyCreateInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
@@ -385,6 +393,8 @@ export type CompanyUncheckedCreateInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
@@ -408,6 +418,8 @@ export type CompanyUpdateInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
@@ -431,6 +443,8 @@ export type CompanyUncheckedUpdateInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
@@ -751,6 +765,34 @@ export type CompanyUpdateOneRequiredWithoutLivestockNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutLivestockInput, Prisma.CompanyUpdateWithoutLivestockInput>, Prisma.CompanyUncheckedUpdateWithoutLivestockInput>
 }
 
+export type CompanyCreateNestedOneWithoutTariffsInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutTariffsInput, Prisma.CompanyUncheckedCreateWithoutTariffsInput>
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutTariffsInput
+  connect?: Prisma.CompanyWhereUniqueInput
+}
+
+export type CompanyUpdateOneRequiredWithoutTariffsNestedInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutTariffsInput, Prisma.CompanyUncheckedCreateWithoutTariffsInput>
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutTariffsInput
+  upsert?: Prisma.CompanyUpsertWithoutTariffsInput
+  connect?: Prisma.CompanyWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutTariffsInput, Prisma.CompanyUpdateWithoutTariffsInput>, Prisma.CompanyUncheckedUpdateWithoutTariffsInput>
+}
+
+export type CompanyCreateNestedOneWithoutExpensesInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutExpensesInput, Prisma.CompanyUncheckedCreateWithoutExpensesInput>
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutExpensesInput
+  connect?: Prisma.CompanyWhereUniqueInput
+}
+
+export type CompanyUpdateOneRequiredWithoutExpensesNestedInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutExpensesInput, Prisma.CompanyUncheckedCreateWithoutExpensesInput>
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutExpensesInput
+  upsert?: Prisma.CompanyUpsertWithoutExpensesInput
+  connect?: Prisma.CompanyWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutExpensesInput, Prisma.CompanyUpdateWithoutExpensesInput>, Prisma.CompanyUncheckedUpdateWithoutExpensesInput>
+}
+
 export type CompanyCreateWithoutTenantInput = {
   id?: string
   name: string
@@ -767,6 +809,8 @@ export type CompanyCreateWithoutTenantInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
@@ -789,6 +833,8 @@ export type CompanyUncheckedCreateWithoutTenantInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
@@ -852,6 +898,8 @@ export type CompanyCreateWithoutUserCompaniesInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
@@ -874,6 +922,8 @@ export type CompanyUncheckedCreateWithoutUserCompaniesInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
@@ -912,6 +962,8 @@ export type CompanyUpdateWithoutUserCompaniesInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
@@ -934,6 +986,8 @@ export type CompanyUncheckedUpdateWithoutUserCompaniesInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
@@ -956,6 +1010,8 @@ export type CompanyCreateWithoutModulesInput = {
   machineActivities?: Prisma.MachineActivityCreateNestedManyWithoutCompanyInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
@@ -978,6 +1034,8 @@ export type CompanyUncheckedCreateWithoutModulesInput = {
   machineActivities?: Prisma.MachineActivityUncheckedCreateNestedManyWithoutCompanyInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
@@ -1021,6 +1079,8 @@ export type CompanyCreateWithoutDailyReportsInput = {
   machineActivities?: Prisma.MachineActivityCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
@@ -1043,6 +1103,8 @@ export type CompanyUncheckedCreateWithoutDailyReportsInput = {
   machineActivities?: Prisma.MachineActivityUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
@@ -1081,6 +1143,8 @@ export type CompanyUpdateWithoutDailyReportsInput = {
   machineActivities?: Prisma.MachineActivityUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
@@ -1103,6 +1167,8 @@ export type CompanyUncheckedUpdateWithoutDailyReportsInput = {
   machineActivities?: Prisma.MachineActivityUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
@@ -1125,6 +1191,8 @@ export type CompanyCreateWithoutMachinesInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
@@ -1147,6 +1215,8 @@ export type CompanyUncheckedCreateWithoutMachinesInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
@@ -1185,6 +1255,8 @@ export type CompanyUpdateWithoutMachinesInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
@@ -1207,6 +1279,8 @@ export type CompanyUncheckedUpdateWithoutMachinesInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
@@ -1229,6 +1303,8 @@ export type CompanyCreateWithoutMaintenanceThresholdsInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
@@ -1251,6 +1327,8 @@ export type CompanyUncheckedCreateWithoutMaintenanceThresholdsInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
@@ -1289,6 +1367,8 @@ export type CompanyUpdateWithoutMaintenanceThresholdsInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
@@ -1311,6 +1391,8 @@ export type CompanyUncheckedUpdateWithoutMaintenanceThresholdsInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
@@ -1333,6 +1415,8 @@ export type CompanyCreateWithoutMachineActivitiesInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
@@ -1355,6 +1439,8 @@ export type CompanyUncheckedCreateWithoutMachineActivitiesInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
@@ -1393,6 +1479,8 @@ export type CompanyUpdateWithoutMachineActivitiesInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
@@ -1415,6 +1503,8 @@ export type CompanyUncheckedUpdateWithoutMachineActivitiesInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
@@ -1438,6 +1528,8 @@ export type CompanyCreateWithoutInvoicesInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
   echeqs?: Prisma.EcheqCreateNestedManyWithoutCompanyInput
@@ -1460,6 +1552,8 @@ export type CompanyUncheckedCreateWithoutInvoicesInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
   echeqs?: Prisma.EcheqUncheckedCreateNestedManyWithoutCompanyInput
@@ -1498,6 +1592,8 @@ export type CompanyUpdateWithoutInvoicesInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
   echeqs?: Prisma.EcheqUpdateManyWithoutCompanyNestedInput
@@ -1520,6 +1616,8 @@ export type CompanyUncheckedUpdateWithoutInvoicesInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
   echeqs?: Prisma.EcheqUncheckedUpdateManyWithoutCompanyNestedInput
@@ -1542,6 +1640,8 @@ export type CompanyCreateWithoutPaymentsInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
   echeqs?: Prisma.EcheqCreateNestedManyWithoutCompanyInput
@@ -1564,6 +1664,8 @@ export type CompanyUncheckedCreateWithoutPaymentsInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
   echeqs?: Prisma.EcheqUncheckedCreateNestedManyWithoutCompanyInput
@@ -1602,6 +1704,8 @@ export type CompanyUpdateWithoutPaymentsInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
   echeqs?: Prisma.EcheqUpdateManyWithoutCompanyNestedInput
@@ -1624,6 +1728,8 @@ export type CompanyUncheckedUpdateWithoutPaymentsInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
   echeqs?: Prisma.EcheqUncheckedUpdateManyWithoutCompanyNestedInput
@@ -1646,6 +1752,8 @@ export type CompanyCreateWithoutChequesInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   echeqs?: Prisma.EcheqCreateNestedManyWithoutCompanyInput
@@ -1668,6 +1776,8 @@ export type CompanyUncheckedCreateWithoutChequesInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   echeqs?: Prisma.EcheqUncheckedCreateNestedManyWithoutCompanyInput
@@ -1706,6 +1816,8 @@ export type CompanyUpdateWithoutChequesInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   echeqs?: Prisma.EcheqUpdateManyWithoutCompanyNestedInput
@@ -1728,6 +1840,8 @@ export type CompanyUncheckedUpdateWithoutChequesInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   echeqs?: Prisma.EcheqUncheckedUpdateManyWithoutCompanyNestedInput
@@ -1750,6 +1864,8 @@ export type CompanyCreateWithoutEcheqsInput = {
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
@@ -1772,6 +1888,8 @@ export type CompanyUncheckedCreateWithoutEcheqsInput = {
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
@@ -1810,6 +1928,8 @@ export type CompanyUpdateWithoutEcheqsInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
@@ -1832,6 +1952,8 @@ export type CompanyUncheckedUpdateWithoutEcheqsInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
@@ -1853,6 +1975,8 @@ export type CompanyCreateWithoutLivestockInput = {
   machineActivities?: Prisma.MachineActivityCreateNestedManyWithoutCompanyInput
   dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
@@ -1875,6 +1999,8 @@ export type CompanyUncheckedCreateWithoutLivestockInput = {
   machineActivities?: Prisma.MachineActivityUncheckedCreateNestedManyWithoutCompanyInput
   dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
   modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
   cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
@@ -1913,6 +2039,8 @@ export type CompanyUpdateWithoutLivestockInput = {
   machineActivities?: Prisma.MachineActivityUpdateManyWithoutCompanyNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
@@ -1935,6 +2063,232 @@ export type CompanyUncheckedUpdateWithoutLivestockInput = {
   machineActivities?: Prisma.MachineActivityUncheckedUpdateManyWithoutCompanyNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
+  cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
+  echeqs?: Prisma.EcheqUncheckedUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyCreateWithoutTariffsInput = {
+  id?: string
+  name: string
+  cuit: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  tenant: Prisma.TenantCreateNestedOneWithoutCompaniesInput
+  userCompanies?: Prisma.UserCompanyCreateNestedManyWithoutCompanyInput
+  machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
+  maintenanceThresholds?: Prisma.MaintenanceThresholdCreateNestedManyWithoutCompanyInput
+  machineActivities?: Prisma.MachineActivityCreateNestedManyWithoutCompanyInput
+  dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
+  livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCompanyInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
+  cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
+  echeqs?: Prisma.EcheqCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyUncheckedCreateWithoutTariffsInput = {
+  id?: string
+  tenantId: string
+  name: string
+  cuit: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  userCompanies?: Prisma.UserCompanyUncheckedCreateNestedManyWithoutCompanyInput
+  machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
+  maintenanceThresholds?: Prisma.MaintenanceThresholdUncheckedCreateNestedManyWithoutCompanyInput
+  machineActivities?: Prisma.MachineActivityUncheckedCreateNestedManyWithoutCompanyInput
+  dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
+  livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCompanyInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
+  cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
+  echeqs?: Prisma.EcheqUncheckedCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyCreateOrConnectWithoutTariffsInput = {
+  where: Prisma.CompanyWhereUniqueInput
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutTariffsInput, Prisma.CompanyUncheckedCreateWithoutTariffsInput>
+}
+
+export type CompanyUpsertWithoutTariffsInput = {
+  update: Prisma.XOR<Prisma.CompanyUpdateWithoutTariffsInput, Prisma.CompanyUncheckedUpdateWithoutTariffsInput>
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutTariffsInput, Prisma.CompanyUncheckedCreateWithoutTariffsInput>
+  where?: Prisma.CompanyWhereInput
+}
+
+export type CompanyUpdateToOneWithWhereWithoutTariffsInput = {
+  where?: Prisma.CompanyWhereInput
+  data: Prisma.XOR<Prisma.CompanyUpdateWithoutTariffsInput, Prisma.CompanyUncheckedUpdateWithoutTariffsInput>
+}
+
+export type CompanyUpdateWithoutTariffsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cuit?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutCompaniesNestedInput
+  userCompanies?: Prisma.UserCompanyUpdateManyWithoutCompanyNestedInput
+  machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
+  maintenanceThresholds?: Prisma.MaintenanceThresholdUpdateManyWithoutCompanyNestedInput
+  machineActivities?: Prisma.MachineActivityUpdateManyWithoutCompanyNestedInput
+  dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
+  livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
+  cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
+  echeqs?: Prisma.EcheqUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyUncheckedUpdateWithoutTariffsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cuit?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  userCompanies?: Prisma.UserCompanyUncheckedUpdateManyWithoutCompanyNestedInput
+  machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
+  maintenanceThresholds?: Prisma.MaintenanceThresholdUncheckedUpdateManyWithoutCompanyNestedInput
+  machineActivities?: Prisma.MachineActivityUncheckedUpdateManyWithoutCompanyNestedInput
+  dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
+  livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
+  cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
+  echeqs?: Prisma.EcheqUncheckedUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyCreateWithoutExpensesInput = {
+  id?: string
+  name: string
+  cuit: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  tenant: Prisma.TenantCreateNestedOneWithoutCompaniesInput
+  userCompanies?: Prisma.UserCompanyCreateNestedManyWithoutCompanyInput
+  machines?: Prisma.MachineCreateNestedManyWithoutCompanyInput
+  maintenanceThresholds?: Prisma.MaintenanceThresholdCreateNestedManyWithoutCompanyInput
+  machineActivities?: Prisma.MachineActivityCreateNestedManyWithoutCompanyInput
+  dailyReports?: Prisma.DailyReportCreateNestedManyWithoutCompanyInput
+  livestock?: Prisma.LivestockCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffCreateNestedManyWithoutCompanyInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutCompanyInput
+  cheques?: Prisma.ChequeCreateNestedManyWithoutCompanyInput
+  echeqs?: Prisma.EcheqCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyUncheckedCreateWithoutExpensesInput = {
+  id?: string
+  tenantId: string
+  name: string
+  cuit: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  version?: number
+  deleted?: boolean
+  userCompanies?: Prisma.UserCompanyUncheckedCreateNestedManyWithoutCompanyInput
+  machines?: Prisma.MachineUncheckedCreateNestedManyWithoutCompanyInput
+  maintenanceThresholds?: Prisma.MaintenanceThresholdUncheckedCreateNestedManyWithoutCompanyInput
+  machineActivities?: Prisma.MachineActivityUncheckedCreateNestedManyWithoutCompanyInput
+  dailyReports?: Prisma.DailyReportUncheckedCreateNestedManyWithoutCompanyInput
+  livestock?: Prisma.LivestockUncheckedCreateNestedManyWithoutCompanyInput
+  modules?: Prisma.ModuleUncheckedCreateNestedManyWithoutCompaniesInput
+  tariffs?: Prisma.TariffUncheckedCreateNestedManyWithoutCompanyInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutCompanyInput
+  cheques?: Prisma.ChequeUncheckedCreateNestedManyWithoutCompanyInput
+  echeqs?: Prisma.EcheqUncheckedCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyCreateOrConnectWithoutExpensesInput = {
+  where: Prisma.CompanyWhereUniqueInput
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutExpensesInput, Prisma.CompanyUncheckedCreateWithoutExpensesInput>
+}
+
+export type CompanyUpsertWithoutExpensesInput = {
+  update: Prisma.XOR<Prisma.CompanyUpdateWithoutExpensesInput, Prisma.CompanyUncheckedUpdateWithoutExpensesInput>
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutExpensesInput, Prisma.CompanyUncheckedCreateWithoutExpensesInput>
+  where?: Prisma.CompanyWhereInput
+}
+
+export type CompanyUpdateToOneWithWhereWithoutExpensesInput = {
+  where?: Prisma.CompanyWhereInput
+  data: Prisma.XOR<Prisma.CompanyUpdateWithoutExpensesInput, Prisma.CompanyUncheckedUpdateWithoutExpensesInput>
+}
+
+export type CompanyUpdateWithoutExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cuit?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutCompaniesNestedInput
+  userCompanies?: Prisma.UserCompanyUpdateManyWithoutCompanyNestedInput
+  machines?: Prisma.MachineUpdateManyWithoutCompanyNestedInput
+  maintenanceThresholds?: Prisma.MaintenanceThresholdUpdateManyWithoutCompanyNestedInput
+  machineActivities?: Prisma.MachineActivityUpdateManyWithoutCompanyNestedInput
+  dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
+  livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
+  cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
+  echeqs?: Prisma.EcheqUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyUncheckedUpdateWithoutExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  cuit?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  userCompanies?: Prisma.UserCompanyUncheckedUpdateManyWithoutCompanyNestedInput
+  machines?: Prisma.MachineUncheckedUpdateManyWithoutCompanyNestedInput
+  maintenanceThresholds?: Prisma.MaintenanceThresholdUncheckedUpdateManyWithoutCompanyNestedInput
+  machineActivities?: Prisma.MachineActivityUncheckedUpdateManyWithoutCompanyNestedInput
+  dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
+  livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
+  modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
@@ -1968,6 +2322,8 @@ export type CompanyUpdateWithoutTenantInput = {
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
@@ -1990,6 +2346,8 @@ export type CompanyUncheckedUpdateWithoutTenantInput = {
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
   modules?: Prisma.ModuleUncheckedUpdateManyWithoutCompaniesNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
@@ -2023,6 +2381,8 @@ export type CompanyUpdateWithoutModulesInput = {
   machineActivities?: Prisma.MachineActivityUpdateManyWithoutCompanyNestedInput
   dailyReports?: Prisma.DailyReportUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUpdateManyWithoutCompanyNestedInput
+  tariffs?: Prisma.TariffUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUpdateManyWithoutCompanyNestedInput
@@ -2045,6 +2405,8 @@ export type CompanyUncheckedUpdateWithoutModulesInput = {
   machineActivities?: Prisma.MachineActivityUncheckedUpdateManyWithoutCompanyNestedInput
   dailyReports?: Prisma.DailyReportUncheckedUpdateManyWithoutCompanyNestedInput
   livestock?: Prisma.LivestockUncheckedUpdateManyWithoutCompanyNestedInput
+  tariffs?: Prisma.TariffUncheckedUpdateManyWithoutCompanyNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutCompanyNestedInput
   cheques?: Prisma.ChequeUncheckedUpdateManyWithoutCompanyNestedInput
@@ -2076,6 +2438,8 @@ export type CompanyCountOutputType = {
   dailyReports: number
   livestock: number
   modules: number
+  tariffs: number
+  expenses: number
   invoices: number
   payments: number
   cheques: number
@@ -2090,6 +2454,8 @@ export type CompanyCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   dailyReports?: boolean | CompanyCountOutputTypeCountDailyReportsArgs
   livestock?: boolean | CompanyCountOutputTypeCountLivestockArgs
   modules?: boolean | CompanyCountOutputTypeCountModulesArgs
+  tariffs?: boolean | CompanyCountOutputTypeCountTariffsArgs
+  expenses?: boolean | CompanyCountOutputTypeCountExpensesArgs
   invoices?: boolean | CompanyCountOutputTypeCountInvoicesArgs
   payments?: boolean | CompanyCountOutputTypeCountPaymentsArgs
   cheques?: boolean | CompanyCountOutputTypeCountChequesArgs
@@ -2158,6 +2524,20 @@ export type CompanyCountOutputTypeCountModulesArgs<ExtArgs extends runtime.Types
 /**
  * CompanyCountOutputType without action
  */
+export type CompanyCountOutputTypeCountTariffsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TariffWhereInput
+}
+
+/**
+ * CompanyCountOutputType without action
+ */
+export type CompanyCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExpenseWhereInput
+}
+
+/**
+ * CompanyCountOutputType without action
+ */
 export type CompanyCountOutputTypeCountInvoicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.InvoiceWhereInput
 }
@@ -2202,6 +2582,8 @@ export type CompanySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   dailyReports?: boolean | Prisma.Company$dailyReportsArgs<ExtArgs>
   livestock?: boolean | Prisma.Company$livestockArgs<ExtArgs>
   modules?: boolean | Prisma.Company$modulesArgs<ExtArgs>
+  tariffs?: boolean | Prisma.Company$tariffsArgs<ExtArgs>
+  expenses?: boolean | Prisma.Company$expensesArgs<ExtArgs>
   invoices?: boolean | Prisma.Company$invoicesArgs<ExtArgs>
   payments?: boolean | Prisma.Company$paymentsArgs<ExtArgs>
   cheques?: boolean | Prisma.Company$chequesArgs<ExtArgs>
@@ -2257,6 +2639,8 @@ export type CompanyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   dailyReports?: boolean | Prisma.Company$dailyReportsArgs<ExtArgs>
   livestock?: boolean | Prisma.Company$livestockArgs<ExtArgs>
   modules?: boolean | Prisma.Company$modulesArgs<ExtArgs>
+  tariffs?: boolean | Prisma.Company$tariffsArgs<ExtArgs>
+  expenses?: boolean | Prisma.Company$expensesArgs<ExtArgs>
   invoices?: boolean | Prisma.Company$invoicesArgs<ExtArgs>
   payments?: boolean | Prisma.Company$paymentsArgs<ExtArgs>
   cheques?: boolean | Prisma.Company$chequesArgs<ExtArgs>
@@ -2281,6 +2665,8 @@ export type $CompanyPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     dailyReports: Prisma.$DailyReportPayload<ExtArgs>[]
     livestock: Prisma.$LivestockPayload<ExtArgs>[]
     modules: Prisma.$ModulePayload<ExtArgs>[]
+    tariffs: Prisma.$TariffPayload<ExtArgs>[]
+    expenses: Prisma.$ExpensePayload<ExtArgs>[]
     invoices: Prisma.$InvoicePayload<ExtArgs>[]
     payments: Prisma.$PaymentPayload<ExtArgs>[]
     cheques: Prisma.$ChequePayload<ExtArgs>[]
@@ -2698,6 +3084,8 @@ export interface Prisma__CompanyClient<T, Null = never, ExtArgs extends runtime.
   dailyReports<T extends Prisma.Company$dailyReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$dailyReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   livestock<T extends Prisma.Company$livestockArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$livestockArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LivestockPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   modules<T extends Prisma.Company$modulesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$modulesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tariffs<T extends Prisma.Company$tariffsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$tariffsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TariffPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  expenses<T extends Prisma.Company$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invoices<T extends Prisma.Company$invoicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$invoicesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvoicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payments<T extends Prisma.Company$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   cheques<T extends Prisma.Company$chequesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$chequesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChequePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3306,6 +3694,54 @@ export type Company$modulesArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.ModuleScalarFieldEnum | Prisma.ModuleScalarFieldEnum[]
+}
+
+/**
+ * Company.tariffs
+ */
+export type Company$tariffsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Tariff
+   */
+  select?: Prisma.TariffSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Tariff
+   */
+  omit?: Prisma.TariffOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TariffInclude<ExtArgs> | null
+  where?: Prisma.TariffWhereInput
+  orderBy?: Prisma.TariffOrderByWithRelationInput | Prisma.TariffOrderByWithRelationInput[]
+  cursor?: Prisma.TariffWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TariffScalarFieldEnum | Prisma.TariffScalarFieldEnum[]
+}
+
+/**
+ * Company.expenses
+ */
+export type Company$expensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Expense
+   */
+  select?: Prisma.ExpenseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Expense
+   */
+  omit?: Prisma.ExpenseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExpenseInclude<ExtArgs> | null
+  where?: Prisma.ExpenseWhereInput
+  orderBy?: Prisma.ExpenseOrderByWithRelationInput | Prisma.ExpenseOrderByWithRelationInput[]
+  cursor?: Prisma.ExpenseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
 }
 
 /**

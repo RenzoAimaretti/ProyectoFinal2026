@@ -39,6 +39,7 @@ model Tenant {
   inputs     Input[]
   inputCategories InputCategory[]
   laborTypes LaborType[]
+  expenseCategories ExpenseCategory[]
 }
 
 model Company {
@@ -60,6 +61,8 @@ model Company {
   dailyReports      DailyReport[]
   livestock         Livestock[]
   modules           Module[]
+  tariffs           Tariff[]
+  expenses          Expense[]
   invoices          Invoice[]
   payments          Payment[]
   cheques           Cheque[]
@@ -228,6 +231,7 @@ model LaborType {
   tasks        Task[]
   dailyReports DailyReport[]
   categories   LaborTypeCategory[]
+  tariffs      Tariff[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
@@ -289,6 +293,7 @@ model Lot {
   livestock    Livestock[]         @relation("LotLivestock")
   recipes      Recipe[]
   dailyReports DailyReport[]
+  expenses     Expense[]
 
   @@index([farmId])
 }
@@ -393,6 +398,7 @@ model DailyReport {
   lot       Lot               @relation(fields: [lotId], references: [id])
   laborType LaborType         @relation(fields: [laborTypeId], references: [id])
   items     DailyReportItem[]
+  valuation DailyReportValuation?
 
   @@index([companyId, date])
   @@index([status, date])
@@ -901,6 +907,205 @@ enum LaborKind {
   FERTILIZACION
   COSECHA
   OTRO
+}
+
+// ============================================================================
+// Finanzas: tarifario (Sprint 4, Unidad 1)
+//
+// Una tarifa por par firma + tipo de labor. Precio y costo estandar llevan cada
+// uno su propia base y moneda (ARS, USD o kilos de un grano de la pizarra).
+// Los montos son Decimal(18,4); en la API viajan como strings decimales.
+// El CHECK de grano (grano obligatorio solo en KG_CEREAL) y los montos >= 0
+// viven en la migracion SQL, porque Prisma no los expresa.
+// ============================================================================
+
+enum MoneyUnit {
+  ARS
+  USD
+  KG_CEREAL
+}
+
+enum Grain {
+  TRIGO
+  MAIZ
+  GIRASOL
+  SOJA
+  SORGO
+}
+
+enum TariffBasis {
+  POR_HECTAREA
+  POR_HORA
+}
+
+enum UsdRateType {
+  OFICIAL_VENTA
+  OFICIAL_COMPRA
+  BNA_PIZARRA
+}
+
+model Tariff {
+  id          String      @id @default(uuid())
+  companyId   String
+  laborTypeId String
+  priceAmount Decimal     @db.Decimal(18, 4)
+  priceUnit   MoneyUnit
+  priceGrain  Grain?
+  priceBasis  TariffBasis
+  costAmount  Decimal     @db.Decimal(18, 4)
+  costUnit    MoneyUnit
+  costGrain   Grain?
+  costBasis   TariffBasis
+  updatedBy   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  company   Company   @relation(fields: [companyId], references: [id])
+  laborType  LaborType              @relation(fields: [laborTypeId], references: [id])
+  valuations DailyReportValuation[]
+
+  @@unique([companyId, laborTypeId])
+}
+
+enum ValuationOrigin {
+  APROBACION
+  REINTENTO
+}
+
+model DailyReportValuation {
+  id            String          @id @default(uuid())
+  dailyReportId String          @unique
+  companyId     String
+  lotId         String
+  tariffId      String?
+  origin        ValuationOrigin
+
+  priceAmount Decimal     @db.Decimal(18, 4)
+  priceUnit   MoneyUnit
+  priceGrain  Grain?
+  priceBasis  TariffBasis
+  costAmount  Decimal     @db.Decimal(18, 4)
+  costUnit    MoneyUnit
+  costGrain   Grain?
+  costBasis   TariffBasis
+
+  hectares     Decimal @db.Decimal(18, 4)
+  hours        Decimal @db.Decimal(18, 4)
+  incomeNative Decimal @db.Decimal(18, 4)
+  costNative   Decimal @db.Decimal(18, 4)
+
+  incomeGrainArsPerTon Decimal?     @db.Decimal(18, 4)
+  costGrainArsPerTon   Decimal?     @db.Decimal(18, 4)
+  usdRate              Decimal?     @db.Decimal(18, 4)
+  usdRateType          UsdRateType?
+  grainSource          String?
+  usdSource            String?
+  priceFetchedAt       DateTime?
+  priceStale           Boolean      @default(false)
+
+  incomeArs Decimal  @db.Decimal(18, 4)
+  costArs   Decimal  @db.Decimal(18, 4)
+  valuedAt  DateTime
+  createdAt DateTime @default(now())
+
+  dailyReport DailyReport @relation(fields: [dailyReportId], references: [id])
+  tariff      Tariff?     @relation(fields: [tariffId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, lotId])
+}
+
+// ============================================================================
+// Sprint 4, Unidad 3: gastos manuales por lote y sugerencias del supervisor.
+// El gasto se da de baja de forma logica (deletedAt/deletedBy) para que la
+// sugerencia aprobada conserve su historial: por eso la sugerencia NO cascadea.
+// El indice unico parcial "una sugerencia PENDIENTE por gasto" y los CHECK de
+// grano/monto viven en la migracion SQL, porque Prisma no los expresa.
+// ============================================================================
+
+enum ExpenseSuggestionKind {
+  EDICION
+  BAJA
+}
+
+enum ExpenseSuggestionStatus {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}
+
+model ExpenseCategory {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+  expenses Expense[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model Expense {
+  id             String       @id @default(uuid())
+  companyId      String
+  lotId          String
+  categoryId     String
+  date           DateTime
+  description    String
+  amount         Decimal      @db.Decimal(18, 4)
+  unit           MoneyUnit
+  grain          Grain?
+  grainArsPerTon Decimal?     @db.Decimal(18, 4)
+  usdRate        Decimal?     @db.Decimal(18, 4)
+  usdRateType    UsdRateType?
+  priceSource    String?
+  priceFetchedAt DateTime?
+  priceStale     Boolean      @default(false)
+  amountArs      Decimal      @db.Decimal(18, 4)
+  valuedAt       DateTime
+  createdBy      String
+  updatedBy      String
+  deletedAt      DateTime?
+  deletedBy      String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  company     Company             @relation(fields: [companyId], references: [id])
+  lot         Lot                 @relation(fields: [lotId], references: [id])
+  category    ExpenseCategory     @relation(fields: [categoryId], references: [id])
+  suggestions ExpenseSuggestion[]
+
+  @@index([companyId, lotId, date])
+  @@index([categoryId])
+}
+
+model ExpenseSuggestion {
+  id                  String                  @id @default(uuid())
+  expenseId           String
+  companyId           String
+  kind                ExpenseSuggestionKind
+  status              ExpenseSuggestionStatus @default(PENDIENTE)
+  proposedLotId       String?
+  proposedCategoryId  String?
+  proposedDate        DateTime?
+  proposedDescription String?
+  proposedAmount      Decimal?                @db.Decimal(18, 4)
+  proposedUnit        MoneyUnit?
+  proposedGrain       Grain?
+  suggestedBy         String
+  rejectionReason     String?
+  resolvedBy          String?
+  resolvedAt          DateTime?
+  createdAt           DateTime                @default(now())
+
+  expense Expense @relation(fields: [expenseId], references: [id])
+
+  @@index([companyId, status])
+  @@index([suggestedBy])
+  @@index([expenseId])
 }
 
 enum InvoiceStatus {

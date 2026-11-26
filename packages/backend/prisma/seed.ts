@@ -97,9 +97,19 @@ async function main(): Promise<void> {
     // Wipe demo data in reverse-FK order. The tenant bootstrap rows (Tenant,
     // Company, User, UserCompany) are preserved and upserted right after.
     await prisma.$transaction([
+      prisma.cheque.deleteMany(),
+      prisma.echeq.deleteMany(),
+      prisma.payment.deleteMany(),
+      prisma.invoiceItem.deleteMany(),
+      prisma.invoice.deleteMany(),
       prisma.photo.deleteMany(),
       prisma.dailyReportItem.deleteMany(),
+      prisma.dailyReportValuation.deleteMany(),
       prisma.dailyReport.deleteMany(),
+      prisma.tariff.deleteMany(),
+      prisma.expenseSuggestion.deleteMany(),
+      prisma.expense.deleteMany(),
+      prisma.expenseCategory.deleteMany(),
       prisma.machineUsage.deleteMany(),
       prisma.machineActivity.deleteMany(),
       prisma.receptionItem.deleteMany(),
@@ -299,6 +309,76 @@ async function main(): Promise<void> {
         description: 'Registro de peso',
         kind: 'OTRO',
       },
+    });
+
+    // --- Finanzas: categorias de gasto y tarifario de ejemplo (Sprint 4) -----
+    // Las categorias son del tenant; las tarifas, de la firma del seed. Mezcla
+    // de ARS, USD y kilos de soja; Traslado cobra 0 y todas tienen precio y
+    // costo (0 es valido). Los aprobados del seed se valorizan solos la primera
+    // vez que se abre la calculadora.
+    await prisma.expenseCategory.createMany({
+      data: [
+        'Combustible',
+        'Reparación',
+        'Mantenimiento',
+        'Flete',
+        'Mano de obra',
+        'Otros',
+      ].map((name, index) => ({
+        id: did(300 + index),
+        tenantId: TENANT_ID,
+        name,
+      })),
+    });
+
+    const seedTariffs = [
+      {
+        laborTypeId: laborTypePulverizacion.id,
+        price: ['12', 'KG_CEREAL', 'SOJA', 'POR_HECTAREA'],
+        cost: ['8000', 'ARS', null, 'POR_HORA'],
+      },
+      {
+        laborTypeId: laborTypeFertilizacion.id,
+        price: ['9', 'USD', null, 'POR_HECTAREA'],
+        cost: ['6000', 'ARS', null, 'POR_HORA'],
+      },
+      {
+        laborTypeId: laborTypeSiembra.id,
+        price: ['30', 'KG_CEREAL', 'SOJA', 'POR_HECTAREA'],
+        cost: ['10000', 'ARS', null, 'POR_HORA'],
+      },
+      {
+        laborTypeId: laborTypeArranque.id,
+        price: ['25000', 'ARS', null, 'POR_HORA'],
+        cost: ['12000', 'ARS', null, 'POR_HORA'],
+      },
+      {
+        laborTypeId: laborTypeTraslado.id,
+        price: ['0', 'ARS', null, 'POR_HORA'],
+        cost: ['5', 'USD', null, 'POR_HORA'],
+      },
+      {
+        laborTypeId: laborTypePesaje.id,
+        price: ['15000', 'ARS', null, 'POR_HORA'],
+        cost: ['0', 'ARS', null, 'POR_HORA'],
+      },
+    ] as const;
+
+    await prisma.tariff.createMany({
+      data: seedTariffs.map((tariff, index) => ({
+        id: did(310 + index),
+        companyId: COMPANY_ID,
+        laborTypeId: tariff.laborTypeId,
+        priceAmount: tariff.price[0],
+        priceUnit: tariff.price[1],
+        priceGrain: tariff.price[2],
+        priceBasis: tariff.price[3],
+        costAmount: tariff.cost[0],
+        costUnit: tariff.cost[1],
+        costGrain: tariff.cost[2],
+        costBasis: tariff.cost[3],
+        updatedBy: USER_ID,
+      })),
     });
 
     // --- Campos y lotes ----------------------------------------------------
